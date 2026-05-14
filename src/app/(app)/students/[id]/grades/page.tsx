@@ -77,8 +77,8 @@ export default async function StudentGradesPage({ params }: { params: Promise<{ 
         <>
           <GradeChart grades={chartGrades} />
 
-          <div className="rounded-lg border bg-white overflow-hidden">
-            <table className="w-full text-sm">
+          <div className="rounded-lg border bg-white overflow-hidden overflow-x-auto">
+            <table className="w-full text-sm min-w-[560px]">
               <thead className="border-b bg-gray-50">
                 <tr>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">テスト名</th>

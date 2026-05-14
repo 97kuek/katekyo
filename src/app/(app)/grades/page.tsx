@@ -43,7 +43,7 @@ async function TeacherGradesPage({ teacherId }: { teacherId: string }) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-start justify-between gap-3 flex-wrap">
         <h1 className="text-2xl font-bold">成績管理</h1>
         <Link href="/grades/new" className={buttonVariants()}>
           成績を記録
@@ -58,8 +58,8 @@ async function TeacherGradesPage({ teacherId }: { teacherId: string }) {
           </Link>
         </div>
       ) : (
-        <div className="rounded-lg border bg-white overflow-hidden">
-          <table className="w-full text-sm">
+        <div className="rounded-lg border bg-white overflow-hidden overflow-x-auto">
+          <table className="w-full text-sm min-w-[640px]">
             <thead className="border-b bg-gray-50">
               <tr>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">テスト名</th>
@@ -142,8 +142,8 @@ async function StudentGradesPage({ userId }: { userId: string }) {
         <>
           <GradeChart grades={chartGrades} />
 
-          <div className="rounded-lg border bg-white overflow-hidden">
-            <table className="w-full text-sm">
+          <div className="rounded-lg border bg-white overflow-hidden overflow-x-auto">
+            <table className="w-full text-sm min-w-[560px]">
               <thead className="border-b bg-gray-50">
                 <tr>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">テスト名</th>

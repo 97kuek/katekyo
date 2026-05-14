@@ -54,7 +54,7 @@ async function TeacherHomeworkPage({ teacherId }: { teacherId: string }) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-start justify-between gap-3 flex-wrap">
         <h1 className="text-2xl font-bold">宿題管理</h1>
         <Link href="/homework/new" className={buttonVariants()}>
           宿題を作成
@@ -95,8 +95,8 @@ async function TeacherHomeworkPage({ teacherId }: { teacherId: string }) {
       {others.length > 0 && (
         <section className="space-y-3">
           <h2 className="text-sm font-medium text-muted-foreground">すべての宿題</h2>
-          <div className="rounded-lg border bg-white overflow-hidden">
-            <table className="w-full text-sm">
+          <div className="rounded-lg border bg-white overflow-hidden overflow-x-auto">
+            <table className="w-full text-sm min-w-[480px]">
               <thead className="border-b bg-gray-50">
                 <tr>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">タイトル</th>
@@ -209,8 +209,8 @@ async function StudentHomeworkPage({ userId }: { userId: string }) {
       {done.length > 0 && (
         <section className="space-y-3">
           <h2 className="text-sm font-medium text-muted-foreground">完了</h2>
-          <div className="rounded-lg border bg-white overflow-hidden">
-            <table className="w-full text-sm">
+          <div className="rounded-lg border bg-white overflow-hidden overflow-x-auto">
+            <table className="w-full text-sm min-w-[360px]">
               <thead className="border-b bg-gray-50">
                 <tr>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">タイトル</th>

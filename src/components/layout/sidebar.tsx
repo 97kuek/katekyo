@@ -24,7 +24,7 @@ export default function Sidebar({ role }: { role: string }) {
   const navItems = role === "teacher" ? teacherNav : studentNav
 
   return (
-    <aside className="w-60 shrink-0 border-r bg-white flex flex-col">
+    <aside className="w-60 shrink-0 border-r bg-white hidden md:flex flex-col">
       <div className="h-14 flex items-center gap-2 px-5 border-b">
         <BookOpen className="h-5 w-5 text-primary" />
         <span className="font-bold text-lg tracking-tight">katekyo</span>

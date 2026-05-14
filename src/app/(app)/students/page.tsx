@@ -16,7 +16,7 @@ export default async function StudentsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-start justify-between gap-3 flex-wrap">
         <div>
           <h1 className="text-2xl font-bold">生徒一覧</h1>
           <p className="text-sm text-muted-foreground mt-1">{students.length}名の生徒が登録されています</p>
@@ -39,8 +39,8 @@ export default async function StudentsPage() {
           </Link>
         </div>
       ) : (
-        <div className="rounded-lg border bg-white overflow-hidden">
-          <table className="w-full text-sm">
+        <div className="rounded-lg border bg-white overflow-hidden overflow-x-auto">
+          <table className="w-full text-sm min-w-[480px]">
             <thead className="border-b bg-gray-50">
               <tr>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">名前</th>

@@ -47,8 +47,8 @@ export default async function InvitesPage() {
             </span>
             有効（未使用）
           </h2>
-          <div className="rounded-lg border bg-white overflow-hidden">
-            <table className="w-full text-sm">
+          <div className="rounded-lg border bg-white overflow-hidden overflow-x-auto">
+            <table className="w-full text-sm min-w-[480px]">
               <thead className="border-b bg-gray-50">
                 <tr>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">名前</th>
@@ -91,8 +91,8 @@ export default async function InvitesPage() {
       {expired.length > 0 && (
         <section className="space-y-3">
           <h2 className="text-sm font-medium text-muted-foreground">期限切れ（未使用）</h2>
-          <div className="rounded-lg border bg-white overflow-hidden">
-            <table className="w-full text-sm">
+          <div className="rounded-lg border bg-white overflow-hidden overflow-x-auto">
+            <table className="w-full text-sm min-w-[480px]">
               <thead className="border-b bg-gray-50">
                 <tr>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">名前</th>
@@ -131,8 +131,8 @@ export default async function InvitesPage() {
       {used.length > 0 && (
         <section className="space-y-3">
           <h2 className="text-sm font-medium text-muted-foreground">使用済み</h2>
-          <div className="rounded-lg border bg-white overflow-hidden">
-            <table className="w-full text-sm">
+          <div className="rounded-lg border bg-white overflow-hidden overflow-x-auto">
+            <table className="w-full text-sm min-w-[480px]">
               <thead className="border-b bg-gray-50">
                 <tr>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">名前</th>
