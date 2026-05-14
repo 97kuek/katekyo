@@ -5,6 +5,20 @@ import Link from "next/link"
 import { buttonVariants } from "@/components/ui/button"
 import GradeChart from "./grade-chart"
 
+function SubjectTags({ ids, map }: { ids: string[]; map: Map<string, string> }) {
+  const names = ids.map((id) => map.get(id)).filter(Boolean) as string[]
+  if (names.length === 0) return null
+  return (
+    <div className="flex flex-wrap gap-1 mt-1">
+      {names.map((name) => (
+        <span key={name} className="text-xs bg-blue-50 text-blue-700 rounded-full px-2 py-0.5">
+          {name}
+        </span>
+      ))}
+    </div>
+  )
+}
+
 export default async function GradesPage() {
   const session = await auth()
   if (!session) redirect("/login")
@@ -16,11 +30,16 @@ export default async function GradesPage() {
 }
 
 async function TeacherGradesPage({ teacherId }: { teacherId: string }) {
-  const grades = await db.gradeRecord.findMany({
-    where: { teacherId },
-    include: { student: { include: { user: { select: { name: true } } } } },
-    orderBy: { date: "desc" },
-  })
+  const [grades, subjects] = await Promise.all([
+    db.gradeRecord.findMany({
+      where: { teacherId },
+      include: { student: { include: { user: { select: { name: true } } } } },
+      orderBy: { date: "desc" },
+    }),
+    db.subject.findMany({ where: { teacherId }, select: { id: true, name: true } }),
+  ])
+
+  const subjectMap = new Map(subjects.map((s) => [s.id, s.name]))
 
   return (
     <div className="space-y-6">
@@ -55,7 +74,10 @@ async function TeacherGradesPage({ teacherId }: { teacherId: string }) {
             <tbody className="divide-y">
               {grades.map((g) => (
                 <tr key={g.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 font-medium">{g.testName}</td>
+                  <td className="px-4 py-3">
+                    <p className="font-medium">{g.testName}</p>
+                    <SubjectTags ids={g.subjectIds} map={subjectMap} />
+                  </td>
                   <td className="px-4 py-3 text-muted-foreground">{g.student.user.name}</td>
                   <td className="px-4 py-3 text-muted-foreground">
                     {g.date.toLocaleDateString("ja-JP")}
@@ -92,10 +114,12 @@ async function StudentGradesPage({ userId }: { userId: string }) {
   const student = await db.student.findUnique({ where: { userId } })
   if (!student) redirect("/dashboard")
 
-  const grades = await db.gradeRecord.findMany({
-    where: { studentId: student.id },
-    orderBy: { date: "desc" },
-  })
+  const [grades, subjects] = await Promise.all([
+    db.gradeRecord.findMany({ where: { studentId: student.id }, orderBy: { date: "desc" } }),
+    db.subject.findMany({ where: { teacherId: student.teacherId }, select: { id: true, name: true } }),
+  ])
+
+  const subjectMap = new Map(subjects.map((s) => [s.id, s.name]))
 
   const chartGrades = grades.map((g) => ({
     id: g.id,
@@ -134,7 +158,10 @@ async function StudentGradesPage({ userId }: { userId: string }) {
               <tbody className="divide-y">
                 {grades.map((g) => (
                   <tr key={g.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 font-medium">{g.testName}</td>
+                    <td className="px-4 py-3">
+                      <p className="font-medium">{g.testName}</p>
+                      <SubjectTags ids={g.subjectIds} map={subjectMap} />
+                    </td>
                     <td className="px-4 py-3 text-muted-foreground">
                       {g.date.toLocaleDateString("ja-JP")}
                     </td>
