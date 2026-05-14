@@ -66,10 +66,6 @@ export default function InvitePage() {
                 <Input id="name" name="name" required />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="email">メールアドレス</Label>
-                <Input id="email" name="email" type="email" required />
-              </div>
-              <div className="space-y-2">
                 <Label htmlFor="grade">学年</Label>
                 <Input id="grade" name="grade" placeholder="例: 中学3年" required />
               </div>

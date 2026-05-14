@@ -21,9 +21,14 @@ export default async function StudentsPage() {
           <h1 className="text-2xl font-bold">生徒一覧</h1>
           <p className="text-sm text-muted-foreground mt-1">{students.length}名の生徒が登録されています</p>
         </div>
-        <Link href="/students/invite" className={buttonVariants()}>
-          招待リンクを作成
-        </Link>
+        <div className="flex gap-2">
+          <Link href="/students/invites" className={buttonVariants({ variant: "outline" })}>
+            招待管理
+          </Link>
+          <Link href="/students/invite" className={buttonVariants()}>
+            招待リンクを作成
+          </Link>
+        </div>
       </div>
 
       {students.length === 0 ? (
@@ -42,6 +47,7 @@ export default async function StudentsPage() {
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">メールアドレス</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">学年</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">登録日</th>
+                <th className="px-4 py-3"></th>
               </tr>
             </thead>
             <tbody className="divide-y">
@@ -52,6 +58,14 @@ export default async function StudentsPage() {
                   <td className="px-4 py-3">{s.grade}</td>
                   <td className="px-4 py-3 text-muted-foreground">
                     {s.createdAt.toLocaleDateString("ja-JP")}
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <Link
+                      href={`/students/${s.id}/grades`}
+                      className="text-xs text-blue-600 hover:underline"
+                    >
+                      成績を見る
+                    </Link>
                   </td>
                 </tr>
               ))}
