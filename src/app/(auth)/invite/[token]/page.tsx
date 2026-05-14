@@ -41,5 +41,5 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
     notFound()
   }
 
-  return <InviteForm token={token} name={invite.name} />
+  return <InviteForm token={token} name={invite.name} email={invite.email} grade={invite.grade} />
 }

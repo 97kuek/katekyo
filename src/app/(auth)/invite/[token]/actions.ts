@@ -7,7 +7,6 @@ import { z } from "zod"
 
 const schema = z.object({
   token: z.string().min(1),
-  email: z.string().email("有効なメールアドレスを入力してください"),
   password: z.string().min(8, "パスワードは8文字以上で入力してください"),
 })
 
@@ -17,7 +16,6 @@ export async function acceptInvite(
 ): Promise<{ error: string }> {
   const result = schema.safeParse({
     token: formData.get("token"),
-    email: formData.get("email"),
     password: formData.get("password"),
   })
 
@@ -25,14 +23,14 @@ export async function acceptInvite(
     return { error: result.error.issues[0].message }
   }
 
-  const { token, email, password } = result.data
+  const { token, password } = result.data
 
   const invite = await db.inviteToken.findUnique({ where: { token } })
   if (!invite || invite.usedAt || invite.expiresAt < new Date()) {
     return { error: "招待リンクが無効または期限切れです" }
   }
 
-  const existingUser = await db.user.findUnique({ where: { email } })
+  const existingUser = await db.user.findUnique({ where: { email: invite.email } })
   if (existingUser) {
     return { error: "このメールアドレスは既に登録されています" }
   }
@@ -41,7 +39,7 @@ export async function acceptInvite(
 
   await db.$transaction(async (tx) => {
     const user = await tx.user.create({
-      data: { email, name: invite.name, password: hashed, role: "student" },
+      data: { email: invite.email, name: invite.name, password: hashed, role: "student" },
     })
     await tx.student.create({
       data: { userId: user.id, teacherId: invite.teacherId, grade: invite.grade },

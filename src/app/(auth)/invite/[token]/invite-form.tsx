@@ -10,16 +10,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 type Props = {
   token: string
   name: string
+  email: string
+  grade: string
 }
 
-export default function InviteForm({ token, name }: Props) {
+export default function InviteForm({ token, name, email, grade }: Props) {
   const [state, action, isPending] = useActionState(acceptInvite, { error: "" })
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="text-2xl">アカウント登録</CardTitle>
-        <CardDescription>{name} さんの招待を受け入れてアカウントを作成してください</CardDescription>
+        <CardDescription>招待を受け入れてパスワードを設定してください</CardDescription>
       </CardHeader>
       <CardContent>
         <form action={action} className="space-y-4">
@@ -32,8 +34,12 @@ export default function InviteForm({ token, name }: Props) {
             <Input value={name} disabled className="bg-gray-50" />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="email">メールアドレス</Label>
-            <Input id="email" name="email" type="email" required />
+            <Label>メールアドレス</Label>
+            <Input value={email} disabled className="bg-gray-50" />
+          </div>
+          <div className="space-y-2">
+            <Label>学年</Label>
+            <Input value={grade} disabled className="bg-gray-50" />
           </div>
           <div className="space-y-2">
             <Label htmlFor="password">パスワード（8文字以上）</Label>

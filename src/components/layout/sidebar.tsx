@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { BookOpen, GraduationCap, LayoutDashboard, Tag, ClipboardList, BarChart2 } from "lucide-react"
+import { BookOpen, GraduationCap, LayoutDashboard, Tag, ClipboardList, BarChart2, CalendarDays } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const teacherNav = [
@@ -10,6 +10,7 @@ const teacherNav = [
   { href: "/students", label: "生徒一覧", icon: GraduationCap },
   { href: "/homework", label: "宿題管理", icon: ClipboardList },
   { href: "/grades", label: "成績管理", icon: BarChart2 },
+  { href: "/calendar", label: "カレンダー", icon: CalendarDays },
   { href: "/subjects", label: "科目タグ", icon: Tag },
 ]
 
@@ -17,6 +18,7 @@ const studentNav = [
   { href: "/dashboard", label: "ダッシュボード", icon: LayoutDashboard },
   { href: "/homework", label: "宿題", icon: ClipboardList },
   { href: "/grades", label: "成績", icon: BarChart2 },
+  { href: "/calendar", label: "カレンダー", icon: CalendarDays },
 ]
 
 export default function Sidebar({ role }: { role: string }) {

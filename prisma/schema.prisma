@@ -19,6 +19,11 @@ enum HomeworkStatus {
   rejected
 }
 
+enum LessonType {
+  online
+  offline
+}
+
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
@@ -33,6 +38,7 @@ model User {
   subjects      Subject[]
   homeworksGiven Homework[]    @relation("TeacherHomework")
   gradesGiven   GradeRecord[]  @relation("TeacherGrades")
+  lessonsGiven  Lesson[]       @relation("TeacherLessons")
 
   // student relation
   studentProfile Student?      @relation("StudentUser")
@@ -49,13 +55,14 @@ model Student {
   teacher   User          @relation("TeacherStudents", fields: [teacherId], references: [id])
   homeworks Homework[]
   grades    GradeRecord[]
+  lessons   Lesson[]
 }
 
 model InviteToken {
   id        String    @id @default(uuid())
   token     String    @unique @default(uuid())
   teacherId String
-  email     String?
+  email     String
   name      String
   grade     String
   usedAt    DateTime?
@@ -113,4 +120,18 @@ model GradeRecord {
 
   student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
   teacher User    @relation("TeacherGrades", fields: [teacherId], references: [id])
+}
+
+model Lesson {
+  id          String     @id @default(uuid())
+  teacherId   String
+  studentId   String
+  date        DateTime
+  durationMin Int?
+  type        LessonType @default(online)
+  notes       String?
+  createdAt   DateTime   @default(now())
+
+  teacher User    @relation("TeacherLessons", fields: [teacherId], references: [id], onDelete: Cascade)
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
 }

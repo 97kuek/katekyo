@@ -7,6 +7,7 @@ import { buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { GRADE_OPTIONS } from "@/lib/grades"
 import Link from "next/link"
 
 export default function InvitePage() {
@@ -37,12 +38,12 @@ export default function InvitePage() {
       <Card>
         <CardHeader>
           <CardTitle>生徒を招待する</CardTitle>
-          <CardDescription>招待リンクを生成して生徒に送付してください（7日間有効）</CardDescription>
+          <CardDescription>生徒の情報を入力して招待リンクを生成してください（7日間有効）</CardDescription>
         </CardHeader>
         <CardContent>
           {state.token ? (
             <div className="space-y-4">
-              <p className="text-sm text-green-700 bg-green-50 p-3 rounded-md">招待リンクが生成されました</p>
+              <p className="text-sm text-green-700 bg-green-50 p-3 rounded-md">招待リンクが生成されました。生徒に送付してください。</p>
               <div>
                 <Label>招待URL</Label>
                 <div className="flex gap-2 mt-1">
@@ -66,8 +67,22 @@ export default function InvitePage() {
                 <Input id="name" name="name" required />
               </div>
               <div className="space-y-2">
+                <Label htmlFor="email">生徒のメールアドレス</Label>
+                <Input id="email" name="email" type="email" required placeholder="student@example.com" />
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="grade">学年</Label>
-                <Input id="grade" name="grade" placeholder="例: 中学3年" required />
+                <select
+                  id="grade"
+                  name="grade"
+                  required
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <option value="">学年を選択してください</option>
+                  {GRADE_OPTIONS.map((g) => (
+                    <option key={g} value={g}>{g}</option>
+                  ))}
+                </select>
               </div>
               <Button type="submit" className="w-full" disabled={isPending}>
                 {isPending ? "生成中..." : "招待リンクを生成"}

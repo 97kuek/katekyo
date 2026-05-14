@@ -4,6 +4,7 @@ import { db } from "@/lib/db"
 import Link from "next/link"
 import { buttonVariants } from "@/components/ui/button"
 import GradeChart from "./grade-chart"
+import { GradeActionsCell } from "./grade-actions-cell"
 
 function SubjectTags({ ids, map }: { ids: string[]; map: Map<string, string> }) {
   const names = ids.map((id) => map.get(id)).filter(Boolean) as string[]
@@ -69,6 +70,7 @@ async function TeacherGradesPage({ teacherId }: { teacherId: string }) {
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">順位</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">偏差値</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">評価</th>
+                <th className="px-4 py-3"></th>
               </tr>
             </thead>
             <tbody className="divide-y">
@@ -99,6 +101,9 @@ async function TeacherGradesPage({ teacherId }: { teacherId: string }) {
                   <td className="px-4 py-3">{g.deviation ?? "-"}</td>
                   <td className="px-4 py-3">
                     {g.teacherRating != null ? "★".repeat(g.teacherRating) : "-"}
+                  </td>
+                  <td className="px-4 py-3">
+                    <GradeActionsCell gradeId={g.id} />
                   </td>
                 </tr>
               ))}

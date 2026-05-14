@@ -3,6 +3,8 @@ import { redirect } from "next/navigation"
 import { db } from "@/lib/db"
 import Link from "next/link"
 import { buttonVariants } from "@/components/ui/button"
+import { DeleteStudentButton } from "./delete-student-button"
+import { UpdateGradeForm } from "./update-grade-form"
 
 export default async function StudentsPage() {
   const session = await auth()
@@ -55,17 +57,25 @@ export default async function StudentsPage() {
                 <tr key={s.id} className="hover:bg-gray-50">
                   <td className="px-4 py-3 font-medium">{s.user.name}</td>
                   <td className="px-4 py-3 text-muted-foreground">{s.user.email}</td>
-                  <td className="px-4 py-3">{s.grade}</td>
+                  <td className="px-4 py-3">
+                    <div className="space-y-1">
+                      <span className="text-sm">{s.grade}</span>
+                      <UpdateGradeForm studentId={s.id} currentGrade={s.grade} />
+                    </div>
+                  </td>
                   <td className="px-4 py-3 text-muted-foreground">
                     {s.createdAt.toLocaleDateString("ja-JP")}
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <Link
-                      href={`/students/${s.id}/grades`}
-                      className="text-xs text-blue-600 hover:underline"
-                    >
-                      成績を見る
-                    </Link>
+                    <div className="flex items-center justify-end gap-3">
+                      <Link
+                        href={`/students/${s.id}/grades`}
+                        className="text-xs text-blue-600 hover:underline"
+                      >
+                        成績を見る
+                      </Link>
+                      <DeleteStudentButton studentId={s.id} studentName={s.user.name} />
+                    </div>
                   </td>
                 </tr>
               ))}

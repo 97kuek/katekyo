@@ -111,7 +111,7 @@ async function TeacherHomeworkPage({ teacherId }: { teacherId: string }) {
                   return (
                     <tr key={h.id} className={`hover:bg-gray-50 ${overdue ? "bg-red-50/40" : ""}`}>
                       <td className="px-4 py-3">
-                        <p className="font-medium">{h.title}</p>
+                        <Link href={`/homework/${h.id}`} className="font-medium hover:underline">{h.title}</Link>
                         <SubjectTags ids={h.subjectIds} map={subjectMap} />
                       </td>
                       <td className="px-4 py-3 text-muted-foreground">{h.student.user.name}</td>
