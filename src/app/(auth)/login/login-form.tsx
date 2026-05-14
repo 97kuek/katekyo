@@ -1,0 +1,95 @@
+"use client"
+
+import { useState } from "react"
+import { signIn } from "next-auth/react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import Link from "next/link"
+
+export default function LoginForm() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const [error, setError] = useState("")
+  const [isPending, setIsPending] = useState(false)
+
+  const registered = searchParams.get("registered")
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setIsPending(true)
+    setError("")
+
+    const formData = new FormData(e.currentTarget)
+    const result = await signIn("credentials", {
+      email: formData.get("email"),
+      password: formData.get("password"),
+      redirect: false,
+    })
+
+    if (result?.error) {
+      setError("メールアドレスまたはパスワードが正しくありません")
+      setIsPending(false)
+    } else {
+      router.push("/dashboard")
+      router.refresh()
+    }
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-2xl">katekyo</CardTitle>
+        <CardDescription>アカウントにログインしてください</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {registered && (
+          <p className="mb-4 text-sm text-green-600 bg-green-50 p-3 rounded-md">
+            登録が完了しました。ログインしてください。
+          </p>
+        )}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <p className="text-sm text-red-600 bg-red-50 p-3 rounded-md">
+              {error}
+            </p>
+          )}
+          <div className="space-y-2">
+            <Label htmlFor="email">メールアドレス</Label>
+            <Input id="email" name="email" type="email" required autoComplete="email" />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="password">パスワード</Label>
+            <Input
+              id="password"
+              name="password"
+              type="password"
+              required
+              autoComplete="current-password"
+            />
+          </div>
+          <Button type="submit" className="w-full" disabled={isPending}>
+            {isPending ? "ログイン中..." : "ログイン"}
+          </Button>
+        </form>
+      </CardContent>
+      <CardFooter className="justify-center">
+        <p className="text-sm text-muted-foreground">
+          先生として新規登録は{" "}
+          <Link href="/register" className="underline underline-offset-4">
+            こちら
+          </Link>
+        </p>
+      </CardFooter>
+    </Card>
+  )
+}
