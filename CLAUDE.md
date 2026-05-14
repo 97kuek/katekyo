@@ -7,7 +7,7 @@
 
 ## 技術スタック
 
-- **Next.js 15** (App Router) + TypeScript
+- **Next.js 16** (App Router) + TypeScript
 - **Prisma** ORM + **Supabase** (PostgreSQL)
 - **NextAuth.js v5** 認証
 - **shadcn/ui** + Tailwind CSS

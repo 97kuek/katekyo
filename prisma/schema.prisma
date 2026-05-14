@@ -1,0 +1,116 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  teacher
+  student
+}
+
+enum HomeworkStatus {
+  assigned
+  submitted
+  approved
+  rejected
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String
+  role      Role
+  password  String
+  createdAt DateTime @default(now())
+
+  // teacher relations
+  students      Student[]      @relation("TeacherStudents")
+  inviteTokens  InviteToken[]
+  subjects      Subject[]
+  homeworksGiven Homework[]    @relation("TeacherHomework")
+  gradesGiven   GradeRecord[]  @relation("TeacherGrades")
+
+  // student relation
+  studentProfile Student?      @relation("StudentUser")
+}
+
+model Student {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  teacherId String
+  grade     String
+  createdAt DateTime @default(now())
+
+  user      User          @relation("StudentUser", fields: [userId], references: [id], onDelete: Cascade)
+  teacher   User          @relation("TeacherStudents", fields: [teacherId], references: [id])
+  homeworks Homework[]
+  grades    GradeRecord[]
+}
+
+model InviteToken {
+  id        String    @id @default(uuid())
+  token     String    @unique @default(uuid())
+  teacherId String
+  email     String
+  name      String
+  grade     String
+  usedAt    DateTime?
+  expiresAt DateTime
+  createdAt DateTime  @default(now())
+
+  teacher   User      @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+}
+
+model Subject {
+  id        String   @id @default(uuid())
+  name      String
+  teacherId String
+  createdAt DateTime @default(now())
+
+  teacher   User     @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
+  @@unique([name, teacherId])
+}
+
+model Homework {
+  id              String         @id @default(uuid())
+  studentId       String
+  teacherId       String
+  title           String
+  description     String?
+  dueDate         DateTime
+  subjectIds      String[]
+  status          HomeworkStatus @default(assigned)
+  studentNote     String?
+  teacherFeedback String?
+  submittedAt     DateTime?
+  reviewedAt      DateTime?
+  createdAt       DateTime       @default(now())
+
+  student  Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  teacher  User    @relation("TeacherHomework", fields: [teacherId], references: [id])
+}
+
+model GradeRecord {
+  id            String   @id @default(uuid())
+  studentId     String
+  teacherId     String
+  testName      String
+  date          DateTime
+  subjectIds    String[]
+  score         Int?
+  maxScore      Int?
+  rank          Int?
+  totalStudents Int?
+  deviation     Float?
+  teacherRating Int?
+  comment       String?
+  createdAt     DateTime @default(now())
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  teacher User    @relation("TeacherGrades", fields: [teacherId], references: [id])
+}
