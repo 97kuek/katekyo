@@ -126,5 +126,16 @@
   }
   html {
     @apply font-sans;
+    /* Eliminate 300ms tap delay on mobile */
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  /* Ensure all interactive elements respond instantly to touch */
+  a, button, [role="button"], input, select, textarea, label {
+    touch-action: manipulation;
+  }
+  /* Minimum touch target size for accessibility */
+  button, [role="button"] {
+    min-height: 44px;
   }
 }

@@ -38,7 +38,7 @@ export default function InvitePage() {
       <Card>
         <CardHeader>
           <CardTitle>生徒を招待する</CardTitle>
-          <CardDescription>生徒の情報を入力して招待リンクを生成してください（7日間有効）</CardDescription>
+          <CardDescription>生徒の情報を入力して招待リンクを生成し、生徒本人に送付してください（7日間有効）</CardDescription>
         </CardHeader>
         <CardContent>
           {state.token ? (
@@ -65,10 +65,6 @@ export default function InvitePage() {
               <div className="space-y-2">
                 <Label htmlFor="name">生徒の名前</Label>
                 <Input id="name" name="name" required />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">生徒のメールアドレス</Label>
-                <Input id="email" name="email" type="email" required placeholder="student@example.com" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="grade">学年</Label>

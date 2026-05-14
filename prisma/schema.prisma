@@ -62,7 +62,7 @@ model InviteToken {
   id        String    @id @default(uuid())
   token     String    @unique @default(uuid())
   teacherId String
-  email     String
+  email     String?
   name      String
   grade     String
   usedAt    DateTime?
