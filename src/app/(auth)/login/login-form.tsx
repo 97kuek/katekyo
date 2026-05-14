@@ -23,6 +23,7 @@ export default function LoginForm() {
   const [isPending, setIsPending] = useState(false)
 
   const registered = searchParams.get("registered")
+  const invited = searchParams.get("invited")
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -55,6 +56,11 @@ export default function LoginForm() {
         {registered && (
           <p className="mb-4 text-sm text-green-600 bg-green-50 p-3 rounded-md">
             登録が完了しました。ログインしてください。
+          </p>
+        )}
+        {invited && (
+          <p className="mb-4 text-sm text-green-600 bg-green-50 p-3 rounded-md">
+            アカウントが作成されました。ログインしてください。
           </p>
         )}
         <form onSubmit={handleSubmit} className="space-y-4">

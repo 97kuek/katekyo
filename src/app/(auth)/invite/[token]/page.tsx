@@ -1,8 +1,14 @@
-export default function InvitePage() {
-  return (
-    <div className="text-center p-8">
-      <h1 className="text-2xl font-semibold">招待リンク</h1>
-      <p className="text-muted-foreground mt-2">準備中です</p>
-    </div>
-  )
+import { db } from "@/lib/db"
+import { notFound } from "next/navigation"
+import InviteForm from "./invite-form"
+
+export default async function InvitePage({ params }: { params: Promise<{ token: string }> }) {
+  const { token } = await params
+
+  const invite = await db.inviteToken.findUnique({ where: { token } })
+  if (!invite || invite.usedAt || invite.expiresAt < new Date()) {
+    notFound()
+  }
+
+  return <InviteForm token={token} name={invite.name} email={invite.email} />
 }

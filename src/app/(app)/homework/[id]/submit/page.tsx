@@ -1,0 +1,51 @@
+import { auth } from "@/lib/auth"
+import { redirect, notFound } from "next/navigation"
+import { db } from "@/lib/db"
+import Link from "next/link"
+import SubmitForm from "./submit-form"
+import { StatusBadge } from "@/components/homework/status-badge"
+
+export default async function SubmitHomeworkPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const session = await auth()
+  if (!session || session.user.role !== "student") redirect("/dashboard")
+
+  const student = await db.student.findUnique({ where: { userId: session.user.id } })
+  if (!student) redirect("/dashboard")
+
+  const homework = await db.homework.findFirst({
+    where: { id, studentId: student.id },
+  })
+
+  if (!homework) notFound()
+  if (!["assigned", "rejected"].includes(homework.status)) redirect("/homework")
+
+  return (
+    <div className="max-w-lg space-y-6">
+      <Link href="/homework" className="text-sm text-muted-foreground hover:underline">
+        ← 宿題一覧に戻る
+      </Link>
+
+      <div className="rounded-lg border bg-white p-5 space-y-3">
+        <div className="flex items-start justify-between gap-2">
+          <h2 className="font-semibold text-lg">{homework.title}</h2>
+          <StatusBadge status={homework.status} />
+        </div>
+        <p className="text-sm text-muted-foreground">
+          期限: {homework.dueDate.toLocaleDateString("ja-JP")}
+        </p>
+        {homework.description && (
+          <p className="text-sm text-gray-600">{homework.description}</p>
+        )}
+        {homework.status === "rejected" && homework.teacherFeedback && (
+          <div className="bg-red-50 rounded-md p-3">
+            <p className="text-xs font-medium text-red-700 mb-1">先生のコメント</p>
+            <p className="text-sm text-red-800">{homework.teacherFeedback}</p>
+          </div>
+        )}
+      </div>
+
+      <SubmitForm id={id} />
+    </div>
+  )
+}
