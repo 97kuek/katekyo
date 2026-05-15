@@ -115,7 +115,36 @@ async function TeacherHomeworkPage({
       {others.length > 0 && (
         <section className="space-y-3">
           <h2 className="text-sm font-medium text-muted-foreground">すべての宿題</h2>
-          <div className="rounded-lg border bg-white overflow-hidden overflow-x-auto">
+          {/* モバイル: カード表示 */}
+          <div className="md:hidden space-y-2">
+            {others.map((h) => {
+              const overdue = h.dueDate < now && h.status === "assigned"
+              const relLabel = relativeDeadline(h.dueDate)
+              const relColor = deadlineColorClass(h.dueDate)
+              return (
+                <Link
+                  key={h.id}
+                  href={`/homework/${h.id}`}
+                  className={`block rounded-lg border bg-white p-4 hover:bg-gray-50 transition-colors ${overdue ? "border-red-200 bg-red-50/40" : ""}`}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="font-medium truncate">{h.title}</p>
+                      <p className="text-sm text-muted-foreground mt-0.5">{h.student.user.name}</p>
+                      <SubjectTags ids={h.subjectIds} map={subjectMap} />
+                    </div>
+                    <StatusBadge status={h.status} />
+                  </div>
+                  <p className={`text-xs mt-2 ${h.status === "assigned" ? relColor : "text-muted-foreground"}`}>
+                    期限: {h.dueDate.toLocaleDateString("ja-JP")}
+                    {h.status === "assigned" && <span className="ml-1.5">（{relLabel}）</span>}
+                  </p>
+                </Link>
+              )
+            })}
+          </div>
+          {/* デスクトップ: テーブル表示 */}
+          <div className="hidden md:block rounded-lg border bg-white overflow-hidden overflow-x-auto">
             <table className="w-full text-sm min-w-[480px]">
               <thead className="border-b bg-gray-50">
                 <tr>
@@ -258,32 +287,25 @@ async function StudentHomeworkPage({ userId }: { userId: string }) {
       {approved.length > 0 && (
         <section className="space-y-3">
           <h2 className="text-sm font-medium text-muted-foreground">完了</h2>
-          <div className="rounded-lg border bg-white overflow-hidden overflow-x-auto">
-            <table className="w-full text-sm min-w-[360px]">
-              <thead className="border-b bg-gray-50">
-                <tr>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">タイトル</th>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">期限</th>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">状態</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {approved.map((h) => (
-                  <tr key={h.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3">
-                      <Link href={`/homework/${h.id}`} className="font-medium hover:underline">{h.title}</Link>
-                      <SubjectTags ids={h.subjectIds} map={subjectMap} />
-                    </td>
-                    <td className="px-4 py-3 text-muted-foreground">
-                      {h.dueDate.toLocaleDateString("ja-JP")}
-                    </td>
-                    <td className="px-4 py-3">
-                      <StatusBadge status={h.status} />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="space-y-2">
+            {approved.map((h) => (
+              <Link
+                key={h.id}
+                href={`/homework/${h.id}`}
+                className="block rounded-lg border bg-white p-4 hover:bg-gray-50 transition-colors opacity-75"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="font-medium truncate">{h.title}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      期限: {h.dueDate.toLocaleDateString("ja-JP")}
+                    </p>
+                    <SubjectTags ids={h.subjectIds} map={subjectMap} />
+                  </div>
+                  <StatusBadge status={h.status} />
+                </div>
+              </Link>
+            ))}
           </div>
         </section>
       )}

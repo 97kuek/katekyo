@@ -113,7 +113,37 @@ export default async function StudentGradesPage({ params }: { params: Promise<{ 
         <>
           <GradeChart grades={chartGrades} subjects={subjects} />
 
-          <div className="rounded-lg border bg-white overflow-hidden overflow-x-auto">
+          {/* モバイル: カード表示 */}
+          <div className="md:hidden space-y-2">
+            {grades.map((g, i) => (
+              <div key={g.id} className="rounded-lg border bg-white p-4 space-y-2">
+                <div className="min-w-0">
+                  <p className="font-medium truncate">{g.testName}</p>
+                  <SubjectTags ids={g.subjectIds} map={subjectMap} />
+                  <p className="text-xs text-muted-foreground mt-1">{g.date.toLocaleDateString("ja-JP")}</p>
+                </div>
+                <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+                  {g.score != null && (
+                    <span>
+                      得点: {g.maxScore != null ? `${g.score}/${g.maxScore}` : g.score}
+                      <DiffBadge diff={prevDiff[i]} />
+                    </span>
+                  )}
+                  {g.avgScore != null && g.score != null && (
+                    <span className="flex items-center gap-1">対平均: <VsAvg score={g.score} avgScore={g.avgScore} /></span>
+                  )}
+                  {g.deviation != null && <span>偏差値: {g.deviation}</span>}
+                  {g.rank != null && (
+                    <span>順位: {g.rank}{g.totalStudents != null ? `/${g.totalStudents}` : ""}</span>
+                  )}
+                  {g.teacherRating != null && <span>{"★".repeat(g.teacherRating)}</span>}
+                </div>
+                {g.comment && <p className="text-xs text-muted-foreground border-l-2 pl-2">{g.comment}</p>}
+              </div>
+            ))}
+          </div>
+          {/* デスクトップ: テーブル表示 */}
+          <div className="hidden md:block rounded-lg border bg-white overflow-hidden overflow-x-auto">
             <table className="w-full text-sm min-w-[640px]">
               <thead className="border-b bg-gray-50">
                 <tr>
@@ -134,34 +164,18 @@ export default async function StudentGradesPage({ params }: { params: Promise<{ 
                       <p className="font-medium">{g.testName}</p>
                       <SubjectTags ids={g.subjectIds} map={subjectMap} />
                     </td>
-                    <td className="px-4 py-3 text-muted-foreground">
-                      {g.date.toLocaleDateString("ja-JP")}
-                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">{g.date.toLocaleDateString("ja-JP")}</td>
                     <td className="px-4 py-3">
-                      {g.score != null
-                        ? g.maxScore != null
-                          ? `${g.score}/${g.maxScore}`
-                          : g.score
-                        : "-"}
+                      {g.score != null ? (g.maxScore != null ? `${g.score}/${g.maxScore}` : g.score) : "-"}
                       <DiffBadge diff={prevDiff[i]} />
                     </td>
+                    <td className="px-4 py-3"><VsAvg score={g.score} avgScore={g.avgScore} /></td>
                     <td className="px-4 py-3">
-                      <VsAvg score={g.score} avgScore={g.avgScore} />
-                    </td>
-                    <td className="px-4 py-3">
-                      {g.rank != null
-                        ? g.totalStudents != null
-                          ? `${g.rank}/${g.totalStudents}`
-                          : g.rank
-                        : "-"}
+                      {g.rank != null ? (g.totalStudents != null ? `${g.rank}/${g.totalStudents}` : g.rank) : "-"}
                     </td>
                     <td className="px-4 py-3">{g.deviation ?? "-"}</td>
-                    <td className="px-4 py-3">
-                      {g.teacherRating != null ? "★".repeat(g.teacherRating) : "-"}
-                    </td>
-                    <td className="px-4 py-3 text-muted-foreground max-w-xs truncate">
-                      {g.comment ?? "-"}
-                    </td>
+                    <td className="px-4 py-3">{g.teacherRating != null ? "★".repeat(g.teacherRating) : "-"}</td>
+                    <td className="px-4 py-3 text-muted-foreground max-w-xs truncate">{g.comment ?? "-"}</td>
                   </tr>
                 ))}
               </tbody>

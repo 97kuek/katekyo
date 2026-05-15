@@ -163,7 +163,7 @@ export default function CalendarView({ lessons, deadlines, students, isTeacher }
                   {day}
                 </span>
                 <div className="flex gap-0.5">
-                  {hasLesson && <span className={`h-1.5 w-1.5 rounded-full ${hasNote ? "bg-blue-600" : "bg-blue-300"}`} />}
+                  {hasLesson && <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />}
                   {hasNote && <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />}
                   {hasDeadline && <span className="h-1.5 w-1.5 rounded-full bg-orange-400" />}
                 </div>
@@ -173,7 +173,7 @@ export default function CalendarView({ lessons, deadlines, students, isTeacher }
         </div>
 
         <div className="px-3 pb-3 pt-1 flex items-center gap-4 text-xs text-muted-foreground border-t flex-wrap">
-          <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-blue-300 inline-block" />授業</span>
+          <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-blue-400 inline-block" />授業</span>
           <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-amber-400 inline-block" />ノートあり</span>
           <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-orange-400 inline-block" />宿題期限</span>
         </div>

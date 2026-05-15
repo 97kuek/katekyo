@@ -56,70 +56,101 @@ export default async function StudentsPage() {
           </Link>
         </div>
       ) : (
-        <div className="rounded-lg border bg-white overflow-hidden overflow-x-auto">
-          <table className="w-full text-sm min-w-[480px]">
-            <thead className="border-b bg-gray-50">
-              <tr>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">名前</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">メールアドレス</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">学年</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">宿題進捗</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">登録日</th>
-                <th className="px-4 py-3"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              {students.map((s) => {
-                const prog = progressMap.get(s.id)
-                const pct = prog && prog.total > 0 ? Math.round((prog.approved / prog.total) * 100) : null
-                return (
-                <tr key={s.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 font-medium">{s.user.name}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{s.user.email}</td>
-                  <td className="px-4 py-3">
+        <>
+          {/* モバイル: カード表示 */}
+          <div className="md:hidden space-y-3">
+            {students.map((s) => {
+              const prog = progressMap.get(s.id)
+              const pct = prog && prog.total > 0 ? Math.round((prog.approved / prog.total) * 100) : null
+              return (
+                <div key={s.id} className="rounded-lg border bg-white p-4 space-y-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="font-medium">{s.user.name}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{s.grade}</p>
+                      <p className="text-xs text-muted-foreground">{s.user.email}</p>
+                    </div>
+                    <UpdateGradeForm studentId={s.id} currentGrade={s.grade} />
+                  </div>
+                  {pct != null && (
                     <div className="space-y-1">
-                      <span className="text-sm">{s.grade}</span>
-                      <UpdateGradeForm studentId={s.id} currentGrade={s.grade} />
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">
-                    {pct != null ? (
-                      <div className="space-y-1 min-w-[80px]">
-                        <div className="flex items-center justify-between text-xs text-muted-foreground">
-                          <span>{prog!.approved}/{prog!.total}</span>
-                          <span>{pct}%</span>
-                        </div>
-                        <div className="h-1.5 w-full rounded-full bg-gray-100 overflow-hidden">
-                          <div
-                            className="h-full rounded-full bg-green-500 transition-all"
-                            style={{ width: `${pct}%` }}
-                          />
-                        </div>
+                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                        <span>宿題進捗</span>
+                        <span>{prog!.approved}/{prog!.total}（{pct}%）</span>
                       </div>
-                    ) : (
-                      <span className="text-xs text-muted-foreground">-</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground">
-                    {s.createdAt.toLocaleDateString("ja-JP")}
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <div className="flex items-center justify-end gap-3">
-                      <Link
-                        href={`/students/${s.id}/grades`}
-                        className="text-xs text-blue-600 hover:underline"
-                      >
-                        成績を見る
-                      </Link>
-                      <DeleteStudentButton studentId={s.id} studentName={s.user.name} />
+                      <div className="h-1.5 w-full rounded-full bg-gray-100 overflow-hidden">
+                        <div className="h-full rounded-full bg-green-500 transition-all" style={{ width: `${pct}%` }} />
+                      </div>
                     </div>
-                  </td>
+                  )}
+                  <div className="flex items-center gap-3 pt-1 border-t">
+                    <Link href={`/students/${s.id}/grades`} className="text-xs text-blue-600 hover:underline">
+                      成績を見る
+                    </Link>
+                    <DeleteStudentButton studentId={s.id} studentName={s.user.name} />
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+          {/* デスクトップ: テーブル表示 */}
+          <div className="hidden md:block rounded-lg border bg-white overflow-hidden overflow-x-auto">
+            <table className="w-full text-sm min-w-[480px]">
+              <thead className="border-b bg-gray-50">
+                <tr>
+                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">名前</th>
+                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">メールアドレス</th>
+                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">学年</th>
+                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">宿題進捗</th>
+                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">登録日</th>
+                  <th className="px-4 py-3"></th>
                 </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y">
+                {students.map((s) => {
+                  const prog = progressMap.get(s.id)
+                  const pct = prog && prog.total > 0 ? Math.round((prog.approved / prog.total) * 100) : null
+                  return (
+                    <tr key={s.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 font-medium">{s.user.name}</td>
+                      <td className="px-4 py-3 text-muted-foreground">{s.user.email}</td>
+                      <td className="px-4 py-3">
+                        <div className="space-y-1">
+                          <span className="text-sm">{s.grade}</span>
+                          <UpdateGradeForm studentId={s.id} currentGrade={s.grade} />
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        {pct != null ? (
+                          <div className="space-y-1 min-w-[80px]">
+                            <div className="flex items-center justify-between text-xs text-muted-foreground">
+                              <span>{prog!.approved}/{prog!.total}</span>
+                              <span>{pct}%</span>
+                            </div>
+                            <div className="h-1.5 w-full rounded-full bg-gray-100 overflow-hidden">
+                              <div className="h-full rounded-full bg-green-500 transition-all" style={{ width: `${pct}%` }} />
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">-</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground">{s.createdAt.toLocaleDateString("ja-JP")}</td>
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex items-center justify-end gap-3">
+                          <Link href={`/students/${s.id}/grades`} className="text-xs text-blue-600 hover:underline">
+                            成績を見る
+                          </Link>
+                          <DeleteStudentButton studentId={s.id} studentName={s.user.name} />
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
     </div>
   )
