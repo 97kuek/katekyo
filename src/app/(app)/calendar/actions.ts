@@ -16,9 +16,9 @@ const createSchema = z.object({
 })
 
 export async function createLesson(
-  _prevState: { error: string },
+  _prevState: { error: string; timestamp?: number },
   formData: FormData
-): Promise<{ error: string }> {
+): Promise<{ error: string; timestamp?: number }> {
   const session = await auth()
   if (!session || session.user.role !== "teacher") return { error: "権限がありません" }
 
@@ -51,7 +51,7 @@ export async function createLesson(
   })
 
   revalidatePath("/calendar")
-  return { error: "" }
+  return { error: "", timestamp: Date.now() }
 }
 
 export async function deleteLesson(formData: FormData) {

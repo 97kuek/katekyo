@@ -1,6 +1,7 @@
 "use client"
 
-import { useActionState, useState } from "react"
+import { useActionState, useState, useEffect } from "react"
+import { toast } from "sonner"
 import { createLesson } from "./actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -11,6 +12,12 @@ type Student = { id: string; grade: string; user: { name: string } }
 export function LessonForm({ students, defaultDate }: { students: Student[]; defaultDate: string }) {
   const [state, action, isPending] = useActionState(createLesson, { error: "" })
   const [open, setOpen] = useState(false)
+
+  useEffect(() => {
+    if (!state.timestamp) return
+    setOpen(false)
+    toast.success("授業を追加しました")
+  }, [state.timestamp])
 
   if (!open) {
     return (
@@ -23,7 +30,7 @@ export function LessonForm({ students, defaultDate }: { students: Student[]; def
   return (
     <div className="rounded-lg border bg-white p-4 space-y-3">
       <h3 className="font-medium text-sm">授業を追加</h3>
-      <form action={async (fd) => { await action(fd); setOpen(false) }} className="space-y-3">
+      <form action={action} className="space-y-3">
         {state.error && (
           <p className="text-xs text-red-600 bg-red-50 p-2 rounded">{state.error}</p>
         )}

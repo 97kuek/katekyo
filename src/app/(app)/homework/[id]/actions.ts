@@ -43,7 +43,7 @@ export async function submitHomework(
     data: { status: "submitted", studentNote: note ?? null, submittedAt: new Date() },
   })
 
-  redirect("/homework")
+  redirect("/homework?toast=submitted")
 }
 
 const reviewSchema = z.object({
@@ -83,5 +83,5 @@ export async function reviewHomework(
     data: { status: action, teacherFeedback: feedback ?? null, reviewedAt: new Date() },
   })
 
-  redirect("/homework")
+  redirect("/homework?toast=reviewed")
 }

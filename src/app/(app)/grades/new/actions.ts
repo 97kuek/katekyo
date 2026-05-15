@@ -71,5 +71,5 @@ export async function createGradeRecord(
     },
   })
 
-  redirect("/grades")
+  redirect("/grades?toast=created")
 }

@@ -3,7 +3,6 @@
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { redirect } from "next/navigation"
-import { revalidatePath } from "next/cache"
 import { z } from "zod"
 
 function toOptionalInt(val: FormDataEntryValue | null): number | null {
@@ -66,7 +65,7 @@ export async function updateGradeRecord(
     },
   })
 
-  redirect("/grades")
+  redirect("/grades?toast=saved")
 }
 
 export async function deleteGradeRecord(formData: FormData) {
@@ -77,6 +76,5 @@ export async function deleteGradeRecord(formData: FormData) {
   if (!gradeId) return
 
   await db.gradeRecord.deleteMany({ where: { id: gradeId, teacherId: session.user.id } })
-  revalidatePath("/grades")
-  redirect("/grades")
+  redirect("/grades?toast=deleted")
 }
