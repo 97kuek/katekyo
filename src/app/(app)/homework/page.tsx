@@ -25,15 +25,15 @@ function SubjectTags({ ids, map }: { ids: string[]; map: Map<string, string> }) 
 export default async function HomeworkPage({
   searchParams,
 }: {
-  searchParams: Promise<{ studentId?: string }>
+  searchParams: Promise<{ studentId?: string; sort?: string }>
 }) {
   const session = await auth()
   if (!session) redirect("/login")
 
-  const { studentId } = await searchParams
+  const { studentId, sort } = await searchParams
 
   if (session.user.role === "teacher") {
-    return <TeacherHomeworkPage teacherId={session.user.id} studentIdFilter={studentId} />
+    return <TeacherHomeworkPage teacherId={session.user.id} studentIdFilter={studentId} sort={sort} />
   }
   return <StudentHomeworkPage userId={session.user.id} />
 }
@@ -41,10 +41,13 @@ export default async function HomeworkPage({
 async function TeacherHomeworkPage({
   teacherId,
   studentIdFilter,
+  sort,
 }: {
   teacherId: string
   studentIdFilter?: string
+  sort?: string
 }) {
+  const orderBy = sort === "due" ? { dueDate: "asc" as const } : { createdAt: "desc" as const }
   const [homeworks, subjects, students] = await Promise.all([
     db.homework.findMany({
       where: {
@@ -52,7 +55,7 @@ async function TeacherHomeworkPage({
         ...(studentIdFilter ? { studentId: studentIdFilter } : {}),
       },
       include: { student: { include: { user: { select: { name: true } } } } },
-      orderBy: { createdAt: "desc" },
+      orderBy,
     }),
     db.subject.findMany({ where: { teacherId }, select: { id: true, name: true } }),
     db.student.findMany({

@@ -51,6 +51,7 @@ export default function GradeChart({
 }) {
   const [mode, setMode] = useState<"score" | "deviation">("score")
   const [typeFilter, setTypeFilter] = useState<string>("")
+  const [activeSubject, setActiveSubject] = useState<string | null>(null)
 
   const filtered = typeFilter ? grades.filter((g) => g.testType === typeFilter) : grades
   const sorted = [...filtered].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
@@ -170,21 +171,34 @@ export default function GradeChart({
                 return mode === "score" ? [`${value}%`, label] : [`偏差値 ${value}`, label]
               }}
             />
-            {hasSubjects && <Legend formatter={(v) => subjectMap.get(v) ?? v} />}
+            {hasSubjects && (
+              <Legend
+                formatter={(v) => subjectMap.get(v) ?? v}
+                onClick={(data) => {
+                  const key = data.dataKey as string
+                  setActiveSubject((prev) => (prev === key ? null : key))
+                }}
+                wrapperStyle={{ cursor: "pointer" }}
+              />
+            )}
 
             {hasSubjects
-              ? usedSubjectIds.map((sid, i) => (
-                  <Line
-                    key={sid}
-                    type="monotone"
-                    dataKey={sid}
-                    stroke={LINE_COLORS[i % LINE_COLORS.length]}
-                    strokeWidth={2}
-                    dot={{ r: 4 }}
-                    activeDot={{ r: 6 }}
-                    connectNulls={false}
-                  />
-                ))
+              ? usedSubjectIds.map((sid, i) => {
+                  const dimmed = activeSubject !== null && activeSubject !== sid
+                  return (
+                    <Line
+                      key={sid}
+                      type="monotone"
+                      dataKey={sid}
+                      stroke={LINE_COLORS[i % LINE_COLORS.length]}
+                      strokeWidth={dimmed ? 1 : 2.5}
+                      strokeOpacity={dimmed ? 0.2 : 1}
+                      dot={{ r: dimmed ? 2 : 4 }}
+                      activeDot={{ r: 6 }}
+                      connectNulls={false}
+                    />
+                  )
+                })
               : (
                 <Line
                   type="monotone"
@@ -198,18 +212,22 @@ export default function GradeChart({
 
             {/* クラス平均ライン（点線） */}
             {hasSubjects
-              ? usedSubjectIds.map((sid, i) => (
-                  <Line
-                    key={`avg_${sid}`}
-                    type="monotone"
-                    dataKey={`avg_${sid}`}
-                    stroke={LINE_COLORS[i % LINE_COLORS.length]}
-                    strokeWidth={1}
-                    strokeDasharray="4 4"
-                    dot={false}
-                    connectNulls={false}
-                  />
-                ))
+              ? usedSubjectIds.map((sid, i) => {
+                  const dimmed = activeSubject !== null && activeSubject !== sid
+                  return (
+                    <Line
+                      key={`avg_${sid}`}
+                      type="monotone"
+                      dataKey={`avg_${sid}`}
+                      stroke={LINE_COLORS[i % LINE_COLORS.length]}
+                      strokeWidth={1}
+                      strokeOpacity={dimmed ? 0.15 : 0.6}
+                      strokeDasharray="4 4"
+                      dot={false}
+                      connectNulls={false}
+                    />
+                  )
+                })
               : (
                 <Line
                   type="monotone"

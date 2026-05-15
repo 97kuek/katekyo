@@ -1,10 +1,44 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useTransition } from "react"
 import Link from "next/link"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { LessonForm } from "./lesson-form"
+import { LessonEditForm } from "./lesson-edit-form"
 import { deleteLesson } from "./actions"
+
+function DeleteLessonButton({ lessonId }: { lessonId: string }) {
+  const [confirming, setConfirming] = useState(false)
+  const [isPending, startTransition] = useTransition()
+
+  if (confirming) {
+    return (
+      <div className="flex items-center gap-1.5 shrink-0">
+        <span className="text-xs text-gray-600">削除?</span>
+        <button
+          onClick={() => startTransition(async () => {
+            const fd = new FormData()
+            fd.append("lessonId", lessonId)
+            await deleteLesson(fd)
+          })}
+          disabled={isPending}
+          className="text-xs font-medium text-red-600 hover:text-red-800 disabled:opacity-50"
+        >
+          {isPending ? "..." : "削除"}
+        </button>
+        <button onClick={() => setConfirming(false)} className="text-xs text-gray-400 hover:text-gray-600">
+          ✕
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <button onClick={() => setConfirming(true)} className="text-xs text-red-400 hover:text-red-600 shrink-0">
+      削除
+    </button>
+  )
+}
 
 type Lesson = {
   id: string
@@ -42,6 +76,7 @@ export default function CalendarView({ lessons, deadlines, students, isTeacher }
   const [year, setYear] = useState(today.getFullYear())
   const [month, setMonth] = useState(today.getMonth())
   const [selectedDay, setSelectedDay] = useState<string | null>(toDateKey(today))
+  const [editingLessonId, setEditingLessonId] = useState<string | null>(null)
 
   const lessonMap = new Map<string, Lesson[]>()
   const hasNoteMap = new Map<string, boolean>()
@@ -157,30 +192,37 @@ export default function CalendarView({ lessons, deadlines, students, isTeacher }
             <div className="space-y-2">
               <p className="text-xs font-medium text-muted-foreground">授業</p>
               {selectedLessons.map((l) => (
-                <div key={l.id} className="flex items-start justify-between gap-2 rounded-md bg-blue-50 px-3 py-2">
-                  <div>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-sm font-medium">{l.student.user.name}</span>
-                      <span className={`text-xs rounded-full px-2 py-0.5 ${l.type === "online" ? "bg-green-100 text-green-700" : "bg-purple-100 text-purple-700"}`}>
-                        {l.type === "online" ? "オンライン" : "対面"}
-                      </span>
-                      {l.durationMin && (
-                        <span className="text-xs text-muted-foreground">{l.durationMin}分</span>
-                      )}
+                <div key={l.id} className="rounded-md bg-blue-50 px-3 py-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-sm font-medium">{l.student.user.name}</span>
+                        <span className={`text-xs rounded-full px-2 py-0.5 ${l.type === "online" ? "bg-green-100 text-green-700" : "bg-purple-100 text-purple-700"}`}>
+                          {l.type === "online" ? "オンライン" : "対面"}
+                        </span>
+                        {l.durationMin && (
+                          <span className="text-xs text-muted-foreground">{l.durationMin}分</span>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {l.date.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })}〜
+                      </p>
+                      {l.notes && <p className="text-xs text-gray-600 mt-1">{l.notes}</p>}
                     </div>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      {l.date.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })}〜
-                    </p>
-                    {l.notes && <p className="text-xs text-gray-600 mt-1">{l.notes}</p>}
+                    {isTeacher && (
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button
+                          onClick={() => setEditingLessonId(editingLessonId === l.id ? null : l.id)}
+                          className="text-xs text-blue-500 hover:text-blue-700"
+                        >
+                          {editingLessonId === l.id ? "閉じる" : "編集"}
+                        </button>
+                        <DeleteLessonButton lessonId={l.id} />
+                      </div>
+                    )}
                   </div>
-                  {isTeacher && (
-                    <form
-                      action={deleteLesson}
-                      onSubmit={(e) => { if (!confirm("この授業を削除しますか？")) e.preventDefault() }}
-                    >
-                      <input type="hidden" name="lessonId" value={l.id} />
-                      <button type="submit" className="text-xs text-red-400 hover:text-red-600">削除</button>
-                    </form>
+                  {isTeacher && editingLessonId === l.id && (
+                    <LessonEditForm lesson={l} onClose={() => setEditingLessonId(null)} />
                   )}
                 </div>
               ))}
@@ -191,16 +233,19 @@ export default function CalendarView({ lessons, deadlines, students, isTeacher }
             <div className="space-y-2">
               <p className="text-xs font-medium text-muted-foreground">宿題期限</p>
               {selectedDeadlines.map((d) => (
-                <div key={d.id} className="flex items-center justify-between rounded-md bg-orange-50 px-3 py-2">
+                <Link
+                  key={d.id}
+                  href={`/homework/${d.id}`}
+                  className="flex items-center justify-between rounded-md bg-orange-50 px-3 py-2 hover:bg-orange-100 transition-colors"
+                >
                   <div>
-                    <Link href={`/homework/${d.id}`} className="text-sm font-medium hover:underline">
-                      {d.title}
-                    </Link>
+                    <p className="text-sm font-medium">{d.title}</p>
                     {isTeacher && (
                       <p className="text-xs text-muted-foreground mt-0.5">{d.studentName}</p>
                     )}
                   </div>
-                </div>
+                  <ChevronRight className="h-3.5 w-3.5 text-muted-foreground shrink-0 ml-2" />
+                </Link>
               ))}
             </div>
           )}

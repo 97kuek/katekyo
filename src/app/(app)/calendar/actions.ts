@@ -54,6 +54,48 @@ export async function createLesson(
   return { error: "", timestamp: Date.now() }
 }
 
+const updateSchema = z.object({
+  lessonId: z.string().min(1),
+  date: z.string().min(1),
+  time: z.string().min(1),
+  type: z.enum(["online", "offline"]),
+  durationMin: z.string().optional(),
+  notes: z.string().optional(),
+})
+
+export async function updateLesson(
+  _prevState: { error: string; timestamp?: number },
+  formData: FormData
+): Promise<{ error: string; timestamp?: number }> {
+  const session = await auth()
+  if (!session || session.user.role !== "teacher") return { error: "権限がありません" }
+
+  const result = updateSchema.safeParse({
+    lessonId: formData.get("lessonId"),
+    date: formData.get("date"),
+    time: formData.get("time"),
+    type: formData.get("type"),
+    durationMin: formData.get("durationMin") || undefined,
+    notes: formData.get("notes") || undefined,
+  })
+  if (!result.success) return { error: result.error.issues[0].message }
+
+  const { lessonId, date, time, type, durationMin, notes } = result.data
+
+  await db.lesson.updateMany({
+    where: { id: lessonId, teacherId: session.user.id },
+    data: {
+      date: new Date(`${date}T${time}`),
+      type,
+      durationMin: durationMin ? parseInt(durationMin) : null,
+      notes: notes || null,
+    },
+  })
+
+  revalidatePath("/calendar")
+  return { error: "", timestamp: Date.now() }
+}
+
 export async function deleteLesson(formData: FormData) {
   const session = await auth()
   if (!session || session.user.role !== "teacher") redirect("/dashboard")

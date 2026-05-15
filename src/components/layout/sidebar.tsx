@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { BookOpen, GraduationCap, LayoutDashboard, Tag, ClipboardList, BarChart2, CalendarDays, HelpCircle } from "lucide-react"
+import { BookOpen, GraduationCap, LayoutDashboard, Tag, ClipboardList, BarChart2, CalendarDays, HelpCircle, UserCircle } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const teacherNav = [
@@ -48,7 +48,19 @@ export default function Sidebar({ role }: { role: string }) {
           </Link>
         ))}
       </nav>
-      <div className="p-3 border-t">
+      <div className="p-3 border-t space-y-1">
+        <Link
+          href="/profile"
+          className={cn(
+            "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+            pathname === "/profile"
+              ? "bg-gray-100 text-gray-900"
+              : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
+          )}
+        >
+          <UserCircle className="h-4 w-4" />
+          プロフィール
+        </Link>
         <Link
           href="/help"
           className={cn(
