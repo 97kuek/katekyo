@@ -47,6 +47,7 @@ export default async function StudentGradesPage({ params }: { params: Promise<{ 
   const chartGrades = grades.map((g) => ({
     id: g.id,
     testName: g.testName,
+    testType: g.testType,
     date: g.date.toISOString(),
     score: g.score,
     maxScore: g.maxScore,

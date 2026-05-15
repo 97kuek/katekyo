@@ -5,10 +5,12 @@ import { updateGradeRecord } from "../edit-actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { TEST_TYPE_OPTIONS } from "@/lib/test-types"
 
 type Grade = {
   id: string
   testName: string
+  testType: string
   date: Date
   subjectIds: string[]
   score: number | null
@@ -44,6 +46,20 @@ export default function EditGradeForm({
         <div className="col-span-2 space-y-2">
           <Label>生徒</Label>
           <Input value={grade.student.user.name} disabled className="bg-gray-50" />
+        </div>
+
+        <div className="col-span-2 space-y-2">
+          <Label htmlFor="testType">テスト種別</Label>
+          <select
+            id="testType"
+            name="testType"
+            defaultValue={grade.testType}
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            {TEST_TYPE_OPTIONS.map(([value, label]) => (
+              <option key={value} value={value}>{label}</option>
+            ))}
+          </select>
         </div>
 
         <div className="col-span-2 space-y-2">

@@ -5,6 +5,8 @@ import Link from "next/link"
 import { buttonVariants } from "@/components/ui/button"
 import GradeChart from "./grade-chart"
 import { GradeActionsCell } from "./grade-actions-cell"
+import { GradeTypeFilter } from "./grade-type-filter"
+import { TEST_TYPE_LABELS } from "@/lib/test-types"
 
 function SubjectTags({ ids, map }: { ids: string[]; map: Map<string, string> }) {
   const names = ids.map((id) => map.get(id)).filter(Boolean) as string[]
@@ -20,20 +22,47 @@ function SubjectTags({ ids, map }: { ids: string[]; map: Map<string, string> }) 
   )
 }
 
-export default async function GradesPage() {
+const TEST_TYPE_BADGE: Record<string, string> = {
+  mock: "bg-purple-50 text-purple-700",
+  exam: "bg-blue-50 text-blue-700",
+  quiz: "bg-green-50 text-green-700",
+  other: "bg-gray-100 text-gray-600",
+}
+
+export default async function GradesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ type?: string }>
+}) {
   const session = await auth()
   if (!session) redirect("/login")
 
+  const { type } = await searchParams
+
   if (session.user.role === "teacher") {
-    return <TeacherGradesPage teacherId={session.user.id} />
+    return <TeacherGradesPage teacherId={session.user.id} typeFilter={type} />
   }
   return <StudentGradesPage userId={session.user.id} />
 }
 
-async function TeacherGradesPage({ teacherId }: { teacherId: string }) {
+async function TeacherGradesPage({
+  teacherId,
+  typeFilter,
+}: {
+  teacherId: string
+  typeFilter?: string
+}) {
+  const validTypes = ["mock", "exam", "quiz", "other"] as const
+  type ValidType = (typeof validTypes)[number]
+  const isValidType = (v: string | undefined): v is ValidType =>
+    validTypes.includes(v as ValidType)
+
   const [grades, subjects] = await Promise.all([
     db.gradeRecord.findMany({
-      where: { teacherId },
+      where: {
+        teacherId,
+        ...(isValidType(typeFilter) ? { testType: typeFilter } : {}),
+      },
       include: { student: { include: { user: { select: { name: true } } } } },
       orderBy: { date: "desc" },
     }),
@@ -51,18 +80,23 @@ async function TeacherGradesPage({ teacherId }: { teacherId: string }) {
         </Link>
       </div>
 
+      <GradeTypeFilter />
+
       {grades.length === 0 ? (
         <div className="rounded-lg border bg-white p-12 text-center">
-          <p className="text-muted-foreground">まだ成績記録がありません</p>
-          <Link href="/grades/new" className={buttonVariants({ className: "mt-4 inline-flex" })}>
-            最初の成績を記録する
-          </Link>
+          <p className="text-muted-foreground">成績記録がありません</p>
+          {!typeFilter && (
+            <Link href="/grades/new" className={buttonVariants({ className: "mt-4 inline-flex" })}>
+              最初の成績を記録する
+            </Link>
+          )}
         </div>
       ) : (
         <div className="rounded-lg border bg-white overflow-hidden overflow-x-auto">
-          <table className="w-full text-sm min-w-[640px]">
+          <table className="w-full text-sm min-w-[700px]">
             <thead className="border-b bg-gray-50">
               <tr>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">種別</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">テスト名</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">生徒</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">日付</th>
@@ -76,6 +110,13 @@ async function TeacherGradesPage({ teacherId }: { teacherId: string }) {
             <tbody className="divide-y">
               {grades.map((g) => (
                 <tr key={g.id} className="hover:bg-gray-50">
+                  <td className="px-4 py-3">
+                    <span
+                      className={`text-xs rounded-full px-2 py-0.5 ${TEST_TYPE_BADGE[g.testType] ?? TEST_TYPE_BADGE.other}`}
+                    >
+                      {TEST_TYPE_LABELS[g.testType as keyof typeof TEST_TYPE_LABELS] ?? g.testType}
+                    </span>
+                  </td>
                   <td className="px-4 py-3">
                     <p className="font-medium">{g.testName}</p>
                     <SubjectTags ids={g.subjectIds} map={subjectMap} />
@@ -129,6 +170,7 @@ async function StudentGradesPage({ userId }: { userId: string }) {
   const chartGrades = grades.map((g) => ({
     id: g.id,
     testName: g.testName,
+    testType: g.testType,
     date: g.date.toISOString(),
     score: g.score,
     maxScore: g.maxScore,
@@ -152,6 +194,7 @@ async function StudentGradesPage({ userId }: { userId: string }) {
               <thead className="border-b bg-gray-50">
                 <tr>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">テスト名</th>
+                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">種別</th>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">日付</th>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">得点</th>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">順位</th>
@@ -166,6 +209,13 @@ async function StudentGradesPage({ userId }: { userId: string }) {
                     <td className="px-4 py-3">
                       <p className="font-medium">{g.testName}</p>
                       <SubjectTags ids={g.subjectIds} map={subjectMap} />
+                    </td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={`text-xs rounded-full px-2 py-0.5 ${TEST_TYPE_BADGE[g.testType] ?? TEST_TYPE_BADGE.other}`}
+                      >
+                        {TEST_TYPE_LABELS[g.testType as keyof typeof TEST_TYPE_LABELS] ?? g.testType}
+                      </span>
                     </td>
                     <td className="px-4 py-3 text-muted-foreground">
                       {g.date.toLocaleDateString("ja-JP")}

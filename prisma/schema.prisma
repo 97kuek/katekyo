@@ -24,6 +24,13 @@ enum LessonType {
   offline
 }
 
+enum TestType {
+  mock
+  exam
+  quiz
+  other
+}
+
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
@@ -114,6 +121,7 @@ model GradeRecord {
   rank          Int?
   totalStudents Int?
   deviation     Float?
+  testType      TestType @default(other)
   teacherRating Int?
   comment       String?
   createdAt     DateTime @default(now())

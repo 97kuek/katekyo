@@ -5,6 +5,7 @@ import { createGradeRecord } from "./actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { TEST_TYPE_OPTIONS } from "@/lib/test-types"
 
 type Student = { id: string; grade: string; user: { name: string } }
 type Subject = { id: string; name: string }
@@ -40,6 +41,20 @@ export default function CreateGradeForm({
               <option key={s.id} value={s.id}>
                 {s.user.name}（{s.grade}）
               </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="col-span-2 space-y-2">
+          <Label htmlFor="testType">テスト種別</Label>
+          <select
+            id="testType"
+            name="testType"
+            required
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            {TEST_TYPE_OPTIONS.map(([value, label]) => (
+              <option key={value} value={value}>{label}</option>
             ))}
           </select>
         </div>
