@@ -225,6 +225,7 @@ export default function GradeChart({
                       strokeDasharray="4 4"
                       dot={false}
                       connectNulls={false}
+                      legendType="none"
                     />
                   )
                 })
