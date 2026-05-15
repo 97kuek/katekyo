@@ -38,7 +38,7 @@ function TeacherDashboard({ teacherId }: { teacherId: string }) {
   return (
     <div className="space-y-6">
       <Suspense fallback={
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
           {[...Array(4)].map((_, i) => (
             <div key={i} className="rounded-lg border bg-white p-5 space-y-3">
               <Sk className="h-4 w-24" /><Sk className="h-8 w-12" />
@@ -87,7 +87,7 @@ async function TeacherSummaryCards({ teacherId }: { teacherId: string }) {
     db.homework.count({ where: { teacherId, status: "assigned", dueDate: { lt: now } } }),
   ])
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
       <SummaryCard title="承認待ちの宿題" value={String(pendingCount)} accent={pendingCount > 0} href="/homework" />
       <SummaryCard title="期限切れの宿題" value={String(overdueCount)} accent={overdueCount > 0} href="/homework" />
       <SummaryCard title="登録生徒数" value={String(studentCount)} href="/students" />
@@ -302,7 +302,7 @@ async function GradeTrendsSection({ teacherId }: { teacherId: string }) {
         <h2 className="text-sm font-semibold">直近の成績動向</h2>
         <Link href="/grades" className="text-xs text-muted-foreground hover:underline">成績一覧</Link>
       </div>
-      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-3">
         {gradeTrends.map((t) => {
           const up = t.diff > 0
           return (
@@ -333,7 +333,7 @@ function StudentDashboard({ userId }: { userId: string }) {
   return (
     <div className="space-y-6">
       <Suspense fallback={
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
           {[...Array(4)].map((_, i) => (
             <div key={i} className="rounded-lg border bg-white p-5 space-y-3">
               <Sk className="h-4 w-24" /><Sk className="h-8 w-12" />
@@ -386,7 +386,7 @@ async function StudentSummaryCards({ userId }: { userId: string }) {
   ])
   const latest = recentGrades[0]
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
       <SummaryCard title="未完了の宿題" value={String(incompleteCount)} accent={incompleteCount > 0} href="/homework" />
       <SummaryCard title="期限切れ" value={String(overdueCount)} accent={overdueCount > 0} href="/homework" />
       <SummaryCard title="承認待ち" value={String(submittedCount)} href="/homework" />

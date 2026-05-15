@@ -26,52 +26,55 @@ export default function Sidebar({ role }: { role: string }) {
   const navItems = role === "teacher" ? teacherNav : studentNav
 
   return (
-    <aside className="w-60 shrink-0 border-r bg-white hidden md:flex flex-col">
-      <div className="h-14 flex items-center gap-2 px-5 border-b">
-        <BookOpen className="h-5 w-5 text-primary" />
-        <span className="font-bold text-lg tracking-tight">katekyo</span>
+    <aside className="w-16 lg:w-60 shrink-0 border-r bg-white hidden md:flex flex-col">
+      <div className="h-14 flex items-center justify-center lg:justify-start gap-2 px-3 lg:px-5 border-b">
+        <BookOpen className="h-5 w-5 text-primary shrink-0" />
+        <span className="font-bold text-lg tracking-tight hidden lg:block">katekyo</span>
       </div>
-      <nav className="flex-1 p-3 space-y-1">
+      <nav className="flex-1 p-2 lg:p-3 space-y-1">
         {navItems.map(({ href, label, icon: Icon }) => (
           <Link
             key={href}
             href={href}
+            title={label}
             className={cn(
-              "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+              "flex items-center justify-center lg:justify-start gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
               pathname === href || pathname.startsWith(href + "/")
                 ? "bg-gray-100 text-gray-900"
                 : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
             )}
           >
-            <Icon className="h-4 w-4" />
-            {label}
+            <Icon className="h-4 w-4 shrink-0" />
+            <span className="hidden lg:block">{label}</span>
           </Link>
         ))}
       </nav>
-      <div className="p-3 border-t space-y-1">
+      <div className="p-2 lg:p-3 border-t space-y-1">
         <Link
           href="/profile"
+          title="プロフィール"
           className={cn(
-            "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+            "flex items-center justify-center lg:justify-start gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
             pathname === "/profile"
               ? "bg-gray-100 text-gray-900"
               : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
           )}
         >
-          <UserCircle className="h-4 w-4" />
-          プロフィール
+          <UserCircle className="h-4 w-4 shrink-0" />
+          <span className="hidden lg:block">プロフィール</span>
         </Link>
         <Link
           href="/help"
+          title="使い方ガイド"
           className={cn(
-            "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+            "flex items-center justify-center lg:justify-start gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
             pathname === "/help"
               ? "bg-gray-100 text-gray-900"
               : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
           )}
         >
-          <HelpCircle className="h-4 w-4" />
-          使い方ガイド
+          <HelpCircle className="h-4 w-4 shrink-0" />
+          <span className="hidden lg:block">使い方ガイド</span>
         </Link>
       </div>
     </aside>

@@ -18,10 +18,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <div className="flex flex-col flex-1 min-w-0">
           <Header name={session.user.name ?? ""} />
           <main className="flex-1 overflow-auto p-4 md:p-6 pb-20 md:pb-6">
-            <Suspense>
-              <SearchParamsToast />
-            </Suspense>
-            {children}
+            <div className="max-w-7xl mx-auto">
+              <Suspense>
+                <SearchParamsToast />
+              </Suspense>
+              {children}
+            </div>
           </main>
         </div>
       </div>
