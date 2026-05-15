@@ -28,7 +28,8 @@ src/
 ├── lib/
 │   ├── auth.ts           # NextAuth 設定
 │   ├── db.ts             # Prisma クライアント
-│   └── grades.ts         # 学年選択肢の定数（GRADE_OPTIONS）
+│   ├── grades.ts         # 学年選択肢の定数（GRADE_OPTIONS）
+│   └── test-types.ts     # テスト種別の定数（TEST_TYPE_LABELS, TEST_TYPE_OPTIONS）
 prisma/
 └── schema.prisma
 ```
@@ -74,6 +75,7 @@ NEXTAUTH_URL=          # 開発時は http://localhost:3000
 - データフェッチは Server Component で行い、ミューテーションは Server Actions を使用する
 - Zod スキーマはすべての Server Action でバリデーションに使用する
 - 学年は `src/lib/grades.ts` の `GRADE_OPTIONS` を使用し、フリーテキスト入力しない
+- テスト種別は `src/lib/test-types.ts` の `TEST_TYPE_OPTIONS` を使用する（mock/exam/quiz/other）
 
 ## 主要なビジネスロジック
 
@@ -100,6 +102,13 @@ assigned → submitted（生徒の完了報告）→ approved（先生承認）
 - 先生がカレンダーから授業を登録：日時・生徒・オンライン/対面・所要時間・メモ
 - 生徒は自分の授業のみ閲覧可（作成・削除不可）
 
+### 成績（GradeRecord）
+
+- `testType` は `mock`（模試）/ `exam`（定期テスト）/ `quiz`（小テスト）/ `other`（その他）の4択
+- 先生の成績一覧はURL `?type=mock` 等でサーバーサイドフィルタリング
+- 生徒の成績グラフは複数種別が存在する場合のみ種別フィルタを表示（クライアントサイド）
+- 先生が生徒個別の成績を見るページ: `/students/[id]/grades`
+
 ## UIの指針
 
 - shadcn/ui のコンポーネントを積極的に活用する
@@ -108,3 +117,6 @@ assigned → submitted（生徒の完了報告）→ approved（先生承認）
 - main の padding: `p-4 md:p-6 pb-20 md:pb-6`（ボトムナビ分の余白）
 - 承認待ちの宿題はダッシュボード最上部にバッジ付きで表示
 - 成績グラフは点数と偏差値を切り替えられるようにする
+- ダッシュボードは先生・生徒で表示内容が異なる（下記参照）
+  - 先生: 承認待ち宿題・生徒別宿題ステータス表・成績動向・今後7日の授業/期限
+  - 生徒: 未完了/期限切れ/承認待ちカード・直近5件成績リスト・今後7日の授業/期限
