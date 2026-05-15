@@ -5,6 +5,8 @@ import Link from "next/link"
 import { buttonVariants } from "@/components/ui/button"
 import { StatusBadge } from "@/components/homework/status-badge"
 import { DeleteHomeworkButton } from "./delete-homework-button"
+import { CancelSubmissionButton } from "@/app/(app)/homework/cancel-button"
+import { relativeDeadline, deadlineColorClass } from "@/lib/date-utils"
 
 export default async function HomeworkDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -35,7 +37,6 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
     where: { teacherId: homework.teacherId, id: { in: homework.subjectIds } },
     select: { id: true, name: true },
   })
-  const subjectMap = new Map(subjects.map((s) => [s.id, s.name]))
 
   return (
     <div className="max-w-2xl space-y-6">
@@ -69,9 +70,12 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
               <p className="text-sm text-muted-foreground mt-1">生徒: {homework.student.user.name}</p>
             )}
           </div>
-          <div className="text-right text-sm text-muted-foreground shrink-0">
-            <p>期限: {homework.dueDate.toLocaleDateString("ja-JP")}</p>
-            <p className="mt-0.5">作成: {homework.createdAt.toLocaleDateString("ja-JP")}</p>
+          <div className="text-right text-sm shrink-0">
+            <p className="text-muted-foreground">作成: {homework.createdAt.toLocaleDateString("ja-JP")}</p>
+            <p className={`mt-0.5 ${deadlineColorClass(homework.dueDate)}`}>
+              期限: {homework.dueDate.toLocaleDateString("ja-JP")}
+              <span className="ml-1 text-xs">（{relativeDeadline(homework.dueDate)}）</span>
+            </p>
           </div>
         </div>
 
@@ -126,11 +130,14 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
         </div>
       )}
 
-      <div className="flex gap-3 flex-wrap">
+      <div className="flex gap-3 flex-wrap items-center">
         {!isTeacher && ["assigned", "rejected"].includes(homework.status) && (
           <Link href={`/homework/${id}/submit`} className={buttonVariants()}>
             提出する
           </Link>
+        )}
+        {!isTeacher && homework.status === "submitted" && (
+          <CancelSubmissionButton homeworkId={id} />
         )}
         {isTeacher && homework.status === "submitted" && (
           <Link href={`/homework/${id}/review`} className={buttonVariants()}>

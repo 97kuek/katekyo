@@ -10,11 +10,26 @@ export default async function StudentsPage() {
   const session = await auth()
   if (!session || session.user.role !== "teacher") redirect("/dashboard")
 
-  const students = await db.student.findMany({
-    where: { teacherId: session.user.id },
-    include: { user: { select: { name: true, email: true } } },
-    orderBy: { createdAt: "desc" },
-  })
+  const [students, homeworkStats] = await Promise.all([
+    db.student.findMany({
+      where: { teacherId: session.user.id },
+      include: { user: { select: { name: true, email: true } } },
+      orderBy: { createdAt: "desc" },
+    }),
+    db.homework.groupBy({
+      by: ["studentId", "status"],
+      where: { teacherId: session.user.id },
+      _count: { status: true },
+    }),
+  ])
+
+  const progressMap = new Map<string, { total: number; approved: number }>()
+  for (const row of homeworkStats) {
+    const entry = progressMap.get(row.studentId) ?? { total: 0, approved: 0 }
+    entry.total += row._count.status
+    if (row.status === "approved") entry.approved += row._count.status
+    progressMap.set(row.studentId, entry)
+  }
 
   return (
     <div className="space-y-6">
@@ -48,12 +63,16 @@ export default async function StudentsPage() {
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">名前</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">メールアドレス</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">学年</th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">宿題進捗</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">登録日</th>
                 <th className="px-4 py-3"></th>
               </tr>
             </thead>
             <tbody className="divide-y">
-              {students.map((s) => (
+              {students.map((s) => {
+                const prog = progressMap.get(s.id)
+                const pct = prog && prog.total > 0 ? Math.round((prog.approved / prog.total) * 100) : null
+                return (
                 <tr key={s.id} className="hover:bg-gray-50">
                   <td className="px-4 py-3 font-medium">{s.user.name}</td>
                   <td className="px-4 py-3 text-muted-foreground">{s.user.email}</td>
@@ -62,6 +81,24 @@ export default async function StudentsPage() {
                       <span className="text-sm">{s.grade}</span>
                       <UpdateGradeForm studentId={s.id} currentGrade={s.grade} />
                     </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    {pct != null ? (
+                      <div className="space-y-1 min-w-[80px]">
+                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                          <span>{prog!.approved}/{prog!.total}</span>
+                          <span>{pct}%</span>
+                        </div>
+                        <div className="h-1.5 w-full rounded-full bg-gray-100 overflow-hidden">
+                          <div
+                            className="h-full rounded-full bg-green-500 transition-all"
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">-</span>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">
                     {s.createdAt.toLocaleDateString("ja-JP")}
@@ -78,7 +115,8 @@ export default async function StudentsPage() {
                     </div>
                   </td>
                 </tr>
-              ))}
+                )
+              })}
             </tbody>
           </table>
         </div>

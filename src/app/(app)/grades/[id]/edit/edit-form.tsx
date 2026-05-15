@@ -15,6 +15,7 @@ type Grade = {
   subjectIds: string[]
   score: number | null
   maxScore: number | null
+  avgScore: number | null
   rank: number | null
   totalStudents: number | null
   deviation: number | null
@@ -106,6 +107,17 @@ export default function EditGradeForm({
             min="0"
             max="100"
             defaultValue={grade.deviation ?? ""}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="avgScore">クラス平均点</Label>
+          <Input
+            id="avgScore"
+            name="avgScore"
+            type="number"
+            min="0"
+            defaultValue={grade.avgScore ?? ""}
           />
         </div>
 

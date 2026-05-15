@@ -122,6 +122,7 @@ model GradeRecord {
   totalStudents Int?
   deviation     Float?
   testType      TestType @default(other)
+  avgScore      Int?
   teacherRating Int?
   comment       String?
   createdAt     DateTime @default(now())

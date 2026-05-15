@@ -8,6 +8,7 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
+  Legend,
   ResponsiveContainer,
 } from "recharts"
 import { Button } from "@/components/ui/button"
@@ -20,36 +21,78 @@ type Grade = {
   date: string
   score: number | null
   maxScore: number | null
+  avgScore: number | null
   deviation: number | null
+  subjectIds: string[]
 }
 
-export default function GradeChart({ grades }: { grades: Grade[] }) {
+type Subject = { id: string; name: string }
+
+const LINE_COLORS = ["#2563eb", "#16a34a", "#dc2626", "#d97706", "#7c3aed", "#0891b2"]
+
+function computeValue(g: Grade, mode: "score" | "deviation"): number | null {
+  if (mode === "score") {
+    if (g.score != null && g.maxScore != null) return Math.round((g.score / g.maxScore) * 100)
+    return g.score
+  }
+  return g.deviation
+}
+
+function formatLabel(g: Grade): string {
+  return `${new Date(g.date).toLocaleDateString("ja-JP", { month: "numeric", day: "numeric" })} ${g.testName}`
+}
+
+export default function GradeChart({
+  grades,
+  subjects,
+}: {
+  grades: Grade[]
+  subjects: Subject[]
+}) {
   const [mode, setMode] = useState<"score" | "deviation">("score")
   const [typeFilter, setTypeFilter] = useState<string>("")
 
   const filtered = typeFilter ? grades.filter((g) => g.testType === typeFilter) : grades
+  const sorted = [...filtered].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
 
-  const sorted = [...filtered].sort(
-    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-  )
-
-  const data = sorted.map((g) => {
-    const scoreVal =
-      g.score != null && g.maxScore != null
-        ? Math.round((g.score / g.maxScore) * 100)
-        : g.score
-    const label = `${new Date(g.date).toLocaleDateString("ja-JP", {
-      month: "numeric",
-      day: "numeric",
-    })} ${g.testName}`
-    return { name: label, score: scoreVal, deviation: g.deviation }
-  })
-
-  const hasScore = data.some((d) => d.score != null)
-  const hasDeviation = data.some((d) => d.deviation != null)
-  const chartData = data.filter((d) => (mode === "score" ? d.score != null : d.deviation != null))
-
+  const hasScore = sorted.some((g) => computeValue(g, "score") != null)
+  const hasDeviation = sorted.some((g) => g.deviation != null)
   const availableTypes = Array.from(new Set(grades.map((g) => g.testType)))
+
+  // 科目別複数ライン
+  const usedSubjectIds = Array.from(new Set(sorted.flatMap((g) => g.subjectIds)))
+  const subjectMap = new Map(subjects.map((s) => [s.id, s.name]))
+  const hasSubjects = usedSubjectIds.length > 0
+
+  // データ構築
+  const allDates = Array.from(new Set(sorted.map((g) => g.date)))
+
+  const chartData = allDates.map((date) => {
+    const gradesOnDate = sorted.filter((g) => g.date === date)
+    const row: Record<string, string | number | null> = {
+      name: formatLabel(gradesOnDate[0]),
+    }
+    if (hasSubjects) {
+      for (const sid of usedSubjectIds) {
+        const g = gradesOnDate.find((g) => g.subjectIds.includes(sid))
+        row[sid] = g ? (computeValue(g, mode) ?? null) : null
+        if (g?.avgScore != null && g.maxScore != null && mode === "score") {
+          row[`avg_${sid}`] = Math.round((g.avgScore / g.maxScore) * 100)
+        } else if (g?.avgScore != null && mode === "score") {
+          row[`avg_${sid}`] = g.avgScore
+        }
+      }
+    } else {
+      const g = gradesOnDate[0]
+      row["value"] = computeValue(g, mode) ?? null
+      if (g?.avgScore != null && g.maxScore != null && mode === "score") {
+        row["avg"] = Math.round((g.avgScore / g.maxScore) * 100)
+      } else if (g?.avgScore != null && mode === "score") {
+        row["avg"] = g.avgScore
+      }
+    }
+    return row
+  })
 
   if (!hasScore && !hasDeviation) return null
 
@@ -102,42 +145,82 @@ export default function GradeChart({ grades }: { grades: Grade[] }) {
       )}
 
       {chartData.length === 0 ? (
-        <p className="text-sm text-muted-foreground text-center py-6">
-          該当するデータがありません
-        </p>
+        <p className="text-sm text-muted-foreground text-center py-6">該当するデータがありません</p>
       ) : (
-        <ResponsiveContainer width="100%" height={220}>
+        <ResponsiveContainer width="100%" height={hasSubjects ? 260 : 220}>
           <LineChart data={chartData} margin={{ top: 5, right: 10, left: -20, bottom: 50 }}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis
-              dataKey="name"
-              tick={{ fontSize: 11 }}
-              angle={-35}
-              textAnchor="end"
-              interval={0}
-            />
+            <XAxis dataKey="name" tick={{ fontSize: 11 }} angle={-35} textAnchor="end" interval={0} />
             <YAxis
               domain={mode === "deviation" ? [30, 80] : [0, 100]}
               tick={{ fontSize: 11 }}
               unit={mode === "score" ? "%" : ""}
             />
             <Tooltip
-              formatter={(value) =>
-                value != null
-                  ? mode === "score"
-                    ? [`${value}%`, ""]
-                    : [`偏差値 ${value}`, ""]
-                  : ["-", ""]
-              }
+              formatter={(value, name) => {
+                if (value == null) return ["-", name]
+                const nameStr = String(name)
+                if (nameStr.startsWith("avg_") || nameStr === "avg") {
+                  const subjectName = nameStr.startsWith("avg_")
+                    ? `平均(${subjectMap.get(nameStr.slice(4)) ?? ""})`
+                    : "クラス平均"
+                  return [`${value}%`, subjectName]
+                }
+                const label = subjectMap.get(nameStr) ?? "得点"
+                return mode === "score" ? [`${value}%`, label] : [`偏差値 ${value}`, label]
+              }}
             />
-            <Line
-              type="monotone"
-              dataKey={mode === "score" ? "score" : "deviation"}
-              stroke="#2563eb"
-              strokeWidth={2}
-              dot={{ r: 4 }}
-              activeDot={{ r: 6 }}
-            />
+            {hasSubjects && <Legend formatter={(v) => subjectMap.get(v) ?? v} />}
+
+            {hasSubjects
+              ? usedSubjectIds.map((sid, i) => (
+                  <Line
+                    key={sid}
+                    type="monotone"
+                    dataKey={sid}
+                    stroke={LINE_COLORS[i % LINE_COLORS.length]}
+                    strokeWidth={2}
+                    dot={{ r: 4 }}
+                    activeDot={{ r: 6 }}
+                    connectNulls={false}
+                  />
+                ))
+              : (
+                <Line
+                  type="monotone"
+                  dataKey="value"
+                  stroke="#2563eb"
+                  strokeWidth={2}
+                  dot={{ r: 4 }}
+                  activeDot={{ r: 6 }}
+                />
+              )}
+
+            {/* クラス平均ライン（点線） */}
+            {hasSubjects
+              ? usedSubjectIds.map((sid, i) => (
+                  <Line
+                    key={`avg_${sid}`}
+                    type="monotone"
+                    dataKey={`avg_${sid}`}
+                    stroke={LINE_COLORS[i % LINE_COLORS.length]}
+                    strokeWidth={1}
+                    strokeDasharray="4 4"
+                    dot={false}
+                    connectNulls={false}
+                  />
+                ))
+              : (
+                <Line
+                  type="monotone"
+                  dataKey="avg"
+                  stroke="#94a3b8"
+                  strokeWidth={1}
+                  strokeDasharray="4 4"
+                  dot={false}
+                  name="クラス平均"
+                />
+              )}
           </LineChart>
         </ResponsiveContainer>
       )}

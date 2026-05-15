@@ -101,6 +101,11 @@ export default function CreateGradeForm({
         </div>
 
         <div className="space-y-2">
+          <Label htmlFor="avgScore">クラス平均点</Label>
+          <Input id="avgScore" name="avgScore" type="number" min="0" placeholder="例: 65" />
+        </div>
+
+        <div className="space-y-2">
           <Label>主観評価</Label>
           <div className="flex gap-2 pt-1">
             {ratings.map((r) => (

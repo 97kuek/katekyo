@@ -56,6 +56,7 @@ export async function updateGradeRecord(
       date: new Date(date),
       score: toOptionalInt(formData.get("score")),
       maxScore: toOptionalInt(formData.get("maxScore")),
+      avgScore: toOptionalInt(formData.get("avgScore")),
       rank: toOptionalInt(formData.get("rank")),
       totalStudents: toOptionalInt(formData.get("totalStudents")),
       deviation: toOptionalFloat(formData.get("deviation")),

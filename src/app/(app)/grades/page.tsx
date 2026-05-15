@@ -29,6 +29,27 @@ const TEST_TYPE_BADGE: Record<string, string> = {
   other: "bg-gray-100 text-gray-600",
 }
 
+function DiffBadge({ diff }: { diff: number | null }) {
+  if (diff == null || Math.abs(diff) < 0.5) return null
+  const up = diff > 0
+  return (
+    <span className={`ml-1.5 text-xs font-medium ${up ? "text-green-600" : "text-red-500"}`}>
+      {up ? "+" : ""}{Math.round(diff)}
+    </span>
+  )
+}
+
+function VsAvg({ score, avgScore }: { score: number | null; avgScore: number | null }) {
+  if (score == null || avgScore == null) return <span className="text-muted-foreground">-</span>
+  const diff = score - avgScore
+  const up = diff >= 0
+  return (
+    <span className={`text-sm font-medium ${up ? "text-green-600" : "text-red-500"}`}>
+      {up ? "+" : ""}{diff}点
+    </span>
+  )
+}
+
 export default async function GradesPage({
   searchParams,
 }: {
@@ -71,6 +92,22 @@ async function TeacherGradesPage({
 
   const subjectMap = new Map(subjects.map((s) => [s.id, s.name]))
 
+  // 前回比計算（生徒別・日付降順で並んでいるので index+1 が前回）
+  const prevIndexByStudent = new Map<string, number>()
+  const prevDiff = grades.map((g) => {
+    const prevIdx = prevIndexByStudent.get(g.studentId)
+    prevIndexByStudent.set(g.studentId, grades.indexOf(g))
+    if (prevIdx == null) return null
+    const prev = grades[prevIdx]
+    const cur =
+      g.score != null && g.maxScore != null ? (g.score / g.maxScore) * 100 : g.score ?? g.deviation
+    const pre =
+      prev.score != null && prev.maxScore != null
+        ? (prev.score / prev.maxScore) * 100
+        : prev.score ?? prev.deviation
+    return cur != null && pre != null ? cur - pre : null
+  })
+
   return (
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-3 flex-wrap">
@@ -93,7 +130,7 @@ async function TeacherGradesPage({
         </div>
       ) : (
         <div className="rounded-lg border bg-white overflow-hidden overflow-x-auto">
-          <table className="w-full text-sm min-w-[700px]">
+          <table className="w-full text-sm min-w-[780px]">
             <thead className="border-b bg-gray-50">
               <tr>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">種別</th>
@@ -101,6 +138,7 @@ async function TeacherGradesPage({
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">生徒</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">日付</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">得点</th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">対平均</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">順位</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">偏差値</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">評価</th>
@@ -108,7 +146,7 @@ async function TeacherGradesPage({
               </tr>
             </thead>
             <tbody className="divide-y">
-              {grades.map((g) => (
+              {grades.map((g, i) => (
                 <tr key={g.id} className="hover:bg-gray-50">
                   <td className="px-4 py-3">
                     <span
@@ -131,6 +169,10 @@ async function TeacherGradesPage({
                         ? `${g.score}/${g.maxScore}`
                         : g.score
                       : "-"}
+                    <DiffBadge diff={prevDiff[i]} />
+                  </td>
+                  <td className="px-4 py-3">
+                    <VsAvg score={g.score} avgScore={g.avgScore} />
                   </td>
                   <td className="px-4 py-3">
                     {g.rank != null
@@ -174,8 +216,23 @@ async function StudentGradesPage({ userId }: { userId: string }) {
     date: g.date.toISOString(),
     score: g.score,
     maxScore: g.maxScore,
+    avgScore: g.avgScore,
     deviation: g.deviation,
+    subjectIds: g.subjectIds,
   }))
+
+  // 前回比
+  const prevDiff = grades.map((g, i) => {
+    const prev = grades[i + 1]
+    if (!prev) return null
+    const cur =
+      g.score != null && g.maxScore != null ? (g.score / g.maxScore) * 100 : g.score ?? g.deviation
+    const pre =
+      prev.score != null && prev.maxScore != null
+        ? (prev.score / prev.maxScore) * 100
+        : prev.score ?? prev.deviation
+    return cur != null && pre != null ? cur - pre : null
+  })
 
   return (
     <div className="space-y-6">
@@ -187,16 +244,17 @@ async function StudentGradesPage({ userId }: { userId: string }) {
         </div>
       ) : (
         <>
-          <GradeChart grades={chartGrades} />
+          <GradeChart grades={chartGrades} subjects={subjects} />
 
           <div className="rounded-lg border bg-white overflow-hidden overflow-x-auto">
-            <table className="w-full text-sm min-w-[560px]">
+            <table className="w-full text-sm min-w-[600px]">
               <thead className="border-b bg-gray-50">
                 <tr>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">テスト名</th>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">種別</th>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">日付</th>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">得点</th>
+                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">対平均</th>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">順位</th>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">偏差値</th>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">評価</th>
@@ -204,7 +262,7 @@ async function StudentGradesPage({ userId }: { userId: string }) {
                 </tr>
               </thead>
               <tbody className="divide-y">
-                {grades.map((g) => (
+                {grades.map((g, i) => (
                   <tr key={g.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3">
                       <p className="font-medium">{g.testName}</p>
@@ -226,6 +284,10 @@ async function StudentGradesPage({ userId }: { userId: string }) {
                           ? `${g.score}/${g.maxScore}`
                           : g.score
                         : "-"}
+                      <DiffBadge diff={prevDiff[i]} />
+                    </td>
+                    <td className="px-4 py-3">
+                      <VsAvg score={g.score} avgScore={g.avgScore} />
                     </td>
                     <td className="px-4 py-3">
                       {g.rank != null

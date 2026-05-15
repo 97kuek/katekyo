@@ -3,7 +3,6 @@
 import { useState } from "react"
 import Link from "next/link"
 import { ChevronLeft, ChevronRight } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import { LessonForm } from "./lesson-form"
 import { deleteLesson } from "./actions"
 
@@ -45,10 +44,12 @@ export default function CalendarView({ lessons, deadlines, students, isTeacher }
   const [selectedDay, setSelectedDay] = useState<string | null>(toDateKey(today))
 
   const lessonMap = new Map<string, Lesson[]>()
+  const hasNoteMap = new Map<string, boolean>()
   for (const l of lessons) {
     const key = toDateKey(l.date)
     if (!lessonMap.has(key)) lessonMap.set(key, [])
     lessonMap.get(key)!.push(l)
+    if (l.notes) hasNoteMap.set(key, true)
   }
 
   const deadlineMap = new Map<string, HomeworkDeadline[]>()
@@ -106,6 +107,7 @@ export default function CalendarView({ lessons, deadlines, students, isTeacher }
             if (day === null) return <div key={i} className="aspect-square" />
             const key = `${year}-${pad(month + 1)}-${pad(day)}`
             const hasLesson = lessonMap.has(key)
+            const hasNote = hasNoteMap.has(key)
             const hasDeadline = deadlineMap.has(key)
             const isToday = key === todayKey
             const isSelected = key === selectedDay
@@ -126,7 +128,8 @@ export default function CalendarView({ lessons, deadlines, students, isTeacher }
                   {day}
                 </span>
                 <div className="flex gap-0.5">
-                  {hasLesson && <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />}
+                  {hasLesson && <span className={`h-1.5 w-1.5 rounded-full ${hasNote ? "bg-blue-600" : "bg-blue-300"}`} />}
+                  {hasNote && <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />}
                   {hasDeadline && <span className="h-1.5 w-1.5 rounded-full bg-orange-400" />}
                 </div>
               </button>
@@ -134,8 +137,9 @@ export default function CalendarView({ lessons, deadlines, students, isTeacher }
           })}
         </div>
 
-        <div className="px-3 pb-3 pt-1 flex items-center gap-4 text-xs text-muted-foreground border-t">
-          <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-blue-400 inline-block" />授業</span>
+        <div className="px-3 pb-3 pt-1 flex items-center gap-4 text-xs text-muted-foreground border-t flex-wrap">
+          <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-blue-300 inline-block" />授業</span>
+          <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-amber-400 inline-block" />ノートあり</span>
           <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-orange-400 inline-block" />宿題期限</span>
         </div>
       </div>

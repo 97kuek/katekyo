@@ -4,6 +4,9 @@ import { db } from "@/lib/db"
 import Link from "next/link"
 import { buttonVariants } from "@/components/ui/button"
 import { StatusBadge } from "@/components/homework/status-badge"
+import { CancelSubmissionButton } from "./cancel-button"
+import { HomeworkFilter } from "./homework-filter"
+import { relativeDeadline, deadlineColorClass } from "@/lib/date-utils"
 
 function SubjectTags({ ids, map }: { ids: string[]; map: Map<string, string> }) {
   const names = ids.map((id) => map.get(id)).filter(Boolean) as string[]
@@ -19,32 +22,44 @@ function SubjectTags({ ids, map }: { ids: string[]; map: Map<string, string> }) 
   )
 }
 
-function OverdueBadge() {
-  return (
-    <span className="text-xs bg-red-100 text-red-700 rounded-full px-2 py-0.5 font-medium">
-      期限切れ
-    </span>
-  )
-}
-
-export default async function HomeworkPage() {
+export default async function HomeworkPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ studentId?: string }>
+}) {
   const session = await auth()
   if (!session) redirect("/login")
 
+  const { studentId } = await searchParams
+
   if (session.user.role === "teacher") {
-    return <TeacherHomeworkPage teacherId={session.user.id} />
+    return <TeacherHomeworkPage teacherId={session.user.id} studentIdFilter={studentId} />
   }
   return <StudentHomeworkPage userId={session.user.id} />
 }
 
-async function TeacherHomeworkPage({ teacherId }: { teacherId: string }) {
-  const [homeworks, subjects] = await Promise.all([
+async function TeacherHomeworkPage({
+  teacherId,
+  studentIdFilter,
+}: {
+  teacherId: string
+  studentIdFilter?: string
+}) {
+  const [homeworks, subjects, students] = await Promise.all([
     db.homework.findMany({
-      where: { teacherId },
+      where: {
+        teacherId,
+        ...(studentIdFilter ? { studentId: studentIdFilter } : {}),
+      },
       include: { student: { include: { user: { select: { name: true } } } } },
       orderBy: { createdAt: "desc" },
     }),
     db.subject.findMany({ where: { teacherId }, select: { id: true, name: true } }),
+    db.student.findMany({
+      where: { teacherId },
+      include: { user: { select: { name: true } } },
+      orderBy: { createdAt: "asc" },
+    }),
   ])
 
   const subjectMap = new Map(subjects.map((s) => [s.id, s.name]))
@@ -60,6 +75,8 @@ async function TeacherHomeworkPage({ teacherId }: { teacherId: string }) {
           宿題を作成
         </Link>
       </div>
+
+      <HomeworkFilter students={students} />
 
       {submitted.length > 0 && (
         <section className="space-y-3">
@@ -108,6 +125,8 @@ async function TeacherHomeworkPage({ teacherId }: { teacherId: string }) {
               <tbody className="divide-y">
                 {others.map((h) => {
                   const overdue = h.dueDate < now && h.status === "assigned"
+                  const relLabel = relativeDeadline(h.dueDate)
+                  const relColor = deadlineColorClass(h.dueDate)
                   return (
                     <tr key={h.id} className={`hover:bg-gray-50 ${overdue ? "bg-red-50/40" : ""}`}>
                       <td className="px-4 py-3">
@@ -116,10 +135,10 @@ async function TeacherHomeworkPage({ teacherId }: { teacherId: string }) {
                       </td>
                       <td className="px-4 py-3 text-muted-foreground">{h.student.user.name}</td>
                       <td className="px-4 py-3">
-                        <span className={overdue ? "text-red-600 font-medium" : "text-muted-foreground"}>
-                          {h.dueDate.toLocaleDateString("ja-JP")}
-                        </span>
-                        {overdue && <span className="block text-xs text-red-500">期限切れ</span>}
+                        <p className="text-muted-foreground">{h.dueDate.toLocaleDateString("ja-JP")}</p>
+                        {h.status === "assigned" && (
+                          <p className={`text-xs ${relColor}`}>{relLabel}</p>
+                        )}
                       </td>
                       <td className="px-4 py-3">
                         <StatusBadge status={h.status} />
@@ -135,10 +154,14 @@ async function TeacherHomeworkPage({ teacherId }: { teacherId: string }) {
 
       {homeworks.length === 0 && (
         <div className="rounded-lg border bg-white p-12 text-center">
-          <p className="text-muted-foreground">まだ宿題が登録されていません</p>
-          <Link href="/homework/new" className={buttonVariants({ className: "mt-4 inline-flex" })}>
-            最初の宿題を作成する
-          </Link>
+          <p className="text-muted-foreground">
+            {studentIdFilter ? "この生徒の宿題はありません" : "まだ宿題が登録されていません"}
+          </p>
+          {!studentIdFilter && (
+            <Link href="/homework/new" className={buttonVariants({ className: "mt-4 inline-flex" })}>
+              最初の宿題を作成する
+            </Link>
+          )}
         </div>
       )}
     </div>
@@ -157,7 +180,8 @@ async function StudentHomeworkPage({ userId }: { userId: string }) {
   const subjectMap = new Map(subjects.map((s) => [s.id, s.name]))
   const now = new Date()
   const active = homeworks.filter((h) => h.status === "assigned" || h.status === "rejected")
-  const done = homeworks.filter((h) => h.status === "submitted" || h.status === "approved")
+  const submitted = homeworks.filter((h) => h.status === "submitted")
+  const approved = homeworks.filter((h) => h.status === "approved")
 
   return (
     <div className="space-y-6">
@@ -169,6 +193,8 @@ async function StudentHomeworkPage({ userId }: { userId: string }) {
           <div className="space-y-2">
             {active.map((h) => {
               const overdue = h.dueDate < now
+              const relLabel = relativeDeadline(h.dueDate)
+              const relColor = deadlineColorClass(h.dueDate)
               return (
                 <div
                   key={h.id}
@@ -178,10 +204,10 @@ async function StudentHomeworkPage({ userId }: { userId: string }) {
                     <div className="flex items-center gap-2 flex-wrap">
                       <p className="font-medium truncate">{h.title}</p>
                       <StatusBadge status={h.status} />
-                      {overdue && <OverdueBadge />}
                     </div>
-                    <p className={`text-sm mt-0.5 ${overdue ? "text-red-600 font-medium" : "text-muted-foreground"}`}>
+                    <p className={`text-sm mt-0.5 ${relColor}`}>
                       期限: {h.dueDate.toLocaleDateString("ja-JP")}
+                      <span className="ml-1.5 text-xs">（{relLabel}）</span>
                     </p>
                     <SubjectTags ids={h.subjectIds} map={subjectMap} />
                     {h.description && (
@@ -206,7 +232,27 @@ async function StudentHomeworkPage({ userId }: { userId: string }) {
         </section>
       )}
 
-      {done.length > 0 && (
+      {submitted.length > 0 && (
+        <section className="space-y-3">
+          <h2 className="text-sm font-medium text-yellow-700">承認待ち（{submitted.length}件）</h2>
+          <div className="space-y-2">
+            {submitted.map((h) => (
+              <div key={h.id} className="rounded-lg border border-yellow-200 bg-yellow-50/30 p-4 flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <p className="font-medium truncate">{h.title}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    提出済み {h.submittedAt?.toLocaleDateString("ja-JP")}
+                  </p>
+                  <SubjectTags ids={h.subjectIds} map={subjectMap} />
+                </div>
+                <CancelSubmissionButton homeworkId={h.id} />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {approved.length > 0 && (
         <section className="space-y-3">
           <h2 className="text-sm font-medium text-muted-foreground">完了</h2>
           <div className="rounded-lg border bg-white overflow-hidden overflow-x-auto">
@@ -219,10 +265,10 @@ async function StudentHomeworkPage({ userId }: { userId: string }) {
                 </tr>
               </thead>
               <tbody className="divide-y">
-                {done.map((h) => (
+                {approved.map((h) => (
                   <tr key={h.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3">
-                      <p className="font-medium">{h.title}</p>
+                      <Link href={`/homework/${h.id}`} className="font-medium hover:underline">{h.title}</Link>
                       <SubjectTags ids={h.subjectIds} map={subjectMap} />
                     </td>
                     <td className="px-4 py-3 text-muted-foreground">
