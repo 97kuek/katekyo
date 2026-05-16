@@ -34,10 +34,15 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
 
   if (!homework) notFound()
 
-  const subjects = await db.subject.findMany({
-    where: { teacherId: homework.teacherId, id: { in: homework.subjectIds } },
-    select: { id: true, name: true },
-  })
+  const [subjects, material] = await Promise.all([
+    db.subject.findMany({
+      where: { teacherId: homework.teacherId, id: { in: homework.subjectIds } },
+      select: { id: true, name: true },
+    }),
+    homework.materialId
+      ? db.studentMaterial.findUnique({ where: { id: homework.materialId }, select: { name: true } })
+      : null,
+  ])
 
   return (
     <div className="max-w-2xl space-y-6">
@@ -80,8 +85,13 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
           </div>
         </div>
 
-        {subjects.length > 0 && (
+        {(subjects.length > 0 || material) && (
           <div className="flex flex-wrap gap-1">
+            {material && (
+              <span className="text-xs bg-amber-50 text-amber-700 rounded-full px-2 py-0.5">
+                📖 {material.name}
+              </span>
+            )}
             {subjects.map((s) => (
               <span key={s.id} className="text-xs bg-blue-50 text-blue-700 rounded-full px-2 py-0.5">
                 {s.name}

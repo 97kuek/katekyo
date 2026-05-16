@@ -112,6 +112,9 @@ export default async function StudentsPage({
                     <Link href={`/students/${s.id}/grades`} className="text-xs text-blue-600 hover:underline">
                       成績を見る
                     </Link>
+                    <Link href={`/students/${s.id}/materials`} className="text-xs text-blue-600 hover:underline">
+                      教材管理
+                    </Link>
                     <ResetPasswordButton studentId={s.id} />
                     <DeleteStudentButton studentId={s.id} studentName={s.user.name} />
                   </div>
@@ -166,6 +169,9 @@ export default async function StudentsPage({
                         <div className="flex items-center justify-end gap-3 flex-wrap">
                           <Link href={`/students/${s.id}/grades`} className="text-xs text-blue-600 hover:underline">
                             成績を見る
+                          </Link>
+                          <Link href={`/students/${s.id}/materials`} className="text-xs text-blue-600 hover:underline">
+                            教材管理
                           </Link>
                           <ResetPasswordButton studentId={s.id} />
                           <DeleteStudentButton studentId={s.id} studentName={s.user.name} />

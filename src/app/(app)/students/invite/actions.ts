@@ -30,6 +30,10 @@ export async function createInvite(
 
   const { name, grade } = result.data
 
+  await db.inviteToken.deleteMany({
+    where: { teacherId: session.user.id, expiresAt: { lt: new Date() }, usedAt: null },
+  })
+
   const expiresAt = new Date()
   expiresAt.setDate(expiresAt.getDate() + 7)
 

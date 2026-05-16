@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState } from "react"
+import { useActionState, useState } from "react"
 import { createHomework } from "./actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -12,8 +12,19 @@ type Student = {
   user: { name: string }
 }
 
-export default function CreateHomeworkForm({ students }: { students: Student[] }) {
+type Material = { id: string; name: string }
+
+export default function CreateHomeworkForm({
+  students,
+  materialsByStudent,
+}: {
+  students: Student[]
+  materialsByStudent: Record<string, Material[]>
+}) {
   const [state, action, isPending] = useActionState(createHomework, { error: "" })
+  const [selectedStudentId, setSelectedStudentId] = useState("")
+
+  const materials = selectedStudentId ? (materialsByStudent[selectedStudentId] ?? []) : []
 
   return (
     <form action={action} className="space-y-4">
@@ -26,6 +37,8 @@ export default function CreateHomeworkForm({ students }: { students: Student[] }
           id="studentId"
           name="studentId"
           required
+          value={selectedStudentId}
+          onChange={(e) => setSelectedStudentId(e.target.value)}
           className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <option value="">生徒を選択してください</option>
@@ -54,6 +67,32 @@ export default function CreateHomeworkForm({ students }: { students: Student[] }
         <Label htmlFor="dueDate">期限</Label>
         <Input id="dueDate" name="dueDate" type="date" required />
       </div>
+      {selectedStudentId && (
+        <div className="space-y-2">
+          <Label htmlFor="materialId">使用教材（任意）</Label>
+          {materials.length === 0 ? (
+            <p className="text-xs text-muted-foreground">
+              この生徒の教材が未登録です。
+              <a href={`/students/${selectedStudentId}/materials`} className="underline ml-1">
+                教材を登録する
+              </a>
+            </p>
+          ) : (
+            <select
+              id="materialId"
+              name="materialId"
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <option value="">指定しない</option>
+              {materials.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.name}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
+      )}
       <Button type="submit" disabled={isPending}>
         {isPending ? "作成中..." : "宿題を作成する"}
       </Button>

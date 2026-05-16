@@ -9,11 +9,24 @@ export default async function NewHomeworkPage() {
   const session = await auth()
   if (!session || session.user.role !== "teacher") redirect("/dashboard")
 
-  const students = await db.student.findMany({
-    where: { teacherId: session.user.id },
-    include: { user: { select: { name: true } } },
-    orderBy: { createdAt: "desc" },
-  })
+  const [students, allMaterials] = await Promise.all([
+    db.student.findMany({
+      where: { teacherId: session.user.id },
+      include: { user: { select: { name: true } } },
+      orderBy: { createdAt: "desc" },
+    }),
+    db.studentMaterial.findMany({
+      where: { teacherId: session.user.id },
+      select: { id: true, name: true, studentId: true },
+      orderBy: { createdAt: "asc" },
+    }),
+  ])
+
+  const materialsByStudent: Record<string, { id: string; name: string }[]> = {}
+  for (const m of allMaterials) {
+    if (!materialsByStudent[m.studentId]) materialsByStudent[m.studentId] = []
+    materialsByStudent[m.studentId].push({ id: m.id, name: m.name })
+  }
 
   if (students.length === 0) {
     return (
@@ -48,7 +61,7 @@ export default async function NewHomeworkPage() {
           <CardDescription>生徒に新しい宿題を割り当てます</CardDescription>
         </CardHeader>
         <CardContent>
-          <CreateHomeworkForm students={students} />
+          <CreateHomeworkForm students={students} materialsByStudent={materialsByStudent} />
         </CardContent>
       </Card>
     </div>
