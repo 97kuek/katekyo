@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { db } from "@/lib/db"
+import { getStudentByUserId } from "@/lib/queries"
 import Link from "next/link"
 import { buttonVariants } from "@/components/ui/button"
 import { StatusBadge } from "@/components/homework/status-badge"
@@ -182,7 +183,7 @@ async function TeacherHomeworkPage({
 }
 
 async function StudentHomeworkPage({ userId }: { userId: string }) {
-  const student = await db.student.findUnique({ where: { userId } })
+  const student = await getStudentByUserId(userId)
   if (!student) redirect("/dashboard")
 
   const [homeworks, subjects] = await Promise.all([

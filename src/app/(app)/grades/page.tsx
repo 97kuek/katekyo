@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { db } from "@/lib/db"
+import { getStudentByUserId } from "@/lib/queries"
 import Link from "next/link"
 import { buttonVariants } from "@/components/ui/button"
 import GradeChart from "./grade-chart"
@@ -250,7 +251,7 @@ async function TeacherGradesPage({
 }
 
 async function StudentGradesPage({ userId }: { userId: string }) {
-  const student = await db.student.findUnique({ where: { userId } })
+  const student = await getStudentByUserId(userId)
   if (!student) redirect("/dashboard")
 
   const [grades, subjects] = await Promise.all([

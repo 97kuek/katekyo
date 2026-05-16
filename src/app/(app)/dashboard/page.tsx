@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { db } from "@/lib/db"
+import { getStudentByUserId } from "@/lib/queries"
 import Link from "next/link"
 import { Suspense } from "react"
 import { buttonVariants } from "@/components/ui/button"
@@ -365,7 +366,7 @@ function StudentDashboard({ userId }: { userId: string }) {
 }
 
 async function StudentSummaryCards({ userId }: { userId: string }) {
-  const student = await db.student.findUnique({ where: { userId } })
+  const student = await getStudentByUserId(userId)
   if (!student) return (
     <div className="grid gap-4 md:grid-cols-2">
       <SummaryCard title="未完了の宿題" value="0" />
@@ -401,7 +402,7 @@ async function StudentSummaryCards({ userId }: { userId: string }) {
 }
 
 async function StudentUpcomingSection({ userId }: { userId: string }) {
-  const student = await db.student.findUnique({ where: { userId } })
+  const student = await getStudentByUserId(userId)
   if (!student) return null
 
   const now = new Date()
@@ -472,7 +473,7 @@ async function StudentUpcomingSection({ userId }: { userId: string }) {
 }
 
 async function StudentRecentGrades({ userId }: { userId: string }) {
-  const student = await db.student.findUnique({ where: { userId } })
+  const student = await getStudentByUserId(userId)
   if (!student) return null
 
   const recentGrades = await db.gradeRecord.findMany({

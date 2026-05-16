@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { db } from "@/lib/db"
+import { getStudentByUserId } from "@/lib/queries"
 import CalendarView from "./calendar-view"
 
 export default async function CalendarPage() {
@@ -10,7 +11,7 @@ export default async function CalendarPage() {
   const isTeacher = session.user.role === "teacher"
   const now = new Date()
   const monthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1)
-  const monthEnd = new Date(now.getFullYear(), now.getMonth() + 3, 0)
+  const monthEnd = new Date(now.getFullYear(), now.getMonth() + 2, 0)
 
   if (isTeacher) {
     const [lessons, homeworks, students] = await Promise.all([
@@ -49,7 +50,7 @@ export default async function CalendarPage() {
     )
   }
 
-  const student = await db.student.findUnique({ where: { userId: session.user.id } })
+  const student = await getStudentByUserId(session.user.id)
   if (!student) redirect("/dashboard")
 
   const [lessons, homeworks] = await Promise.all([
