@@ -63,6 +63,8 @@ model Student {
   homeworks Homework[]
   grades    GradeRecord[]
   lessons   Lesson[]
+
+  @@index([teacherId])
 }
 
 model InviteToken {
@@ -77,6 +79,9 @@ model InviteToken {
   createdAt DateTime  @default(now())
 
   teacher   User      @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
+  @@index([teacherId])
+  @@index([expiresAt])
 }
 
 model Subject {
@@ -88,6 +93,7 @@ model Subject {
   teacher   User     @relation(fields: [teacherId], references: [id], onDelete: Cascade)
 
   @@unique([name, teacherId])
+  @@index([teacherId])
 }
 
 model Homework {
@@ -106,7 +112,12 @@ model Homework {
   createdAt       DateTime       @default(now())
 
   student  Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  teacher  User    @relation("TeacherHomework", fields: [teacherId], references: [id])
+  teacher  User    @relation("TeacherHomework", fields: [teacherId], references: [id], onDelete: Cascade)
+
+  @@index([teacherId])
+  @@index([studentId])
+  @@index([teacherId, status])
+  @@index([dueDate])
 }
 
 model GradeRecord {
@@ -128,7 +139,12 @@ model GradeRecord {
   createdAt     DateTime @default(now())
 
   student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  teacher User    @relation("TeacherGrades", fields: [teacherId], references: [id])
+  teacher User    @relation("TeacherGrades", fields: [teacherId], references: [id], onDelete: Cascade)
+
+  @@index([teacherId])
+  @@index([studentId])
+  @@index([teacherId, testType])
+  @@index([date])
 }
 
 model Lesson {
@@ -143,4 +159,8 @@ model Lesson {
 
   teacher User    @relation("TeacherLessons", fields: [teacherId], references: [id], onDelete: Cascade)
   student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([teacherId])
+  @@index([studentId])
+  @@index([teacherId, date])
 }
