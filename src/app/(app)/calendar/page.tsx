@@ -14,7 +14,7 @@ export default async function CalendarPage() {
   const monthEnd = new Date(now.getFullYear(), now.getMonth() + 2, 0)
 
   if (isTeacher) {
-    const [lessons, homeworks, students] = await Promise.all([
+    const [lessons, homeworks, students, examEvents] = await Promise.all([
       db.lesson.findMany({
         where: { teacherId: session.user.id, date: { gte: monthStart, lte: monthEnd } },
         include: { student: { include: { user: { select: { name: true } } } } },
@@ -30,6 +30,11 @@ export default async function CalendarPage() {
         include: { user: { select: { name: true } } },
         orderBy: { createdAt: "desc" },
       }),
+      db.examEvent.findMany({
+        where: { teacherId: session.user.id, date: { gte: monthStart, lte: monthEnd } },
+        include: { student: { include: { user: { select: { name: true } } } } },
+        orderBy: { date: "asc" },
+      }),
     ])
 
     return (
@@ -43,6 +48,13 @@ export default async function CalendarPage() {
             dueDate: h.dueDate,
             studentName: h.student.user.name,
           }))}
+          examEvents={examEvents.map((e) => ({
+            id: e.id,
+            date: e.date,
+            name: e.name,
+            testType: e.testType,
+            studentName: e.student.user.name,
+          }))}
           students={students.map((s) => ({ id: s.id, grade: s.grade, user: s.user }))}
           isTeacher={true}
         />
@@ -53,7 +65,7 @@ export default async function CalendarPage() {
   const student = await getStudentByUserId(session.user.id)
   if (!student) redirect("/dashboard")
 
-  const [lessons, homeworks] = await Promise.all([
+  const [lessons, homeworks, examEvents] = await Promise.all([
     db.lesson.findMany({
       where: { studentId: student.id, date: { gte: monthStart, lte: monthEnd } },
       include: { student: { include: { user: { select: { name: true } } } } },
@@ -63,6 +75,10 @@ export default async function CalendarPage() {
       where: { studentId: student.id, status: { in: ["assigned", "rejected"] }, dueDate: { gte: monthStart, lte: monthEnd } },
       include: { student: { include: { user: { select: { name: true } } } } },
       orderBy: { dueDate: "asc" },
+    }),
+    db.examEvent.findMany({
+      where: { studentId: student.id, date: { gte: monthStart, lte: monthEnd } },
+      orderBy: { date: "asc" },
     }),
   ])
 
@@ -76,6 +92,12 @@ export default async function CalendarPage() {
           title: h.title,
           dueDate: h.dueDate,
           studentName: h.student.user.name,
+        }))}
+        examEvents={examEvents.map((e) => ({
+          id: e.id,
+          date: e.date,
+          name: e.name,
+          testType: e.testType,
         }))}
         students={[]}
         isTeacher={false}

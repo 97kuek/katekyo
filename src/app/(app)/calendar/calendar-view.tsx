@@ -1,11 +1,16 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useState, useTransition, useActionState, useEffect } from "react"
 import Link from "next/link"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { LessonForm } from "./lesson-form"
 import { LessonEditForm } from "./lesson-edit-form"
-import { deleteLesson } from "./actions"
+import { deleteLesson, createExamEvent, deleteExamEvent } from "./actions"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { TEST_TYPE_LABELS, TEST_TYPE_OPTIONS } from "@/lib/test-types"
+import { toast } from "sonner"
 
 function DeleteLessonButton({ lessonId }: { lessonId: string }) {
   const [confirming, setConfirming] = useState(false)
@@ -56,11 +61,20 @@ type HomeworkDeadline = {
   studentName: string
 }
 
+type ExamEvent = {
+  id: string
+  date: Date
+  name: string
+  testType: string
+  studentName?: string
+}
+
 type Student = { id: string; grade: string; user: { name: string } }
 
 type Props = {
   lessons: Lesson[]
   deadlines: HomeworkDeadline[]
+  examEvents: ExamEvent[]
   students: Student[]
   isTeacher: boolean
 }
@@ -73,11 +87,121 @@ function toDateKey(date: Date) {
 
 const DOW_LABELS = ["日", "月", "火", "水", "木", "金", "土"]
 
+function DeleteExamEventButton({ examEventId }: { examEventId: string }) {
+  const [confirming, setConfirming] = useState(false)
+  const [isPending, startTransition] = useTransition()
+
+  if (confirming) {
+    return (
+      <div className="flex items-center gap-1.5 shrink-0">
+        <span className="text-xs text-gray-600">削除?</span>
+        <button
+          onClick={() => startTransition(async () => {
+            const fd = new FormData()
+            fd.append("examEventId", examEventId)
+            await deleteExamEvent(fd)
+          })}
+          disabled={isPending}
+          className="text-xs font-medium text-red-600 hover:text-red-800 disabled:opacity-50"
+        >
+          {isPending ? "..." : "削除"}
+        </button>
+        <button onClick={() => setConfirming(false)} className="text-xs text-gray-400 hover:text-gray-600">
+          ✕
+        </button>
+      </div>
+    )
+  }
+  return (
+    <button onClick={() => setConfirming(true)} className="text-xs text-red-400 hover:text-red-600 shrink-0">
+      削除
+    </button>
+  )
+}
+
+function ExamEventForm({ students, defaultDate }: { students: Student[]; defaultDate: string }) {
+  const [state, action, isPending] = useActionState(createExamEvent, { error: "" })
+  const [open, setOpen] = useState(false)
+
+  useEffect(() => {
+    if (!state.timestamp) return
+    setOpen(false)
+    toast.success("テストを追加しました")
+  }, [state.timestamp])
+
+  if (!open) {
+    return (
+      <Button onClick={() => setOpen(true)} size="sm" variant="outline" className="text-red-600 border-red-200 hover:bg-red-50">
+        テストを追加
+      </Button>
+    )
+  }
+
+  return (
+    <div className="rounded-lg border border-red-200 bg-red-50/30 p-3 space-y-3 mt-2">
+      <h3 className="font-medium text-sm">テストを追加</h3>
+      <form action={action} className="space-y-3">
+        {state.error && (
+          <p className="text-xs text-red-600 bg-red-50 p-2 rounded">{state.error}</p>
+        )}
+        <div className="space-y-2">
+          <div className="space-y-1">
+            <Label className="text-xs">生徒</Label>
+            {students.length === 1 ? (
+              <>
+                <input type="hidden" name="studentId" value={students[0].id} />
+                <p className="text-sm py-1.5 px-3 rounded-md border bg-gray-50">{students[0].user.name}（{students[0].grade}）</p>
+              </>
+            ) : (
+              <select
+                name="studentId"
+                required
+                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <option value="">選択してください</option>
+                {students.map((s) => (
+                  <option key={s.id} value={s.id}>{s.user.name}（{s.grade}）</option>
+                ))}
+              </select>
+            )}
+          </div>
+          <input type="hidden" name="date" value={defaultDate} />
+          <div className="space-y-1">
+            <Label className="text-xs">テスト名</Label>
+            <Input name="name" placeholder="例: 英語期末テスト" required className="h-9 text-sm" />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs">種別</Label>
+            <select
+              name="testType"
+              defaultValue="exam"
+              className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              {TEST_TYPE_OPTIONS.map(([value, label]) => (
+                <option key={value} value={value}>{label}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <Button type="submit" size="sm" disabled={isPending} className="bg-red-600 hover:bg-red-700">
+            {isPending ? "追加中..." : "追加"}
+          </Button>
+          <Button type="button" variant="outline" size="sm" onClick={() => setOpen(false)}>
+            キャンセル
+          </Button>
+        </div>
+      </form>
+    </div>
+  )
+}
+
 function DayDetail({
   dayKey,
   dateStr,
   lessons,
   deadlines,
+  examEvents,
   isTeacher,
   students,
   editingLessonId,
@@ -87,6 +211,7 @@ function DayDetail({
   dateStr: string
   lessons: Lesson[]
   deadlines: HomeworkDeadline[]
+  examEvents: ExamEvent[]
   isTeacher: boolean
   students: Student[]
   editingLessonId: string | null
@@ -97,7 +222,9 @@ function DayDetail({
       <div className="flex items-center justify-between flex-wrap gap-2">
         <h2 className="font-semibold text-sm">{dateStr}</h2>
         {isTeacher && (
-          <LessonForm students={students} defaultDate={dayKey} />
+          <div className="flex gap-2">
+            <LessonForm students={students} defaultDate={dayKey} />
+          </div>
         )}
       </div>
 
@@ -163,7 +290,33 @@ function DayDetail({
         </div>
       )}
 
-      {lessons.length === 0 && deadlines.length === 0 && (
+      {examEvents.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-xs font-medium text-muted-foreground">テスト</p>
+          {examEvents.map((e) => (
+            <div key={e.id} className="rounded-md bg-red-50 px-3 py-2">
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-sm font-medium">{e.name}</span>
+                    <span className="text-xs rounded-full px-2 py-0.5 bg-red-100 text-red-700">
+                      {TEST_TYPE_LABELS[e.testType as keyof typeof TEST_TYPE_LABELS] ?? e.testType}
+                    </span>
+                  </div>
+                  {isTeacher && e.studentName && (
+                    <p className="text-xs text-muted-foreground mt-0.5">{e.studentName}</p>
+                  )}
+                </div>
+                {isTeacher && <DeleteExamEventButton examEventId={e.id} />}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {isTeacher && <ExamEventForm students={students} defaultDate={dayKey} />}
+
+      {lessons.length === 0 && deadlines.length === 0 && examEvents.length === 0 && (
         <p className="text-sm text-muted-foreground">この日のイベントはありません</p>
       )}
     </div>
@@ -175,9 +328,11 @@ function NextLessonBanner({ lessons, isTeacher }: { lessons: Lesson[]; isTeacher
   const next = lessons.find((l) => l.date > now)
   if (!next) return null
 
-  const diffMs = next.date.getTime() - now.getTime()
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
-  const when = diffDays === 0 ? "今日" : diffDays === 1 ? "明日" : `${diffDays}日後`
+  // カレンダー日付の差（時刻を除く）で計算することで正確な「明日/明後日」を表示
+  const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const lessonMidnight = new Date(next.date.getFullYear(), next.date.getMonth(), next.date.getDate())
+  const diffDays = Math.round((lessonMidnight.getTime() - todayMidnight.getTime()) / (1000 * 60 * 60 * 24))
+  const when = diffDays === 0 ? "今日" : diffDays === 1 ? "明日" : diffDays === 2 ? "明後日" : `${diffDays}日後`
 
   return (
     <div className="rounded-lg bg-blue-50 border border-blue-200 px-4 py-3 flex items-center gap-3">
@@ -199,7 +354,7 @@ function NextLessonBanner({ lessons, isTeacher }: { lessons: Lesson[]; isTeacher
   )
 }
 
-export default function CalendarView({ lessons, deadlines, students, isTeacher }: Props) {
+export default function CalendarView({ lessons, deadlines, examEvents, students, isTeacher }: Props) {
   const today = new Date()
   const [year, setYear] = useState(today.getFullYear())
   const [month, setMonth] = useState(today.getMonth())
@@ -222,6 +377,13 @@ export default function CalendarView({ lessons, deadlines, students, isTeacher }
     const key = toDateKey(d.dueDate)
     if (!deadlineMap.has(key)) deadlineMap.set(key, [])
     deadlineMap.get(key)!.push(d)
+  }
+
+  const examEventMap = new Map<string, ExamEvent[]>()
+  for (const e of examEvents) {
+    const key = toDateKey(e.date)
+    if (!examEventMap.has(key)) examEventMap.set(key, [])
+    examEventMap.get(key)!.push(e)
   }
 
   function prevMonth() {
@@ -256,6 +418,7 @@ export default function CalendarView({ lessons, deadlines, students, isTeacher }
   const todayKey = toDateKey(today)
   const selectedLessons = selectedDay ? (lessonMap.get(selectedDay) ?? []) : []
   const selectedDeadlines = selectedDay ? (deadlineMap.get(selectedDay) ?? []) : []
+  const selectedExamEvents = selectedDay ? (examEventMap.get(selectedDay) ?? []) : []
 
   const selectedDateStr = selectedDay
     ? new Date(selectedDay + "T00:00:00").toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric", weekday: "short" })
@@ -319,6 +482,7 @@ export default function CalendarView({ lessons, deadlines, students, isTeacher }
                 const hasLesson = lessonMap.has(key)
                 const hasNote = hasNoteMap.has(key)
                 const hasDeadline = deadlineMap.has(key)
+                const hasExam = examEventMap.has(key)
                 const isToday = key === todayKey
                 const isSelected = key === selectedDay
                 const dow = (firstDay + day - 1) % 7
@@ -341,6 +505,7 @@ export default function CalendarView({ lessons, deadlines, students, isTeacher }
                       {hasLesson && <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />}
                       {hasNote && <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />}
                       {hasDeadline && <span className="h-1.5 w-1.5 rounded-full bg-orange-400" />}
+                      {hasExam && <span className="h-1.5 w-1.5 rounded-full bg-red-500" />}
                     </div>
                   </button>
                 )
@@ -351,6 +516,7 @@ export default function CalendarView({ lessons, deadlines, students, isTeacher }
               <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-blue-400 inline-block" />授業</span>
               <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-amber-400 inline-block" />ノートあり</span>
               <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-orange-400 inline-block" />宿題期限</span>
+              <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-red-500 inline-block" />テスト</span>
             </div>
           </div>
 
@@ -360,6 +526,7 @@ export default function CalendarView({ lessons, deadlines, students, isTeacher }
               dateStr={selectedDateStr}
               lessons={selectedLessons}
               deadlines={selectedDeadlines}
+              examEvents={selectedExamEvents}
               isTeacher={isTeacher}
               students={students}
               editingLessonId={editingLessonId}
@@ -396,6 +563,7 @@ export default function CalendarView({ lessons, deadlines, students, isTeacher }
                 const key = toDateKey(d)
                 const hasLesson = lessonMap.has(key)
                 const hasDeadline = deadlineMap.has(key)
+                const hasExam = examEventMap.has(key)
                 const isToday = key === todayKey
                 const isSelected = key === selectedDay
                 return (
@@ -411,6 +579,7 @@ export default function CalendarView({ lessons, deadlines, students, isTeacher }
                     <div className="flex gap-0.5">
                       {hasLesson && <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />}
                       {hasDeadline && <span className="h-1.5 w-1.5 rounded-full bg-orange-400" />}
+                      {hasExam && <span className="h-1.5 w-1.5 rounded-full bg-red-500" />}
                     </div>
                   </button>
                 )
@@ -424,6 +593,7 @@ export default function CalendarView({ lessons, deadlines, students, isTeacher }
               dateStr={selectedDateStr}
               lessons={selectedLessons}
               deadlines={selectedDeadlines}
+              examEvents={selectedExamEvents}
               isTeacher={isTeacher}
               students={students}
               editingLessonId={editingLessonId}

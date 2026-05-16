@@ -368,9 +368,8 @@ function StudentDashboard({ userId }: { userId: string }) {
         <StudentSummaryCards userId={userId} />
       </Suspense>
 
-      {/* CLAUDE.md 仕様: サマリー → 成績 → 予定 */}
-      <Suspense fallback={<Sk className="h-48 w-full rounded-lg" />}>
-        <StudentRecentGrades userId={userId} />
+      <Suspense fallback={<Sk className="h-28 w-full rounded-lg" />}>
+        <StudentUpcomingExams userId={userId} />
       </Suspense>
 
       <Suspense fallback={
@@ -394,32 +393,38 @@ async function StudentSummaryCards({ userId }: { userId: string }) {
   if (!student) return (
     <div className="grid gap-4 md:grid-cols-2">
       <SummaryCard title="未完了の宿題" value="0" />
-      <SummaryCard title="直近の成績" value="-" />
+      <SummaryCard title="次のテスト" value="-" />
     </div>
   )
 
   const now = new Date()
-  const [incompleteCount, overdueCount, submittedCount, recentGrades] = await Promise.all([
+  const [incompleteCount, overdueCount, submittedCount, nextExam] = await Promise.all([
     db.homework.count({ where: { studentId: student.id, status: { in: ["assigned", "rejected"] } } }),
     db.homework.count({ where: { studentId: student.id, status: { in: ["assigned", "rejected"] }, dueDate: { lt: now } } }),
     db.homework.count({ where: { studentId: student.id, status: "submitted" } }),
-    db.gradeRecord.findMany({
-      where: { studentId: student.id },
-      orderBy: { date: "desc" }, take: 1,
-      select: { testName: true, score: true, maxScore: true, deviation: true },
+    db.examEvent.findFirst({
+      where: { studentId: student.id, date: { gte: now } },
+      orderBy: { date: "asc" },
     }),
   ])
-  const latest = recentGrades[0]
+
+  const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const daysUntilExam = nextExam
+    ? Math.round((new Date(nextExam.date.getFullYear(), nextExam.date.getMonth(), nextExam.date.getDate()).getTime() - todayMidnight.getTime()) / (1000 * 60 * 60 * 24))
+    : null
+
   return (
     <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
       <SummaryCard title="未完了" value={String(incompleteCount)} accent={incompleteCount > 0} href="/homework" />
       <SummaryCard title="期限切れ" value={String(overdueCount)} danger={overdueCount > 0} href="/homework" />
       <SummaryCard title="承認待ち" value={String(submittedCount)} href="/homework" />
       <SummaryCard
-        title="直近の成績"
-        value={latest?.score != null ? (latest.maxScore != null ? `${latest.score}/${latest.maxScore}` : String(latest.score)) : latest?.deviation != null ? `偏差値 ${latest.deviation}` : "-"}
-        sub={latest?.testName}
-        href="/grades"
+        title="次のテスト"
+        value={daysUntilExam != null ? (daysUntilExam === 0 ? "今日" : daysUntilExam === 1 ? "明日" : `${daysUntilExam}日後`) : "-"}
+        sub={nextExam?.name}
+        danger={daysUntilExam != null && daysUntilExam <= 3}
+        accent={daysUntilExam != null && daysUntilExam > 3 && daysUntilExam <= 7}
+        href="/calendar"
       />
     </div>
   )
@@ -498,45 +503,48 @@ async function StudentUpcomingSection({ userId }: { userId: string }) {
   )
 }
 
-async function StudentRecentGrades({ userId }: { userId: string }) {
+async function StudentUpcomingExams({ userId }: { userId: string }) {
   const student = await getStudentByUserId(userId)
   if (!student) return null
 
-  const recentGrades = await db.gradeRecord.findMany({
-    where: { studentId: student.id },
-    orderBy: { date: "desc" }, take: 5,
-    select: { id: true, testName: true, testType: true, date: true, score: true, maxScore: true, deviation: true },
+  const now = new Date()
+  const exams = await db.examEvent.findMany({
+    where: { studentId: student.id, date: { gte: now } },
+    orderBy: { date: "asc" },
+    take: 5,
   })
-  if (recentGrades.length === 0) return null
+  if (exams.length === 0) return null
+
+  const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate())
 
   return (
     <section className="space-y-3">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold">直近の成績</h2>
-        <Link href="/grades" className="text-xs text-muted-foreground hover:underline">成績一覧</Link>
+        <h2 className="text-sm font-semibold">直近のテスト</h2>
+        <Link href="/calendar" className="text-xs text-muted-foreground hover:underline">カレンダー</Link>
       </div>
       <div className="rounded-lg border bg-white divide-y">
-        {recentGrades.map((g) => (
-          <div key={g.id} className="px-4 py-3 flex items-center justify-between gap-4">
-            <div className="min-w-0">
-              <p className="text-sm font-medium truncate">{g.testName}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                {TEST_TYPE_LABELS[g.testType as keyof typeof TEST_TYPE_LABELS]}
-                {" · "}
-                {g.date.toLocaleDateString("ja-JP", { month: "short", day: "numeric" })}
+        {exams.map((e) => {
+          const examMidnight = new Date(e.date.getFullYear(), e.date.getMonth(), e.date.getDate())
+          const diffDays = Math.round((examMidnight.getTime() - todayMidnight.getTime()) / (1000 * 60 * 60 * 24))
+          const urgent = diffDays <= 3
+          const soon = !urgent && diffDays <= 7
+          return (
+            <div key={e.id} className="px-4 py-3 flex items-center justify-between gap-4">
+              <div className="min-w-0">
+                <p className="text-sm font-medium truncate">{e.name}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {TEST_TYPE_LABELS[e.testType as keyof typeof TEST_TYPE_LABELS]}
+                  {" · "}
+                  {e.date.toLocaleDateString("ja-JP", { month: "short", day: "numeric", weekday: "short" })}
+                </p>
+              </div>
+              <p className={`text-sm font-bold shrink-0 ${urgent ? "text-red-600" : soon ? "text-yellow-600" : ""}`}>
+                {diffDays === 0 ? "今日" : diffDays === 1 ? "明日" : diffDays === 2 ? "明後日" : `${diffDays}日後`}
               </p>
             </div>
-            <div className="text-right shrink-0">
-              {g.score != null ? (
-                <p className="text-sm font-bold">{g.maxScore != null ? `${g.score}/${g.maxScore}` : g.score}</p>
-              ) : g.deviation != null ? (
-                <p className="text-sm font-bold">偏差値 {g.deviation}</p>
-              ) : (
-                <p className="text-sm text-muted-foreground">-</p>
-              )}
-            </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </section>
   )

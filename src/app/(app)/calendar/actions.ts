@@ -114,3 +114,57 @@ export async function deleteLesson(formData: FormData) {
   await db.lesson.deleteMany({ where: { id: lessonId, teacherId: session.user.id } })
   revalidatePath("/calendar")
 }
+
+const examEventSchema = z.object({
+  studentId: z.string().min(1, "生徒を選択してください"),
+  date: z.string().min(1, "日付を入力してください"),
+  name: z.string().min(1, "テスト名を入力してください"),
+  testType: z.enum(["mock", "exam", "quiz", "other"]).default("exam"),
+})
+
+export async function createExamEvent(
+  _prevState: { error: string; timestamp?: number },
+  formData: FormData
+): Promise<{ error: string; timestamp?: number }> {
+  const session = await auth()
+  if (!session || session.user.role !== "teacher") return { error: "権限がありません" }
+
+  const result = examEventSchema.safeParse({
+    studentId: formData.get("studentId"),
+    date: formData.get("date"),
+    name: formData.get("name"),
+    testType: formData.get("testType") || "exam",
+  })
+  if (!result.success) return { error: result.error.issues[0].message }
+
+  const { studentId, date, name, testType } = result.data
+
+  const student = await db.student.findFirst({ where: { id: studentId, teacherId: session.user.id } })
+  if (!student) return { error: "生徒が見つかりません" }
+
+  await db.examEvent.create({
+    data: {
+      teacherId: session.user.id,
+      studentId,
+      date: new Date(`${date}T00:00:00+09:00`),
+      name,
+      testType,
+    },
+  })
+
+  revalidatePath("/calendar")
+  revalidatePath("/dashboard")
+  return { error: "", timestamp: Date.now() }
+}
+
+export async function deleteExamEvent(formData: FormData) {
+  const session = await auth()
+  if (!session || session.user.role !== "teacher") redirect("/dashboard")
+
+  const examEventId = formData.get("examEventId") as string
+  if (!examEventId) return
+
+  await db.examEvent.deleteMany({ where: { id: examEventId, teacherId: session.user.id } })
+  revalidatePath("/calendar")
+  revalidatePath("/dashboard")
+}

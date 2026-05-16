@@ -1,7 +1,15 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "Bash(git push *)",
+      "Bash(Test-Path \"c:\\\\Users\\\\yamashita\\\\Documents\\\\katekyo\\\\src\\\\app\\\\\\(app\\)\\\\students\\\\actions.ts\")",
+      "Bash(npm run *)",
+      "Bash(npx next *)",
+      "Bash(npx eslint *)",
+      "Bash(npx prisma *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)"
     ]
   }
 }

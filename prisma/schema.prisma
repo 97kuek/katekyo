@@ -40,16 +40,17 @@ model User {
   createdAt DateTime @default(now())
 
   // teacher relations
-  students      Student[]        @relation("TeacherStudents")
-  inviteTokens  InviteToken[]
-  subjects      Subject[]
-  homeworksGiven Homework[]      @relation("TeacherHomework")
-  gradesGiven   GradeRecord[]    @relation("TeacherGrades")
-  lessonsGiven  Lesson[]         @relation("TeacherLessons")
-  materialsGiven StudentMaterial[] @relation("TeacherMaterials")
+  students         Student[]         @relation("TeacherStudents")
+  inviteTokens     InviteToken[]
+  subjects         Subject[]
+  homeworksGiven   Homework[]        @relation("TeacherHomework")
+  gradesGiven      GradeRecord[]     @relation("TeacherGrades")
+  lessonsGiven     Lesson[]          @relation("TeacherLessons")
+  materialsGiven   StudentMaterial[] @relation("TeacherMaterials")
+  examEventsGiven  ExamEvent[]       @relation("TeacherExamEvents")
 
   // student relation
-  studentProfile Student?      @relation("StudentUser")
+  studentProfile Student? @relation("StudentUser")
 }
 
 model Student {
@@ -59,12 +60,13 @@ model Student {
   grade     String
   createdAt DateTime @default(now())
 
-  user      User            @relation("StudentUser", fields: [userId], references: [id], onDelete: Cascade)
-  teacher   User            @relation("TeacherStudents", fields: [teacherId], references: [id])
-  homeworks Homework[]
-  grades    GradeRecord[]
-  lessons   Lesson[]
-  materials StudentMaterial[]
+  user       User              @relation("StudentUser", fields: [userId], references: [id], onDelete: Cascade)
+  teacher    User              @relation("TeacherStudents", fields: [teacherId], references: [id])
+  homeworks  Homework[]
+  grades     GradeRecord[]
+  lessons    Lesson[]
+  materials  StudentMaterial[]
+  examEvents ExamEvent[]
 
   @@index([teacherId])
 }
@@ -167,6 +169,23 @@ model Lesson {
   @@index([teacherId])
   @@index([studentId])
   @@index([teacherId, date])
+}
+
+model ExamEvent {
+  id        String   @id @default(uuid())
+  studentId String
+  teacherId String
+  name      String
+  date      DateTime
+  testType  TestType @default(exam)
+  createdAt DateTime @default(now())
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  teacher User    @relation("TeacherExamEvents", fields: [teacherId], references: [id], onDelete: Cascade)
+
+  @@index([teacherId])
+  @@index([studentId])
+  @@index([date])
 }
 
 model StudentMaterial {
