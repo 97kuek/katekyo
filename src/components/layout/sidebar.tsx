@@ -21,61 +21,47 @@ const studentNav = [
   { href: "/calendar", label: "カレンダー", icon: CalendarDays },
 ]
 
+const navLinkClass = (active: boolean) =>
+  cn(
+    "flex items-center justify-center lg:justify-start gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+    active
+      ? "bg-white/10 text-white"
+      : "text-slate-400 hover:bg-white/5 hover:text-slate-200"
+  )
+
 export default function Sidebar({ role }: { role: string }) {
   const pathname = usePathname()
   const navItems = role === "teacher" ? teacherNav : studentNav
 
   return (
-    <aside className="w-16 lg:w-60 shrink-0 border-r bg-white hidden md:flex flex-col">
-      <div className="h-14 flex items-center justify-center lg:justify-start gap-2 px-3 lg:px-5 border-b">
-        <BookOpen className="h-5 w-5 text-primary shrink-0" />
-        <span className="font-bold text-lg tracking-tight hidden lg:block">katekyo</span>
+    <aside className="w-16 lg:w-60 shrink-0 bg-slate-900 hidden md:flex flex-col">
+      <div className="h-14 flex items-center justify-center lg:justify-start gap-2.5 px-3 lg:px-5 border-b border-white/10">
+        <BookOpen className="h-5 w-5 text-indigo-400 shrink-0" />
+        <span className="font-bold text-lg tracking-tight hidden lg:block text-white">katekyo</span>
       </div>
-      <nav className="flex-1 p-2 lg:p-3 space-y-1">
-        {navItems.map(({ href, label, icon: Icon }) => (
-          <Link
-            key={href}
-            href={href}
-            title={label}
-            className={cn(
-              "flex items-center justify-center lg:justify-start gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
-              pathname === href || pathname.startsWith(href + "/")
-                ? "bg-gray-100 text-gray-900"
-                : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
-            )}
-          >
+
+      <nav className="flex-1 p-2 lg:p-3 space-y-0.5">
+        {navItems.map(({ href, label, icon: Icon }) => {
+          const active = pathname === href || pathname.startsWith(href + "/")
+          return (
+            <Link key={href} href={href} title={label} className={navLinkClass(active)}>
+              <Icon className="h-4 w-4 shrink-0" />
+              <span className="hidden lg:block">{label}</span>
+            </Link>
+          )
+        })}
+      </nav>
+
+      <div className="p-2 lg:p-3 border-t border-white/10 space-y-0.5">
+        {[
+          { href: "/profile", label: "プロフィール", icon: UserCircle },
+          { href: "/help", label: "使い方ガイド", icon: HelpCircle },
+        ].map(({ href, label, icon: Icon }) => (
+          <Link key={href} href={href} title={label} className={navLinkClass(pathname === href)}>
             <Icon className="h-4 w-4 shrink-0" />
             <span className="hidden lg:block">{label}</span>
           </Link>
         ))}
-      </nav>
-      <div className="p-2 lg:p-3 border-t space-y-1">
-        <Link
-          href="/profile"
-          title="プロフィール"
-          className={cn(
-            "flex items-center justify-center lg:justify-start gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
-            pathname === "/profile"
-              ? "bg-gray-100 text-gray-900"
-              : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
-          )}
-        >
-          <UserCircle className="h-4 w-4 shrink-0" />
-          <span className="hidden lg:block">プロフィール</span>
-        </Link>
-        <Link
-          href="/help"
-          title="使い方ガイド"
-          className={cn(
-            "flex items-center justify-center lg:justify-start gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
-            pathname === "/help"
-              ? "bg-gray-100 text-gray-900"
-              : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
-          )}
-        >
-          <HelpCircle className="h-4 w-4 shrink-0" />
-          <span className="hidden lg:block">使い方ガイド</span>
-        </Link>
       </div>
     </aside>
   )
