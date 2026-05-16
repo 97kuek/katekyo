@@ -15,21 +15,10 @@ export default async function DashboardPage() {
   const session = await auth()
   if (!session) redirect("/login")
 
-  return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">ダッシュボード</h1>
-        <p className="text-muted-foreground text-sm mt-1">
-          {session.user.role === "teacher" ? "生徒の進捗を確認しましょう" : "今日の宿題を確認しましょう"}
-        </p>
-      </div>
-
-      {session.user.role === "teacher" ? (
-        <TeacherDashboard teacherId={session.user.id} />
-      ) : (
-        <StudentDashboard userId={session.user.id} />
-      )}
-    </div>
+  return session.user.role === "teacher" ? (
+    <TeacherDashboard teacherId={session.user.id} />
+  ) : (
+    <StudentDashboard userId={session.user.id} />
   )
 }
 
@@ -38,6 +27,11 @@ export default async function DashboardPage() {
 function TeacherDashboard({ teacherId }: { teacherId: string }) {
   return (
     <div className="space-y-6">
+      {/* 承認待ちを最上部に */}
+      <Suspense fallback={null}>
+        <PendingHomeworksSection teacherId={teacherId} />
+      </Suspense>
+
       <Suspense fallback={
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           {[...Array(4)].map((_, i) => (
@@ -50,16 +44,12 @@ function TeacherDashboard({ teacherId }: { teacherId: string }) {
         <TeacherSummaryCards teacherId={teacherId} />
       </Suspense>
 
-      <Suspense fallback={<Sk className="h-24 w-full rounded-lg" />}>
-        <PendingHomeworksSection teacherId={teacherId} />
-      </Suspense>
-
       <Suspense fallback={
         <div className="grid gap-6 md:grid-cols-2">
           {[...Array(2)].map((_, i) => (
             <div key={i} className="space-y-3">
               <Sk className="h-5 w-32" />
-              {[...Array(3)].map((_, j) => <Sk key={j} className="h-16 w-full rounded-lg" />)}
+              {[...Array(3)].map((_, j) => <Sk key={j} className="h-14 w-full rounded-lg" />)}
             </div>
           ))}
         </div>
@@ -90,7 +80,7 @@ async function TeacherSummaryCards({ teacherId }: { teacherId: string }) {
   return (
     <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
       <SummaryCard title="承認待ち" value={String(pendingCount)} accent={pendingCount > 0} href="/homework" />
-      <SummaryCard title="期限切れ" value={String(overdueCount)} accent={overdueCount > 0} href="/homework" />
+      <SummaryCard title="期限切れ" value={String(overdueCount)} danger={overdueCount > 0} href="/homework" />
       <SummaryCard title="登録生徒数" value={String(studentCount)} href="/students" />
       <SummaryCard title="今月の成績" value={String(gradeCount)} href="/grades" />
     </div>
@@ -121,7 +111,7 @@ async function PendingHomeworksSection({ teacherId }: { teacherId: string }) {
       </div>
       <div className="space-y-2">
         {pendingHomeworks.map((h) => (
-          <div key={h.id} className="rounded-lg border bg-white p-4 flex items-center justify-between gap-4">
+          <div key={h.id} className="rounded-lg border bg-white p-3 flex items-center justify-between gap-4">
             <div>
               <p className="font-medium text-sm">{h.title}</p>
               <p className="text-xs text-muted-foreground mt-0.5">{h.student.user.name}</p>
@@ -151,15 +141,18 @@ async function TeacherUpcomingSection({ teacherId }: { teacherId: string }) {
       orderBy: { dueDate: "asc" }, take: 5,
     }),
   ])
+
+  const hasDeadlines = upcomingDeadlines.length > 0
+
   return (
-    <div className="grid gap-6 md:grid-cols-2">
+    <div className={`grid gap-6 ${hasDeadlines ? "md:grid-cols-2" : ""}`}>
       <section className="space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-semibold">今後7日の授業</h2>
           <Link href="/calendar" className="text-xs text-muted-foreground hover:underline">カレンダーを見る</Link>
         </div>
         {upcomingLessons.length === 0 ? (
-          <div className="rounded-lg border bg-white p-6 text-center text-sm text-muted-foreground">予定なし</div>
+          <div className="rounded-lg border bg-white p-5 text-center text-sm text-muted-foreground">予定なし</div>
         ) : (
           <div className="space-y-2">
             {upcomingLessons.map((l) => (
@@ -181,14 +174,12 @@ async function TeacherUpcomingSection({ teacherId }: { teacherId: string }) {
         )}
       </section>
 
-      <section className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold">今後7日の宿題期限</h2>
-          <Link href="/homework" className="text-xs text-muted-foreground hover:underline">宿題一覧</Link>
-        </div>
-        {upcomingDeadlines.length === 0 ? (
-          <div className="rounded-lg border bg-white p-6 text-center text-sm text-muted-foreground">期限なし</div>
-        ) : (
+      {hasDeadlines && (
+        <section className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold">今後7日の宿題期限</h2>
+            <Link href="/homework" className="text-xs text-muted-foreground hover:underline">宿題一覧</Link>
+          </div>
           <div className="space-y-2">
             {upcomingDeadlines.map((h) => (
               <Link key={h.id} href={`/homework/${h.id}`} className="block rounded-lg border bg-white p-3 hover:bg-gray-50 transition-colors">
@@ -202,8 +193,8 @@ async function TeacherUpcomingSection({ teacherId }: { teacherId: string }) {
               </Link>
             ))}
           </div>
-        )}
-      </section>
+        </section>
+      )}
     </div>
   )
 }
@@ -335,23 +326,23 @@ async function GradeTrendsSection({ teacherId }: { teacherId: string }) {
         <h2 className="text-sm font-semibold">直近の成績動向</h2>
         <Link href="/grades" className="text-xs text-muted-foreground hover:underline">成績一覧</Link>
       </div>
-      <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-3">
+      <div className="rounded-lg border bg-white divide-y">
         {gradeTrends.map((t) => {
           const up = t.diff > 0
           return (
-            <div key={t.studentId} className="rounded-lg border bg-white p-3 flex items-center gap-3">
-              <div className={`h-8 w-8 rounded-full flex items-center justify-center shrink-0 text-sm font-bold ${up ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+            <div key={t.studentId} className="flex items-center gap-3 px-4 py-2.5">
+              <span className={`text-base font-bold w-4 shrink-0 ${up ? "text-green-600" : "text-red-600"}`}>
                 {up ? "↑" : "↓"}
-              </div>
-              <div className="min-w-0">
-                <p className="text-sm font-medium truncate">{t.name}</p>
+              </span>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium">{t.name}</p>
                 <p className="text-xs text-muted-foreground truncate">
-                  {TEST_TYPE_LABELS[t.latest.testType as keyof typeof TEST_TYPE_LABELS]} {t.latest.testName}
-                  <span className={`ml-1 font-medium ${up ? "text-green-600" : "text-red-600"}`}>
-                    {up ? "+" : ""}{Math.round(t.diff)}{t.latest.deviation != null ? "" : "%"}
-                  </span>
+                  {TEST_TYPE_LABELS[t.latest.testType as keyof typeof TEST_TYPE_LABELS]}「{t.latest.testName}」
                 </p>
               </div>
+              <span className={`text-sm font-bold shrink-0 ${up ? "text-green-600" : "text-red-600"}`}>
+                {up ? "+" : ""}{Math.round(t.diff)}{t.latest.deviation != null ? "" : "%"}
+              </span>
             </div>
           )
         })}
@@ -377,21 +368,22 @@ function StudentDashboard({ userId }: { userId: string }) {
         <StudentSummaryCards userId={userId} />
       </Suspense>
 
+      {/* CLAUDE.md 仕様: サマリー → 成績 → 予定 */}
+      <Suspense fallback={<Sk className="h-48 w-full rounded-lg" />}>
+        <StudentRecentGrades userId={userId} />
+      </Suspense>
+
       <Suspense fallback={
         <div className="grid gap-6 md:grid-cols-2">
           {[...Array(2)].map((_, i) => (
             <div key={i} className="space-y-3">
               <Sk className="h-5 w-32" />
-              {[...Array(2)].map((_, j) => <Sk key={j} className="h-16 w-full rounded-lg" />)}
+              {[...Array(2)].map((_, j) => <Sk key={j} className="h-14 w-full rounded-lg" />)}
             </div>
           ))}
         </div>
       }>
         <StudentUpcomingSection userId={userId} />
-      </Suspense>
-
-      <Suspense fallback={<Sk className="h-48 w-full rounded-lg" />}>
-        <StudentRecentGrades userId={userId} />
       </Suspense>
     </div>
   )
@@ -421,7 +413,7 @@ async function StudentSummaryCards({ userId }: { userId: string }) {
   return (
     <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
       <SummaryCard title="未完了" value={String(incompleteCount)} accent={incompleteCount > 0} href="/homework" />
-      <SummaryCard title="期限切れ" value={String(overdueCount)} accent={overdueCount > 0} href="/homework" />
+      <SummaryCard title="期限切れ" value={String(overdueCount)} danger={overdueCount > 0} href="/homework" />
       <SummaryCard title="承認待ち" value={String(submittedCount)} href="/homework" />
       <SummaryCard
         title="直近の成績"
@@ -450,15 +442,17 @@ async function StudentUpcomingSection({ userId }: { userId: string }) {
     }),
   ])
 
+  const hasDeadlines = upcomingDeadlines.length > 0
+
   return (
-    <div className="grid gap-6 md:grid-cols-2">
+    <div className={`grid gap-6 ${hasDeadlines ? "md:grid-cols-2" : ""}`}>
       <section className="space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-semibold">今後7日の授業</h2>
           <Link href="/calendar" className="text-xs text-muted-foreground hover:underline">カレンダー</Link>
         </div>
         {upcomingLessons.length === 0 ? (
-          <div className="rounded-lg border bg-white p-6 text-center text-sm text-muted-foreground">予定なし</div>
+          <div className="rounded-lg border bg-white p-5 text-center text-sm text-muted-foreground">予定なし</div>
         ) : (
           <div className="space-y-2">
             {upcomingLessons.map((l) => (
@@ -480,7 +474,7 @@ async function StudentUpcomingSection({ userId }: { userId: string }) {
         )}
       </section>
 
-      {upcomingDeadlines.length > 0 && (
+      {hasDeadlines && (
         <section className="space-y-3">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-semibold">今後7日の期限</h2>
@@ -550,13 +544,15 @@ async function StudentRecentGrades({ userId }: { userId: string }) {
 
 // ─── Shared ──────────────────────────────────────────────────────────────────
 
-function SummaryCard({ title, value, accent, sub, href }: {
-  title: string; value: string; accent?: boolean; sub?: string; href?: string
+function SummaryCard({ title, value, accent, danger, sub, href }: {
+  title: string; value: string; accent?: boolean; danger?: boolean; sub?: string; href?: string
 }) {
   const inner = (
-    <div className={`rounded-lg border bg-white p-3 shadow-sm transition-colors ${accent ? "border-yellow-300" : ""} ${href ? "hover:bg-gray-50" : ""}`}>
+    <div className={`rounded-lg border bg-white p-3 shadow-sm transition-colors
+      ${danger ? "border-red-300" : accent ? "border-yellow-300" : ""}
+      ${href ? "hover:bg-gray-50" : ""}`}>
       <p className="text-xs text-muted-foreground">{title}</p>
-      <p className={`mt-1 text-2xl font-bold ${accent ? "text-yellow-700" : ""}`}>{value}</p>
+      <p className={`mt-1 text-2xl font-bold ${danger ? "text-red-600" : accent ? "text-yellow-700" : ""}`}>{value}</p>
       {sub && <p className="text-xs text-muted-foreground mt-0.5 truncate">{sub}</p>}
     </div>
   )

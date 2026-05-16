@@ -5,11 +5,6 @@ function Skeleton({ className }: { className?: string }) {
 export default function Loading() {
   return (
     <div className="space-y-6">
-      <div>
-        <Skeleton className="h-8 w-44" />
-        <Skeleton className="h-4 w-56 mt-2" />
-      </div>
-
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {[...Array(4)].map((_, i) => (
           <div key={i} className="rounded-lg border bg-white p-5 space-y-3">

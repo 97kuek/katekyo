@@ -128,7 +128,7 @@ export default async function StudentsPage({
               <thead className="border-b bg-gray-50">
                 <tr>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">名前</th>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">メールアドレス</th>
+                  <th className="hidden lg:table-cell px-4 py-3 text-left font-medium text-muted-foreground">メールアドレス</th>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">学年</th>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">宿題進捗</th>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">登録日</th>
@@ -136,13 +136,13 @@ export default async function StudentsPage({
                 </tr>
               </thead>
               <tbody className="divide-y">
-                {students.map((s) => {
+                {sortedStudents.map((s) => {
                   const prog = progressMap.get(s.id)
                   const pct = prog && prog.total > 0 ? Math.round((prog.approved / prog.total) * 100) : null
                   return (
                     <tr key={s.id} className="hover:bg-gray-50">
                       <td className="px-4 py-3 font-medium">{s.user.name}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{s.user.email}</td>
+                      <td className="hidden lg:table-cell px-4 py-3 text-muted-foreground">{s.user.email}</td>
                       <td className="px-4 py-3">
                         <div className="space-y-1">
                           <span className="text-sm">{s.grade}</span>

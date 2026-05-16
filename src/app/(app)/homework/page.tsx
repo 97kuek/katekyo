@@ -195,7 +195,9 @@ async function StudentHomeworkPage({ userId }: { userId: string }) {
   const now = new Date()
   const active = homeworks.filter((h) => h.status === "assigned" || h.status === "rejected")
   const submitted = homeworks.filter((h) => h.status === "submitted")
-  const approved = homeworks.filter((h) => h.status === "approved")
+  const approvedAll = homeworks.filter((h) => h.status === "approved")
+  const approved = approvedAll.slice(0, 5)
+  const approvedRemainder = approvedAll.length - approved.length
 
   return (
     <div className="space-y-6">
@@ -268,7 +270,7 @@ async function StudentHomeworkPage({ userId }: { userId: string }) {
 
       {approved.length > 0 && (
         <section className="space-y-3">
-          <h2 className="text-sm font-medium text-muted-foreground">完了</h2>
+          <h2 className="text-sm font-medium text-muted-foreground">完了（{approvedAll.length}件）</h2>
           <div className="space-y-2">
             {approved.map((h) => (
               <Link
@@ -288,6 +290,15 @@ async function StudentHomeworkPage({ userId }: { userId: string }) {
                 </div>
               </Link>
             ))}
+            {approvedRemainder > 0 && (
+              <p className="text-center text-xs text-muted-foreground py-1">
+                他 {approvedRemainder} 件は
+                <Link href="/homework?status=approved" className="ml-1 underline hover:text-foreground">
+                  宿題一覧
+                </Link>
+                から確認できます
+              </p>
+            )}
           </div>
         </section>
       )}
