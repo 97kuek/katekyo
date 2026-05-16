@@ -49,19 +49,26 @@ export function LessonForm({ students, defaultDate }: { students: Student[]; def
         <div className="grid grid-cols-2 gap-3">
           <div className="col-span-2 space-y-1">
             <Label htmlFor="studentId" className="text-xs">生徒</Label>
-            <select
-              id="studentId"
-              name="studentId"
-              required
-              className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              <option value="">選択してください</option>
-              {students.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.user.name}（{s.grade}）
-                </option>
-              ))}
-            </select>
+            {students.length === 1 ? (
+              <>
+                <input type="hidden" name="studentId" value={students[0].id} />
+                <p className="text-sm py-1.5 px-3 rounded-md border bg-gray-50">{students[0].user.name}（{students[0].grade}）</p>
+              </>
+            ) : (
+              <select
+                id="studentId"
+                name="studentId"
+                required
+                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <option value="">選択してください</option>
+                {students.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.user.name}（{s.grade}）
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
           <div className="space-y-1">
             <Label htmlFor="date" className="text-xs">日付</Label>

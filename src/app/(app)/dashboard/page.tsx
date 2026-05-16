@@ -39,10 +39,10 @@ function TeacherDashboard({ teacherId }: { teacherId: string }) {
   return (
     <div className="space-y-6">
       <Suspense fallback={
-        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="rounded-lg border bg-white p-5 space-y-3">
-              <Sk className="h-4 w-24" /><Sk className="h-8 w-12" />
+            <div key={i} className="rounded-lg border bg-white p-3 space-y-2">
+              <Sk className="h-3 w-20" /><Sk className="h-7 w-10" />
             </div>
           ))}
         </div>
@@ -88,11 +88,11 @@ async function TeacherSummaryCards({ teacherId }: { teacherId: string }) {
     db.homework.count({ where: { teacherId, status: "assigned", dueDate: { lt: now } } }),
   ])
   return (
-    <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
-      <SummaryCard title="承認待ちの宿題" value={String(pendingCount)} accent={pendingCount > 0} href="/homework" />
-      <SummaryCard title="期限切れの宿題" value={String(overdueCount)} accent={overdueCount > 0} href="/homework" />
+    <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+      <SummaryCard title="承認待ち" value={String(pendingCount)} accent={pendingCount > 0} href="/homework" />
+      <SummaryCard title="期限切れ" value={String(overdueCount)} accent={overdueCount > 0} href="/homework" />
       <SummaryCard title="登録生徒数" value={String(studentCount)} href="/students" />
-      <SummaryCard title="今月の成績記録" value={String(gradeCount)} href="/grades" />
+      <SummaryCard title="今月の成績" value={String(gradeCount)} href="/grades" />
     </div>
   )
 }
@@ -223,18 +223,53 @@ async function HomeworkStatusSection({ teacherId }: { teacherId: string }) {
     if (entry) entry[row.status as StatusKey] = row._count.status
   }
 
+  const colors: Record<StatusKey, string> = {
+    assigned: "bg-gray-100 text-gray-700",
+    submitted: "bg-yellow-100 text-yellow-700",
+    approved: "bg-green-100 text-green-700",
+    rejected: "bg-red-100 text-red-700",
+  }
+  const statusItems = [
+    { key: "assigned" as StatusKey, label: "未提出" },
+    { key: "submitted" as StatusKey, label: "提出済" },
+    { key: "approved" as StatusKey, label: "承認済" },
+    { key: "rejected" as StatusKey, label: "差戻し" },
+  ]
+
   return (
     <section className="space-y-3">
       <h2 className="text-sm font-semibold">生徒別 宿題ステータス</h2>
-      <div className="rounded-lg border bg-white overflow-hidden overflow-x-auto">
+
+      {/* モバイル: カード表示 */}
+      <div className="md:hidden space-y-2">
+        {students.map((s) => {
+          const stat = statusMap.get(s.id) ?? { assigned: 0, submitted: 0, approved: 0, rejected: 0 }
+          if (stat.assigned + stat.submitted + stat.approved + stat.rejected === 0) return null
+          return (
+            <div key={s.id} className="rounded-lg border bg-white p-3">
+              <p className="text-sm font-medium mb-2">{s.user.name}</p>
+              <div className="grid grid-cols-4 gap-1.5 text-center">
+                {statusItems.map(({ key, label }) => (
+                  <div key={key} className={`rounded-md py-1.5 ${colors[key]}`}>
+                    <p className="text-base font-bold leading-none">{stat[key]}</p>
+                    <p className="text-xs mt-0.5 opacity-70">{label}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* デスクトップ: テーブル表示 */}
+      <div className="hidden md:block rounded-lg border bg-white overflow-hidden overflow-x-auto">
         <table className="w-full text-sm min-w-[400px]">
           <thead className="border-b bg-gray-50">
             <tr>
               <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">生徒</th>
-              <th className="px-3 py-2.5 text-center font-medium text-muted-foreground">未提出</th>
-              <th className="px-3 py-2.5 text-center font-medium text-muted-foreground">提出済</th>
-              <th className="px-3 py-2.5 text-center font-medium text-muted-foreground">承認済</th>
-              <th className="px-3 py-2.5 text-center font-medium text-muted-foreground">差戻し</th>
+              {statusItems.map(({ label }) => (
+                <th key={label} className="px-3 py-2.5 text-center font-medium text-muted-foreground">{label}</th>
+              ))}
             </tr>
           </thead>
           <tbody className="divide-y">
@@ -244,18 +279,15 @@ async function HomeworkStatusSection({ teacherId }: { teacherId: string }) {
               return (
                 <tr key={s.id} className="hover:bg-gray-50">
                   <td className="px-4 py-2.5 font-medium">{s.user.name}</td>
-                  {(["assigned", "submitted", "approved", "rejected"] as StatusKey[]).map((key) => {
-                    const colors: Record<StatusKey, string> = { assigned: "bg-gray-100 text-gray-700", submitted: "bg-yellow-100 text-yellow-700", approved: "bg-green-100 text-green-700", rejected: "bg-red-100 text-red-700" }
-                    return (
-                      <td key={key} className="px-3 py-2.5 text-center">
-                        {stat[key] > 0 ? (
-                          <span className={`inline-flex items-center justify-center h-5 min-w-5 rounded-full text-xs font-medium px-1.5 ${colors[key]}`}>
-                            {stat[key]}
-                          </span>
-                        ) : <span className="text-muted-foreground">-</span>}
-                      </td>
-                    )
-                  })}
+                  {statusItems.map(({ key }) => (
+                    <td key={key} className="px-3 py-2.5 text-center">
+                      {stat[key] > 0 ? (
+                        <span className={`inline-flex items-center justify-center h-5 min-w-5 rounded-full text-xs font-medium px-1.5 ${colors[key]}`}>
+                          {stat[key]}
+                        </span>
+                      ) : <span className="text-muted-foreground">-</span>}
+                    </td>
+                  ))}
                 </tr>
               )
             })}
@@ -334,10 +366,10 @@ function StudentDashboard({ userId }: { userId: string }) {
   return (
     <div className="space-y-6">
       <Suspense fallback={
-        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="rounded-lg border bg-white p-5 space-y-3">
-              <Sk className="h-4 w-24" /><Sk className="h-8 w-12" />
+            <div key={i} className="rounded-lg border bg-white p-3 space-y-2">
+              <Sk className="h-3 w-20" /><Sk className="h-7 w-10" />
             </div>
           ))}
         </div>
@@ -387,8 +419,8 @@ async function StudentSummaryCards({ userId }: { userId: string }) {
   ])
   const latest = recentGrades[0]
   return (
-    <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
-      <SummaryCard title="未完了の宿題" value={String(incompleteCount)} accent={incompleteCount > 0} href="/homework" />
+    <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+      <SummaryCard title="未完了" value={String(incompleteCount)} accent={incompleteCount > 0} href="/homework" />
       <SummaryCard title="期限切れ" value={String(overdueCount)} accent={overdueCount > 0} href="/homework" />
       <SummaryCard title="承認待ち" value={String(submittedCount)} href="/homework" />
       <SummaryCard
@@ -522,10 +554,10 @@ function SummaryCard({ title, value, accent, sub, href }: {
   title: string; value: string; accent?: boolean; sub?: string; href?: string
 }) {
   const inner = (
-    <div className={`rounded-lg border bg-white p-5 shadow-sm transition-colors ${accent ? "border-yellow-300" : ""} ${href ? "hover:bg-gray-50" : ""}`}>
-      <p className="text-sm text-muted-foreground">{title}</p>
-      <p className={`mt-2 text-3xl font-bold ${accent ? "text-yellow-700" : ""}`}>{value}</p>
-      {sub && <p className="text-xs text-muted-foreground mt-1 truncate">{sub}</p>}
+    <div className={`rounded-lg border bg-white p-3 shadow-sm transition-colors ${accent ? "border-yellow-300" : ""} ${href ? "hover:bg-gray-50" : ""}`}>
+      <p className="text-xs text-muted-foreground">{title}</p>
+      <p className={`mt-1 text-2xl font-bold ${accent ? "text-yellow-700" : ""}`}>{value}</p>
+      {sub && <p className="text-xs text-muted-foreground mt-0.5 truncate">{sub}</p>}
     </div>
   )
   if (href) return <Link href={href}>{inner}</Link>

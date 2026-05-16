@@ -170,13 +170,42 @@ function DayDetail({
   )
 }
 
+function NextLessonBanner({ lessons, isTeacher }: { lessons: Lesson[]; isTeacher: boolean }) {
+  const now = new Date()
+  const next = lessons.find((l) => l.date > now)
+  if (!next) return null
+
+  const diffMs = next.date.getTime() - now.getTime()
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+  const when = diffDays === 0 ? "今日" : diffDays === 1 ? "明日" : `${diffDays}日後`
+
+  return (
+    <div className="rounded-lg bg-blue-50 border border-blue-200 px-4 py-3 flex items-center gap-3">
+      <div className="h-9 w-9 rounded-full bg-blue-100 flex items-center justify-center shrink-0 text-lg">📅</div>
+      <div className="min-w-0">
+        <p className="text-sm font-semibold text-blue-900">
+          次の授業: <span className="text-blue-600">{when}</span>
+          {" — "}
+          {next.date.toLocaleDateString("ja-JP", { month: "short", day: "numeric", weekday: "short" })}{" "}
+          {next.date.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })}
+        </p>
+        <p className="text-xs text-blue-700 mt-0.5 truncate">
+          {isTeacher ? `${next.student.user.name} · ` : ""}
+          {next.type === "online" ? "オンライン" : "対面"}
+          {next.durationMin ? ` · ${next.durationMin}分` : ""}
+        </p>
+      </div>
+    </div>
+  )
+}
+
 export default function CalendarView({ lessons, deadlines, students, isTeacher }: Props) {
   const today = new Date()
   const [year, setYear] = useState(today.getFullYear())
   const [month, setMonth] = useState(today.getMonth())
   const [selectedDay, setSelectedDay] = useState<string | null>(toDateKey(today))
   const [editingLessonId, setEditingLessonId] = useState<string | null>(null)
-  const [viewMode, setViewMode] = useState<"month" | "week">("month")
+  const [viewMode, setViewMode] = useState<"month" | "week">("week")
   const [weekOffset, setWeekOffset] = useState(0)
 
   const lessonMap = new Map<string, Lesson[]>()
@@ -234,6 +263,8 @@ export default function CalendarView({ lessons, deadlines, students, isTeacher }
 
   return (
     <div className="space-y-4">
+      <NextLessonBanner lessons={lessons} isTeacher={isTeacher} />
+
       {/* View mode toggle */}
       <div className="flex items-center gap-2">
         <div className="flex items-center gap-1 rounded-md border border-input bg-background p-0.5">

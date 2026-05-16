@@ -14,6 +14,12 @@ type Student = {
 
 type Material = { id: string; name: string }
 
+const tomorrowISO = () => {
+  const d = new Date()
+  d.setDate(d.getDate() + 1)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
+}
+
 export default function CreateHomeworkForm({
   students,
   materialsByStudent,
@@ -22,7 +28,8 @@ export default function CreateHomeworkForm({
   materialsByStudent: Record<string, Material[]>
 }) {
   const [state, action, isPending] = useActionState(createHomework, { error: "" })
-  const [selectedStudentId, setSelectedStudentId] = useState("")
+  const singleStudent = students.length === 1 ? students[0] : null
+  const [selectedStudentId, setSelectedStudentId] = useState(singleStudent?.id ?? "")
 
   const materials = selectedStudentId ? (materialsByStudent[selectedStudentId] ?? []) : []
 
@@ -33,25 +40,32 @@ export default function CreateHomeworkForm({
       )}
       <div className="space-y-2">
         <Label htmlFor="studentId">生徒</Label>
-        <select
-          id="studentId"
-          name="studentId"
-          required
-          value={selectedStudentId}
-          onChange={(e) => setSelectedStudentId(e.target.value)}
-          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          <option value="">生徒を選択してください</option>
-          {students.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.user.name}（{s.grade}）
-            </option>
-          ))}
-        </select>
+        {singleStudent ? (
+          <>
+            <input type="hidden" name="studentId" value={singleStudent.id} />
+            <p className="text-sm py-2 px-3 rounded-md border bg-gray-50">{singleStudent.user.name}（{singleStudent.grade}）</p>
+          </>
+        ) : (
+          <select
+            id="studentId"
+            name="studentId"
+            required
+            value={selectedStudentId}
+            onChange={(e) => setSelectedStudentId(e.target.value)}
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <option value="">生徒を選択してください</option>
+            {students.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.user.name}（{s.grade}）
+              </option>
+            ))}
+          </select>
+        )}
       </div>
       <div className="space-y-2">
         <Label htmlFor="title">タイトル</Label>
-        <Input id="title" name="title" required placeholder="例: 英単語50問" />
+        <Input id="title" name="title" required placeholder="例: 英単語50問" autoFocus />
       </div>
       <div className="space-y-2">
         <Label htmlFor="description">内容（任意）</Label>
@@ -65,7 +79,7 @@ export default function CreateHomeworkForm({
       </div>
       <div className="space-y-2">
         <Label htmlFor="dueDate">期限</Label>
-        <Input id="dueDate" name="dueDate" type="date" required />
+        <Input id="dueDate" name="dueDate" type="date" required defaultValue={tomorrowISO()} />
       </div>
       {selectedStudentId && (
         <div className="space-y-2">

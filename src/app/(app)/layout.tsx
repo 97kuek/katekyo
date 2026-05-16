@@ -17,7 +17,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <Sidebar role={session.user.role} />
         <div className="flex flex-col flex-1 min-w-0">
           <Header name={session.user.name ?? ""} />
-          <main className="flex-1 overflow-auto p-4 md:p-6 pb-20 md:pb-6">
+          <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-6 pb-20 md:pb-6">
             <div className="max-w-7xl mx-auto">
               <Suspense>
                 <SearchParamsToast />
