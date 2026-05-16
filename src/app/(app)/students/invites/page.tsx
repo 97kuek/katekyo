@@ -4,6 +4,7 @@ import { db } from "@/lib/db"
 import Link from "next/link"
 import { buttonVariants } from "@/components/ui/button"
 import { revokeInvite } from "./actions"
+import { CopyInviteLink } from "./copy-link"
 
 export default async function InvitesPage() {
   const session = await auth()
@@ -70,15 +71,18 @@ export default async function InvitesPage() {
                       {i.createdAt.toLocaleDateString("ja-JP")}
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <form action={revokeInvite}>
-                        <input type="hidden" name="id" value={i.id} />
-                        <button
-                          type="submit"
-                          className="text-xs text-red-600 hover:text-red-800 hover:underline"
-                        >
-                          取り消す
-                        </button>
-                      </form>
+                      <div className="flex items-center justify-end gap-3">
+                        <CopyInviteLink token={i.token} />
+                        <form action={revokeInvite}>
+                          <input type="hidden" name="id" value={i.id} />
+                          <button
+                            type="submit"
+                            className="text-xs text-red-600 hover:text-red-800 hover:underline"
+                          >
+                            取り消す
+                          </button>
+                        </form>
+                      </div>
                     </td>
                   </tr>
                 ))}

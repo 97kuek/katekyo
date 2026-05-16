@@ -6,6 +6,7 @@ import { buttonVariants } from "@/components/ui/button"
 import GradeChart from "./grade-chart"
 import { GradeActionsCell } from "./grade-actions-cell"
 import { GradeTypeFilter } from "./grade-type-filter"
+import { GradeStudentFilter } from "./grade-student-filter"
 import { TEST_TYPE_LABELS } from "@/lib/test-types"
 
 function SubjectTags({ ids, map }: { ids: string[]; map: Map<string, string> }) {
@@ -53,15 +54,15 @@ function VsAvg({ score, avgScore }: { score: number | null; avgScore: number | n
 export default async function GradesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ type?: string }>
+  searchParams: Promise<{ type?: string; studentId?: string }>
 }) {
   const session = await auth()
   if (!session) redirect("/login")
 
-  const { type } = await searchParams
+  const { type, studentId } = await searchParams
 
   if (session.user.role === "teacher") {
-    return <TeacherGradesPage teacherId={session.user.id} typeFilter={type} />
+    return <TeacherGradesPage teacherId={session.user.id} typeFilter={type} studentIdFilter={studentId} />
   }
   return <StudentGradesPage userId={session.user.id} />
 }
@@ -69,25 +70,33 @@ export default async function GradesPage({
 async function TeacherGradesPage({
   teacherId,
   typeFilter,
+  studentIdFilter,
 }: {
   teacherId: string
   typeFilter?: string
+  studentIdFilter?: string
 }) {
   const validTypes = ["mock", "exam", "quiz", "other"] as const
   type ValidType = (typeof validTypes)[number]
   const isValidType = (v: string | undefined): v is ValidType =>
     validTypes.includes(v as ValidType)
 
-  const [grades, subjects] = await Promise.all([
+  const [grades, subjects, students] = await Promise.all([
     db.gradeRecord.findMany({
       where: {
         teacherId,
         ...(isValidType(typeFilter) ? { testType: typeFilter } : {}),
+        ...(studentIdFilter ? { studentId: studentIdFilter } : {}),
       },
       include: { student: { include: { user: { select: { name: true } } } } },
       orderBy: { date: "desc" },
     }),
     db.subject.findMany({ where: { teacherId }, select: { id: true, name: true } }),
+    db.student.findMany({
+      where: { teacherId },
+      include: { user: { select: { name: true } } },
+      orderBy: { createdAt: "asc" },
+    }),
   ])
 
   const subjectMap = new Map(subjects.map((s) => [s.id, s.name]))
@@ -108,6 +117,18 @@ async function TeacherGradesPage({
     return cur != null && pre != null ? cur - pre : null
   })
 
+  const chartGrades = studentIdFilter ? grades.map((g) => ({
+    id: g.id,
+    testName: g.testName,
+    testType: g.testType,
+    date: g.date.toISOString(),
+    score: g.score,
+    maxScore: g.maxScore,
+    avgScore: g.avgScore,
+    deviation: g.deviation,
+    subjectIds: g.subjectIds,
+  })) : []
+
   return (
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-3 flex-wrap">
@@ -117,7 +138,14 @@ async function TeacherGradesPage({
         </Link>
       </div>
 
-      <GradeTypeFilter />
+      <div className="flex items-center gap-3 flex-wrap">
+        <GradeTypeFilter />
+        <GradeStudentFilter students={students} />
+      </div>
+
+      {studentIdFilter && chartGrades.length > 0 && (
+        <GradeChart grades={chartGrades} subjects={subjects} />
+      )}
 
       {grades.length === 0 ? (
         <div className="rounded-lg border bg-white p-12 text-center">

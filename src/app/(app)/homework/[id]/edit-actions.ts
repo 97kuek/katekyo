@@ -43,6 +43,38 @@ export async function updateHomework(
   redirect(`/homework/${id}`)
 }
 
+const extendSchema = z.object({
+  id: z.string().min(1),
+  dueDate: z.string().min(1, "期限を入力してください"),
+})
+
+export async function extendDueDate(
+  _prevState: { error: string; success: boolean },
+  formData: FormData
+): Promise<{ error: string; success: boolean }> {
+  const session = await auth()
+  if (!session || session.user.role !== "teacher") return { error: "権限がありません", success: false }
+
+  const result = extendSchema.safeParse({
+    id: formData.get("id"),
+    dueDate: formData.get("dueDate"),
+  })
+  if (!result.success) return { error: result.error.issues[0].message, success: false }
+
+  const { id, dueDate } = result.data
+
+  const existing = await db.homework.findFirst({ where: { id, teacherId: session.user.id } })
+  if (!existing) return { error: "宿題が見つかりません", success: false }
+
+  await db.homework.update({
+    where: { id },
+    data: { dueDate: new Date(dueDate) },
+  })
+
+  revalidatePath(`/homework/${id}`)
+  return { error: "", success: true }
+}
+
 export async function deleteHomework(formData: FormData) {
   const session = await auth()
   if (!session || session.user.role !== "teacher") redirect("/dashboard")

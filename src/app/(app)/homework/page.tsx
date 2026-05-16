@@ -6,6 +6,7 @@ import { buttonVariants } from "@/components/ui/button"
 import { StatusBadge } from "@/components/homework/status-badge"
 import { CancelSubmissionButton } from "./cancel-button"
 import { HomeworkFilter } from "./homework-filter"
+import { BulkApproveSection } from "./bulk-approve-section"
 import { relativeDeadline, deadlineColorClass } from "@/lib/date-utils"
 
 function SubjectTags({ ids, map }: { ids: string[]; map: Map<string, string> }) {
@@ -25,15 +26,15 @@ function SubjectTags({ ids, map }: { ids: string[]; map: Map<string, string> }) 
 export default async function HomeworkPage({
   searchParams,
 }: {
-  searchParams: Promise<{ studentId?: string; sort?: string }>
+  searchParams: Promise<{ studentId?: string; sort?: string; q?: string; subjects?: string }>
 }) {
   const session = await auth()
   if (!session) redirect("/login")
 
-  const { studentId, sort } = await searchParams
+  const { studentId, sort, q, subjects } = await searchParams
 
   if (session.user.role === "teacher") {
-    return <TeacherHomeworkPage teacherId={session.user.id} studentIdFilter={studentId} sort={sort} />
+    return <TeacherHomeworkPage teacherId={session.user.id} studentIdFilter={studentId} sort={sort} q={q} subjectFilter={subjects} />
   }
   return <StudentHomeworkPage userId={session.user.id} />
 }
@@ -42,17 +43,24 @@ async function TeacherHomeworkPage({
   teacherId,
   studentIdFilter,
   sort,
+  q,
+  subjectFilter,
 }: {
   teacherId: string
   studentIdFilter?: string
   sort?: string
+  q?: string
+  subjectFilter?: string
 }) {
+  const subjectIds = subjectFilter?.split(",").filter(Boolean) ?? []
   const orderBy = sort === "due" ? { dueDate: "asc" as const } : { createdAt: "desc" as const }
   const [homeworks, subjects, students] = await Promise.all([
     db.homework.findMany({
       where: {
         teacherId,
         ...(studentIdFilter ? { studentId: studentIdFilter } : {}),
+        ...(q ? { title: { contains: q, mode: "insensitive" as const } } : {}),
+        ...(subjectIds.length > 0 ? { subjectIds: { hasSome: subjectIds } } : {}),
       },
       include: { student: { include: { user: { select: { name: true } } } } },
       orderBy,
@@ -79,37 +87,10 @@ async function TeacherHomeworkPage({
         </Link>
       </div>
 
-      <HomeworkFilter students={students} />
+      <HomeworkFilter students={students} subjects={subjects} />
 
       {submitted.length > 0 && (
-        <section className="space-y-3">
-          <h2 className="text-sm font-semibold text-yellow-800 bg-yellow-50 px-3 py-1.5 rounded-md inline-flex items-center gap-1.5">
-            <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-yellow-600 text-white text-xs">
-              {submitted.length}
-            </span>
-            承認待ち
-          </h2>
-          <div className="space-y-2">
-            {submitted.map((h) => (
-              <div key={h.id} className="rounded-lg border bg-white p-4 flex items-start justify-between gap-4">
-                <div className="min-w-0">
-                  <p className="font-medium truncate">{h.title}</p>
-                  <p className="text-sm text-muted-foreground mt-0.5">{h.student.user.name}</p>
-                  <SubjectTags ids={h.subjectIds} map={subjectMap} />
-                  {h.studentNote && (
-                    <p className="text-sm text-gray-600 mt-2 border-l-2 pl-3">{h.studentNote}</p>
-                  )}
-                </div>
-                <Link
-                  href={`/homework/${h.id}/review`}
-                  className={buttonVariants({ variant: "outline", size: "sm", className: "shrink-0" })}
-                >
-                  確認する
-                </Link>
-              </div>
-            ))}
-          </div>
-        </section>
+        <BulkApproveSection submitted={submitted} subjectMap={subjectMap} />
       )}
 
       {others.length > 0 && (

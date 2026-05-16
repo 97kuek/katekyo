@@ -5,16 +5,29 @@ import Link from "next/link"
 import { buttonVariants } from "@/components/ui/button"
 import { DeleteStudentButton } from "./delete-student-button"
 import { UpdateGradeForm } from "./update-grade-form"
+import { StudentSort } from "./student-sort"
+import { ResetPasswordButton } from "./reset-password-button"
 
-export default async function StudentsPage() {
+export default async function StudentsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ sort?: string }>
+}) {
   const session = await auth()
   if (!session || session.user.role !== "teacher") redirect("/dashboard")
+
+  const { sort } = await searchParams
+
+  const orderBy =
+    sort === "name" ? { user: { name: "asc" as const } } :
+    sort === "grade" ? { grade: "asc" as const } :
+    { createdAt: "desc" as const }
 
   const [students, homeworkStats] = await Promise.all([
     db.student.findMany({
       where: { teacherId: session.user.id },
       include: { user: { select: { name: true, email: true } } },
-      orderBy: { createdAt: "desc" },
+      orderBy,
     }),
     db.homework.groupBy({
       by: ["studentId", "status"],
@@ -30,6 +43,16 @@ export default async function StudentsPage() {
     if (row.status === "approved") entry.approved += row._count.status
     progressMap.set(row.studentId, entry)
   }
+
+  const sortedStudents = sort === "progress"
+    ? [...students].sort((a, b) => {
+        const pa = progressMap.get(a.id)
+        const pb = progressMap.get(b.id)
+        const ra = pa && pa.total > 0 ? pa.approved / pa.total : -1
+        const rb = pb && pb.total > 0 ? pb.approved / pb.total : -1
+        return rb - ra
+      })
+    : students
 
   return (
     <div className="space-y-6">
@@ -48,6 +71,8 @@ export default async function StudentsPage() {
         </div>
       </div>
 
+      <StudentSort />
+
       {students.length === 0 ? (
         <div className="rounded-lg border bg-white p-12 text-center">
           <p className="text-muted-foreground">まだ生徒が登録されていません</p>
@@ -59,7 +84,7 @@ export default async function StudentsPage() {
         <>
           {/* モバイル: カード表示 */}
           <div className="md:hidden space-y-3">
-            {students.map((s) => {
+            {sortedStudents.map((s) => {
               const prog = progressMap.get(s.id)
               const pct = prog && prog.total > 0 ? Math.round((prog.approved / prog.total) * 100) : null
               return (
@@ -83,10 +108,11 @@ export default async function StudentsPage() {
                       </div>
                     </div>
                   )}
-                  <div className="flex items-center gap-3 pt-1 border-t">
+                  <div className="flex items-center gap-3 pt-1 border-t flex-wrap">
                     <Link href={`/students/${s.id}/grades`} className="text-xs text-blue-600 hover:underline">
                       成績を見る
                     </Link>
+                    <ResetPasswordButton studentId={s.id} />
                     <DeleteStudentButton studentId={s.id} studentName={s.user.name} />
                   </div>
                 </div>
@@ -137,10 +163,11 @@ export default async function StudentsPage() {
                       </td>
                       <td className="px-4 py-3 text-muted-foreground">{s.createdAt.toLocaleDateString("ja-JP")}</td>
                       <td className="px-4 py-3 text-right">
-                        <div className="flex items-center justify-end gap-3">
+                        <div className="flex items-center justify-end gap-3 flex-wrap">
                           <Link href={`/students/${s.id}/grades`} className="text-xs text-blue-600 hover:underline">
                             成績を見る
                           </Link>
+                          <ResetPasswordButton studentId={s.id} />
                           <DeleteStudentButton studentId={s.id} studentName={s.user.name} />
                         </div>
                       </td>

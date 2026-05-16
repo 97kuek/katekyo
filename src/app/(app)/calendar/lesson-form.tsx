@@ -7,17 +7,29 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
+const DURATION_KEY = "lesson_default_duration"
+
 type Student = { id: string; grade: string; user: { name: string } }
 
 export function LessonForm({ students, defaultDate }: { students: Student[]; defaultDate: string }) {
   const [state, action, isPending] = useActionState(createLesson, { error: "" })
   const [open, setOpen] = useState(false)
+  const [defaultDuration, setDefaultDuration] = useState("60")
+
+  useEffect(() => {
+    const saved = localStorage.getItem(DURATION_KEY)
+    if (saved) setDefaultDuration(saved)
+  }, [])
 
   useEffect(() => {
     if (!state.timestamp) return
     setOpen(false)
     toast.success("授業を追加しました")
   }, [state.timestamp])
+
+  function handleDurationChange(e: React.ChangeEvent<HTMLInputElement>) {
+    localStorage.setItem(DURATION_KEY, e.target.value)
+  }
 
   if (!open) {
     return (
@@ -74,7 +86,29 @@ export function LessonForm({ students, defaultDate }: { students: Student[]; def
           </div>
           <div className="space-y-1">
             <Label htmlFor="durationMin" className="text-xs">時間（分）</Label>
-            <Input id="durationMin" name="durationMin" type="number" min="1" placeholder="60" className="h-9 text-sm" />
+            <Input
+              id="durationMin"
+              name="durationMin"
+              type="number"
+              min="1"
+              defaultValue={defaultDuration}
+              onChange={handleDurationChange}
+              className="h-9 text-sm"
+            />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="repeatWeeks" className="text-xs">週次繰り返し</Label>
+            <select
+              id="repeatWeeks"
+              name="repeatWeeks"
+              defaultValue="0"
+              className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <option value="0">繰り返しなし</option>
+              {[1,2,3,4,5,6,7,8,9,10,11,12].map((w) => (
+                <option key={w} value={w}>{w}週間（計{w+1}回）</option>
+              ))}
+            </select>
           </div>
           <div className="col-span-2 space-y-1">
             <Label htmlFor="notes" className="text-xs">メモ（任意）</Label>

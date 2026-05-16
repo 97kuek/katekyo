@@ -13,6 +13,7 @@ const createSchema = z.object({
   type: z.enum(["online", "offline"]),
   durationMin: z.string().optional(),
   notes: z.string().optional(),
+  repeatWeeks: z.string().optional(),
 })
 
 export async function createLesson(
@@ -29,25 +30,32 @@ export async function createLesson(
     type: formData.get("type"),
     durationMin: formData.get("durationMin") || undefined,
     notes: formData.get("notes") || undefined,
+    repeatWeeks: formData.get("repeatWeeks") || undefined,
   })
   if (!result.success) return { error: result.error.issues[0].message }
 
-  const { studentId, date, time, type, durationMin, notes } = result.data
+  const { studentId, date, time, type, durationMin, notes, repeatWeeks } = result.data
 
   const student = await db.student.findFirst({ where: { id: studentId, teacherId: session.user.id } })
   if (!student) return { error: "生徒が見つかりません" }
 
-  const dateTime = new Date(`${date}T${time}`)
+  const baseTime = new Date(`${date}T${time}:00+09:00`)
+  const weeks = Math.min(Math.max(parseInt(repeatWeeks ?? "0") || 0, 0), 52)
+  const dates = Array.from({ length: weeks + 1 }, (_, i) => {
+    const d = new Date(baseTime)
+    d.setDate(d.getDate() + i * 7)
+    return d
+  })
 
-  await db.lesson.create({
-    data: {
+  await db.lesson.createMany({
+    data: dates.map((dateTime) => ({
       teacherId: session.user.id,
       studentId,
       date: dateTime,
       type,
       durationMin: durationMin ? parseInt(durationMin) : null,
       notes: notes || null,
-    },
+    })),
   })
 
   revalidatePath("/calendar")
@@ -85,7 +93,7 @@ export async function updateLesson(
   await db.lesson.updateMany({
     where: { id: lessonId, teacherId: session.user.id },
     data: {
-      date: new Date(`${date}T${time}`),
+      date: new Date(`${date}T${time}:00+09:00`),
       type,
       durationMin: durationMin ? parseInt(durationMin) : null,
       notes: notes || null,

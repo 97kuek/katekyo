@@ -7,6 +7,7 @@ import { StatusBadge } from "@/components/homework/status-badge"
 import { DeleteHomeworkButton } from "./delete-homework-button"
 import { CancelSubmissionButton } from "@/app/(app)/homework/cancel-button"
 import { relativeDeadline, deadlineColorClass } from "@/lib/date-utils"
+import { ExtendDeadlineButton } from "./extend-deadline"
 
 export default async function HomeworkDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -143,6 +144,12 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
           <Link href={`/homework/${id}/review`} className={buttonVariants()}>
             確認・承認する
           </Link>
+        )}
+        {isTeacher && (
+          <ExtendDeadlineButton
+            homeworkId={id}
+            currentDueDate={homework.dueDate.toISOString().slice(0, 10)}
+          />
         )}
       </div>
     </div>

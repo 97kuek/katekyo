@@ -71,12 +71,113 @@ function toDateKey(date: Date) {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
 }
 
+const DOW_LABELS = ["日", "月", "火", "水", "木", "金", "土"]
+
+function DayDetail({
+  dayKey,
+  dateStr,
+  lessons,
+  deadlines,
+  isTeacher,
+  students,
+  editingLessonId,
+  setEditingLessonId,
+}: {
+  dayKey: string
+  dateStr: string
+  lessons: Lesson[]
+  deadlines: HomeworkDeadline[]
+  isTeacher: boolean
+  students: Student[]
+  editingLessonId: string | null
+  setEditingLessonId: (id: string | null) => void
+}) {
+  return (
+    <div className="rounded-lg border bg-white p-4 space-y-3">
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <h2 className="font-semibold text-sm">{dateStr}</h2>
+        {isTeacher && (
+          <LessonForm students={students} defaultDate={dayKey} />
+        )}
+      </div>
+
+      {lessons.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-xs font-medium text-muted-foreground">授業</p>
+          {lessons.map((l) => (
+            <div key={l.id} className="rounded-md bg-blue-50 px-3 py-2">
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-sm font-medium">{l.student.user.name}</span>
+                    <span className={`text-xs rounded-full px-2 py-0.5 ${l.type === "online" ? "bg-green-100 text-green-700" : "bg-purple-100 text-purple-700"}`}>
+                      {l.type === "online" ? "オンライン" : "対面"}
+                    </span>
+                    {l.durationMin && (
+                      <span className="text-xs text-muted-foreground">{l.durationMin}分</span>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {l.date.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })}〜
+                  </p>
+                  {l.notes && <p className="text-xs text-gray-600 mt-1">{l.notes}</p>}
+                </div>
+                {isTeacher && (
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      onClick={() => setEditingLessonId(editingLessonId === l.id ? null : l.id)}
+                      className="text-xs text-blue-500 hover:text-blue-700"
+                    >
+                      {editingLessonId === l.id ? "閉じる" : "編集"}
+                    </button>
+                    <DeleteLessonButton lessonId={l.id} />
+                  </div>
+                )}
+              </div>
+              {isTeacher && editingLessonId === l.id && (
+                <LessonEditForm lesson={l} onClose={() => setEditingLessonId(null)} />
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {deadlines.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-xs font-medium text-muted-foreground">宿題期限</p>
+          {deadlines.map((d) => (
+            <Link
+              key={d.id}
+              href={`/homework/${d.id}`}
+              className="flex items-center justify-between rounded-md bg-orange-50 px-3 py-2 hover:bg-orange-100 transition-colors"
+            >
+              <div>
+                <p className="text-sm font-medium">{d.title}</p>
+                {isTeacher && (
+                  <p className="text-xs text-muted-foreground mt-0.5">{d.studentName}</p>
+                )}
+              </div>
+              <ChevronRight className="h-3.5 w-3.5 text-muted-foreground shrink-0 ml-2" />
+            </Link>
+          ))}
+        </div>
+      )}
+
+      {lessons.length === 0 && deadlines.length === 0 && (
+        <p className="text-sm text-muted-foreground">この日のイベントはありません</p>
+      )}
+    </div>
+  )
+}
+
 export default function CalendarView({ lessons, deadlines, students, isTeacher }: Props) {
   const today = new Date()
   const [year, setYear] = useState(today.getFullYear())
   const [month, setMonth] = useState(today.getMonth())
   const [selectedDay, setSelectedDay] = useState<string | null>(toDateKey(today))
   const [editingLessonId, setEditingLessonId] = useState<string | null>(null)
+  const [viewMode, setViewMode] = useState<"month" | "week">("month")
+  const [weekOffset, setWeekOffset] = useState(0)
 
   const lessonMap = new Map<string, Lesson[]>()
   const hasNoteMap = new Map<string, boolean>()
@@ -102,6 +203,21 @@ export default function CalendarView({ lessons, deadlines, students, isTeacher }
     if (month === 11) { setYear(y => y + 1); setMonth(0) }
     else setMonth(m => m + 1)
   }
+  function goToToday() {
+    setYear(today.getFullYear())
+    setMonth(today.getMonth())
+    setSelectedDay(toDateKey(today))
+    setWeekOffset(0)
+  }
+
+  // Week view helpers
+  const weekSundayBase = new Date(today)
+  weekSundayBase.setDate(today.getDate() - today.getDay())
+  const weekDays = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(weekSundayBase)
+    d.setDate(weekSundayBase.getDate() + i + weekOffset * 7)
+    return d
+  })
 
   const firstDay = new Date(year, month, 1).getDay()
   const daysInMonth = new Date(year, month + 1, 0).getDate()
@@ -118,142 +234,172 @@ export default function CalendarView({ lessons, deadlines, students, isTeacher }
 
   return (
     <div className="space-y-4">
-      <div className="rounded-lg border bg-white overflow-hidden">
-        <div className="flex items-center justify-between px-4 py-3 border-b">
-          <button onClick={prevMonth} className="p-1 hover:bg-gray-100 rounded">
-            <ChevronLeft className="h-4 w-4" />
+      {/* View mode toggle */}
+      <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 rounded-md border border-input bg-background p-0.5">
+          <button
+            onClick={() => setViewMode("month")}
+            className={`px-3 py-1 rounded text-xs font-medium transition-colors ${viewMode === "month" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            月
           </button>
-          <span className="font-semibold text-sm">
-            {year}年 {month + 1}月
-          </span>
-          <button onClick={nextMonth} className="p-1 hover:bg-gray-100 rounded">
-            <ChevronRight className="h-4 w-4" />
+          <button
+            onClick={() => setViewMode("week")}
+            className={`px-3 py-1 rounded text-xs font-medium transition-colors ${viewMode === "week" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            週
           </button>
-        </div>
-
-        <div className="grid grid-cols-7 text-center">
-          {["日", "月", "火", "水", "木", "金", "土"].map((d, i) => (
-            <div key={d} className={`py-2 text-xs font-medium ${i === 0 ? "text-red-500" : i === 6 ? "text-blue-500" : "text-muted-foreground"}`}>
-              {d}
-            </div>
-          ))}
-
-          {cells.map((day, i) => {
-            if (day === null) return <div key={i} className="aspect-square" />
-            const key = `${year}-${pad(month + 1)}-${pad(day)}`
-            const hasLesson = lessonMap.has(key)
-            const hasNote = hasNoteMap.has(key)
-            const hasDeadline = deadlineMap.has(key)
-            const isToday = key === todayKey
-            const isSelected = key === selectedDay
-            const dow = (firstDay + day - 1) % 7
-
-            return (
-              <button
-                key={key}
-                onClick={() => setSelectedDay(key)}
-                className={`aspect-square flex flex-col items-center justify-start pt-1.5 gap-0.5 text-xs transition-colors
-                  ${isSelected ? "bg-primary/10" : "hover:bg-gray-50"}
-                  ${dow === 0 ? "text-red-500" : dow === 6 ? "text-blue-500" : ""}
-                `}
-              >
-                <span className={`h-6 w-6 flex items-center justify-center rounded-full font-medium
-                  ${isToday ? "bg-primary text-primary-foreground" : ""}
-                `}>
-                  {day}
-                </span>
-                <div className="flex gap-0.5">
-                  {hasLesson && <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />}
-                  {hasNote && <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />}
-                  {hasDeadline && <span className="h-1.5 w-1.5 rounded-full bg-orange-400" />}
-                </div>
-              </button>
-            )
-          })}
-        </div>
-
-        <div className="px-3 pb-3 pt-1 flex items-center gap-4 text-xs text-muted-foreground border-t flex-wrap">
-          <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-blue-400 inline-block" />授業</span>
-          <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-amber-400 inline-block" />ノートあり</span>
-          <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-orange-400 inline-block" />宿題期限</span>
         </div>
       </div>
 
-      {selectedDay && (
-        <div className="rounded-lg border bg-white p-4 space-y-3">
-          <div className="flex items-center justify-between flex-wrap gap-2">
-            <h2 className="font-semibold text-sm">{selectedDateStr}</h2>
-            {isTeacher && (
-              <LessonForm students={students} defaultDate={selectedDay} />
-            )}
-          </div>
+      {viewMode === "month" ? (
+        <>
+          <div className="rounded-lg border bg-white overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-3 border-b">
+              <button onClick={prevMonth} className="p-1 hover:bg-gray-100 rounded">
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-sm">
+                  {year}年 {month + 1}月
+                </span>
+                <button
+                  onClick={goToToday}
+                  className="text-xs text-muted-foreground hover:text-foreground border border-input rounded px-2 py-0.5 hover:bg-gray-50"
+                >
+                  今月
+                </button>
+              </div>
+              <button onClick={nextMonth} className="p-1 hover:bg-gray-100 rounded">
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
 
-          {selectedLessons.length > 0 && (
-            <div className="space-y-2">
-              <p className="text-xs font-medium text-muted-foreground">授業</p>
-              {selectedLessons.map((l) => (
-                <div key={l.id} className="rounded-md bg-blue-50 px-3 py-2">
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-sm font-medium">{l.student.user.name}</span>
-                        <span className={`text-xs rounded-full px-2 py-0.5 ${l.type === "online" ? "bg-green-100 text-green-700" : "bg-purple-100 text-purple-700"}`}>
-                          {l.type === "online" ? "オンライン" : "対面"}
-                        </span>
-                        {l.durationMin && (
-                          <span className="text-xs text-muted-foreground">{l.durationMin}分</span>
-                        )}
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        {l.date.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })}〜
-                      </p>
-                      {l.notes && <p className="text-xs text-gray-600 mt-1">{l.notes}</p>}
-                    </div>
-                    {isTeacher && (
-                      <div className="flex items-center gap-2 shrink-0">
-                        <button
-                          onClick={() => setEditingLessonId(editingLessonId === l.id ? null : l.id)}
-                          className="text-xs text-blue-500 hover:text-blue-700"
-                        >
-                          {editingLessonId === l.id ? "閉じる" : "編集"}
-                        </button>
-                        <DeleteLessonButton lessonId={l.id} />
-                      </div>
-                    )}
-                  </div>
-                  {isTeacher && editingLessonId === l.id && (
-                    <LessonEditForm lesson={l} onClose={() => setEditingLessonId(null)} />
-                  )}
+            <div className="grid grid-cols-7 text-center">
+              {DOW_LABELS.map((d, i) => (
+                <div key={d} className={`py-2 text-xs font-medium ${i === 0 ? "text-red-500" : i === 6 ? "text-blue-500" : "text-muted-foreground"}`}>
+                  {d}
                 </div>
               ))}
-            </div>
-          )}
 
-          {selectedDeadlines.length > 0 && (
-            <div className="space-y-2">
-              <p className="text-xs font-medium text-muted-foreground">宿題期限</p>
-              {selectedDeadlines.map((d) => (
-                <Link
-                  key={d.id}
-                  href={`/homework/${d.id}`}
-                  className="flex items-center justify-between rounded-md bg-orange-50 px-3 py-2 hover:bg-orange-100 transition-colors"
+              {cells.map((day, i) => {
+                if (day === null) return <div key={i} className="aspect-square" />
+                const key = `${year}-${pad(month + 1)}-${pad(day)}`
+                const hasLesson = lessonMap.has(key)
+                const hasNote = hasNoteMap.has(key)
+                const hasDeadline = deadlineMap.has(key)
+                const isToday = key === todayKey
+                const isSelected = key === selectedDay
+                const dow = (firstDay + day - 1) % 7
+
+                return (
+                  <button
+                    key={key}
+                    onClick={() => setSelectedDay(key)}
+                    className={`aspect-square flex flex-col items-center justify-start pt-1.5 gap-0.5 text-xs transition-colors
+                      ${isSelected ? "bg-primary/10" : "hover:bg-gray-50"}
+                      ${dow === 0 ? "text-red-500" : dow === 6 ? "text-blue-500" : ""}
+                    `}
+                  >
+                    <span className={`h-6 w-6 flex items-center justify-center rounded-full font-medium
+                      ${isToday ? "bg-primary text-primary-foreground" : ""}
+                    `}>
+                      {day}
+                    </span>
+                    <div className="flex gap-0.5">
+                      {hasLesson && <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />}
+                      {hasNote && <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />}
+                      {hasDeadline && <span className="h-1.5 w-1.5 rounded-full bg-orange-400" />}
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+
+            <div className="px-3 pb-3 pt-1 flex items-center gap-4 text-xs text-muted-foreground border-t flex-wrap">
+              <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-blue-400 inline-block" />授業</span>
+              <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-amber-400 inline-block" />ノートあり</span>
+              <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-orange-400 inline-block" />宿題期限</span>
+            </div>
+          </div>
+
+          {selectedDay && (
+            <DayDetail
+              dayKey={selectedDay}
+              dateStr={selectedDateStr}
+              lessons={selectedLessons}
+              deadlines={selectedDeadlines}
+              isTeacher={isTeacher}
+              students={students}
+              editingLessonId={editingLessonId}
+              setEditingLessonId={setEditingLessonId}
+            />
+          )}
+        </>
+      ) : (
+        /* 週表示 */
+        <>
+          <div className="rounded-lg border bg-white overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-3 border-b">
+              <button onClick={() => setWeekOffset(w => w - 1)} className="p-1 hover:bg-gray-100 rounded">
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-sm">
+                  {weekDays[0].toLocaleDateString("ja-JP", { month: "long", day: "numeric" })} 〜 {weekDays[6].toLocaleDateString("ja-JP", { month: "long", day: "numeric" })}
+                </span>
+                <button
+                  onClick={goToToday}
+                  className="text-xs text-muted-foreground hover:text-foreground border border-input rounded px-2 py-0.5 hover:bg-gray-50"
                 >
-                  <div>
-                    <p className="text-sm font-medium">{d.title}</p>
-                    {isTeacher && (
-                      <p className="text-xs text-muted-foreground mt-0.5">{d.studentName}</p>
-                    )}
-                  </div>
-                  <ChevronRight className="h-3.5 w-3.5 text-muted-foreground shrink-0 ml-2" />
-                </Link>
-              ))}
+                  今週
+                </button>
+              </div>
+              <button onClick={() => setWeekOffset(w => w + 1)} className="p-1 hover:bg-gray-100 rounded">
+                <ChevronRight className="h-4 w-4" />
+              </button>
             </div>
-          )}
 
-          {selectedLessons.length === 0 && selectedDeadlines.length === 0 && (
-            <p className="text-sm text-muted-foreground">この日のイベントはありません</p>
+            <div className="grid grid-cols-7 divide-x text-center">
+              {weekDays.map((d, i) => {
+                const key = toDateKey(d)
+                const hasLesson = lessonMap.has(key)
+                const hasDeadline = deadlineMap.has(key)
+                const isToday = key === todayKey
+                const isSelected = key === selectedDay
+                return (
+                  <button
+                    key={key}
+                    onClick={() => setSelectedDay(key)}
+                    className={`flex flex-col items-center gap-1 py-3 transition-colors ${isSelected ? "bg-primary/10" : "hover:bg-gray-50"} ${i === 0 ? "text-red-500" : i === 6 ? "text-blue-500" : ""}`}
+                  >
+                    <span className="text-xs text-muted-foreground">{DOW_LABELS[i]}</span>
+                    <span className={`h-7 w-7 flex items-center justify-center rounded-full text-sm font-medium ${isToday ? "bg-primary text-primary-foreground" : ""}`}>
+                      {d.getDate()}
+                    </span>
+                    <div className="flex gap-0.5">
+                      {hasLesson && <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />}
+                      {hasDeadline && <span className="h-1.5 w-1.5 rounded-full bg-orange-400" />}
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          {selectedDay && (
+            <DayDetail
+              dayKey={selectedDay}
+              dateStr={selectedDateStr}
+              lessons={selectedLessons}
+              deadlines={selectedDeadlines}
+              isTeacher={isTeacher}
+              students={students}
+              editingLessonId={editingLessonId}
+              setEditingLessonId={setEditingLessonId}
+            />
           )}
-        </div>
+        </>
       )}
     </div>
   )

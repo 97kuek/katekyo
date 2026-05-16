@@ -153,7 +153,7 @@ export default function GradeChart({
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="name" tick={{ fontSize: 11 }} angle={-35} textAnchor="end" interval={0} />
             <YAxis
-              domain={mode === "deviation" ? [30, 80] : [0, 100]}
+              domain={mode === "deviation" ? [30, 80] : ["auto", "auto"]}
               tick={{ fontSize: 11 }}
               unit={mode === "score" ? "%" : ""}
             />
