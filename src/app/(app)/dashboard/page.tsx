@@ -6,7 +6,7 @@ import Link from "next/link"
 import { Suspense } from "react"
 import { buttonVariants } from "@/components/ui/button"
 import { TEST_TYPE_LABELS } from "@/lib/test-types"
-import { TreePine } from "lucide-react"
+import { TreePine, Trophy } from "lucide-react"
 
 function Sk({ className }: { className?: string }) {
   return <div className={`animate-pulse rounded bg-gray-200 ${className ?? ""}`} />
@@ -562,6 +562,7 @@ async function StudentGardenPreview({ userId }: { userId: string }) {
   const count = await db.gardenItem.count({ where: { studentId: student.id } })
   const max = 64
   const pct = Math.round((count / max) * 100)
+  const isFull = count >= max
 
   return (
     <section className="space-y-3">
@@ -573,18 +574,25 @@ async function StudentGardenPreview({ userId }: { userId: string }) {
       </div>
       <Link
         href="/garden"
-        className="block rounded-lg border bg-white p-4 hover:bg-gray-50 transition-colors space-y-3"
+        className={`block rounded-lg border p-4 hover:opacity-90 transition-opacity space-y-3 ${isFull ? "bg-amber-50 border-amber-300" : "bg-white"}`}
       >
         <div className="flex items-center gap-3">
-          <TreePine className="h-9 w-9 text-green-500 shrink-0" />
+          {isFull ? (
+            <Trophy className="h-9 w-9 text-amber-500 shrink-0" />
+          ) : (
+            <TreePine className="h-9 w-9 text-green-500 shrink-0" />
+          )}
           <div>
-            <p className="text-2xl font-bold leading-none">{count}</p>
+            <p className={`text-2xl font-bold leading-none ${isFull ? "text-amber-700" : ""}`}>{count}</p>
             <p className="text-xs text-muted-foreground mt-0.5">/ {max} アイテム</p>
           </div>
+          {isFull && (
+            <span className="ml-auto text-xs font-bold text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full">満開達成</span>
+          )}
         </div>
         <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
           <div
-            className="h-full bg-green-500 rounded-full transition-all"
+            className={`h-full rounded-full transition-all ${isFull ? "bg-amber-400" : "bg-green-500"}`}
             style={{ width: `${count > 0 ? Math.max(pct, 3) : 0}%` }}
           />
         </div>

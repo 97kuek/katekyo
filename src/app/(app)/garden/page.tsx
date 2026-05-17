@@ -3,7 +3,8 @@ import { redirect } from "next/navigation"
 import { db } from "@/lib/db"
 import { getStudentByUserId } from "@/lib/queries"
 import GardenCanvas from "./garden-canvas"
-import { TreePine } from "lucide-react"
+import { TreePine, Trophy } from "lucide-react"
+import type { GardenItemType } from "@/lib/garden-utils"
 
 export default async function GardenPage() {
   const session = await auth()
@@ -18,14 +19,14 @@ export default async function GardenPage() {
     db.gardenItem.findMany({
       where: { studentId: student.id },
       select: { x: true, y: true, itemType: true, createdAt: true },
-      orderBy: { createdAt: "asc" }, // oldest first → oldest wither first
+      orderBy: { createdAt: "asc" },
     }),
     db.homework.count({
       where: {
         studentId: student.id,
         OR: [
-          { status: "assigned", dueDate: { lt: now } }, // 期限切れ
-          { status: "rejected" },                        // 差し戻し
+          { status: "assigned", dueDate: { lt: now } },
+          { status: "rejected" },
         ],
       },
     }),
@@ -35,13 +36,13 @@ export default async function GardenPage() {
   const items = rawItems.map((item, i) => ({
     x: item.x,
     y: item.y,
-    itemType: item.itemType as "tree" | "bush" | "flower",
+    itemType: item.itemType as GardenItemType,
     withered: i < witheredCount,
   }))
 
   const total = items.length
   const max = 64
-  const healthyCount = total - witheredCount
+  const isFull = total >= max
 
   return (
     <div className="space-y-5 max-w-2xl">
@@ -56,6 +57,16 @@ export default async function GardenPage() {
           )}
         </div>
       </div>
+
+      {isFull && (
+        <div className="rounded-xl border-2 border-amber-400 bg-amber-50 p-4 flex items-center gap-3">
+          <Trophy className="h-8 w-8 text-amber-500 shrink-0" />
+          <div>
+            <p className="font-bold text-amber-800">満開の森 達成</p>
+            <p className="text-sm text-amber-600">64個のアイテムがすべて育ちました</p>
+          </div>
+        </div>
+      )}
 
       {total === 0 ? (
         <div className="rounded-xl border bg-white p-12 flex flex-col items-center gap-3 text-center">
@@ -72,7 +83,7 @@ export default async function GardenPage() {
       )}
 
       <div className="text-xs text-muted-foreground text-center space-y-0.5">
-        <p>宿題承認・好成績で育ちます</p>
+        <p>宿題承認・好成績で育ちます（90%以上で桜、5件ごとに大木）</p>
         {witheredCount > 0 ? (
           <p className="text-amber-600">期限切れ・差し戻しの宿題があると枯れます。提出すると回復します。</p>
         ) : (

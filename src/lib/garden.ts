@@ -1,8 +1,7 @@
 "use server"
 
 import { db } from "./db"
-
-type GardenItemType = "tree" | "bush" | "flower"
+import type { GardenItemType } from "./garden-utils"
 
 const GRID_SIZE = 8
 const ITEM_WEIGHTS: GardenItemType[] = [
@@ -28,4 +27,3 @@ export async function plantGardenItem(studentId: string, forcedType?: GardenItem
   const itemType = forcedType ?? ITEM_WEIGHTS[Math.floor(Math.random() * ITEM_WEIGHTS.length)]
   await db.gardenItem.create({ data: { studentId, x, y, itemType } })
 }
-

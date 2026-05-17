@@ -6,6 +6,7 @@ import { redirect } from "next/navigation"
 import { z } from "zod"
 import { uploadHomeworkPhoto } from "@/lib/supabase-storage"
 import { plantGardenItem } from "@/lib/garden"
+import type { GardenItemType } from "@/lib/garden-utils"
 
 const MAX_PHOTO_BYTES = 5 * 1024 * 1024
 
@@ -104,7 +105,12 @@ export async function reviewHomework(
 
   if (action === "approved") {
     try {
-      await plantGardenItem(homework.studentId)
+      const approvedCount = await db.homework.count({
+        where: { studentId: homework.studentId, status: "approved" },
+      })
+      // 5件ごとに大木
+      const forcedType: GardenItemType | undefined = approvedCount % 5 === 0 ? "big_tree" : undefined
+      await plantGardenItem(homework.studentId, forcedType)
     } catch (err) {
       console.error("[garden] plantGardenItem failed:", err)
     }

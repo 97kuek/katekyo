@@ -17,6 +17,7 @@ export default async function StudentsPage({
   if (!session || session.user.role !== "teacher") redirect("/dashboard")
 
   const { sort } = await searchParams
+  const now = new Date()
 
   const orderBy =
     sort === "name" ? { user: { name: "asc" as const } } :
@@ -36,6 +37,27 @@ export default async function StudentsPage({
     }),
   ])
 
+  const studentIds = students.map(s => s.id)
+
+  const [gardenStats, problemStats] = studentIds.length === 0 ? [[], []] : await Promise.all([
+    db.gardenItem.groupBy({
+      by: ["studentId"],
+      where: { studentId: { in: studentIds } },
+      _count: { _all: true },
+    }),
+    db.homework.groupBy({
+      by: ["studentId"],
+      where: {
+        teacherId: session.user.id,
+        OR: [
+          { status: "assigned", dueDate: { lt: now } },
+          { status: "rejected" },
+        ],
+      },
+      _count: { _all: true },
+    }),
+  ])
+
   const progressMap = new Map<string, { total: number; approved: number }>()
   for (const row of homeworkStats) {
     const entry = progressMap.get(row.studentId) ?? { total: 0, approved: 0 }
@@ -43,6 +65,13 @@ export default async function StudentsPage({
     if (row.status === "approved") entry.approved += row._count.status
     progressMap.set(row.studentId, entry)
   }
+
+  const gardenMap = new Map<string, number>(
+    (gardenStats as { studentId: string; _count: { _all: number } }[]).map(g => [g.studentId, g._count._all])
+  )
+  const problemMap = new Map<string, number>(
+    (problemStats as { studentId: string; _count: { _all: number } }[]).map(p => [p.studentId, p._count._all])
+  )
 
   const sortedStudents = sort === "progress"
     ? [...students].sort((a, b) => {
@@ -87,6 +116,10 @@ export default async function StudentsPage({
             {sortedStudents.map((s) => {
               const prog = progressMap.get(s.id)
               const pct = prog && prog.total > 0 ? Math.round((prog.approved / prog.total) * 100) : null
+              const gardenCount = gardenMap.get(s.id) ?? 0
+              const problemCount = problemMap.get(s.id) ?? 0
+              const isFull = gardenCount >= 64
+              const isWithered = problemCount > 0 && gardenCount > 0
               return (
                 <div key={s.id} className="rounded-lg border bg-white p-4 space-y-3">
                   <div className="flex items-start justify-between gap-3">
@@ -115,9 +148,18 @@ export default async function StudentsPage({
                     <Link href={`/students/${s.id}/materials`} className="text-xs text-blue-600 hover:underline">
                       教材管理
                     </Link>
-                    <Link href={`/students/${s.id}/garden`} className="text-xs text-green-700 hover:underline">
-                      森を見る
-                    </Link>
+                    <div className="flex items-center gap-1">
+                      <Link href={`/students/${s.id}/garden`} className="text-xs text-green-700 hover:underline">
+                        森を見る
+                      </Link>
+                      {isFull ? (
+                        <span className="text-[10px] font-bold text-amber-600 bg-amber-100 px-1 rounded">満開</span>
+                      ) : isWithered ? (
+                        <span className="inline-block h-2 w-2 rounded-full bg-amber-400 shrink-0" />
+                      ) : gardenCount > 0 ? (
+                        <span className="inline-block h-2 w-2 rounded-full bg-green-400 shrink-0" />
+                      ) : null}
+                    </div>
                     <ResetPasswordButton studentId={s.id} />
                     <DeleteStudentButton studentId={s.id} studentName={s.user.name} />
                   </div>
@@ -142,6 +184,10 @@ export default async function StudentsPage({
                 {sortedStudents.map((s) => {
                   const prog = progressMap.get(s.id)
                   const pct = prog && prog.total > 0 ? Math.round((prog.approved / prog.total) * 100) : null
+                  const gardenCount = gardenMap.get(s.id) ?? 0
+                  const problemCount = problemMap.get(s.id) ?? 0
+                  const isFull = gardenCount >= 64
+                  const isWithered = problemCount > 0 && gardenCount > 0
                   return (
                     <tr key={s.id} className="hover:bg-gray-50">
                       <td className="px-4 py-3 font-medium">{s.user.name}</td>
@@ -176,9 +222,18 @@ export default async function StudentsPage({
                           <Link href={`/students/${s.id}/materials`} className="text-xs text-blue-600 hover:underline">
                             教材管理
                           </Link>
-                          <Link href={`/students/${s.id}/garden`} className="text-xs text-green-700 hover:underline">
-                            森を見る
-                          </Link>
+                          <div className="flex items-center gap-1">
+                            <Link href={`/students/${s.id}/garden`} className="text-xs text-green-700 hover:underline">
+                              森を見る
+                            </Link>
+                            {isFull ? (
+                              <span className="text-[10px] font-bold text-amber-600 bg-amber-100 px-1 rounded">満開</span>
+                            ) : isWithered ? (
+                              <span className="inline-block h-2 w-2 rounded-full bg-amber-400 shrink-0" />
+                            ) : gardenCount > 0 ? (
+                              <span className="inline-block h-2 w-2 rounded-full bg-green-400 shrink-0" />
+                            ) : null}
+                          </div>
                           <ResetPasswordButton studentId={s.id} />
                           <DeleteStudentButton studentId={s.id} studentName={s.user.name} />
                         </div>

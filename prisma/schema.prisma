@@ -35,6 +35,8 @@ enum GardenItemType {
   tree
   bush
   flower
+  cherry
+  big_tree
 }
 
 model User {

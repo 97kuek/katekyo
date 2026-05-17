@@ -3,7 +3,8 @@ import { redirect, notFound } from "next/navigation"
 import { db } from "@/lib/db"
 import Link from "next/link"
 import GardenCanvas from "@/app/(app)/garden/garden-canvas"
-import { TreePine } from "lucide-react"
+import { TreePine, Trophy } from "lucide-react"
+import type { GardenItemType } from "@/lib/garden-utils"
 
 export default async function StudentGardenPage({
   params,
@@ -42,12 +43,13 @@ export default async function StudentGardenPage({
   const items = rawItems.map((item, i) => ({
     x: item.x,
     y: item.y,
-    itemType: item.itemType as "tree" | "bush" | "flower",
+    itemType: item.itemType as GardenItemType,
     withered: i < witheredCount,
   }))
 
   const total = items.length
   const max = 64
+  const isFull = total >= max
 
   return (
     <div className="space-y-5 max-w-2xl">
@@ -64,6 +66,16 @@ export default async function StudentGardenPage({
           )}
         </div>
       </div>
+
+      {isFull && (
+        <div className="rounded-xl border-2 border-amber-400 bg-amber-50 p-4 flex items-center gap-3">
+          <Trophy className="h-8 w-8 text-amber-500 shrink-0" />
+          <div>
+            <p className="font-bold text-amber-800">満開の森 達成</p>
+            <p className="text-sm text-amber-600">64個のアイテムがすべて育ちました</p>
+          </div>
+        </div>
+      )}
 
       {total === 0 ? (
         <div className="rounded-xl border bg-white p-12 flex flex-col items-center gap-3 text-center">
