@@ -101,5 +101,30 @@ export async function reviewHomework(
     data: { status: action, teacherFeedback: feedback ?? null, reviewedAt: new Date() },
   })
 
+  if (action === "approved") {
+    await plantGardenItem(homework.studentId)
+  }
+
   redirect("/homework?toast=reviewed")
+}
+
+const GRID_SIZE = 8
+const ITEM_WEIGHTS = ["tree", "tree", "tree", "tree", "bush", "bush", "bush", "flower", "flower", "flower"] as const
+
+async function plantGardenItem(studentId: string) {
+  const existing = await db.gardenItem.findMany({
+    where: { studentId },
+    select: { x: true, y: true },
+  })
+  const occupied = new Set(existing.map(({ x, y }) => `${x},${y}`))
+  const empty: [number, number][] = []
+  for (let x = 0; x < GRID_SIZE; x++) {
+    for (let y = 0; y < GRID_SIZE; y++) {
+      if (!occupied.has(`${x},${y}`)) empty.push([x, y])
+    }
+  }
+  if (empty.length === 0) return
+  const [x, y] = empty[Math.floor(Math.random() * empty.length)]
+  const itemType = ITEM_WEIGHTS[Math.floor(Math.random() * ITEM_WEIGHTS.length)]
+  await db.gardenItem.create({ data: { studentId, x, y, itemType } })
 }

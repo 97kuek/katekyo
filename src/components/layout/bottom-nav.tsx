@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { GraduationCap, LayoutDashboard, ClipboardList, BarChart2, CalendarDays } from "lucide-react"
+import { GraduationCap, LayoutDashboard, ClipboardList, BarChart2, CalendarDays, TreePine } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const teacherNav = [
@@ -18,6 +18,7 @@ const studentNav = [
   { href: "/homework", label: "宿題", icon: ClipboardList },
   { href: "/grades", label: "成績", icon: BarChart2 },
   { href: "/calendar", label: "予定", icon: CalendarDays },
+  { href: "/garden", label: "森", icon: TreePine },
 ]
 
 export default function BottomNav({ role }: { role: string }) {

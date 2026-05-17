@@ -31,6 +31,12 @@ enum TestType {
   other
 }
 
+enum GardenItemType {
+  tree
+  bush
+  flower
+}
+
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
@@ -50,7 +56,7 @@ model User {
   examEventsGiven  ExamEvent[]       @relation("TeacherExamEvents")
 
   // student relation
-  studentProfile Student? @relation("StudentUser")
+  studentProfile Student?  @relation("StudentUser")
 }
 
 model Student {
@@ -62,11 +68,12 @@ model Student {
 
   user       User              @relation("StudentUser", fields: [userId], references: [id], onDelete: Cascade)
   teacher    User              @relation("TeacherStudents", fields: [teacherId], references: [id])
-  homeworks  Homework[]
-  grades     GradeRecord[]
-  lessons    Lesson[]
-  materials  StudentMaterial[]
-  examEvents ExamEvent[]
+  homeworks    Homework[]
+  grades       GradeRecord[]
+  lessons      Lesson[]
+  materials    StudentMaterial[]
+  examEvents   ExamEvent[]
+  gardenItems  GardenItem[]
 
   @@index([teacherId])
 }
@@ -187,6 +194,20 @@ model ExamEvent {
   @@index([teacherId])
   @@index([studentId])
   @@index([date])
+}
+
+model GardenItem {
+  id        String         @id @default(uuid())
+  studentId String
+  x         Int
+  y         Int
+  itemType  GardenItemType
+  createdAt DateTime       @default(now())
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, x, y])
+  @@index([studentId])
 }
 
 model StudentMaterial {

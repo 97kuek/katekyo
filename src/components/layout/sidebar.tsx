@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { BookOpen, GraduationCap, LayoutDashboard, Tag, ClipboardList, BarChart2, CalendarDays, HelpCircle, UserCircle } from "lucide-react"
+import { BookOpen, GraduationCap, LayoutDashboard, Tag, ClipboardList, BarChart2, CalendarDays, HelpCircle, UserCircle, TreePine } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const teacherNav = [
@@ -19,6 +19,7 @@ const studentNav = [
   { href: "/homework", label: "宿題", icon: ClipboardList },
   { href: "/grades", label: "成績", icon: BarChart2 },
   { href: "/calendar", label: "カレンダー", icon: CalendarDays },
+  { href: "/garden", label: "学習の森", icon: TreePine },
 ]
 
 const navLinkClass = (active: boolean) =>
