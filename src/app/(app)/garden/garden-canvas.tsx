@@ -1,6 +1,6 @@
 "use client"
 
-import type { GardenItemType } from "@/generated/prisma/enums"
+type GardenItemType = "tree" | "bush" | "flower"
 
 const TILE_W = 64
 const TILE_H = 32
