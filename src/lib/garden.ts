@@ -15,7 +15,21 @@ export async function plantGardenItem(studentId: string, forcedType?: GardenItem
     where: { studentId },
     select: { x: true, y: true },
   })
-  const occupied = new Set(existing.map(({ x, y }) => `${x},${y}`))
+
+  let occupied = new Set(existing.map(({ x, y }) => `${x},${y}`))
+
+  // 64個満杯 → 世代リセット
+  if (occupied.size >= GRID_SIZE * GRID_SIZE) {
+    await db.$transaction([
+      db.gardenItem.deleteMany({ where: { studentId } }),
+      db.student.update({
+        where: { id: studentId },
+        data: { gardenGeneration: { increment: 1 } },
+      }),
+    ])
+    occupied = new Set()
+  }
+
   const empty: [number, number][] = []
   for (let x = 0; x < GRID_SIZE; x++) {
     for (let y = 0; y < GRID_SIZE; y++) {

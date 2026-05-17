@@ -563,6 +563,7 @@ async function StudentGardenPreview({ userId }: { userId: string }) {
   const max = 64
   const pct = Math.round((count / max) * 100)
   const isFull = count >= max
+  const generation = student.gardenGeneration
 
   return (
     <section className="space-y-3">
@@ -586,6 +587,9 @@ async function StudentGardenPreview({ userId }: { userId: string }) {
             <p className={`text-2xl font-bold leading-none ${isFull ? "text-amber-700" : ""}`}>{count}</p>
             <p className="text-xs text-muted-foreground mt-0.5">/ {max} アイテム</p>
           </div>
+          {generation > 1 && !isFull && (
+            <span className="ml-auto text-xs font-medium text-indigo-600 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-full">第{generation}世代</span>
+          )}
           {isFull && (
             <span className="ml-auto text-xs font-bold text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full">満開達成</span>
           )}
