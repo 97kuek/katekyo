@@ -82,13 +82,47 @@ export default async function GardenPage() {
         </div>
       )}
 
-      <div className="text-xs text-muted-foreground text-center space-y-0.5">
-        <p>宿題承認・好成績で育ちます（90%以上で桜、5件ごとに大木）</p>
-        {witheredCount > 0 ? (
-          <p className="text-amber-600">期限切れ・差し戻しの宿題があると枯れます。提出すると回復します。</p>
-        ) : (
-          <p>期限切れ・差し戻しの宿題がないと元気に育ちます</p>
-        )}
+      <div className="rounded-xl border bg-white p-4 space-y-4 text-sm">
+        <p className="font-medium">学習の森とは？</p>
+        <p className="text-muted-foreground text-xs leading-relaxed">
+          勉強の頑張りが森として育っていきます。宿題を提出して承認されたり、テストで好成績を取ると植物が1つ増えます。最大64個まで育てられます。
+        </p>
+
+        <div className="space-y-2">
+          <p className="text-xs font-medium text-muted-foreground">植物の種類</p>
+          <div className="grid grid-cols-1 gap-1.5 text-xs">
+            <div className="flex items-start gap-2">
+              <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-pink-400 mt-1.5" />
+              <span><span className="font-medium">桜</span>　— テストで90%以上 / 偏差値65以上のときに育つレア植物</span>
+            </div>
+            <div className="flex items-start gap-2">
+              <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-green-700 mt-1.5" />
+              <span><span className="font-medium">大木</span>　— 宿題が累計5・10・15件と承認されるごとに育つ記念植物</span>
+            </div>
+            <div className="flex items-start gap-2">
+              <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-green-500 mt-1.5" />
+              <span><span className="font-medium">木</span>　— テストで80〜89% / 偏差値60〜64のときに育つ</span>
+            </div>
+            <div className="flex items-start gap-2">
+              <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-green-400 mt-1.5" />
+              <span><span className="font-medium">茂み</span>　— テストで60〜79% / 偏差値50〜59のときに育つ</span>
+            </div>
+            <div className="flex items-start gap-2">
+              <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-yellow-300 mt-1.5" />
+              <span><span className="font-medium">花</span>　— 宿題承認時 / テストで60%未満のときにランダムで育つ</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-1.5 text-xs text-muted-foreground border-t pt-3">
+          {witheredCount > 0 ? (
+            <p className="text-amber-600 font-medium">
+              期限切れ・差し戻しの宿題が{overdueCount}件あり、古い植物が{witheredCount}個枯れています。提出すると回復します。
+            </p>
+          ) : (
+            <p>期限切れや差し戻しの宿題があると古い植物が枯れます。提出すれば回復します。</p>
+          )}
+        </div>
       </div>
     </div>
   )
