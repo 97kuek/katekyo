@@ -4,7 +4,8 @@ import { db } from "@/lib/db"
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { z } from "zod"
-import { plantGardenItem, scoreToGardenItemType } from "@/lib/garden"
+import { plantGardenItem } from "@/lib/garden"
+import { scoreToGardenItemType } from "@/lib/garden-utils"
 
 function toOptionalInt(val: FormDataEntryValue | null): number | null {
   if (!val || val === "") return null

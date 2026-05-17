@@ -30,7 +30,8 @@ src/
 ├── lib/
 │   ├── auth.ts               # NextAuth 設定
 │   ├── db.ts                 # Prisma クライアント
-│   ├── garden.ts             # 学習の森ユーティリティ（plantGardenItem, scoreToGardenItemType）
+│   ├── garden.ts             # 学習の森 Server Action（plantGardenItem）
+│   ├── garden-utils.ts       # 学習の森 純粋ユーティリティ（scoreToGardenItemType）
 │   ├── grades.ts             # 学年選択肢の定数（GRADE_OPTIONS）
 │   ├── queries.ts            # React.cache() ラップの共通クエリ
 │   ├── supabase-storage.ts   # Supabase Storage ヘルパー（宿題写真アップロード）
