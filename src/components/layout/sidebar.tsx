@@ -37,7 +37,7 @@ export default function Sidebar({ role }: { role: string }) {
   return (
     <aside className="w-16 lg:w-60 shrink-0 bg-slate-900 hidden md:flex flex-col">
       <div className="h-14 flex items-center justify-center lg:justify-start gap-2.5 px-3 lg:px-5 border-b border-white/10">
-        <BookOpen className="h-5 w-5 text-indigo-400 shrink-0" />
+        <BookOpen className="h-5 w-5 text-green-400 shrink-0" />
         <span className="font-bold text-lg tracking-tight hidden lg:block text-white">katekyo</span>
       </div>
 

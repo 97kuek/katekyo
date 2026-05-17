@@ -102,7 +102,11 @@ export async function reviewHomework(
   })
 
   if (action === "approved") {
-    await plantGardenItem(homework.studentId)
+    try {
+      await plantGardenItem(homework.studentId)
+    } catch (err) {
+      console.error("[garden] plantGardenItem failed:", err)
+    }
   }
 
   redirect("/homework?toast=reviewed")
