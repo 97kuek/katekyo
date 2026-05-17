@@ -6,6 +6,7 @@ import Link from "next/link"
 import { Suspense } from "react"
 import { buttonVariants } from "@/components/ui/button"
 import { TEST_TYPE_LABELS } from "@/lib/test-types"
+import { TreePine } from "lucide-react"
 
 function Sk({ className }: { className?: string }) {
   return <div className={`animate-pulse rounded bg-gray-200 ${className ?? ""}`} />
@@ -384,6 +385,10 @@ function StudentDashboard({ userId }: { userId: string }) {
       }>
         <StudentUpcomingSection userId={userId} />
       </Suspense>
+
+      <Suspense fallback={<Sk className="h-24 w-full rounded-lg" />}>
+        <StudentGardenPreview userId={userId} />
+      </Suspense>
     </div>
   )
 }
@@ -546,6 +551,47 @@ async function StudentUpcomingExams({ userId }: { userId: string }) {
           )
         })}
       </div>
+    </section>
+  )
+}
+
+async function StudentGardenPreview({ userId }: { userId: string }) {
+  const student = await getStudentByUserId(userId)
+  if (!student) return null
+
+  const count = await db.gardenItem.count({ where: { studentId: student.id } })
+  const max = 64
+  const pct = Math.round((count / max) * 100)
+
+  return (
+    <section className="space-y-3">
+      <div className="flex items-center justify-between">
+        <h2 className="text-sm font-semibold">学習の森</h2>
+        <Link href="/garden" className="text-xs text-muted-foreground hover:underline">
+          森を見る
+        </Link>
+      </div>
+      <Link
+        href="/garden"
+        className="block rounded-lg border bg-white p-4 hover:bg-gray-50 transition-colors space-y-3"
+      >
+        <div className="flex items-center gap-3">
+          <TreePine className="h-9 w-9 text-green-500 shrink-0" />
+          <div>
+            <p className="text-2xl font-bold leading-none">{count}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">/ {max} アイテム</p>
+          </div>
+        </div>
+        <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-green-500 rounded-full transition-all"
+            style={{ width: `${count > 0 ? Math.max(pct, 3) : 0}%` }}
+          />
+        </div>
+        {count === 0 && (
+          <p className="text-xs text-muted-foreground">宿題が承認されると森にアイテムが育ちます</p>
+        )}
+      </Link>
     </section>
   )
 }

@@ -115,6 +115,9 @@ export default async function StudentsPage({
                     <Link href={`/students/${s.id}/materials`} className="text-xs text-blue-600 hover:underline">
                       教材管理
                     </Link>
+                    <Link href={`/students/${s.id}/garden`} className="text-xs text-green-700 hover:underline">
+                      森を見る
+                    </Link>
                     <ResetPasswordButton studentId={s.id} />
                     <DeleteStudentButton studentId={s.id} studentName={s.user.name} />
                   </div>
@@ -172,6 +175,9 @@ export default async function StudentsPage({
                           </Link>
                           <Link href={`/students/${s.id}/materials`} className="text-xs text-blue-600 hover:underline">
                             教材管理
+                          </Link>
+                          <Link href={`/students/${s.id}/garden`} className="text-xs text-green-700 hover:underline">
+                            森を見る
                           </Link>
                           <ResetPasswordButton studentId={s.id} />
                           <DeleteStudentButton studentId={s.id} studentName={s.user.name} />
