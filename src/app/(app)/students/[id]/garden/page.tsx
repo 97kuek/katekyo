@@ -30,8 +30,10 @@ export default async function StudentGardenPage({
     db.homework.count({
       where: {
         studentId: id,
-        status: { in: ["assigned", "rejected"] },
-        dueDate: { lt: now },
+        OR: [
+          { status: "assigned", dueDate: { lt: now } },
+          { status: "rejected" },
+        ],
       },
     }),
   ])
@@ -79,7 +81,7 @@ export default async function StudentGardenPage({
 
       {witheredCount > 0 && (
         <p className="text-xs text-amber-600 text-center">
-          期限切れの宿題が{overdueCount}件あります。提出されると回復します。
+          期限切れ・差し戻しの宿題が{overdueCount}件あります。提出されると回復します。
         </p>
       )}
     </div>

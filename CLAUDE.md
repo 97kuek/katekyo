@@ -21,7 +21,8 @@
 src/
 ├── app/
 │   ├── (auth)/           # login, register, invite/[token]
-│   └── (app)/            # dashboard, students/, homework/, grades/, calendar/, subjects/
+│   └── (app)/            # dashboard, students/, homework/, grades/, calendar/, subjects/, garden/
+│       └── students/[id]/garden/  # 先生用・生徒の森閲覧ページ
 ├── components/
 │   ├── ui/               # shadcn/ui の基本コンポーネント
 │   ├── homework/         # 宿題関連コンポーネント（StatusBadge等）
@@ -29,7 +30,9 @@ src/
 ├── lib/
 │   ├── auth.ts               # NextAuth 設定
 │   ├── db.ts                 # Prisma クライアント
+│   ├── garden.ts             # 学習の森ユーティリティ（plantGardenItem, scoreToGardenItemType）
 │   ├── grades.ts             # 学年選択肢の定数（GRADE_OPTIONS）
+│   ├── queries.ts            # React.cache() ラップの共通クエリ
 │   ├── supabase-storage.ts   # Supabase Storage ヘルパー（宿題写真アップロード）
 │   └── test-types.ts         # テスト種別の定数（TEST_TYPE_LABELS, TEST_TYPE_OPTIONS）
 prisma/
@@ -109,12 +112,28 @@ assigned → submitted（生徒の完了報告）→ approved（先生承認）
 - URL は `Homework.photoUrl` に保存。先生の確認ページと詳細ページに表示される
 - アップロードヘルパー: `src/lib/supabase-storage.ts`
 
-### 宿題の自動削除（Vercel Cron）
+### 宿題ステータスと森の連動
 
-- `status = "approved"` かつ `dueDate` から7日以上経過した宿題を毎日自動削除
+| 宿題の状態 | 森への影響 |
+| --- | --- |
+| approved（承認） | 植物が1つ育つ（木40%・茂み30%・花30%） |
+| rejected（差し戻し） | 古い植物1つが枯れて表示（提出で回復） |
+| assigned かつ期限切れ | 古い植物1つが枯れて表示（提出で回復） |
+| submitted（提出待ち） | 影響なし |
+
+枯れはDBに保存せず動的に計算する（`rejected` 件数 + 期限切れ `assigned` 件数 = 枯れ数）。
+
+### 自動クリーンアップ（Vercel Cron）
+
 - スケジュール: 毎日 18:00 UTC（03:00 JST）
 - エンドポイント: `GET /api/cron/cleanup-homework`（`Authorization: Bearer CRON_SECRET` で認証）
 - 設定ファイル: `vercel.json`
+
+クリーンアップ対象:
+
+1. `status = "approved"` かつ `dueDate` から7日以上経過した宿題
+2. 未使用かつ有効期限から7日以上経過した招待トークン
+3. 使用済みかつ `usedAt` から30日以上経過した招待トークン
 
 ### 招待フロー
 
@@ -134,6 +153,33 @@ assigned → submitted（生徒の完了報告）→ approved（先生承認）
 - 先生の成績一覧はURL `?type=mock` 等でサーバーサイドフィルタリング
 - 生徒の成績グラフは複数種別が存在する場合のみ種別フィルタを表示（クライアントサイド）
 - 先生が生徒個別の成績を見るページ: `/students/[id]/grades`
+- 成績登録時に数値データがある場合、スコアに応じた植物が森に育つ（`src/lib/garden.ts` の `scoreToGardenItemType`）
+
+### 学習の森（Garden）
+
+生徒の学習努力をアイソメトリックなインタラクティブ森として可視化するゲーム要素。
+
+**アイテムが育つ条件（`src/lib/garden.ts` の `plantGardenItem`）:**
+
+- 宿題承認 → ランダム選択（木40%・茂み30%・花30%）
+- 成績登録（点数あり）: score/maxScore ≥ 80% → 木、60-79% → 茂み、< 60% → 花
+- 成績登録（偏差値のみ）: deviation ≥ 60 → 木、50-59 → 茂み、< 50 → 花
+- 数値データなしの成績は植わらない
+
+**枯れロジック（動的計算・DB変更なし）:**
+
+- `rejected` 件数 + 期限切れ `assigned` 件数 = 枯れ数
+- 枯れ数だけ古い順に植物が枯れて表示（WiltedTree / WiltedBush / WiltedFlower）
+- 提出（submitted）にすると枯れが即回復
+
+**アクセス:**
+
+- 生徒: `/garden`（自分の森）
+- 先生: `/students/[id]/garden`（担当生徒の森・閲覧のみ）
+- `/students` 一覧の「森を見る」リンクから遷移
+- 生徒ダッシュボードにミニプレビューカード（アイテム数・プログレスバー）あり
+
+**グリッド:** 8×8 = 最大64アイテム、座標は `@@unique([studentId, x, y])`
 
 ## UIの指針
 
@@ -145,7 +191,7 @@ assigned → submitted（生徒の完了報告）→ approved（先生承認）
 - 成績グラフは点数と偏差値を切り替えられるようにする
 - ダッシュボードは先生・生徒で表示内容が異なる（下記参照）
   - 先生: 承認待ち宿題・生徒別宿題ステータス表・成績動向・今後7日の授業/期限
-  - 生徒: 未完了/期限切れ/承認待ちカード・次のテストまでの日数・今後のテスト一覧・今後7日の授業/期限
+  - 生徒: 未完了/期限切れ/承認待ちカード・次のテストまでの日数・今後のテスト一覧・今後7日の授業/期限・学習の森プレビュー
 
 ### カレンダー（ExamEvent）
 

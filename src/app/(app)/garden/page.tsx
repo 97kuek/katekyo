@@ -23,8 +23,10 @@ export default async function GardenPage() {
     db.homework.count({
       where: {
         studentId: student.id,
-        status: { in: ["assigned", "rejected"] },
-        dueDate: { lt: now },
+        OR: [
+          { status: "assigned", dueDate: { lt: now } }, // 期限切れ
+          { status: "rejected" },                        // 差し戻し
+        ],
       },
     }),
   ])
@@ -72,9 +74,9 @@ export default async function GardenPage() {
       <div className="text-xs text-muted-foreground text-center space-y-0.5">
         <p>宿題承認・好成績で育ちます</p>
         {witheredCount > 0 ? (
-          <p className="text-amber-600">期限切れの宿題があると植物が枯れます。宿題を提出すると回復します。</p>
+          <p className="text-amber-600">期限切れ・差し戻しの宿題があると枯れます。提出すると回復します。</p>
         ) : (
-          <p>期限切れの宿題がないと元気に育ちます</p>
+          <p>期限切れ・差し戻しの宿題がないと元気に育ちます</p>
         )}
       </div>
     </div>
