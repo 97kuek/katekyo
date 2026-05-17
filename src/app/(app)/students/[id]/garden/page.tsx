@@ -20,10 +20,29 @@ export default async function StudentGardenPage({
   })
   if (!student) notFound()
 
-  const items = await db.gardenItem.findMany({
-    where: { studentId: id },
-    select: { x: true, y: true, itemType: true },
-  })
+  const now = new Date()
+  const [rawItems, overdueCount] = await Promise.all([
+    db.gardenItem.findMany({
+      where: { studentId: id },
+      select: { x: true, y: true, itemType: true, createdAt: true },
+      orderBy: { createdAt: "asc" },
+    }),
+    db.homework.count({
+      where: {
+        studentId: id,
+        status: { in: ["assigned", "rejected"] },
+        dueDate: { lt: now },
+      },
+    }),
+  ])
+
+  const witheredCount = Math.min(overdueCount, rawItems.length)
+  const items = rawItems.map((item, i) => ({
+    x: item.x,
+    y: item.y,
+    itemType: item.itemType as "tree" | "bush" | "flower",
+    withered: i < witheredCount,
+  }))
 
   const total = items.length
   const max = 64
@@ -34,11 +53,14 @@ export default async function StudentGardenPage({
         ← 生徒一覧に戻る
       </Link>
 
-      <div className="flex items-center justify-between">
+      <div className="flex items-start justify-between">
         <h1 className="text-2xl font-bold">{student.user.name}の森</h1>
-        <span className="text-sm tabular-nums text-muted-foreground">
-          {total} / {max}
-        </span>
+        <div className="text-right">
+          <p className="text-sm tabular-nums text-muted-foreground">{total} / {max}</p>
+          {witheredCount > 0 && (
+            <p className="text-xs text-amber-600 mt-0.5">{witheredCount}個枯れています</p>
+          )}
+        </div>
       </div>
 
       {total === 0 ? (
@@ -55,9 +77,11 @@ export default async function StudentGardenPage({
         </div>
       )}
 
-      <p className="text-xs text-muted-foreground text-center">
-        宿題が承認されるたびに自動で育ちます
-      </p>
+      {witheredCount > 0 && (
+        <p className="text-xs text-amber-600 text-center">
+          期限切れの宿題が{overdueCount}件あります。提出されると回復します。
+        </p>
+      )}
     </div>
   )
 }

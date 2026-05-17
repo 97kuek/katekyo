@@ -4,6 +4,7 @@ import { db } from "@/lib/db"
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { z } from "zod"
+import { plantGardenItem, scoreToGardenItemType } from "@/lib/garden"
 
 function toOptionalInt(val: FormDataEntryValue | null): number | null {
   if (!val || val === "") return null
@@ -52,6 +53,10 @@ export async function createGradeRecord(
 
   const subjectIds = formData.getAll("subjectIds") as string[]
 
+  const score = toOptionalInt(formData.get("score"))
+  const maxScore = toOptionalInt(formData.get("maxScore"))
+  const deviation = toOptionalFloat(formData.get("deviation"))
+
   await db.gradeRecord.create({
     data: {
       teacherId: session.user.id,
@@ -59,17 +64,26 @@ export async function createGradeRecord(
       testName,
       testType,
       date: new Date(date),
-      score: toOptionalInt(formData.get("score")),
-      maxScore: toOptionalInt(formData.get("maxScore")),
+      score,
+      maxScore,
       avgScore: toOptionalInt(formData.get("avgScore")),
       rank: toOptionalInt(formData.get("rank")),
       totalStudents: toOptionalInt(formData.get("totalStudents")),
-      deviation: toOptionalFloat(formData.get("deviation")),
+      deviation,
       teacherRating: toOptionalInt(formData.get("teacherRating")),
       comment: (formData.get("comment") as string) || null,
       subjectIds,
     },
   })
+
+  const itemType = scoreToGardenItemType(score, maxScore, deviation)
+  if (itemType) {
+    try {
+      await plantGardenItem(studentId, itemType)
+    } catch (err) {
+      console.error("[garden] grade plant failed:", err)
+    }
+  }
 
   redirect("/grades?toast=created")
 }
