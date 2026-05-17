@@ -112,6 +112,7 @@ model Homework {
   status          HomeworkStatus @default(assigned)
   studentNote     String?
   teacherFeedback String?
+  photoUrl        String?
   submittedAt     DateTime?
   reviewedAt      DateTime?
   createdAt       DateTime       @default(now())

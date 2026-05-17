@@ -108,13 +108,24 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
         )}
       </div>
 
-      {(homework.studentNote || homework.submittedAt) && (
+      {(homework.studentNote || homework.submittedAt || homework.photoUrl) && (
         <div className="rounded-lg border bg-white p-5 space-y-2">
           <h2 className="text-sm font-semibold">提出情報</h2>
           {homework.submittedAt && (
             <p className="text-xs text-muted-foreground">
               提出日時: {homework.submittedAt.toLocaleString("ja-JP")}
             </p>
+          )}
+          {homework.photoUrl && (
+            <div>
+              <p className="text-xs font-medium text-muted-foreground mb-1">提出写真</p>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={homework.photoUrl}
+                alt="提出写真"
+                className="w-full max-h-80 object-contain rounded-md border bg-gray-50"
+              />
+            </div>
           )}
           {homework.studentNote && (
             <div className="bg-gray-50 rounded-md p-3">

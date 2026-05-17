@@ -4,6 +4,9 @@ import { db } from "@/lib/db"
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { z } from "zod"
+import { uploadHomeworkPhoto } from "@/lib/supabase-storage"
+
+const MAX_PHOTO_BYTES = 5 * 1024 * 1024
 
 const submitSchema = z.object({
   id: z.string().min(1),
@@ -38,9 +41,24 @@ export async function submitHomework(
     return { error: "この宿題は提出できません" }
   }
 
+  const photoFile = formData.get("photo") as File | null
+  let photoUrl: string | null = null
+
+  if (photoFile && photoFile.size > 0) {
+    if (photoFile.size > MAX_PHOTO_BYTES) return { error: "写真のサイズは5MB以内にしてください" }
+    if (!photoFile.type.startsWith("image/")) return { error: "画像ファイルを選択してください" }
+    photoUrl = await uploadHomeworkPhoto(photoFile, id)
+    if (!photoUrl) return { error: "写真のアップロードに失敗しました。もう一度お試しください。" }
+  }
+
   await db.homework.update({
     where: { id },
-    data: { status: "submitted", studentNote: note ?? null, submittedAt: new Date() },
+    data: {
+      status: "submitted",
+      studentNote: note ?? null,
+      photoUrl,
+      submittedAt: new Date(),
+    },
   })
 
   redirect("/homework?toast=submitted")

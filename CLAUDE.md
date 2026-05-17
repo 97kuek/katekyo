@@ -8,11 +8,12 @@
 ## 技術スタック
 
 - **Next.js 16** (App Router) + TypeScript
-- **Prisma** ORM + **Supabase** (PostgreSQL)
+- **Prisma** ORM + **Supabase** (PostgreSQL + Storage)
 - **NextAuth.js v5** 認証
 - **shadcn/ui** + Tailwind CSS
 - **Recharts** グラフ
 - **Zod** バリデーション
+- **@supabase/supabase-js** ファイルストレージ（宿題写真）
 
 ## ディレクトリ構成
 
@@ -26,10 +27,11 @@ src/
 │   ├── homework/         # 宿題関連コンポーネント（StatusBadge等）
 │   └── layout/           # header, sidebar, bottom-nav
 ├── lib/
-│   ├── auth.ts           # NextAuth 設定
-│   ├── db.ts             # Prisma クライアント
-│   ├── grades.ts         # 学年選択肢の定数（GRADE_OPTIONS）
-│   └── test-types.ts     # テスト種別の定数（TEST_TYPE_LABELS, TEST_TYPE_OPTIONS）
+│   ├── auth.ts               # NextAuth 設定
+│   ├── db.ts                 # Prisma クライアント
+│   ├── grades.ts             # 学年選択肢の定数（GRADE_OPTIONS）
+│   ├── supabase-storage.ts   # Supabase Storage ヘルパー（宿題写真アップロード）
+│   └── test-types.ts         # テスト種別の定数（TEST_TYPE_LABELS, TEST_TYPE_OPTIONS）
 prisma/
 └── schema.prisma
 ```
@@ -51,11 +53,21 @@ npx prisma generate  # Prisma Client 再生成
 `.env.local` に以下を設定する：
 
 ```bash
-DATABASE_URL=          # Supabase の接続文字列
-DIRECT_URL=            # Supabase の Direct URL（マイグレーション用）
-NEXTAUTH_SECRET=       # openssl rand -base64 32 で生成
-NEXTAUTH_URL=          # 開発時は http://localhost:3000
+DATABASE_URL=                  # Supabase の接続文字列
+DIRECT_URL=                    # Supabase の Direct URL（マイグレーション用）
+NEXTAUTH_SECRET=               # openssl rand -base64 32 で生成
+NEXTAUTH_URL=                  # 開発時は http://localhost:3000
+SUPABASE_URL=                  # Supabase Project URL（Project Settings > API）
+SUPABASE_SERVICE_ROLE_KEY=     # Service Role Key（Project Settings > API）※絶対に公開しない
+CRON_SECRET=                   # Vercel Cron 認証トークン（openssl rand -base64 32 で生成）
 ```
+
+### Supabase Storage のセットアップ
+
+Supabase ダッシュボード > Storage から以下を行う：
+
+1. バケット `homework-photos` を作成（**Public** に設定）
+2. `SUPABASE_URL` と `SUPABASE_SERVICE_ROLE_KEY` を `.env.local` に追加
 
 ## 認可の実装方針
 
@@ -90,6 +102,20 @@ assigned → submitted（生徒の完了報告）→ approved（先生承認）
 - `approved` / `rejected` にできるのは担当の先生のみ
 - 先生が編集できるのは `assigned` or `rejected` 状態の宿題のみ
 
+### 宿題写真提出
+
+- 生徒が提出時に宿題のページ写真を1枚添付できる（任意、5MB以内）
+- 写真は Supabase Storage の `homework-photos` バケットへサーバーサイドでアップロード
+- URL は `Homework.photoUrl` に保存。先生の確認ページと詳細ページに表示される
+- アップロードヘルパー: `src/lib/supabase-storage.ts`
+
+### 宿題の自動削除（Vercel Cron）
+
+- `status = "approved"` かつ `dueDate` から7日以上経過した宿題を毎日自動削除
+- スケジュール: 毎日 18:00 UTC（03:00 JST）
+- エンドポイント: `GET /api/cron/cleanup-homework`（`Authorization: Bearer CRON_SECRET` で認証）
+- 設定ファイル: `vercel.json`
+
 ### 招待フロー
 
 - 先生が `/students/invite` で生徒名・メール・学年を入力し招待リンクを生成（7日有効）
@@ -119,4 +145,10 @@ assigned → submitted（生徒の完了報告）→ approved（先生承認）
 - 成績グラフは点数と偏差値を切り替えられるようにする
 - ダッシュボードは先生・生徒で表示内容が異なる（下記参照）
   - 先生: 承認待ち宿題・生徒別宿題ステータス表・成績動向・今後7日の授業/期限
-  - 生徒: 未完了/期限切れ/承認待ちカード・直近5件成績リスト・今後7日の授業/期限
+  - 生徒: 未完了/期限切れ/承認待ちカード・次のテストまでの日数・今後のテスト一覧・今後7日の授業/期限
+
+### カレンダー（ExamEvent）
+
+- 先生がカレンダーの日付をクリックしてテスト日（ExamEvent）を登録
+- testType: `mock`（模試）/ `exam`（定期テスト）/ `quiz`（小テスト）/ `other`
+- 生徒ダッシュボードの「次のテスト」カードと「今後のテスト」一覧に反映される

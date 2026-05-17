@@ -38,6 +38,17 @@ export default async function ReviewHomeworkPage({ params }: { params: Promise<{
           <p className="text-sm text-gray-600">{homework.description}</p>
         )}
 
+        {homework.photoUrl && (
+          <div>
+            <p className="text-xs font-medium text-muted-foreground mb-1">提出写真</p>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={homework.photoUrl}
+              alt="提出写真"
+              className="w-full max-h-80 object-contain rounded-md border bg-gray-50"
+            />
+          </div>
+        )}
         {homework.studentNote && (
           <div className="bg-gray-50 rounded-md p-3">
             <p className="text-xs font-medium text-muted-foreground mb-1">生徒のコメント</p>
