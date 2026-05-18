@@ -116,8 +116,12 @@ export default async function GardenPage() {
           <p className="text-xs font-medium text-muted-foreground">植物の種類</p>
           <div className="grid grid-cols-1 gap-1.5 text-xs">
             <div className="flex items-start gap-2">
+              <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-green-400 mt-1.5" style={{ background: "linear-gradient(135deg,#5a9a2a,#72b836)" }} />
+              <span><span className="font-medium">竹</span>　— テストで満点 / 偏差値70以上の超レア植物</span>
+            </div>
+            <div className="flex items-start gap-2">
               <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-pink-400 mt-1.5" />
-              <span><span className="font-medium">桜</span>　— テストで90%以上 / 偏差値65以上のときに育つレア植物</span>
+              <span><span className="font-medium">桜</span>　— テストで90%以上 / 偏差値65以上のレア植物</span>
             </div>
             <div className="flex items-start gap-2">
               <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-green-700 mt-1.5" />
@@ -133,7 +137,11 @@ export default async function GardenPage() {
             </div>
             <div className="flex items-start gap-2">
               <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-yellow-300 mt-1.5" />
-              <span><span className="font-medium">花</span>　— 宿題承認時 / テストで60%未満のときにランダムで育つ</span>
+              <span><span className="font-medium">花</span>　— 宿題承認時 / テストで60%未満のときに育つ</span>
+            </div>
+            <div className="flex items-start gap-2">
+              <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-red-400 mt-1.5" />
+              <span><span className="font-medium">きのこ</span>　— 宿題承認時に約5%の確率でまれに育つ不思議な植物</span>
             </div>
           </div>
         </div>

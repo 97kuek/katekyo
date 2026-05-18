@@ -165,6 +165,48 @@ function BigTree({ cx, cy, delay = "0s" }: { cx: number; cy: number; delay?: str
   )
 }
 
+// ---- New rare items --------------------------------------------------------
+
+function Bamboo({ cx, cy, delay = "0s" }: { cx: number; cy: number; delay?: string }) {
+  const ax = cx, ay = cy + TILE_H / 2
+  return (
+    <g style={{ animation: `treeSway 5s ease-in-out ${delay} infinite`, transformOrigin: `${ax}px ${ay}px` }}>
+      <ellipse cx={ax + 4} cy={ay - 1} rx={8} ry={2.5} fill="rgba(0,0,0,0.09)" />
+      <rect x={ax - 3} y={ay - 20} width={6} height={20} rx={2} fill="#5a9a2a" />
+      <rect x={ax - 3} y={ay - 20} width={2.5} height={20} rx={1.5} fill="#72b836" />
+      <rect x={ax - 3} y={ay - 40} width={6} height={20} rx={2} fill="#4e8c22" />
+      <rect x={ax - 3} y={ay - 40} width={2.5} height={20} rx={1.5} fill="#66a82e" />
+      <rect x={ax - 3} y={ay - 60} width={6} height={20} rx={2} fill="#5a9a2a" />
+      <rect x={ax - 3} y={ay - 60} width={2.5} height={20} rx={1.5} fill="#72b836" />
+      <rect x={ax - 4} y={ay - 22} width={8} height={3} rx={1} fill="#3a7a18" />
+      <rect x={ax - 4} y={ay - 42} width={8} height={3} rx={1} fill="#3a7a18" />
+      <ellipse cx={ax - 14} cy={ay - 52} rx={13} ry={4} fill="#4caf50" transform={`rotate(-30 ${ax - 14} ${ay - 52})`} />
+      <ellipse cx={ax + 14} cy={ay - 48} rx={13} ry={4} fill="#4caf50" transform={`rotate(30 ${ax + 14} ${ay - 48})`} />
+      <ellipse cx={ax - 10} cy={ay - 64} rx={11} ry={3.5} fill="#5cc258" transform={`rotate(-20 ${ax - 10} ${ay - 64})`} />
+      <ellipse cx={ax + 10} cy={ay - 61} rx={11} ry={3.5} fill="#5cc258" transform={`rotate(20 ${ax + 10} ${ay - 61})`} />
+    </g>
+  )
+}
+
+function Mushroom({ cx, cy, delay = "0s" }: { cx: number; cy: number; delay?: string }) {
+  const ax = cx, ay = cy + TILE_H / 2
+  return (
+    <g style={{ animation: `flowerSway 4s ease-in-out ${delay} infinite`, transformOrigin: `${ax}px ${ay}px` }}>
+      <ellipse cx={ax + 3} cy={ay - 1} rx={11} ry={3.5} fill="rgba(0,0,0,0.09)" />
+      <ellipse cx={ax} cy={ay - 10} rx={7} ry={5} fill="#f5f0e8" />
+      <rect x={ax - 6} y={ay - 18} width={12} height={10} rx={3} fill="#f0ebe0" />
+      <ellipse cx={ax} cy={ay - 26} rx={18} ry={11} fill="#f56565" />
+      <ellipse cx={ax} cy={ay - 24} rx={18} ry={12} fill="#e53e3e" />
+      <circle cx={ax - 6} cy={ay - 28} r={3} fill="rgba(255,255,255,0.85)" />
+      <circle cx={ax + 7} cy={ay - 28} r={2.5} fill="rgba(255,255,255,0.85)" />
+      <circle cx={ax + 1} cy={ay - 22} r={2} fill="rgba(255,255,255,0.75)" />
+      <circle cx={ax - 12} cy={ay - 22} r={1.8} fill="rgba(255,255,255,0.7)" />
+      <circle cx={ax + 12} cy={ay - 23} r={1.8} fill="rgba(255,255,255,0.7)" />
+      <ellipse cx={ax} cy={ay - 18} rx={18} ry={4} fill="#c53030" />
+    </g>
+  )
+}
+
 // ---- Wilted items ----------------------------------------------------------
 // 枯れ色: 乾いた茶褐色・黄褐色を使用し、通常の緑と明確に区別できるようにする
 
@@ -235,6 +277,38 @@ function WiltedCherry({ cx, cy }: { cx: number; cy: number }) {
       <ellipse cx={ax - 6}  cy={ay - 41} rx={8}  ry={6}  fill="#b89070" />
       <ellipse cx={ax + 6}  cy={ay - 41} rx={8}  ry={6}  fill="#b89070" />
       <ellipse cx={ax}      cy={ay - 47} rx={7}  ry={5}  fill="#c8a07e" />
+    </g>
+  )
+}
+
+function WiltedBamboo({ cx, cy }: { cx: number; cy: number }) {
+  const ax = cx, ay = cy + TILE_H / 2
+  return (
+    <g opacity={0.58}>
+      <ellipse cx={ax + 3} cy={ay - 1} rx={6} ry={2} fill="rgba(0,0,0,0.05)" />
+      <rect x={ax - 3} y={ay - 20} width={6} height={20} rx={2} fill="#8a8a40" />
+      <rect x={ax - 3} y={ay - 40} width={6} height={20} rx={2} fill="#7a7a38" />
+      <rect x={ax - 3} y={ay - 60} width={6} height={20} rx={2} fill="#8a8a40" />
+      <rect x={ax - 4} y={ay - 22} width={8} height={3} rx={1} fill="#6a6a30" />
+      <rect x={ax - 4} y={ay - 42} width={8} height={3} rx={1} fill="#6a6a30" />
+      <ellipse cx={ax - 12} cy={ay - 51} rx={11} ry={3.5} fill="#9a9a48" transform={`rotate(-30 ${ax - 12} ${ay - 51})`} />
+      <ellipse cx={ax + 12} cy={ay - 48} rx={11} ry={3.5} fill="#9a9a48" transform={`rotate(30 ${ax + 12} ${ay - 48})`} />
+    </g>
+  )
+}
+
+function WiltedMushroom({ cx, cy }: { cx: number; cy: number }) {
+  const ax = cx, ay = cy + TILE_H / 2
+  return (
+    <g opacity={0.58}>
+      <ellipse cx={ax + 2} cy={ay - 1} rx={9} ry={3} fill="rgba(0,0,0,0.05)" />
+      <ellipse cx={ax} cy={ay - 10} rx={6} ry={4} fill="#d4c8b8" />
+      <rect x={ax - 5} y={ay - 17} width={10} height={9} rx={3} fill="#ccc0b0" />
+      <ellipse cx={ax} cy={ay - 24} rx={15} ry={9} fill="#b07070" />
+      <ellipse cx={ax} cy={ay - 22} rx={15} ry={10} fill="#a06060" />
+      <circle cx={ax - 5} cy={ay - 26} r={2.5} fill="rgba(220,200,190,0.7)" />
+      <circle cx={ax + 6} cy={ay - 25} r={2} fill="rgba(220,200,190,0.7)" />
+      <ellipse cx={ax} cy={ay - 16} rx={15} ry={3} fill="#906050" />
     </g>
   )
 }
@@ -454,6 +528,8 @@ export default function GardenCanvas({ items, milestone }: { items: Item[]; mile
           if (itemType === "bush")     return withered ? <WiltedBush    key={`i-${col}-${row}`} cx={cx} cy={cy} /> : <Bush    key={`i-${col}-${row}`} cx={cx} cy={cy} delay={delay} />
           if (itemType === "cherry")   return withered ? <WiltedCherry  key={`i-${col}-${row}`} cx={cx} cy={cy} /> : <Cherry  key={`i-${col}-${row}`} cx={cx} cy={cy} delay={delay} />
           if (itemType === "big_tree") return withered ? <WiltedBigTree key={`i-${col}-${row}`} cx={cx} cy={cy} /> : <BigTree key={`i-${col}-${row}`} cx={cx} cy={cy} delay={delay} />
+          if (itemType === "bamboo")   return withered ? <WiltedBamboo  key={`i-${col}-${row}`} cx={cx} cy={cy} /> : <Bamboo  key={`i-${col}-${row}`} cx={cx} cy={cy} delay={delay} />
+          if (itemType === "mushroom") return withered ? <WiltedMushroom key={`i-${col}-${row}`} cx={cx} cy={cy} /> : <Mushroom key={`i-${col}-${row}`} cx={cx} cy={cy} delay={delay} />
           return                              withered ? <WiltedFlower  key={`i-${col}-${row}`} cx={cx} cy={cy} /> : <Flower  key={`i-${col}-${row}`} cx={cx} cy={cy} delay={delay} />
         })}
         <SeasonalOverlay season={season} />

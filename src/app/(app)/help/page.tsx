@@ -5,10 +5,12 @@ export default async function HelpPage() {
   const session = await auth()
   if (!session) redirect("/login")
 
-  if (session.user.role === "teacher") {
-    return <TeacherHelp />
-  }
-  return <StudentHelp />
+  return (
+    <div className="space-y-8">
+      {session.user.role === "teacher" ? <TeacherHelp /> : <StudentHelp />}
+      <AboutSection />
+    </div>
+  )
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -100,6 +102,10 @@ function TeacherHelp() {
       <Section title="🏷️ 科目タグを使う">
         <p>「科目タグ」メニューから科目を作成しておくと、宿題・成績に紐づけができます。宿題一覧・成績一覧の科目ボタンで複数選択フィルタリングが可能です。</p>
       </Section>
+
+      <Section title="📖 教材を登録する">
+        <p>「生徒一覧」→生徒名→「教材」タブから、その生徒の教材を登録・管理できます。登録した教材は宿題作成時に紐づけでき、生徒も自分の教材一覧を確認できます。</p>
+      </Section>
     </div>
   )
 }
@@ -140,9 +146,43 @@ function StudentHelp() {
         <Tip>ダッシュボード（ホーム）でも今週の授業と期限が一目で確認できます。</Tip>
       </Section>
 
+      <Section title="📖 教材を確認する">
+        <p>先生に登録してもらった教材の一覧を「教材」メニューから確認できます（PC・タブレットのサイドバーから開けます）。</p>
+      </Section>
+
+      <Section title="🌲 学習の森">
+        <div className="space-y-1.5">
+          <p>宿題が承認されたりテストで好成績を取ると、森にアイテムが1つ育ちます。</p>
+          <p>• <strong>竹</strong>：満点 / 偏差値70以上で出現する超レアアイテム</p>
+          <p>• <strong>桜</strong>：90%以上 / 偏差値65以上で出現するレアアイテム</p>
+          <p>• <strong>大木</strong>：宿題が5件承認されるごとに出現する記念アイテム</p>
+          <p>• <strong>木</strong>：80〜89% / 偏差値60〜64で出現</p>
+          <p>• <strong>茂み</strong>：60〜79% / 偏差値50〜59で出現</p>
+          <p>• <strong>花・きのこ</strong>：宿題承認時にランダムで出現</p>
+          <p>• 期限切れ・差し戻しの宿題があると古い植物が枯れますが、提出すると回復します</p>
+          <p>• 64個育て終わると次の世代の森が始まります</p>
+        </div>
+      </Section>
+
       <Section title="ログアウト・パスワード変更">
         <p>画面右上のアイコンからプロフィール編集（名前・パスワード変更）・ログアウトができます。パスワードを忘れた場合は先生に連絡してください。</p>
       </Section>
+    </div>
+  )
+}
+
+function AboutSection() {
+  return (
+    <div className="max-w-2xl">
+      <div className="rounded-lg border bg-white p-5 space-y-3 text-sm text-gray-600">
+        <p className="font-semibold text-gray-800">katekyo について</p>
+        <p>家庭教師と生徒の学習をサポートするWebアプリです。宿題・成績・授業スケジュールを一元管理し、学習の継続を「学習の森」として可視化します。</p>
+        <div className="pt-1 space-y-1 text-xs text-muted-foreground border-t">
+          <p>開発者：植木啓太郎</p>
+          <p>バージョン：2025年5月</p>
+          <p>技術スタック：Next.js 16 · Prisma · Supabase · Tailwind CSS</p>
+        </div>
+      </div>
     </div>
   )
 }

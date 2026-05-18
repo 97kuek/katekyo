@@ -5,9 +5,10 @@ import type { GardenItemType } from "./garden-utils"
 
 const GRID_SIZE = 8
 const ITEM_WEIGHTS: GardenItemType[] = [
-  "tree", "tree", "tree", "tree",
-  "bush", "bush", "bush",
-  "flower", "flower", "flower",
+  "tree", "tree", "tree", "tree", "tree", "tree", "tree", "tree",
+  "bush", "bush", "bush", "bush", "bush", "bush",
+  "flower", "flower", "flower", "flower", "flower", "flower",
+  "mushroom",
 ]
 
 export async function plantGardenItem(studentId: string, forcedType?: GardenItemType) {
