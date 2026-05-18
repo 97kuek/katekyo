@@ -34,7 +34,7 @@ function TeacherDashboard({ teacherId }: { teacherId: string }) {
       </Suspense>
 
       <Suspense fallback={
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {[...Array(4)].map((_, i) => (
             <div key={i} className="rounded-lg border bg-white p-3 space-y-2">
               <Sk className="h-3 w-20" /><Sk className="h-7 w-10" />
@@ -79,7 +79,7 @@ async function TeacherSummaryCards({ teacherId }: { teacherId: string }) {
     db.homework.count({ where: { teacherId, status: "assigned", dueDate: { lt: now } } }),
   ])
   return (
-    <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
       <SummaryCard title="承認待ち" value={String(pendingCount)} accent={pendingCount > 0} href="/homework" />
       <SummaryCard title="期限切れ" value={String(overdueCount)} danger={overdueCount > 0} href="/homework" />
       <SummaryCard title="登録生徒数" value={String(studentCount)} href="/students" />

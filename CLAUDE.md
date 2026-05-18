@@ -182,6 +182,83 @@ assigned → submitted（生徒の完了報告）→ approved（先生承認）
 
 **グリッド:** 8×8 = 最大64アイテム、座標は `@@unique([studentId, x, y])`
 
+## 主要ファイル詳細マップ
+
+### レイアウト
+
+| ファイル | 役割 | 備考 |
+| --- | --- | --- |
+| `src/app/(app)/layout.tsx` | 認証チェック + Sidebar/Header/BottomNav/Toaster を配置 | `max-w-7xl mx-auto` でコンテンツ幅制限 |
+| `src/components/layout/sidebar.tsx` | デスクトップ左サイドバー | `hidden md:flex`、md=w-16(アイコンのみ)、lg=w-60(ラベルあり) |
+| `src/components/layout/header.tsx` | ページタイトル表示ヘッダー | `PAGE_TITLES` 配列でパスからタイトル解決。モバイルはタイトル or "katekyo" 表示 |
+| `src/components/layout/bottom-nav.tsx` | モバイル固定ボトムナビ | `md:hidden`、先生5項目・生徒5項目 |
+
+### 各ページ（先生）
+
+| ページ | パス | 特記事項 |
+| --- | --- | --- |
+| ダッシュボード | `/dashboard` | Suspense で各セクション並列ロード。TeacherSummaryCards / PendingHomeworksSection / TeacherUpcomingSection / HomeworkStatusSection / GradeTrendsSection |
+| 生徒一覧 | `/students` | モバイル=カード、デスクトップ=テーブル。progressMap/gardenMap/problemMap で統計表示 |
+| 宿題管理 | `/homework` | `submitted`を上部 BulkApproveSection で一括承認。`others`を下部に表示。モバイル=カード、デスクトップ=テーブル |
+| 宿題作成 | `/homework/new` | CreateHomeworkForm でテンプレートピッカー実装（title/description を useState で制御） |
+| 宿題テンプレート | `/homework/templates` | `HomeworkTemplate` モデルの CRUD。TemplateManager クライアントコンポーネント |
+| 提出写真 | `/homework/photos` | `photoUrl IS NOT NULL` の宿題を2-4カラムグリッドで表示。生徒フィルター付き |
+| 請求管理 | `/billing` | 月別ナビ（URL searchParams year/month）。`calcFee(durationMin, hourlyRate, travelExpense)` で金額計算。生徒別内訳 |
+| カレンダー | `/calendar` | `CalendarView` クライアントコンポーネント。授業（Lesson）+テスト日（ExamEvent）。授業ログ（lessonLog）と費用（hourlyRate/travelExpense）フォーム |
+| 成績管理 | `/grades` | URL `?type=mock` 等でサーバーサイドフィルタ |
+
+### 各ページ（生徒）
+
+| ページ | パス | 特記事項 |
+| --- | --- | --- |
+| ダッシュボード | `/dashboard` | StudentSummaryCards(3col) / StudentUpcomingExams / StudentUpcomingSection / StudentGardenPreview |
+| 宿題 | `/homework` | active/submitted/approved に分けて表示。CancelSubmissionButton で提出取り消し |
+| 成績 | `/grades` | Recharts グラフ。点数/偏差値切り替え。複数種別がある場合のみフィルタ表示 |
+| 学習の森 | `/garden` | `garden-canvas.tsx` がアイソメトリックSVG描画。植物7種（tree/bush/flower/cherry/big_tree/bamboo/mushroom）+枯れ版 |
+| 教材 | `/materials` | 担当先生の教材一覧（参照のみ） |
+
+### 重要なモデルとフィールド
+
+```typescript
+// Lesson - 授業記録
+Lesson {
+  date, type("online"|"face"), durationMin
+  notes          // 事前メモ
+  lessonLog      // 授業後のログ（何を教えたか）
+  hourlyRate     // 時給（円）
+  travelExpense  // 交通費（円）。onlineなら0に強制
+}
+
+// HomeworkTemplate - 宿題テンプレート
+HomeworkTemplate { id, teacherId, title, description, createdAt }
+
+// GardenItem - 学習の森アイテム
+GardenItemType = "tree" | "bush" | "flower" | "cherry" | "big_tree" | "bamboo" | "mushroom"
+// bamboo: 満点(100%)または偏差値70+
+// cherry: 90%以上または偏差値65+
+// big_tree: 80%以上または偏差値60+ (DB上はtree扱い？ → garden-utils.ts参照)
+// mushroom: 宿題承認時に約5%の確率でランダム出現
+```
+
+### 授業費用計算
+
+```typescript
+// src/app/(app)/billing/page.tsx に定義
+function calcFee(durationMin, hourlyRate, travelExpense) {
+  if (!hourlyRate && !travelExpense) return null
+  const lessonFee = durationMin && hourlyRate ? Math.round((durationMin / 60) * hourlyRate) : 0
+  return lessonFee + (travelExpense ?? 0)
+}
+// オンライン授業は actions.ts でサーバー側 effectiveTravelExpense = type === "online" ? 0 : travelExpense
+```
+
+### ナビゲーション構成
+
+**先生サイドバー:** ダッシュボード / 生徒一覧 / 宿題管理 / 提出写真 / 宿題テンプレート / 成績管理 / カレンダー / 請求管理 / 科目タグ  
+**生徒サイドバー:** ダッシュボード / 宿題 / 成績 / カレンダー / 教材 / 学習の森  
+**先生ボトムナビ(5):** ホーム / 生徒 / 宿題 / 成績 / 予定  
+**生徒ボトムナビ(5):** ホーム / 宿題 / 成績 / 予定 / 森
+
 ## UIの指針
 
 - shadcn/ui のコンポーネントを積極的に活用する

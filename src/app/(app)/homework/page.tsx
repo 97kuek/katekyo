@@ -4,6 +4,7 @@ import { db } from "@/lib/db"
 import { getStudentByUserId } from "@/lib/queries"
 import Link from "next/link"
 import { buttonVariants } from "@/components/ui/button"
+import { Images, FileText, Plus } from "lucide-react"
 import { StatusBadge } from "@/components/homework/status-badge"
 import { CancelSubmissionButton } from "./cancel-button"
 import { HomeworkFilter } from "./homework-filter"
@@ -84,14 +85,17 @@ async function TeacherHomeworkPage({
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <h1 className="text-2xl font-bold">宿題管理</h1>
         <div className="flex gap-2 flex-wrap">
-          <Link href="/homework/photos" className={buttonVariants({ variant: "outline", size: "sm" })}>
-            提出写真
+          <Link href="/homework/photos" className={buttonVariants({ variant: "outline", size: "sm", className: "gap-1.5" })}>
+            <Images className="h-4 w-4 shrink-0" />
+            <span className="hidden sm:inline">提出写真</span>
           </Link>
-          <Link href="/homework/templates" className={buttonVariants({ variant: "outline", size: "sm" })}>
-            テンプレート
+          <Link href="/homework/templates" className={buttonVariants({ variant: "outline", size: "sm", className: "gap-1.5" })}>
+            <FileText className="h-4 w-4 shrink-0" />
+            <span className="hidden sm:inline">テンプレート</span>
           </Link>
-          <Link href="/homework/new" className={buttonVariants()}>
-            宿題を作成
+          <Link href="/homework/new" className={buttonVariants({ size: "sm", className: "gap-1.5" })}>
+            <Plus className="h-4 w-4 shrink-0" />
+            <span className="hidden sm:inline">宿題を作成</span>
           </Link>
         </div>
       </div>
