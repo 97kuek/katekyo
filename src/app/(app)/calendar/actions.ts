@@ -13,6 +13,8 @@ const createSchema = z.object({
   type: z.enum(["online", "offline"]),
   durationMin: z.string().optional(),
   notes: z.string().optional(),
+  hourlyRate: z.coerce.number().int().min(0).optional(),
+  travelExpense: z.coerce.number().int().min(0).optional(),
   repeatWeeks: z.string().optional(),
 })
 
@@ -30,11 +32,13 @@ export async function createLesson(
     type: formData.get("type"),
     durationMin: formData.get("durationMin") || undefined,
     notes: formData.get("notes") || undefined,
+    hourlyRate: formData.get("hourlyRate") || undefined,
+    travelExpense: formData.get("travelExpense") || undefined,
     repeatWeeks: formData.get("repeatWeeks") || undefined,
   })
   if (!result.success) return { error: result.error.issues[0].message }
 
-  const { studentId, date, time, type, durationMin, notes, repeatWeeks } = result.data
+  const { studentId, date, time, type, durationMin, notes, hourlyRate, travelExpense, repeatWeeks } = result.data
 
   const student = await db.student.findFirst({ where: { id: studentId, teacherId: session.user.id } })
   if (!student) return { error: "生徒が見つかりません" }
@@ -47,6 +51,7 @@ export async function createLesson(
     return d
   })
 
+  const effectiveTravelExpense = type === "online" ? 0 : (travelExpense ?? null)
   await db.lesson.createMany({
     data: dates.map((dateTime) => ({
       teacherId: session.user.id,
@@ -55,6 +60,8 @@ export async function createLesson(
       type,
       durationMin: durationMin ? parseInt(durationMin) : null,
       notes: notes || null,
+      hourlyRate: hourlyRate ?? null,
+      travelExpense: effectiveTravelExpense,
     })),
   })
 
@@ -69,6 +76,9 @@ const updateSchema = z.object({
   type: z.enum(["online", "offline"]),
   durationMin: z.string().optional(),
   notes: z.string().optional(),
+  lessonLog: z.string().optional(),
+  hourlyRate: z.coerce.number().int().min(0).optional(),
+  travelExpense: z.coerce.number().int().min(0).optional(),
 })
 
 export async function updateLesson(
@@ -85,10 +95,14 @@ export async function updateLesson(
     type: formData.get("type"),
     durationMin: formData.get("durationMin") || undefined,
     notes: formData.get("notes") || undefined,
+    lessonLog: formData.get("lessonLog") || undefined,
+    hourlyRate: formData.get("hourlyRate") || undefined,
+    travelExpense: formData.get("travelExpense") || undefined,
   })
   if (!result.success) return { error: result.error.issues[0].message }
 
-  const { lessonId, date, time, type, durationMin, notes } = result.data
+  const { lessonId, date, time, type, durationMin, notes, lessonLog, hourlyRate, travelExpense } = result.data
+  const effectiveTravelExpense = type === "online" ? 0 : (travelExpense ?? null)
 
   await db.lesson.updateMany({
     where: { id: lessonId, teacherId: session.user.id },
@@ -97,6 +111,9 @@ export async function updateLesson(
       type,
       durationMin: durationMin ? parseInt(durationMin) : null,
       notes: notes || null,
+      lessonLog: lessonLog || null,
+      hourlyRate: hourlyRate ?? null,
+      travelExpense: effectiveTravelExpense,
     },
   })
 

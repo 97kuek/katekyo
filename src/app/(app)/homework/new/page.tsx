@@ -9,7 +9,7 @@ export default async function NewHomeworkPage() {
   const session = await auth()
   if (!session || session.user.role !== "teacher") redirect("/dashboard")
 
-  const [students, allMaterials] = await Promise.all([
+  const [students, allMaterials, templates] = await Promise.all([
     db.student.findMany({
       where: { teacherId: session.user.id },
       include: { user: { select: { name: true } } },
@@ -19,6 +19,11 @@ export default async function NewHomeworkPage() {
       where: { teacherId: session.user.id },
       select: { id: true, name: true, studentId: true },
       orderBy: { createdAt: "asc" },
+    }),
+    db.homeworkTemplate.findMany({
+      where: { teacherId: session.user.id },
+      select: { id: true, title: true, description: true },
+      orderBy: { createdAt: "desc" },
     }),
   ])
 
@@ -61,7 +66,7 @@ export default async function NewHomeworkPage() {
           <CardDescription>生徒に新しい宿題を割り当てます</CardDescription>
         </CardHeader>
         <CardContent>
-          <CreateHomeworkForm students={students} materialsByStudent={materialsByStudent} />
+          <CreateHomeworkForm students={students} materialsByStudent={materialsByStudent} templates={templates} />
         </CardContent>
       </Card>
     </div>

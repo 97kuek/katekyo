@@ -83,9 +83,17 @@ async function TeacherHomeworkPage({
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <h1 className="text-2xl font-bold">宿題管理</h1>
-        <Link href="/homework/new" className={buttonVariants()}>
-          宿題を作成
-        </Link>
+        <div className="flex gap-2 flex-wrap">
+          <Link href="/homework/photos" className={buttonVariants({ variant: "outline", size: "sm" })}>
+            提出写真
+          </Link>
+          <Link href="/homework/templates" className={buttonVariants({ variant: "outline", size: "sm" })}>
+            テンプレート
+          </Link>
+          <Link href="/homework/new" className={buttonVariants()}>
+            宿題を作成
+          </Link>
+        </div>
       </div>
 
       <HomeworkFilter students={students} subjects={subjects} />

@@ -7,8 +7,8 @@ export default async function HelpPage() {
 
   return (
     <div className="space-y-8">
-      {session.user.role === "teacher" ? <TeacherHelp /> : <StudentHelp />}
       <AboutSection />
+      {session.user.role === "teacher" ? <TeacherHelp /> : <StudentHelp />}
     </div>
   )
 }
@@ -178,7 +178,8 @@ function AboutSection() {
         <p className="font-semibold text-gray-800">katekyo について</p>
         <p>家庭教師と生徒の学習をサポートするWebアプリです。宿題・成績・授業スケジュールを一元管理し、学習の継続を「学習の森」として可視化します。</p>
         <div className="pt-1 space-y-1 text-xs text-muted-foreground border-t">
-          <p>開発者：植木啓太郎</p>
+          <p>開発者：植木敬太郎</p>
+          <p>連絡先：ueki.keitaro@gmail.com</p>
           <p>バージョン：2025年5月</p>
           <p>技術スタック：Next.js 16 · Prisma · Supabase · Tailwind CSS</p>
         </div>

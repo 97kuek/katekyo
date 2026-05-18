@@ -41,7 +41,7 @@ export default async function CalendarPage() {
       <div className="space-y-6 max-w-4xl">
         <h1 className="text-2xl font-bold">カレンダー</h1>
         <CalendarView
-          lessons={lessons.map((l) => ({ ...l, type: l.type as "online" | "offline", date: l.date }))}
+          lessons={lessons.map((l) => ({ ...l, type: l.type as "online" | "offline" }))}
           deadlines={homeworks.map((h) => ({
             id: h.id,
             title: h.title,

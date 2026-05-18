@@ -50,14 +50,15 @@ model User {
   createdAt DateTime @default(now())
 
   // teacher relations
-  students         Student[]         @relation("TeacherStudents")
-  inviteTokens     InviteToken[]
-  subjects         Subject[]
-  homeworksGiven   Homework[]        @relation("TeacherHomework")
-  gradesGiven      GradeRecord[]     @relation("TeacherGrades")
-  lessonsGiven     Lesson[]          @relation("TeacherLessons")
-  materialsGiven   StudentMaterial[] @relation("TeacherMaterials")
-  examEventsGiven  ExamEvent[]       @relation("TeacherExamEvents")
+  students            Student[]           @relation("TeacherStudents")
+  inviteTokens        InviteToken[]
+  subjects            Subject[]
+  homeworksGiven      Homework[]          @relation("TeacherHomework")
+  gradesGiven         GradeRecord[]       @relation("TeacherGrades")
+  lessonsGiven        Lesson[]            @relation("TeacherLessons")
+  materialsGiven      StudentMaterial[]   @relation("TeacherMaterials")
+  examEventsGiven     ExamEvent[]         @relation("TeacherExamEvents")
+  homeworkTemplates   HomeworkTemplate[]  @relation("TeacherTemplates")
 
   // student relation
   studentProfile Student?  @relation("StudentUser")
@@ -168,14 +169,17 @@ model GradeRecord {
 }
 
 model Lesson {
-  id          String     @id @default(uuid())
-  teacherId   String
-  studentId   String
-  date        DateTime
-  durationMin Int?
-  type        LessonType @default(online)
-  notes       String?
-  createdAt   DateTime   @default(now())
+  id            String     @id @default(uuid())
+  teacherId     String
+  studentId     String
+  date          DateTime
+  durationMin   Int?
+  type          LessonType @default(online)
+  notes         String?
+  lessonLog     String?
+  hourlyRate    Int?
+  travelExpense Int?
+  createdAt     DateTime   @default(now())
 
   teacher User    @relation("TeacherLessons", fields: [teacherId], references: [id], onDelete: Cascade)
   student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
@@ -229,5 +233,17 @@ model StudentMaterial {
   homeworks Homework[]
 
   @@index([studentId])
+  @@index([teacherId])
+}
+
+model HomeworkTemplate {
+  id          String   @id @default(uuid())
+  teacherId   String
+  title       String
+  description String?
+  createdAt   DateTime @default(now())
+
+  teacher User @relation("TeacherTemplates", fields: [teacherId], references: [id], onDelete: Cascade)
+
   @@index([teacherId])
 }

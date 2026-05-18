@@ -23,7 +23,10 @@
       "PowerShell(git add \"src/app/\\(app\\)/homework/[id]/actions.ts\")",
       "PowerShell(git add \"src/app/\\(app\\)/garden/garden-canvas.tsx\" \"src/app/\\(app\\)/garden/loading.tsx\")",
       "PowerShell(git push)",
-      "PowerShell(git add \"src/app/\\(app\\)/students/[id]/garden/page.tsx\" \"src/app/\\(app\\)/students/page.tsx\" \"src/app/\\(app\\)/dashboard/page.tsx\")"
+      "PowerShell(git add \"src/app/\\(app\\)/students/[id]/garden/page.tsx\" \"src/app/\\(app\\)/students/page.tsx\" \"src/app/\\(app\\)/dashboard/page.tsx\")",
+      "Bash(npm install *)",
+      "Bash(npm ls *)",
+      "Bash(git stash *)"
     ]
   }
 }

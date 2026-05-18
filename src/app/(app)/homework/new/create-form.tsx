@@ -5,6 +5,7 @@ import { createHomework } from "./actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import Link from "next/link"
 
 type Student = {
   id: string
@@ -13,6 +14,7 @@ type Student = {
 }
 
 type Material = { id: string; name: string }
+type Template = { id: string; title: string; description: string | null }
 
 const tomorrowISO = () => {
   const d = new Date()
@@ -23,15 +25,24 @@ const tomorrowISO = () => {
 export default function CreateHomeworkForm({
   students,
   materialsByStudent,
+  templates = [],
 }: {
   students: Student[]
   materialsByStudent: Record<string, Material[]>
+  templates?: Template[]
 }) {
   const [state, action, isPending] = useActionState(createHomework, { error: "" })
   const singleStudent = students.length === 1 ? students[0] : null
   const [selectedStudentId, setSelectedStudentId] = useState(singleStudent?.id ?? "")
+  const [title, setTitle] = useState("")
+  const [description, setDescription] = useState("")
 
   const materials = selectedStudentId ? (materialsByStudent[selectedStudentId] ?? []) : []
+
+  function applyTemplate(t: Template) {
+    setTitle(t.title)
+    setDescription(t.description ?? "")
+  }
 
   return (
     <form action={action} className="space-y-4">
@@ -39,6 +50,24 @@ export default function CreateHomeworkForm({
         <p className="text-sm text-red-600 bg-red-50 p-3 rounded-md">{state.error}</p>
       )}
       <p className="text-xs text-muted-foreground"><span className="text-destructive font-medium">*</span> は必須項目です</p>
+
+      {templates.length > 0 && (
+        <div className="space-y-1.5">
+          <p className="text-xs text-muted-foreground font-medium">テンプレートから入力</p>
+          <div className="flex flex-wrap gap-2">
+            {templates.map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => applyTemplate(t)}
+                className="text-xs px-3 py-1.5 rounded-full border border-input bg-white hover:bg-gray-50 transition-colors"
+              >
+                {t.title}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
       <div className="space-y-2">
         <Label htmlFor="studentId">生徒 <span className="text-destructive">*</span></Label>
         {singleStudent ? (
@@ -66,7 +95,8 @@ export default function CreateHomeworkForm({
       </div>
       <div className="space-y-2">
         <Label htmlFor="title">タイトル <span className="text-destructive">*</span></Label>
-        <Input id="title" name="title" required placeholder="例: 英単語50問" autoFocus />
+        <Input id="title" name="title" required placeholder="例: 英単語50問" autoFocus
+          value={title} onChange={(e) => setTitle(e.target.value)} />
       </div>
       <div className="space-y-2">
         <Label htmlFor="description">内容（任意）</Label>
@@ -76,6 +106,7 @@ export default function CreateHomeworkForm({
           rows={3}
           className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
           placeholder="詳細な指示があれば入力してください"
+          value={description} onChange={(e) => setDescription(e.target.value)}
         />
       </div>
       <div className="space-y-2">

@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
 const DURATION_KEY = "lesson_default_duration"
+const HOURLY_RATE_KEY = "lesson_default_hourly_rate"
+const TRAVEL_EXPENSE_KEY = "lesson_default_travel_expense"
 
 type Student = { id: string; grade: string; user: { name: string } }
 
@@ -15,10 +17,17 @@ export function LessonForm({ students, defaultDate }: { students: Student[]; def
   const [state, action, isPending] = useActionState(createLesson, { error: "" })
   const [open, setOpen] = useState(false)
   const [defaultDuration, setDefaultDuration] = useState("60")
+  const [defaultHourlyRate, setDefaultHourlyRate] = useState("")
+  const [defaultTravelExpense, setDefaultTravelExpense] = useState("")
+  const [lessonType, setLessonType] = useState<"online" | "offline">("online")
 
   useEffect(() => {
     const saved = localStorage.getItem(DURATION_KEY)
     if (saved) setDefaultDuration(saved)
+    const rate = localStorage.getItem(HOURLY_RATE_KEY)
+    if (rate) setDefaultHourlyRate(rate)
+    const travel = localStorage.getItem(TRAVEL_EXPENSE_KEY)
+    if (travel) setDefaultTravelExpense(travel)
   }, [])
 
   useEffect(() => {
@@ -29,6 +38,14 @@ export function LessonForm({ students, defaultDate }: { students: Student[]; def
 
   function handleDurationChange(e: React.ChangeEvent<HTMLInputElement>) {
     localStorage.setItem(DURATION_KEY, e.target.value)
+  }
+  function handleHourlyRateChange(e: React.ChangeEvent<HTMLInputElement>) {
+    localStorage.setItem(HOURLY_RATE_KEY, e.target.value)
+    setDefaultHourlyRate(e.target.value)
+  }
+  function handleTravelExpenseChange(e: React.ChangeEvent<HTMLInputElement>) {
+    localStorage.setItem(TRAVEL_EXPENSE_KEY, e.target.value)
+    setDefaultTravelExpense(e.target.value)
   }
 
   if (!open) {
@@ -82,11 +99,13 @@ export function LessonForm({ students, defaultDate }: { students: Student[]; def
             <Label className="text-xs">授業形式</Label>
             <div className="flex gap-4 pt-1">
               <label className="flex items-center gap-1.5 text-sm cursor-pointer">
-                <input type="radio" name="type" value="online" defaultChecked className="accent-primary" />
+                <input type="radio" name="type" value="online" defaultChecked className="accent-primary"
+                  onChange={() => setLessonType("online")} />
                 オンライン
               </label>
               <label className="flex items-center gap-1.5 text-sm cursor-pointer">
-                <input type="radio" name="type" value="offline" className="accent-primary" />
+                <input type="radio" name="type" value="offline" className="accent-primary"
+                  onChange={() => setLessonType("offline")} />
                 対面
               </label>
             </div>
@@ -117,9 +136,23 @@ export function LessonForm({ students, defaultDate }: { students: Student[]; def
               ))}
             </select>
           </div>
+          <div className="space-y-1">
+            <Label htmlFor="hourlyRate" className="text-xs">時給（円・任意）</Label>
+            <Input id="hourlyRate" name="hourlyRate" type="number" min="0" placeholder="3000"
+              value={defaultHourlyRate} onChange={handleHourlyRateChange} className="h-9 text-sm" />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="travelExpense" className="text-xs">交通費（円・任意）</Label>
+            <Input id="travelExpense" name="travelExpense" type="number" min="0"
+              placeholder={lessonType === "online" ? "0（自動）" : "500"}
+              disabled={lessonType === "online"}
+              value={lessonType === "online" ? "" : defaultTravelExpense}
+              onChange={handleTravelExpenseChange}
+              className="h-9 text-sm disabled:bg-gray-50 disabled:text-muted-foreground" />
+          </div>
           <div className="col-span-2 space-y-1">
             <Label htmlFor="notes" className="text-xs">メモ（任意）</Label>
-            <Input id="notes" name="notes" placeholder="授業内容など" className="h-9 text-sm" />
+            <Input id="notes" name="notes" placeholder="事前メモ" className="h-9 text-sm" />
           </div>
         </div>
         <div className="flex gap-2">
