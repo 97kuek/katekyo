@@ -165,20 +165,22 @@ function BigTree({ cx, cy, delay = "0s" }: { cx: number; cy: number; delay?: str
 }
 
 // ---- Wilted items ----------------------------------------------------------
+// 枯れ色: 乾いた茶褐色・黄褐色を使用し、通常の緑と明確に区別できるようにする
 
 function WiltedTree({ cx, cy }: { cx: number; cy: number }) {
   const ax = cx, ay = cy + TILE_H / 2
   return (
-    <g opacity={0.72}>
-      <ellipse cx={ax + 5} cy={ay - 1} rx={14} ry={4.5} fill="rgba(0,0,0,0.08)" />
-      <rect x={ax - 3.5} y={ay - 18} width={7} height={18} rx={2} fill="#6b4a2a" />
-      <rect x={ax - 3.5} y={ay - 18} width={2.5} height={18} rx={1.5} fill="#8b6040" />
-      <polygon points={`${ax},${ay - 42} ${ax - 19},${ay - 22} ${ax + 19},${ay - 22}`} fill="#6e7860" />
-      <polygon points={`${ax},${ay - 42} ${ax - 19},${ay - 22} ${ax},${ay - 22}`}       fill="#808a70" />
-      <polygon points={`${ax},${ay - 55} ${ax - 13},${ay - 40} ${ax + 13},${ay - 40}`} fill="#757e68" />
-      <polygon points={`${ax},${ay - 55} ${ax - 13},${ay - 40} ${ax},${ay - 40}`}       fill="#888f78" />
-      <polygon points={`${ax},${ay - 63} ${ax - 8},${ay - 53} ${ax + 8},${ay - 53}`}   fill="#7a8270" />
-      <circle cx={ax} cy={ay - 64} r={2} fill="#808870" />
+    <g opacity={0.58}>
+      <ellipse cx={ax + 5} cy={ay - 1} rx={11} ry={3.5} fill="rgba(0,0,0,0.06)" />
+      <rect x={ax - 3.5} y={ay - 18} width={7} height={18} rx={2} fill="#5c3a18" />
+      <rect x={ax - 3.5} y={ay - 18} width={2.5} height={18} rx={1.5} fill="#7a4e24" />
+      {/* 乾燥した黄茶色の枯れ葉 */}
+      <polygon points={`${ax},${ay - 40} ${ax - 17},${ay - 22} ${ax + 17},${ay - 22}`} fill="#a07e28" />
+      <polygon points={`${ax},${ay - 40} ${ax - 17},${ay - 22} ${ax},${ay - 22}`}       fill="#b48e30" />
+      <polygon points={`${ax},${ay - 52} ${ax - 11},${ay - 38} ${ax + 11},${ay - 38}`} fill="#a87e20" />
+      <polygon points={`${ax},${ay - 52} ${ax - 11},${ay - 38} ${ax},${ay - 38}`}       fill="#ba9028" />
+      <polygon points={`${ax},${ay - 60} ${ax - 6},${ay - 50} ${ax + 6},${ay - 50}`}   fill="#a07c20" />
+      <circle cx={ax} cy={ay - 61} r={2} fill="#b08828" />
     </g>
   )
 }
@@ -186,29 +188,35 @@ function WiltedTree({ cx, cy }: { cx: number; cy: number }) {
 function WiltedBush({ cx, cy }: { cx: number; cy: number }) {
   const ax = cx, ay = cy + TILE_H / 2
   return (
-    <g opacity={0.72}>
-      <ellipse cx={ax + 4} cy={ay - 1} rx={15} ry={4} fill="rgba(0,0,0,0.07)" />
-      <ellipse cx={ax - 8} cy={ay - 9}  rx={10} ry={8}  fill="#6b7860" />
-      <ellipse cx={ax + 8} cy={ay - 9}  rx={10} ry={8}  fill="#6b7860" />
-      <ellipse cx={ax}     cy={ay - 15} rx={12} ry={9}  fill="#7d8a6e" />
-      <ellipse cx={ax - 1} cy={ay - 17} rx={5}  ry={3}  fill="#8a9278" />
+    <g opacity={0.58}>
+      <ellipse cx={ax + 3} cy={ay - 1} rx={12} ry={3.5} fill="rgba(0,0,0,0.06)" />
+      {/* 潰れて黄茶色に枯れた茂み */}
+      <ellipse cx={ax - 7} cy={ay - 8}  rx={9}  ry={7}  fill="#8a7820" />
+      <ellipse cx={ax + 7} cy={ay - 8}  rx={9}  ry={7}  fill="#8a7820" />
+      <ellipse cx={ax}     cy={ay - 13} rx={11} ry={8}  fill="#a08c28" />
+      <ellipse cx={ax - 1} cy={ay - 15} rx={4}  ry={3}  fill="#b09a30" />
     </g>
   )
 }
 
 function WiltedFlower({ cx, cy }: { cx: number; cy: number }) {
   const ax = cx, ay = cy + TILE_H / 2
+  // 茎がしなだれて頭が大きく傾いた枯れ花
+  const hx = ax + 9, hy = ay - 11
   const petals = [0, 60, 120, 180, 240, 300].map(deg => {
     const rad = (deg * Math.PI) / 180
-    return <ellipse key={deg} cx={ax + Math.cos(rad) * 7 - 3} cy={ay - 18 + Math.sin(rad) * 7 + 5} rx={3.5} ry={3.5} fill="#a8a898" />
+    return <ellipse key={deg} cx={hx + Math.cos(rad) * 5.5} cy={hy + Math.sin(rad) * 5.5} rx={3.5} ry={3.5} fill="#c4a840" />
   })
   return (
-    <g opacity={0.72}>
-      <ellipse cx={ax + 2} cy={ay - 1} rx={8} ry={3} fill="rgba(0,0,0,0.06)" />
-      <path d={`M ${ax} ${ay} Q ${ax + 7} ${ay - 8} ${ax + 5} ${ay - 16}`} stroke="#88a070" strokeWidth={2} fill="none" strokeLinecap="round" />
+    <g opacity={0.58}>
+      <ellipse cx={ax + 5} cy={ay - 1} rx={7} ry={2.5} fill="rgba(0,0,0,0.05)" />
+      {/* しなだれた茎 */}
+      <path d={`M ${ax} ${ay} Q ${ax + 14} ${ay - 6} ${hx} ${hy}`} stroke="#7a8830" strokeWidth={2.5} fill="none" strokeLinecap="round" />
+      {/* 垂れ下がった葉 */}
+      <ellipse cx={ax + 7} cy={ay - 5} rx={5} ry={2} fill="#7a8830" transform={`rotate(35 ${ax + 7} ${ay - 5})`} />
       {petals}
-      <circle cx={ax + 5} cy={ay - 18} r={4}   fill="#b8b080" />
-      <circle cx={ax + 5} cy={ay - 18} r={2}   fill="#a09060" />
+      <circle cx={hx} cy={hy} r={4.5} fill="#c4a840" />
+      <circle cx={hx} cy={hy} r={2.2} fill="#a88828" />
     </g>
   )
 }
@@ -216,15 +224,16 @@ function WiltedFlower({ cx, cy }: { cx: number; cy: number }) {
 function WiltedCherry({ cx, cy }: { cx: number; cy: number }) {
   const ax = cx, ay = cy + TILE_H / 2
   return (
-    <g opacity={0.72}>
-      <ellipse cx={ax + 6} cy={ay - 1} rx={16} ry={5} fill="rgba(0,0,0,0.08)" />
-      <rect x={ax - 3} y={ay - 20} width={6} height={20} rx={2} fill="#7a5a40" />
-      <ellipse cx={ax - 12} cy={ay - 28} rx={12} ry={9}  fill="#907888" />
-      <ellipse cx={ax + 12} cy={ay - 28} rx={12} ry={9}  fill="#907888" />
-      <ellipse cx={ax}      cy={ay - 30} rx={13} ry={10} fill="#9e8898" />
-      <ellipse cx={ax - 7}  cy={ay - 44} rx={9}  ry={7}  fill="#907888" />
-      <ellipse cx={ax + 7}  cy={ay - 44} rx={9}  ry={7}  fill="#907888" />
-      <ellipse cx={ax}      cy={ay - 50} rx={8}  ry={6}  fill="#9e8898" />
+    <g opacity={0.58}>
+      <ellipse cx={ax + 5} cy={ay - 1} rx={14} ry={4} fill="rgba(0,0,0,0.07)" />
+      <rect x={ax - 3} y={ay - 20} width={6} height={20} rx={2} fill="#6a4830" />
+      {/* 枯れた桜: ピンクから乾いた茶ピンクへ */}
+      <ellipse cx={ax - 11} cy={ay - 26} rx={11} ry={8}  fill="#b89070" />
+      <ellipse cx={ax + 11} cy={ay - 26} rx={11} ry={8}  fill="#b89070" />
+      <ellipse cx={ax}      cy={ay - 28} rx={12} ry={9}  fill="#c8a07e" />
+      <ellipse cx={ax - 6}  cy={ay - 41} rx={8}  ry={6}  fill="#b89070" />
+      <ellipse cx={ax + 6}  cy={ay - 41} rx={8}  ry={6}  fill="#b89070" />
+      <ellipse cx={ax}      cy={ay - 47} rx={7}  ry={5}  fill="#c8a07e" />
     </g>
   )
 }
@@ -232,18 +241,19 @@ function WiltedCherry({ cx, cy }: { cx: number; cy: number }) {
 function WiltedBigTree({ cx, cy }: { cx: number; cy: number }) {
   const ax = cx, ay = cy + TILE_H / 2
   return (
-    <g opacity={0.70}>
-      <ellipse cx={ax + 7} cy={ay - 1} rx={18} ry={6} fill="rgba(0,0,0,0.10)" />
-      <rect x={ax - 5} y={ay - 26} width={10} height={26} rx={3} fill="#5a3a18" />
-      <rect x={ax - 5} y={ay - 26} width={3.5} height={26} rx={2} fill="#7a5030" />
-      <polygon points={`${ax},${ay - 56} ${ax - 26},${ay - 26} ${ax + 26},${ay - 26}`} fill="#5e6850" />
-      <polygon points={`${ax},${ay - 56} ${ax - 26},${ay - 26} ${ax},${ay - 26}`}       fill="#6e7860" />
-      <polygon points={`${ax},${ay - 72} ${ax - 20},${ay - 52} ${ax + 20},${ay - 52}`} fill="#636e58" />
-      <polygon points={`${ax},${ay - 72} ${ax - 20},${ay - 52} ${ax},${ay - 52}`}       fill="#737e68" />
-      <polygon points={`${ax},${ay - 85} ${ax - 14},${ay - 68} ${ax + 14},${ay - 68}`} fill="#686e60" />
-      <polygon points={`${ax},${ay - 85} ${ax - 14},${ay - 68} ${ax},${ay - 68}`}       fill="#787e70" />
-      <polygon points={`${ax},${ay - 94} ${ax - 9},${ay - 82} ${ax + 9},${ay - 82}`}   fill="#6a7060" />
-      <circle cx={ax} cy={ay - 95} r={3} fill="#707860" />
+    <g opacity={0.58}>
+      <ellipse cx={ax + 6} cy={ay - 1} rx={15} ry={5} fill="rgba(0,0,0,0.08)" />
+      <rect x={ax - 5} y={ay - 26} width={10} height={26} rx={3} fill="#4a3010" />
+      <rect x={ax - 5} y={ay - 26} width={3.5} height={26} rx={2} fill="#6a4820" />
+      {/* 乾いた黄茶色の枯れ枝 */}
+      <polygon points={`${ax},${ay - 55} ${ax - 24},${ay - 26} ${ax + 24},${ay - 26}`} fill="#987020" />
+      <polygon points={`${ax},${ay - 55} ${ax - 24},${ay - 26} ${ax},${ay - 26}`}       fill="#a88028" />
+      <polygon points={`${ax},${ay - 70} ${ax - 17},${ay - 49} ${ax + 17},${ay - 49}`} fill="#a07820" />
+      <polygon points={`${ax},${ay - 70} ${ax - 17},${ay - 49} ${ax},${ay - 49}`}       fill="#b08830" />
+      <polygon points={`${ax},${ay - 81} ${ax - 12},${ay - 65} ${ax + 12},${ay - 65}`} fill="#a07820" />
+      <polygon points={`${ax},${ay - 81} ${ax - 12},${ay - 65} ${ax},${ay - 65}`}       fill="#b08828" />
+      <polygon points={`${ax},${ay - 89} ${ax - 7},${ay - 77} ${ax + 7},${ay - 77}`}   fill="#987020" />
+      <circle cx={ax} cy={ay - 90} r={3} fill="#a07820" />
     </g>
   )
 }

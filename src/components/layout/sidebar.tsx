@@ -26,8 +26,8 @@ const navLinkClass = (active: boolean) =>
   cn(
     "flex items-center justify-center lg:justify-start gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
     active
-      ? "bg-white/10 text-white"
-      : "text-slate-400 hover:bg-white/5 hover:text-slate-200"
+      ? "bg-green-700/50 text-white"
+      : "text-green-300 hover:bg-green-800/40 hover:text-green-100"
   )
 
 export default function Sidebar({ role }: { role: string }) {
@@ -35,8 +35,8 @@ export default function Sidebar({ role }: { role: string }) {
   const navItems = role === "teacher" ? teacherNav : studentNav
 
   return (
-    <aside className="w-16 lg:w-60 shrink-0 bg-slate-900 hidden md:flex flex-col">
-      <div className="h-14 flex items-center justify-center lg:justify-start gap-2.5 px-3 lg:px-5 border-b border-white/10">
+    <aside className="w-16 lg:w-60 shrink-0 bg-green-900 hidden md:flex flex-col">
+      <div className="h-14 flex items-center justify-center lg:justify-start gap-2.5 px-3 lg:px-5 border-b border-green-800/60">
         <BookOpen className="h-5 w-5 text-green-400 shrink-0" />
         <span className="font-bold text-lg tracking-tight hidden lg:block text-white">katekyo</span>
       </div>
@@ -53,7 +53,7 @@ export default function Sidebar({ role }: { role: string }) {
         })}
       </nav>
 
-      <div className="p-2 lg:p-3 border-t border-white/10 space-y-0.5">
+      <div className="p-2 lg:p-3 border-t border-green-800/60 space-y-0.5">
         {[
           { href: "/profile", label: "プロフィール", icon: UserCircle },
           { href: "/help", label: "使い方ガイド", icon: HelpCircle },

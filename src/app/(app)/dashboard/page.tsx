@@ -403,34 +403,17 @@ async function StudentSummaryCards({ userId }: { userId: string }) {
   )
 
   const now = new Date()
-  const [incompleteCount, overdueCount, submittedCount, nextExam] = await Promise.all([
+  const [incompleteCount, overdueCount, submittedCount] = await Promise.all([
     db.homework.count({ where: { studentId: student.id, status: { in: ["assigned", "rejected"] } } }),
     db.homework.count({ where: { studentId: student.id, status: { in: ["assigned", "rejected"] }, dueDate: { lt: now } } }),
     db.homework.count({ where: { studentId: student.id, status: "submitted" } }),
-    db.examEvent.findFirst({
-      where: { studentId: student.id, date: { gte: now } },
-      orderBy: { date: "asc" },
-    }),
   ])
 
-  const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  const daysUntilExam = nextExam
-    ? Math.round((new Date(nextExam.date.getFullYear(), nextExam.date.getMonth(), nextExam.date.getDate()).getTime() - todayMidnight.getTime()) / (1000 * 60 * 60 * 24))
-    : null
-
   return (
-    <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+    <div className="grid grid-cols-3 gap-3">
       <SummaryCard title="未完了" value={String(incompleteCount)} accent={incompleteCount > 0} href="/homework" />
       <SummaryCard title="期限切れ" value={String(overdueCount)} danger={overdueCount > 0} href="/homework" />
       <SummaryCard title="承認待ち" value={String(submittedCount)} href="/homework" />
-      <SummaryCard
-        title="次のテスト"
-        value={daysUntilExam != null ? (daysUntilExam === 0 ? "今日" : daysUntilExam === 1 ? "明日" : `${daysUntilExam}日後`) : "-"}
-        sub={nextExam?.name}
-        danger={daysUntilExam != null && daysUntilExam <= 3}
-        accent={daysUntilExam != null && daysUntilExam > 3 && daysUntilExam <= 7}
-        href="/calendar"
-      />
     </div>
   )
 }

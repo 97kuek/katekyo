@@ -105,12 +105,16 @@ export async function reviewHomework(
 
   if (action === "approved") {
     try {
-      const approvedCount = await db.homework.count({
-        where: { studentId: homework.studentId, status: "approved" },
-      })
-      // 5件ごとに大木
-      const forcedType: GardenItemType | undefined = approvedCount % 5 === 0 ? "big_tree" : undefined
-      await plantGardenItem(homework.studentId, forcedType)
+      // 差し戻し後の再提出、または期限切れ後の遅延提出は枯れ回復のみで新規植物は生やさない
+      const wasRejected = homework.reviewedAt !== null
+      const wasLate = homework.submittedAt != null && homework.submittedAt > homework.dueDate
+      if (!wasRejected && !wasLate) {
+        const approvedCount = await db.homework.count({
+          where: { studentId: homework.studentId, status: "approved" },
+        })
+        const forcedType: GardenItemType | undefined = approvedCount % 5 === 0 ? "big_tree" : undefined
+        await plantGardenItem(homework.studentId, forcedType)
+      }
     } catch (err) {
       console.error("[garden] plantGardenItem failed:", err)
     }
