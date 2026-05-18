@@ -49,6 +49,15 @@ export default async function ReviewHomeworkPage({ params }: { params: Promise<{
             />
           </div>
         )}
+        {homework.difficultyRating && (
+          <p className={`inline-flex items-center gap-1.5 text-xs font-medium rounded-full px-2.5 py-1 ${
+            homework.difficultyRating === 1 ? "text-green-700 bg-green-50" :
+            homework.difficultyRating === 2 ? "text-yellow-700 bg-yellow-50" :
+            "text-red-700 bg-red-50"
+          }`}>
+            {homework.difficultyRating === 1 ? "😊 かんたん" : homework.difficultyRating === 2 ? "😐 ふつう" : "😰 むずかしい"}
+          </p>
+        )}
         {homework.studentNote && (
           <div className="bg-gray-50 rounded-md p-3">
             <p className="text-xs font-medium text-muted-foreground mb-1">生徒のコメント</p>

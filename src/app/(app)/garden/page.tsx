@@ -3,7 +3,7 @@ import { redirect } from "next/navigation"
 import { db } from "@/lib/db"
 import { getStudentByUserId } from "@/lib/queries"
 import GardenCanvas from "./garden-canvas"
-import { TreePine, Trophy } from "lucide-react"
+import { TreePine, Trophy, Star } from "lucide-react"
 import type { GardenItemType } from "@/lib/garden-utils"
 
 export default async function GardenPage() {
@@ -43,6 +43,7 @@ export default async function GardenPage() {
   const total = items.length
   const max = 64
   const isFull = total >= max
+  const milestone = [10, 25, 50].includes(total) ? total : undefined
   const generation = student.gardenGeneration
 
   return (
@@ -77,6 +78,19 @@ export default async function GardenPage() {
           </div>
         </div>
       )}
+      {milestone && !isFull && (
+        <div className="rounded-xl border-2 border-yellow-400 bg-yellow-50 p-4 flex items-center gap-3">
+          <Star className="h-7 w-7 text-yellow-500 shrink-0 fill-yellow-400" />
+          <div>
+            <p className="font-bold text-yellow-800">{milestone}個達成おめでとう！</p>
+            <p className="text-sm text-yellow-700">
+              {milestone === 10 && "コツコツ続けた成果です。この調子で頑張ろう！"}
+              {milestone === 25 && "森が大きく育ってきました。素晴らしい努力です！"}
+              {milestone === 50 && "50個！もう森の半分が育ちました。ゴールまであと少し！"}
+            </p>
+          </div>
+        </div>
+      )}
 
       {total === 0 ? (
         <div className="rounded-xl border bg-white p-12 flex flex-col items-center gap-3 text-center">
@@ -88,7 +102,7 @@ export default async function GardenPage() {
         </div>
       ) : (
         <div className="rounded-xl border bg-white p-4 overflow-hidden">
-          <GardenCanvas items={items} />
+          <GardenCanvas items={items} milestone={milestone} />
         </div>
       )}
 

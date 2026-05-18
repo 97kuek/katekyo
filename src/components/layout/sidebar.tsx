@@ -19,6 +19,7 @@ const studentNav = [
   { href: "/homework", label: "宿題", icon: ClipboardList },
   { href: "/grades", label: "成績", icon: BarChart2 },
   { href: "/calendar", label: "カレンダー", icon: CalendarDays },
+  { href: "/materials", label: "教材", icon: BookOpen },
   { href: "/garden", label: "学習の森", icon: TreePine },
 ]
 

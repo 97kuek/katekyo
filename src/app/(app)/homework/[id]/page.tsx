@@ -8,6 +8,13 @@ import { DeleteHomeworkButton } from "./delete-homework-button"
 import { CancelSubmissionButton } from "@/app/(app)/homework/cancel-button"
 import { relativeDeadline, deadlineColorClass } from "@/lib/date-utils"
 import { ExtendDeadlineButton } from "./extend-deadline"
+import { AlertCircle } from "lucide-react"
+
+const DIFFICULTY_LABELS: Record<number, { label: string; emoji: string; color: string }> = {
+  1: { label: "かんたん",    emoji: "😊", color: "text-green-700 bg-green-50" },
+  2: { label: "ふつう",      emoji: "😐", color: "text-yellow-700 bg-yellow-50" },
+  3: { label: "むずかしい",  emoji: "😰", color: "text-red-700 bg-red-50" },
+}
 
 export default async function HomeworkDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -65,6 +72,22 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
         )}
       </div>
 
+      {/* 差し戻しフィードバック — 生徒向け目立つバナー */}
+      {!isTeacher && homework.status === "rejected" && (
+        <div className="rounded-xl border-2 border-red-300 bg-red-50 p-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="h-5 w-5 text-red-500 shrink-0" />
+            <p className="font-semibold text-red-800">先生から差し戻しがあります</p>
+          </div>
+          {homework.teacherFeedback && (
+            <p className="text-sm text-red-700 leading-relaxed">{homework.teacherFeedback}</p>
+          )}
+          <Link href={`/homework/${homework.id}/submit`} className={buttonVariants({ size: "sm", className: "bg-red-600 hover:bg-red-700 text-white" })}>
+            修正して再提出する →
+          </Link>
+        </div>
+      )}
+
       <div className="rounded-lg border bg-white p-5 space-y-4">
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
@@ -108,7 +131,7 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
         )}
       </div>
 
-      {(homework.studentNote || homework.submittedAt || homework.photoUrl) && (
+      {(homework.studentNote || homework.submittedAt || homework.photoUrl || homework.difficultyRating) && (
         <div className="rounded-lg border bg-white p-5 space-y-2">
           <h2 className="text-sm font-semibold">提出情報</h2>
           {homework.submittedAt && (
@@ -116,6 +139,14 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
               提出日時: {homework.submittedAt.toLocaleString("ja-JP")}
             </p>
           )}
+          {homework.difficultyRating && (() => {
+            const d = DIFFICULTY_LABELS[homework.difficultyRating]
+            return d ? (
+              <p className={`inline-flex items-center gap-1.5 text-xs font-medium rounded-full px-2.5 py-1 ${d.color}`}>
+                {d.emoji} 難易度: {d.label}
+              </p>
+            ) : null
+          })()}
           {homework.photoUrl && (
             <div>
               <p className="text-xs font-medium text-muted-foreground mb-1">提出写真</p>

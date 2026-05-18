@@ -23,6 +23,7 @@ const PAGE_TITLES: { pattern: (p: string) => boolean; label: string }[] = [
   { pattern: (p) => p === "/grades", label: "成績管理" },
   { pattern: (p) => p === "/calendar", label: "カレンダー" },
   { pattern: (p) => p === "/subjects", label: "科目タグ" },
+  { pattern: (p) => p === "/materials", label: "教材" },
   { pattern: (p) => p === "/profile", label: "プロフィール" },
   { pattern: (p) => p === "/help", label: "使い方ガイド" },
 ]

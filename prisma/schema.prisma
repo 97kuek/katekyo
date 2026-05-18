@@ -120,8 +120,9 @@ model Homework {
   subjectIds      String[]
   materialId      String?
   status          HomeworkStatus @default(assigned)
-  studentNote     String?
-  teacherFeedback String?
+  studentNote      String?
+  difficultyRating Int?
+  teacherFeedback  String?
   photoUrl        String?
   submittedAt     DateTime?
   reviewedAt      DateTime?

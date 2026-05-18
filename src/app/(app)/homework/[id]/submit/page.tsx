@@ -45,7 +45,7 @@ export default async function SubmitHomeworkPage({ params }: { params: Promise<{
         )}
       </div>
 
-      <SubmitForm id={id} />
+      <SubmitForm id={id} rejectedFeedback={homework.status === "rejected" ? homework.teacherFeedback : null} />
     </div>
   )
 }

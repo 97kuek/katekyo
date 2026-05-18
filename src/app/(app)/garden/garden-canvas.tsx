@@ -1,6 +1,7 @@
 "use client"
 
 import type { GardenItemType } from "@/lib/garden-utils"
+import { useState, useEffect } from "react"
 
 const TILE_W = 64
 const TILE_H = 32
@@ -258,12 +259,119 @@ function WiltedBigTree({ cx, cy }: { cx: number; cy: number }) {
   )
 }
 
+// ---- Seasonal overlay -------------------------------------------------------
+
+type Season = "spring" | "summer" | "autumn" | "winter"
+
+function getSeason(): Season {
+  const m = new Date().getMonth()
+  if (m >= 2 && m <= 4) return "spring"
+  if (m >= 5 && m <= 7) return "summer"
+  if (m >= 8 && m <= 10) return "autumn"
+  return "winter"
+}
+
+const SPRING_PETALS = [
+  { x: -180, y: -80,  r: 5, dur: "6s",   delay: "0s",   fill: "#fbb6ce" },
+  { x: -80,  y: -110, r: 4, dur: "7s",   delay: "1.5s", fill: "#f9a8d4" },
+  { x: 50,   y: -100, r: 5, dur: "8s",   delay: "3s",   fill: "#fbcfe8" },
+  { x: 180,  y: -70,  r: 4, dur: "6.5s", delay: "4.5s", fill: "#fbb6ce" },
+  { x: -220, y: 40,   r: 5, dur: "7.5s", delay: "0.7s", fill: "#f9a8d4" },
+  { x: 120,  y: 20,   r: 4, dur: "8.5s", delay: "2.2s", fill: "#fbb6ce" },
+  { x: -100, y: 150,  r: 5, dur: "7s",   delay: "5s",   fill: "#fbcfe8" },
+  { x: 220,  y: 130,  r: 4, dur: "6s",   delay: "3.8s", fill: "#fbb6ce" },
+  { x: 0,    y: -60,  r: 5, dur: "8s",   delay: "1.8s", fill: "#f9a8d4" },
+  { x: -150, y: 220,  r: 4, dur: "7.5s", delay: "4s",   fill: "#fbb6ce" },
+]
+const FIREFLIES = [
+  { x: -120, y: -50,  dur: "2.5s", delay: "0s" },
+  { x: 80,   y: -70,  dur: "3s",   delay: "1s" },
+  { x: 200,  y: -30,  dur: "2.8s", delay: "2s" },
+  { x: -200, y: 100,  dur: "3.5s", delay: "0.5s" },
+  { x: 140,  y: 180,  dur: "2.5s", delay: "1.8s" },
+  { x: -50,  y: 80,   dur: "3s",   delay: "3s" },
+  { x: 50,   y: 240,  dur: "2.8s", delay: "0.8s" },
+  { x: -160, y: 200,  dur: "3.2s", delay: "2.3s" },
+]
+const AUTUMN_LEAVES = [
+  { x: -160, y: -90,  dur: "7s",   delay: "0s",   fill: "#f97316" },
+  { x: 0,    y: -120, dur: "8s",   delay: "1.5s", fill: "#dc2626" },
+  { x: 140,  y: -80,  dur: "7.5s", delay: "3s",   fill: "#b45309" },
+  { x: -240, y: 30,   dur: "6.5s", delay: "4.5s", fill: "#f97316" },
+  { x: 200,  y: 50,   dur: "8.5s", delay: "0.7s", fill: "#dc2626" },
+  { x: -80,  y: 200,  dur: "7s",   delay: "2.2s", fill: "#b45309" },
+  { x: 160,  y: 220,  dur: "8s",   delay: "5s",   fill: "#f97316" },
+  { x: -20,  y: 280,  dur: "6.5s", delay: "3.8s", fill: "#dc2626" },
+  { x: 80,   y: 130,  dur: "7.5s", delay: "1.8s", fill: "#b45309" },
+  { x: -180, y: 300,  dur: "7s",   delay: "4s",   fill: "#f97316" },
+]
+const SNOWFLAKES = [
+  { x: -200, y: -100, dur: "8s",   delay: "0s" },
+  { x: -80,  y: -120, dur: "9s",   delay: "1.5s" },
+  { x: 60,   y: -110, dur: "8.5s", delay: "3s" },
+  { x: 200,  y: -90,  dur: "9.5s", delay: "4.5s" },
+  { x: -240, y: 60,   dur: "8s",   delay: "0.7s" },
+  { x: 140,  y: 80,   dur: "9s",   delay: "2.2s" },
+  { x: -120, y: 200,  dur: "8.5s", delay: "5s" },
+  { x: 240,  y: 180,  dur: "9s",   delay: "3.8s" },
+  { x: 0,    y: 300,  dur: "8s",   delay: "1.8s" },
+  { x: -160, y: 320,  dur: "9.5s", delay: "4s" },
+]
+
+function SeasonalOverlay({ season }: { season: Season }) {
+  if (season === "spring") {
+    return <>
+      {SPRING_PETALS.map((p, i) => (
+        <circle key={i} cx={p.x} cy={p.y} r={p.r} fill={p.fill} opacity={0}
+          style={{ animation: `petalDrift ${p.dur} ease-in-out ${p.delay} infinite` }} />
+      ))}
+    </>
+  }
+  if (season === "summer") {
+    return <>
+      {FIREFLIES.map((f, i) => (
+        <g key={i}>
+          <circle cx={f.x} cy={f.y} r={3} fill="#fef08a"
+            style={{ animation: `fireflyGlow ${f.dur} ease-in-out ${f.delay} infinite` }} />
+          <circle cx={f.x} cy={f.y} r={7} fill="rgba(254,240,138,0.18)"
+            style={{ animation: `fireflyGlow ${f.dur} ease-in-out ${f.delay} infinite` }} />
+        </g>
+      ))}
+    </>
+  }
+  if (season === "autumn") {
+    return <>
+      {AUTUMN_LEAVES.map((l, i) => (
+        <ellipse key={i} cx={l.x} cy={l.y} rx={7} ry={3.5} fill={l.fill} opacity={0}
+          style={{ animation: `leafFall ${l.dur} ease-in-out ${l.delay} infinite` }} />
+      ))}
+    </>
+  }
+  return <>
+    {SNOWFLAKES.map((s, i) => (
+      <circle key={i} cx={s.x} cy={s.y} r={3} fill="white"
+        stroke="rgba(200,220,255,0.5)" strokeWidth={0.5} opacity={0}
+        style={{ animation: `snowFall ${s.dur} linear ${s.delay} infinite` }} />
+    ))}
+  </>
+}
+
 // ---- Main canvas -----------------------------------------------------------
 
 type Item = { x: number; y: number; itemType: GardenItemType; withered: boolean }
 
-export default function GardenCanvas({ items }: { items: Item[] }) {
-  const itemMap = new Map(items.map((i) => [`${i.x},${i.y}`, i]))
+export default function GardenCanvas({ items, milestone }: { items: Item[]; milestone?: number }) {
+  const [showSparkle, setShowSparkle] = useState(!!milestone)
+  useEffect(() => {
+    if (milestone) {
+      setShowSparkle(true)
+      const t = setTimeout(() => setShowSparkle(false), 4000)
+      return () => clearTimeout(t)
+    }
+  }, [milestone])
+
+  const season = getSeason()
+  const itemMap = new Map(items.map((item) => [`${item.x},${item.y}`, item]))
 
   const cells: { col: number; row: number }[] = []
   for (let col = 0; col < GRID; col++) {
@@ -298,6 +406,39 @@ export default function GardenCanvas({ items }: { items: Item[] }) {
             0%, 100% { transform: rotate(-0.7deg); }
             50%       { transform: rotate(0.7deg); }
           }
+          @keyframes petalDrift {
+            0%   { opacity: 0;    transform: translate(0, -20px) rotate(0deg); }
+            15%  { opacity: 0.75; }
+            85%  { opacity: 0.6; }
+            100% { opacity: 0;    transform: translate(25px, 70px) rotate(30deg); }
+          }
+          @keyframes fireflyGlow {
+            0%, 100% { opacity: 0.12; transform: scale(0.8); }
+            50%       { opacity: 0.9;  transform: scale(1.2); }
+          }
+          @keyframes leafFall {
+            0%   { opacity: 0;    transform: translate(0, -30px) rotate(0deg); }
+            15%  { opacity: 0.8; }
+            85%  { opacity: 0.65; }
+            100% { opacity: 0;    transform: translate(15px, 90px) rotate(200deg); }
+          }
+          @keyframes snowFall {
+            0%   { opacity: 0;    transform: translateY(-40px); }
+            15%  { opacity: 0.85; }
+            85%  { opacity: 0.75; }
+            100% { opacity: 0;    transform: translateY(120px); }
+          }
+          @keyframes sparkleIn {
+            0%   { opacity: 0; transform: scale(0) rotate(0deg); }
+            40%  { opacity: 1; transform: scale(1.3) rotate(180deg); }
+            100% { opacity: 0; transform: scale(1) rotate(360deg); }
+          }
+          @keyframes sparkleText {
+            0%   { opacity: 0; transform: translateY(10px); }
+            30%  { opacity: 1; transform: translateY(-5px); }
+            70%  { opacity: 1; transform: translateY(-5px); }
+            100% { opacity: 0; transform: translateY(-20px); }
+          }
         `}</style>
         <Platform />
         {cells.map(({ col, row }) => (
@@ -315,6 +456,34 @@ export default function GardenCanvas({ items }: { items: Item[] }) {
           if (itemType === "big_tree") return withered ? <WiltedBigTree key={`i-${col}-${row}`} cx={cx} cy={cy} /> : <BigTree key={`i-${col}-${row}`} cx={cx} cy={cy} delay={delay} />
           return                              withered ? <WiltedFlower  key={`i-${col}-${row}`} cx={cx} cy={cy} /> : <Flower  key={`i-${col}-${row}`} cx={cx} cy={cy} delay={delay} />
         })}
+        <SeasonalOverlay season={season} />
+        {showSparkle && milestone && (
+          <g>
+            {[0, 45, 90, 135, 180, 225, 270, 315].map((angle, i) => {
+              const rad = (angle * Math.PI) / 180
+              return (
+                <line
+                  key={i}
+                  x1={Math.cos(rad) * 15}
+                  y1={Math.sin(rad) * 15 - 50}
+                  x2={Math.cos(rad) * 55}
+                  y2={Math.sin(rad) * 55 - 50}
+                  stroke="#fbbf24"
+                  strokeWidth={4}
+                  strokeLinecap="round"
+                  opacity={0}
+                  style={{ animation: `sparkleIn 1.2s ease-out ${i * 0.06}s forwards` }}
+                />
+              )
+            })}
+            <circle cx={0} cy={-50} r={12} fill="#fde68a" opacity={0}
+              style={{ animation: "sparkleIn 0.8s ease-out forwards" }} />
+            <text x={0} y={-115} textAnchor="middle" fontSize={14} fontWeight="bold" fill="#d97706" opacity={0}
+              style={{ animation: "sparkleText 2.5s ease-out 0.3s forwards" }}>
+              {milestone}個達成！
+            </text>
+          </g>
+        )}
       </svg>
     </div>
   )

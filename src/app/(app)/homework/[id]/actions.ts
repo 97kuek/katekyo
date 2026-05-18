@@ -13,6 +13,7 @@ const MAX_PHOTO_BYTES = 5 * 1024 * 1024
 const submitSchema = z.object({
   id: z.string().min(1),
   note: z.string().optional(),
+  difficultyRating: z.coerce.number().int().min(1).max(3).optional(),
 })
 
 export async function submitHomework(
@@ -27,10 +28,11 @@ export async function submitHomework(
   const result = submitSchema.safeParse({
     id: formData.get("id"),
     note: formData.get("note") || undefined,
+    difficultyRating: formData.get("difficultyRating") || undefined,
   })
   if (!result.success) return { error: result.error.issues[0].message }
 
-  const { id, note } = result.data
+  const { id, note, difficultyRating } = result.data
 
   const student = await db.student.findUnique({ where: { userId: session.user.id } })
   if (!student) return { error: "生徒プロフィールが見つかりません" }
@@ -58,6 +60,7 @@ export async function submitHomework(
     data: {
       status: "submitted",
       studentNote: note ?? null,
+      difficultyRating: difficultyRating ?? null,
       photoUrl,
       submittedAt: new Date(),
     },
