@@ -7,7 +7,7 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
+  --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --font-heading: var(--font-sans);
   --color-sidebar-ring: var(--sidebar-ring);
@@ -133,6 +133,11 @@
   /* Ensure all interactive elements respond instantly to touch */
   a, button, [role="button"], input, select, textarea, label {
     touch-action: manipulation;
+  }
+  /* Ensure form elements inherit font from body (browser default is system font) */
+  input, select, textarea, button {
+    font-family: inherit;
+    font-size: inherit;
   }
   /* Minimum touch target size for accessibility */
   button, [role="button"] {

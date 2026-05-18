@@ -38,8 +38,9 @@ export default function CreateHomeworkForm({
       {state.error && (
         <p className="text-sm text-red-600 bg-red-50 p-3 rounded-md">{state.error}</p>
       )}
+      <p className="text-xs text-muted-foreground"><span className="text-destructive font-medium">*</span> は必須項目です</p>
       <div className="space-y-2">
-        <Label htmlFor="studentId">生徒</Label>
+        <Label htmlFor="studentId">生徒 <span className="text-destructive">*</span></Label>
         {singleStudent ? (
           <>
             <input type="hidden" name="studentId" value={singleStudent.id} />
@@ -64,7 +65,7 @@ export default function CreateHomeworkForm({
         )}
       </div>
       <div className="space-y-2">
-        <Label htmlFor="title">タイトル</Label>
+        <Label htmlFor="title">タイトル <span className="text-destructive">*</span></Label>
         <Input id="title" name="title" required placeholder="例: 英単語50問" autoFocus />
       </div>
       <div className="space-y-2">
@@ -78,7 +79,7 @@ export default function CreateHomeworkForm({
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="dueDate">期限</Label>
+        <Label htmlFor="dueDate">期限 <span className="text-destructive">*</span></Label>
         <Input id="dueDate" name="dueDate" type="date" required defaultValue={tomorrowISO()} />
       </div>
       {selectedStudentId && (

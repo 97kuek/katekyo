@@ -38,8 +38,8 @@ function computeValue(g: Grade, mode: "score" | "deviation"): number | null {
   return g.deviation
 }
 
-function formatLabel(g: Grade): string {
-  return `${new Date(g.date).toLocaleDateString("ja-JP", { month: "numeric", day: "numeric" })} ${g.testName}`
+function formatDate(dateStr: string): string {
+  return new Date(dateStr).toLocaleDateString("ja-JP", { month: "numeric", day: "numeric" })
 }
 
 export default function GradeChart({
@@ -49,16 +49,16 @@ export default function GradeChart({
   grades: Grade[]
   subjects: Subject[]
 }) {
+  const availableTypes = Array.from(new Set(grades.map((g) => g.testType)))
   const [mode, setMode] = useState<"score" | "deviation">("score")
-  const [typeFilter, setTypeFilter] = useState<string>("")
+  const [typeFilter, setTypeFilter] = useState<string>(availableTypes[0] ?? "")
   const [activeSubject, setActiveSubject] = useState<string | null>(null)
 
-  const filtered = typeFilter ? grades.filter((g) => g.testType === typeFilter) : grades
+  const filtered = grades.filter((g) => g.testType === typeFilter)
   const sorted = [...filtered].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
 
   const hasScore = sorted.some((g) => computeValue(g, "score") != null)
   const hasDeviation = sorted.some((g) => g.deviation != null)
-  const availableTypes = Array.from(new Set(grades.map((g) => g.testType)))
 
   // 科目別複数ライン
   const usedSubjectIds = Array.from(new Set(sorted.flatMap((g) => g.subjectIds)))
@@ -71,7 +71,8 @@ export default function GradeChart({
   const chartData = allDates.map((date) => {
     const gradesOnDate = sorted.filter((g) => g.date === date)
     const row: Record<string, string | number | null> = {
-      name: formatLabel(gradesOnDate[0]),
+      name: formatDate(date),
+      testName: gradesOnDate[0].testName,
     }
     if (hasSubjects) {
       for (const sid of usedSubjectIds) {
@@ -123,41 +124,36 @@ export default function GradeChart({
         </div>
       </div>
 
-      {availableTypes.length > 1 && (
-        <div className="flex gap-1.5 flex-wrap">
+      <div className="flex gap-1.5 flex-wrap">
+        {TEST_TYPE_OPTIONS.filter(([v]) => availableTypes.includes(v)).map(([value, label]) => (
           <button
+            key={value}
             type="button"
-            onClick={() => setTypeFilter("")}
-            className={`px-2.5 py-1 rounded-md text-xs border transition-colors ${typeFilter === "" ? "bg-primary text-primary-foreground border-primary" : "bg-white text-muted-foreground border-input hover:bg-gray-50"}`}
+            onClick={() => { setTypeFilter(value); setActiveSubject(null) }}
+            className={`px-2.5 py-1 rounded-md text-xs border transition-colors ${typeFilter === value ? "bg-primary text-primary-foreground border-primary" : "bg-white text-muted-foreground border-input hover:bg-gray-50"}`}
           >
-            すべて
+            {label}
           </button>
-          {TEST_TYPE_OPTIONS.filter(([v]) => availableTypes.includes(v)).map(([value, label]) => (
-            <button
-              key={value}
-              type="button"
-              onClick={() => setTypeFilter(value)}
-              className={`px-2.5 py-1 rounded-md text-xs border transition-colors ${typeFilter === value ? "bg-primary text-primary-foreground border-primary" : "bg-white text-muted-foreground border-input hover:bg-gray-50"}`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      )}
+        ))}
+      </div>
 
       {chartData.length === 0 ? (
         <p className="text-sm text-muted-foreground text-center py-6">該当するデータがありません</p>
       ) : (
         <ResponsiveContainer width="100%" height={hasSubjects ? 260 : 220}>
-          <LineChart data={chartData} margin={{ top: 5, right: 10, left: -20, bottom: 50 }}>
+          <LineChart data={chartData} margin={{ top: 5, right: 10, left: -20, bottom: 30 }}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="name" tick={{ fontSize: 11 }} angle={-35} textAnchor="end" interval={0} />
+            <XAxis dataKey="name" tick={{ fontSize: 11 }} angle={-25} textAnchor="end" interval={0} />
             <YAxis
               domain={mode === "deviation" ? [30, 80] : ["auto", "auto"]}
               tick={{ fontSize: 11 }}
               unit={mode === "score" ? "%" : ""}
             />
             <Tooltip
+              labelFormatter={(label, payload) => {
+                const testName = payload?.[0]?.payload?.testName
+                return testName ? `${label}　${testName}` : label
+              }}
               formatter={(value, name) => {
                 if (value == null) return ["-", name]
                 const nameStr = String(name)

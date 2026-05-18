@@ -42,6 +42,7 @@ export default function EditGradeForm({
       {state.error && (
         <p className="text-sm text-red-600 bg-red-50 p-3 rounded-md">{state.error}</p>
       )}
+      <p className="text-xs text-muted-foreground"><span className="text-destructive font-medium">*</span> は必須項目です</p>
 
       <div className="grid grid-cols-2 gap-4">
         <div className="col-span-2 space-y-2">
@@ -50,7 +51,7 @@ export default function EditGradeForm({
         </div>
 
         <div className="col-span-2 space-y-2">
-          <Label htmlFor="testType">テスト種別</Label>
+          <Label htmlFor="testType">テスト種別 <span className="text-destructive">*</span></Label>
           <select
             id="testType"
             name="testType"
@@ -64,12 +65,12 @@ export default function EditGradeForm({
         </div>
 
         <div className="col-span-2 space-y-2">
-          <Label htmlFor="testName">テスト名</Label>
+          <Label htmlFor="testName">テスト名 <span className="text-destructive">*</span></Label>
           <Input id="testName" name="testName" required defaultValue={grade.testName} />
         </div>
 
         <div className="col-span-2 space-y-2">
-          <Label htmlFor="date">実施日</Label>
+          <Label htmlFor="date">実施日 <span className="text-destructive">*</span></Label>
           <Input
             id="date"
             name="date"
@@ -80,25 +81,25 @@ export default function EditGradeForm({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="score">得点</Label>
+          <Label htmlFor="score">得点 <span className="text-xs text-muted-foreground font-normal">（任意）</span></Label>
           <Input id="score" name="score" type="number" min="0" defaultValue={grade.score ?? ""} />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="maxScore">満点</Label>
+          <Label htmlFor="maxScore">満点 <span className="text-xs text-muted-foreground font-normal">（任意）</span></Label>
           <Input id="maxScore" name="maxScore" type="number" min="1" defaultValue={grade.maxScore ?? ""} />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="rank">順位</Label>
+          <Label htmlFor="rank">順位 <span className="text-xs text-muted-foreground font-normal">（任意）</span></Label>
           <Input id="rank" name="rank" type="number" min="1" defaultValue={grade.rank ?? ""} />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="totalStudents">受験者数</Label>
+          <Label htmlFor="totalStudents">受験者数 <span className="text-xs text-muted-foreground font-normal">（任意）</span></Label>
           <Input id="totalStudents" name="totalStudents" type="number" min="1" defaultValue={grade.totalStudents ?? ""} />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="deviation">偏差値</Label>
+          <Label htmlFor="deviation">偏差値 <span className="text-xs text-muted-foreground font-normal">（任意）</span></Label>
           <Input
             id="deviation"
             name="deviation"
@@ -111,7 +112,7 @@ export default function EditGradeForm({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="avgScore">クラス平均点</Label>
+          <Label htmlFor="avgScore">クラス平均点 <span className="text-xs text-muted-foreground font-normal">（任意）</span></Label>
           <Input
             id="avgScore"
             name="avgScore"
@@ -122,7 +123,7 @@ export default function EditGradeForm({
         </div>
 
         <div className="space-y-2">
-          <Label>主観評価</Label>
+          <Label>主観評価 <span className="text-xs text-muted-foreground font-normal">（任意）</span></Label>
           <div className="flex gap-2 pt-1">
             {ratings.map((r) => (
               <label key={r} className="flex items-center gap-1 cursor-pointer">
@@ -142,7 +143,7 @@ export default function EditGradeForm({
 
       {subjects.length > 0 && (
         <div className="space-y-2">
-          <Label>科目タグ（複数選択可）</Label>
+          <Label>科目タグ <span className="text-xs text-muted-foreground font-normal">（任意・複数選択可）</span></Label>
           <div className="flex flex-wrap gap-3">
             {subjects.map((s) => (
               <label key={s.id} className="flex items-center gap-1.5 cursor-pointer">
@@ -161,7 +162,7 @@ export default function EditGradeForm({
       )}
 
       <div className="space-y-2">
-        <Label htmlFor="comment">コメント</Label>
+        <Label htmlFor="comment">コメント <span className="text-xs text-muted-foreground font-normal">（任意）</span></Label>
         <textarea
           id="comment"
           name="comment"
