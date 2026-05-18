@@ -141,7 +141,7 @@ function ExamEventForm({ students, defaultDate }: { students: Student[]; default
   }
 
   return (
-    <div className="rounded-lg border border-red-200 bg-red-50/30 p-3 space-y-3 mt-2">
+    <div className="rounded-lg border border-red-200 bg-red-50/30 p-3 space-y-3">
       <h3 className="font-medium text-sm">テストを追加</h3>
       <form action={action} className="space-y-3">
         {state.error && (
@@ -222,11 +222,12 @@ function DayDetail({
 }) {
   return (
     <div className="rounded-lg border bg-white p-4 space-y-3">
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <h2 className="font-semibold text-sm">{dateStr}</h2>
+      <div className="flex items-start justify-between gap-2 flex-wrap">
+        <h2 className="font-semibold text-sm mt-0.5 shrink-0">{dateStr}</h2>
         {isTeacher && (
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap justify-end">
             <LessonForm students={students} defaultDate={dayKey} />
+            <ExamEventForm students={students} defaultDate={dayKey} />
           </div>
         )}
       </div>
@@ -328,8 +329,6 @@ function DayDetail({
           ))}
         </div>
       )}
-
-      {isTeacher && <ExamEventForm students={students} defaultDate={dayKey} />}
 
       {lessons.length === 0 && deadlines.length === 0 && examEvents.length === 0 && (
         <p className="text-sm text-muted-foreground">この日のイベントはありません</p>
