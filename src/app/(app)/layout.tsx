@@ -6,10 +6,18 @@ import Sidebar from "@/components/layout/sidebar"
 import Header from "@/components/layout/header"
 import BottomNav from "@/components/layout/bottom-nav"
 import { SearchParamsToast } from "@/components/success-toast"
+import { TermsAgreementModal } from "@/components/terms-agreement-modal"
+import { db } from "@/lib/db"
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const session = await auth()
   if (!session) redirect("/login")
+
+  const user = await db.user.findUnique({
+    where: { id: session.user.id },
+    select: { agreedToTermsAt: true },
+  })
+  const needsAgreement = !user?.agreedToTermsAt
 
   return (
     <>
@@ -29,6 +37,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       </div>
       <BottomNav role={session.user.role} />
       <Toaster richColors position="top-center" />
+      <TermsAgreementModal show={needsAgreement} />
     </>
   )
 }

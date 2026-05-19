@@ -47,8 +47,9 @@ model User {
   name       String
   role       Role
   password   String
-  lineUserId String?  @unique
-  createdAt  DateTime @default(now())
+  lineUserId      String?   @unique
+  agreedToTermsAt DateTime?
+  createdAt       DateTime  @default(now())
 
   // teacher relations
   students            Student[]           @relation("TeacherStudents")
