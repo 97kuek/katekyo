@@ -48,6 +48,19 @@ assigned ─► submitted ─► approved
 - **オンライン授業は交通費を強制的に 0 に設定**（server action 側で `effectiveTravelExpense = type === "online" ? 0 : travelExpense`）
 - 生徒は自分の授業のみ閲覧可（作成・削除不可）
 
+### 授業完了フロー
+
+1. 先生がカレンダーで授業日より前の、未完了授業に「完了」ボタンを押す
+2. `completeLesson` Server Action が `completedAt` に現在時刻をセット
+3. `completedAt != null` の授業のみ請求管理に反映される
+4. 未完了授業がある場合、ダッシュボードとカレンダーに促しバナーを表示
+
+カレンダー表示:
+
+- 未完了（過去）: 青背景 + 「完了」ボタン表示
+- 完了済み: 緑背景 + 「✓ 完了」バッジ
+- 未来の授業: 青背景、完了ボタンなし
+
 ## 請求管理（Billing）
 
 ```typescript
@@ -61,9 +74,11 @@ function calcFee(durationMin, hourlyRate, travelExpense) {
 }
 ```
 
+- **`completedAt != null` の授業のみ集計対象**（未完了授業は除外）
 - 月別ナビ（URL `?year=YYYY&month=MM`）
-- 月の合計：授業回数・合計時間・合計金額
+- 月の合計：完了授業回数・合計時間・合計金額
 - 生徒別に授業一覧と費用内訳を表示
+- 未完了授業がある月はオレンジ色の警告バナーを表示
 
 ## 成績（GradeRecord）管理
 
@@ -130,12 +145,24 @@ function calcFee(durationMin, hourlyRate, travelExpense) {
 
 ## 自動クリーンアップ（Vercel Cron）
 
-- スケジュール: 毎日 18:00 UTC（03:00 JST）
-- エンドポイント: `GET /api/cron/cleanup-homework`
-- 認証: `Authorization: Bearer CRON_SECRET`
-- 設定ファイル: `vercel.json`
+認証: すべてのCronエンドポイントで `Authorization: Bearer CRON_SECRET` が必須。
+設定ファイル: `vercel.json`
 
-クリーンアップ対象:
+| エンドポイント | スケジュール | 内容 |
+| --- | --- | --- |
+| `GET /api/cron/cleanup-homework` | 毎日 18:00 UTC（03:00 JST） | 古い宿題・招待トークンを削除 |
+| `GET /api/cron/line-daily` | 毎日 23:00 UTC（08:00 JST翌日） | LINE 日次通知送信 |
+| `GET /api/cron/line-monthly` | 毎月1日 00:00 UTC | LINE 月次通知送信 |
+| `GET /api/cron/annual-cleanup` | 毎年4月1日 00:00 UTC（09:00 JST） | 前年度以前のデータを全削除 |
+
+### cleanup-homework の対象
+
 1. `status = "approved"` かつ `dueDate` から7日以上経過した宿題
 2. 未使用かつ `expiresAt` から7日以上経過した招待トークン
 3. 使用済みかつ `usedAt` から30日以上経過した招待トークン
+
+### annual-cleanup の対象
+
+- カットオフ: 実行年の前年4月1日（例: 2026年4月1日実行 → 2025年4月1日より前を削除）
+- 削除対象モデル: `Lesson`（date）/ `GradeRecord`（date）/ `Homework`（dueDate）/ `ExamEvent`（date）
+- 日本の学校年度（4月〜3月）に合わせて1年分のデータを保持する

@@ -38,7 +38,10 @@ src/
 │   └── date-utils.ts         # relativeDeadline / deadlineColorClass
 └── api/
     └── cron/
-        └── cleanup-homework/  # Vercel Cron エンドポイント
+        ├── cleanup-homework/  # 宿題・招待トークン削除（毎日）
+        ├── line-daily/        # LINE 日次通知
+        ├── line-monthly/      # LINE 月次通知
+        └── annual-cleanup/    # 前年度データ削除（毎年4月1日）
 prisma/
 └── schema.prisma
 ```
@@ -56,7 +59,7 @@ prisma/
 
 | ページ | パス | 主要コンポーネント・特記事項 |
 | --- | --- | --- |
-| ダッシュボード | `/dashboard` | Suspense 並列ロード。TeacherSummaryCards / PendingHomeworksSection / TeacherUpcomingSection / HomeworkStatusSection / GradeTrendsSection |
+| ダッシュボード | `/dashboard` | Suspense 並列ロード。UncompletedLessonsSection / TeacherSummaryCards / PendingHomeworksSection / TeacherUpcomingSection / HomeworkStatusSection / GradeTrendsSection |
 | 生徒一覧 | `/students` | モバイル=カード、デスクトップ=テーブル。progressMap/gardenMap/problemMap |
 | 宿題管理 | `/homework` | BulkApproveSection（submitted を一括承認）。モバイル=カード、デスクトップ=テーブル |
 | 宿題作成 | `/homework/new` | CreateHomeworkForm。テンプレートピッカー（title/description を useState 制御） |

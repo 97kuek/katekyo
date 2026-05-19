@@ -78,12 +78,13 @@ Lesson {
   teacherId     String
   studentId     String
   date          DateTime
-  type          String   # "online" | "offline"
-  durationMin   Int?     # 所要時間（分）
-  notes         String?  # 事前メモ
-  lessonLog     String?  # 授業後のログ（何を教えたか）
-  hourlyRate    Int?     # 時給（円）
-  travelExpense Int?     # 交通費（円）。online の場合は 0 に強制
+  type          String    # "online" | "offline"
+  durationMin   Int?      # 所要時間（分）
+  notes         String?   # 事前メモ
+  lessonLog     String?   # 授業後のログ（何を教えたか）
+  hourlyRate    Int?      # 時給（円）
+  travelExpense Int?      # 交通費（円）。online の場合は 0 に強制
+  completedAt   DateTime? # 完了確定日時。null = 未完了（請求対象外）
   createdAt     DateTime
 }
 ```

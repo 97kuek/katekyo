@@ -36,6 +36,7 @@ if (session.user.role !== "teacher") return { error: "権限がありません" 
 | `calendar/actions.ts` | `createLesson` | 授業作成。hourlyRate/travelExpense/lessonLog を含む |
 | `calendar/actions.ts` | `updateLesson` | 授業更新。online の場合 travelExpense を 0 に強制 |
 | `calendar/actions.ts` | `deleteLesson` | 授業削除（先生のみ） |
+| `calendar/actions.ts` | `completeLesson` | 授業完了確定。`completedAt` に現在時刻をセット（先生のみ・未完了のみ） |
 
 ### テスト予定（ExamEvent）
 
@@ -85,7 +86,10 @@ if (session.user.role !== "teacher") return { error: "権限がありません" 
 | パス | メソッド | 概要 |
 | --- | --- | --- |
 | `/api/auth/[...nextauth]` | GET/POST | NextAuth ハンドラ |
-| `/api/cron/cleanup-homework` | GET | Vercel Cron（`Authorization: Bearer CRON_SECRET` で認証） |
+| `/api/cron/cleanup-homework` | GET | Vercel Cron: 古い宿題・招待トークン削除（毎日 18:00 UTC） |
+| `/api/cron/line-daily` | GET | Vercel Cron: LINE 日次通知（毎日 23:00 UTC） |
+| `/api/cron/line-monthly` | GET | Vercel Cron: LINE 月次通知（毎月1日 00:00 UTC） |
+| `/api/cron/annual-cleanup` | GET | Vercel Cron: 前年度以前のデータ全削除（毎年4月1日 00:00 UTC） |
 
 ## Supabase Storage
 
