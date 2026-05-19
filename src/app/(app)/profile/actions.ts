@@ -18,6 +18,7 @@ export async function updateName(
   if (name.length > 50) return { error: "名前は50文字以内で入力してください" }
 
   await db.user.update({ where: { id: session.user.id }, data: { name } })
+  revalidatePath("/settings")
   revalidatePath("/profile")
   return { error: "", success: "名前を更新しました" }
 }

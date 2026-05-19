@@ -2,15 +2,13 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { BookOpen, GraduationCap, LayoutDashboard, Tag, ClipboardList, BarChart2, CalendarDays, HelpCircle, UserCircle, TreePine, Receipt, Images, FileText, Settings } from "lucide-react"
+import { BookOpen, GraduationCap, LayoutDashboard, Tag, ClipboardList, BarChart2, CalendarDays, HelpCircle, TreePine, Receipt, Settings } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const teacherNav = [
   { href: "/dashboard", label: "ダッシュボード", icon: LayoutDashboard },
   { href: "/students", label: "生徒一覧", icon: GraduationCap },
   { href: "/homework", label: "宿題管理", icon: ClipboardList },
-  { href: "/homework/photos", label: "提出写真", icon: Images },
-  { href: "/homework/templates", label: "宿題テンプレート", icon: FileText },
   { href: "/grades", label: "成績管理", icon: BarChart2 },
   { href: "/calendar", label: "カレンダー", icon: CalendarDays },
   { href: "/billing", label: "請求管理", icon: Receipt },
@@ -60,7 +58,6 @@ export default function Sidebar({ role }: { role: string }) {
       <div className="p-2 lg:p-3 border-t border-green-800/60 space-y-0.5">
         {[
           { href: "/settings", label: "設定", icon: Settings },
-          { href: "/profile", label: "プロフィール", icon: UserCircle },
           { href: "/help", label: "使い方ガイド", icon: HelpCircle },
         ].map(({ href, label, icon: Icon }) => (
           <Link key={href} href={href} title={label} className={navLinkClass(pathname === href)}>
