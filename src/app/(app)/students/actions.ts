@@ -71,11 +71,14 @@ export async function updateStudentRates(
   })
   if (!student) return { error: "生徒が見つかりません", success: false }
 
+  const defaultSubjectIds = formData.getAll("defaultSubjectIds") as string[]
+
   await db.student.update({
     where: { id: studentId },
     data: {
       defaultHourlyRate: defaultHourlyRate ?? null,
       defaultTravelExpense: defaultTravelExpense ?? null,
+      defaultSubjectIds,
     },
   })
 

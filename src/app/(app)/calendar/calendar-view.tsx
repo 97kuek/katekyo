@@ -5,7 +5,7 @@ import Link from "next/link"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { LessonForm } from "./lesson-form"
 import { LessonEditForm } from "./lesson-edit-form"
-import { deleteLesson, createExamEvent, deleteExamEvent, completeLesson, uncompleteLesson } from "./actions"
+import { deleteLesson, createExamEvent, deleteExamEvent, completeLesson, uncompleteLesson, createHomeworkFromCalendar } from "./actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -62,20 +62,47 @@ type Lesson = {
   student: { user: { name: string } }
 }
 
-function CompleteLessonButton({ lessonId }: { lessonId: string }) {
+function CompleteLessonLogForm({ lessonId, onClose }: { lessonId: string; onClose: () => void }) {
+  const [log, setLog] = useState("")
   const [isPending, startTransition] = useTransition()
+
+  function submit(withLog: boolean) {
+    startTransition(async () => {
+      const fd = new FormData()
+      fd.append("lessonId", lessonId)
+      if (withLog && log.trim()) fd.append("lessonLog", log.trim())
+      await completeLesson(fd)
+      onClose()
+    })
+  }
+
   return (
-    <button
-      onClick={() => startTransition(async () => {
-        const fd = new FormData()
-        fd.append("lessonId", lessonId)
-        await completeLesson(fd)
-      })}
-      disabled={isPending}
-      className="text-xs font-medium text-green-600 hover:text-green-800 border border-green-200 rounded px-1.5 py-0.5 disabled:opacity-50"
-    >
-      {isPending ? "..." : "完了"}
-    </button>
+    <div className="mt-2 pt-2 border-t border-green-100 space-y-2">
+      <p className="text-xs font-medium text-green-700">授業ログを残す（任意）</p>
+      <textarea
+        value={log}
+        onChange={(e) => setLog(e.target.value)}
+        placeholder="今日の授業メモ..."
+        rows={2}
+        autoFocus
+        className="w-full text-xs rounded border border-input bg-background px-2 py-1.5 resize-none focus:outline-none focus:ring-1 focus:ring-ring"
+      />
+      <div className="flex gap-2">
+        <button
+          onClick={() => submit(true)}
+          disabled={isPending}
+          className="text-xs font-medium text-white bg-green-600 hover:bg-green-700 rounded px-2.5 py-1 disabled:opacity-50"
+        >
+          {isPending ? "..." : "完了にする"}
+        </button>
+        <button onClick={() => submit(false)} disabled={isPending} className="text-xs text-gray-500 hover:text-gray-700 disabled:opacity-50">
+          スキップ
+        </button>
+        <button onClick={onClose} className="text-xs text-gray-400 hover:text-gray-600 ml-auto">
+          キャンセル
+        </button>
+      </div>
+    </div>
   )
 }
 
@@ -130,7 +157,7 @@ type ExamEvent = {
   studentName?: string
 }
 
-type Student = { id: string; grade: string; user: { name: string }; defaultHourlyRate?: number | null; defaultTravelExpense?: number | null }
+type Student = { id: string; grade: string; user: { name: string }; defaultHourlyRate?: number | null; defaultTravelExpense?: number | null; defaultSubjectIds?: string[] | null }
 
 type Props = {
   lessons: Lesson[]
@@ -178,6 +205,72 @@ function DeleteExamEventButton({ examEventId }: { examEventId: string }) {
     <button onClick={() => setConfirming(true)} className="text-xs text-red-400 hover:text-red-600 shrink-0">
       削除
     </button>
+  )
+}
+
+function HomeworkForm({ students, defaultDate }: { students: Student[]; defaultDate: string }) {
+  const [state, action, isPending] = useActionState(createHomeworkFromCalendar, { error: "" })
+  const [open, setOpen] = useState(false)
+
+  useEffect(() => {
+    if (!state.timestamp) return
+    setOpen(false)
+    toast.success("宿題を追加しました")
+  }, [state.timestamp])
+
+  if (!open) {
+    return (
+      <Button onClick={() => setOpen(true)} size="sm" variant="outline" className="text-orange-600 border-orange-200 hover:bg-orange-50">
+        宿題を追加
+      </Button>
+    )
+  }
+
+  return (
+    <div className="rounded-lg border border-orange-200 bg-orange-50/30 p-3 space-y-3">
+      <h3 className="font-medium text-sm">宿題を追加</h3>
+      <form action={action} className="space-y-3">
+        {state.error && <p className="text-xs text-red-600 bg-red-50 p-2 rounded">{state.error}</p>}
+        <div className="space-y-2">
+          <div className="space-y-1">
+            <Label className="text-xs">生徒</Label>
+            {students.length === 1 ? (
+              <>
+                <input type="hidden" name="studentId" value={students[0].id} />
+                <p className="text-sm py-1.5 px-3 rounded-md border bg-gray-50">{students[0].user.name}（{students[0].grade}）</p>
+              </>
+            ) : (
+              <select
+                name="studentId"
+                required
+                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <option value="">選択してください</option>
+                {students.map((s) => (
+                  <option key={s.id} value={s.id}>{s.user.name}（{s.grade}）</option>
+                ))}
+              </select>
+            )}
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs">タイトル</Label>
+            <Input name="title" placeholder="例: 数学 p.30-35" required className="h-9 text-sm" />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs">期限</Label>
+            <Input name="dueDate" type="date" required defaultValue={defaultDate} className="h-9 text-sm" />
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <Button type="submit" size="sm" disabled={isPending} className="bg-orange-500 hover:bg-orange-600">
+            {isPending ? "追加中..." : "追加"}
+          </Button>
+          <Button type="button" variant="outline" size="sm" onClick={() => setOpen(false)}>
+            キャンセル
+          </Button>
+        </div>
+      </form>
+    </div>
   )
 }
 
@@ -281,6 +374,8 @@ function DayDetail({
   editingLessonId: string | null
   setEditingLessonId: (id: string | null) => void
 }) {
+  const [completingLessonId, setCompletingLessonId] = useState<string | null>(null)
+
   return (
     <div className="rounded-lg border bg-white p-4 space-y-3">
       <div className="flex items-start justify-between gap-2 flex-wrap">
@@ -288,6 +383,7 @@ function DayDetail({
         {isTeacher && (
           <div className="flex gap-2 flex-wrap justify-end">
             <LessonForm students={students} defaultDate={dayKey} subjects={subjects} />
+            <HomeworkForm students={students} defaultDate={dayKey} />
             <ExamEventForm students={students} defaultDate={dayKey} />
           </div>
         )}
@@ -346,10 +442,21 @@ function DayDetail({
                   </div>
                   {isTeacher && (
                     <div className="flex items-center gap-2 shrink-0">
-                      {isPast && !l.completedAt && <CompleteLessonButton lessonId={l.id} />}
+                      {isPast && !l.completedAt && (
+                        completingLessonId === l.id ? (
+                          <button onClick={() => setCompletingLessonId(null)} className="text-xs text-gray-400 hover:text-gray-600">キャンセル</button>
+                        ) : (
+                          <button
+                            onClick={() => { setCompletingLessonId(l.id); setEditingLessonId(null) }}
+                            className="text-xs font-medium text-green-600 hover:text-green-800 border border-green-200 rounded px-1.5 py-0.5"
+                          >
+                            完了
+                          </button>
+                        )
+                      )}
                       {l.completedAt && <UncompleteLessonButton lessonId={l.id} />}
                       <button
-                        onClick={() => setEditingLessonId(editingLessonId === l.id ? null : l.id)}
+                        onClick={() => { setEditingLessonId(editingLessonId === l.id ? null : l.id); setCompletingLessonId(null) }}
                         className="text-xs text-blue-500 hover:text-blue-700"
                       >
                         {editingLessonId === l.id ? "閉じる" : "編集"}
@@ -358,6 +465,9 @@ function DayDetail({
                     </div>
                   )}
                 </div>
+                {isTeacher && completingLessonId === l.id && (
+                  <CompleteLessonLogForm lessonId={l.id} onClose={() => setCompletingLessonId(null)} />
+                )}
                 {isTeacher && editingLessonId === l.id && (
                   <LessonEditForm lesson={l} onClose={() => setEditingLessonId(null)} subjects={subjects} />
                 )}

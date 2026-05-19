@@ -15,6 +15,7 @@ type Student = {
   user: { name: string }
   defaultHourlyRate?: number | null
   defaultTravelExpense?: number | null
+  defaultSubjectIds?: string[] | null
 }
 
 type Subject = { id: string; name: string }
@@ -26,16 +27,17 @@ export function LessonForm({ students, defaultDate, subjects }: { students: Stud
   const [hourlyRate, setHourlyRate] = useState("")
   const [travelExpense, setTravelExpense] = useState("")
   const [lessonType, setLessonType] = useState<"online" | "offline">("online")
+  const [selectedSubjectIds, setSelectedSubjectIds] = useState<string[]>([])
 
   useEffect(() => {
     const saved = localStorage.getItem(DURATION_KEY)
     if (saved) setDefaultDuration(saved)
 
-    // 生徒が1人だけなら、その生徒のデフォルト料金で初期化
     if (students.length === 1) {
       const s = students[0]
       setHourlyRate(s.defaultHourlyRate != null ? String(s.defaultHourlyRate) : "")
       setTravelExpense(s.defaultTravelExpense != null ? String(s.defaultTravelExpense) : "")
+      setSelectedSubjectIds(s.defaultSubjectIds ?? [])
     }
   }, [students])
 
@@ -50,6 +52,7 @@ export function LessonForm({ students, defaultDate, subjects }: { students: Stud
     if (!student) return
     if (student.defaultHourlyRate != null) setHourlyRate(String(student.defaultHourlyRate))
     if (student.defaultTravelExpense != null) setTravelExpense(String(student.defaultTravelExpense))
+    setSelectedSubjectIds(student.defaultSubjectIds ?? [])
   }
 
   function handleDurationChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -178,7 +181,18 @@ export function LessonForm({ students, defaultDate, subjects }: { students: Stud
               <div className="flex flex-wrap gap-x-3 gap-y-1.5 pt-0.5">
                 {subjects.map((s) => (
                   <label key={s.id} className="flex items-center gap-1.5 text-sm cursor-pointer">
-                    <input type="checkbox" name="subjectIds" value={s.id} className="accent-primary" />
+                    <input
+                      type="checkbox"
+                      name="subjectIds"
+                      value={s.id}
+                      checked={selectedSubjectIds.includes(s.id)}
+                      onChange={(e) =>
+                        setSelectedSubjectIds((ids) =>
+                          e.target.checked ? [...ids, s.id] : ids.filter((id) => id !== s.id)
+                        )
+                      }
+                      className="accent-primary"
+                    />
                     {s.name}
                   </label>
                 ))}

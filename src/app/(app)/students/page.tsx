@@ -25,7 +25,7 @@ export default async function StudentsPage({
     sort === "grade" ? { grade: "asc" as const } :
     { createdAt: "desc" as const }
 
-  const [students, homeworkStats] = await Promise.all([
+  const [students, homeworkStats, subjects] = await Promise.all([
     db.student.findMany({
       where: { teacherId: session.user.id },
       include: { user: { select: { name: true, email: true } } },
@@ -35,6 +35,10 @@ export default async function StudentsPage({
       by: ["studentId", "status"],
       where: { teacherId: session.user.id },
       _count: { status: true },
+    }),
+    db.subject.findMany({
+      where: { teacherId: session.user.id },
+      orderBy: { name: "asc" },
     }),
   ])
 
@@ -135,6 +139,8 @@ export default async function StudentsPage({
                     studentId={s.id}
                     defaultHourlyRate={s.defaultHourlyRate}
                     defaultTravelExpense={s.defaultTravelExpense}
+                    defaultSubjectIds={s.defaultSubjectIds}
+                    subjects={subjects.map((sub) => ({ id: sub.id, name: sub.name }))}
                   />
                   {pct != null && (
                     <div className="space-y-1">
@@ -206,6 +212,8 @@ export default async function StudentsPage({
                             studentId={s.id}
                             defaultHourlyRate={s.defaultHourlyRate}
                             defaultTravelExpense={s.defaultTravelExpense}
+                            defaultSubjectIds={s.defaultSubjectIds}
+                            subjects={subjects.map((sub) => ({ id: sub.id, name: sub.name }))}
                           />
                         </div>
                       </td>

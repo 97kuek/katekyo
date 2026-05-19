@@ -7,9 +7,11 @@ type Props = {
   studentId: string
   defaultHourlyRate: number | null
   defaultTravelExpense: number | null
+  defaultSubjectIds: string[]
+  subjects: { id: string; name: string }[]
 }
 
-export function UpdateStudentRatesForm({ studentId, defaultHourlyRate, defaultTravelExpense }: Props) {
+export function UpdateStudentRatesForm({ studentId, defaultHourlyRate, defaultTravelExpense, defaultSubjectIds, subjects }: Props) {
   const [open, setOpen] = useState(false)
   const [state, action, isPending] = useActionState(updateStudentRates, { error: "", success: false })
 
@@ -61,6 +63,22 @@ export function UpdateStudentRatesForm({ studentId, defaultHourlyRate, defaultTr
         defaultValue={defaultTravelExpense ?? ""}
         className="h-7 w-24 rounded border border-input bg-background px-2 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
       />
+      {subjects.length > 0 && (
+        <div className="w-full flex flex-wrap gap-x-3 gap-y-1">
+          {subjects.map((s) => (
+            <label key={s.id} className="flex items-center gap-1 text-xs cursor-pointer">
+              <input
+                type="checkbox"
+                name="defaultSubjectIds"
+                value={s.id}
+                defaultChecked={defaultSubjectIds.includes(s.id)}
+                className="accent-primary"
+              />
+              {s.name}
+            </label>
+          ))}
+        </div>
+      )}
       <button type="submit" disabled={isPending} className="text-xs text-primary hover:underline disabled:opacity-50">
         保存
       </button>

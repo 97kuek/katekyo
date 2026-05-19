@@ -144,10 +144,11 @@ export async function completeLesson(formData: FormData) {
 
   const lessonId = formData.get("lessonId") as string
   if (!lessonId) return
+  const lessonLog = (formData.get("lessonLog") as string) || null
 
   await db.lesson.updateMany({
     where: { id: lessonId, teacherId: session.user.id, completedAt: null },
-    data: { completedAt: new Date() },
+    data: { completedAt: new Date(), ...(lessonLog ? { lessonLog } : {}) },
   })
   revalidatePath("/calendar")
   revalidatePath("/dashboard")
@@ -222,4 +223,43 @@ export async function deleteExamEvent(formData: FormData) {
   await db.examEvent.deleteMany({ where: { id: examEventId, teacherId: session.user.id } })
   revalidatePath("/calendar")
   revalidatePath("/dashboard")
+}
+
+const calendarHomeworkSchema = z.object({
+  studentId: z.string().min(1, "生徒を選択してください"),
+  title: z.string().min(1, "タイトルを入力してください"),
+  dueDate: z.string().min(1, "期限を設定してください"),
+})
+
+export async function createHomeworkFromCalendar(
+  _prevState: { error: string; timestamp?: number },
+  formData: FormData
+): Promise<{ error: string; timestamp?: number }> {
+  const session = await auth()
+  if (!session || session.user.role !== "teacher") return { error: "権限がありません" }
+
+  const result = calendarHomeworkSchema.safeParse({
+    studentId: formData.get("studentId"),
+    title: formData.get("title"),
+    dueDate: formData.get("dueDate"),
+  })
+  if (!result.success) return { error: result.error.issues[0].message }
+
+  const { studentId, title, dueDate } = result.data
+  const student = await db.student.findFirst({ where: { id: studentId, teacherId: session.user.id } })
+  if (!student) return { error: "生徒が見つかりません" }
+
+  await db.homework.create({
+    data: {
+      teacherId: session.user.id,
+      studentId,
+      title,
+      dueDate: new Date(`${dueDate}T00:00:00+09:00`),
+      subjectIds: [],
+    },
+  })
+
+  revalidatePath("/calendar")
+  revalidatePath("/homework")
+  return { error: "", timestamp: Date.now() }
 }

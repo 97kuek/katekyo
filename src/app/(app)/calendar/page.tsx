@@ -65,6 +65,7 @@ export default async function CalendarPage() {
             user: s.user,
             defaultHourlyRate: s.defaultHourlyRate,
             defaultTravelExpense: s.defaultTravelExpense,
+            defaultSubjectIds: s.defaultSubjectIds,
           }))}
           subjects={subjects.map((s) => ({ id: s.id, name: s.name }))}
           isTeacher={true}
