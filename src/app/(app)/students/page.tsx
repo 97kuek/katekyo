@@ -5,6 +5,7 @@ import Link from "next/link"
 import { buttonVariants } from "@/components/ui/button"
 import { DeleteStudentButton } from "./delete-student-button"
 import { UpdateGradeForm } from "./update-grade-form"
+import { UpdateStudentRatesForm } from "./update-student-rates-form"
 import { StudentSort } from "./student-sort"
 import { ResetPasswordButton } from "./reset-password-button"
 
@@ -130,6 +131,11 @@ export default async function StudentsPage({
                     </div>
                     <UpdateGradeForm studentId={s.id} currentGrade={s.grade} />
                   </div>
+                  <UpdateStudentRatesForm
+                    studentId={s.id}
+                    defaultHourlyRate={s.defaultHourlyRate}
+                    defaultTravelExpense={s.defaultTravelExpense}
+                  />
                   {pct != null && (
                     <div className="space-y-1">
                       <div className="flex items-center justify-between text-xs text-muted-foreground">
@@ -196,6 +202,11 @@ export default async function StudentsPage({
                         <div className="space-y-1">
                           <span className="text-sm">{s.grade}</span>
                           <UpdateGradeForm studentId={s.id} currentGrade={s.grade} />
+                          <UpdateStudentRatesForm
+                            studentId={s.id}
+                            defaultHourlyRate={s.defaultHourlyRate}
+                            defaultTravelExpense={s.defaultTravelExpense}
+                          />
                         </div>
                       </td>
                       <td className="px-4 py-3">

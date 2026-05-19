@@ -57,6 +57,16 @@ export function LineSettings({ isLinked }: { isLinked: boolean }) {
                 katekyoのLINE公式アカウントを友だち追加
               </a>
             </p>
+            <div className="flex justify-center">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="https://qr-official.line.me/gs/M_176cvrwc_GW.png?oat_content=qr"
+                alt="LINE QRコード"
+                width={160}
+                height={160}
+                className="rounded-lg border"
+              />
+            </div>
             <p className="text-sm">
               <span className="font-medium">STEP 2.</span>{" "}
               LINEのトーク画面に下のコードを送信してください（10分間有効）

@@ -26,7 +26,10 @@
       "PowerShell(git add \"src/app/\\(app\\)/students/[id]/garden/page.tsx\" \"src/app/\\(app\\)/students/page.tsx\" \"src/app/\\(app\\)/dashboard/page.tsx\")",
       "Bash(npm install *)",
       "Bash(npm ls *)",
-      "Bash(git stash *)"
+      "Bash(git stash *)",
+      "Bash(not exist *)",
+      "Bash(node scripts/create-richmenu-images.mjs)",
+      "Bash(node scripts/setup-line-richmenu.mjs)"
     ]
   }
 }

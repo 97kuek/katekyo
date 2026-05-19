@@ -43,6 +43,46 @@ export async function resetStudentPassword(
   return { error: "", success: true }
 }
 
+const ratesSchema = z.object({
+  studentId: z.string().min(1),
+  defaultHourlyRate: z.coerce.number().int().min(0).optional(),
+  defaultTravelExpense: z.coerce.number().int().min(0).optional(),
+})
+
+export async function updateStudentRates(
+  _prevState: { error: string; success: boolean },
+  formData: FormData
+): Promise<{ error: string; success: boolean }> {
+  const session = await auth()
+  if (!session || session.user.role !== "teacher") return { error: "権限がありません", success: false }
+
+  const raw = {
+    studentId: formData.get("studentId"),
+    defaultHourlyRate: formData.get("defaultHourlyRate") || undefined,
+    defaultTravelExpense: formData.get("defaultTravelExpense") || undefined,
+  }
+  const result = ratesSchema.safeParse(raw)
+  if (!result.success) return { error: result.error.issues[0].message, success: false }
+
+  const { studentId, defaultHourlyRate, defaultTravelExpense } = result.data
+
+  const student = await db.student.findFirst({
+    where: { id: studentId, teacherId: session.user.id },
+  })
+  if (!student) return { error: "生徒が見つかりません", success: false }
+
+  await db.student.update({
+    where: { id: studentId },
+    data: {
+      defaultHourlyRate: defaultHourlyRate ?? null,
+      defaultTravelExpense: defaultTravelExpense ?? null,
+    },
+  })
+
+  revalidatePath("/students")
+  return { error: "", success: true }
+}
+
 export async function deleteStudent(formData: FormData) {
   const session = await auth()
   if (!session || session.user.role !== "teacher") redirect("/dashboard")

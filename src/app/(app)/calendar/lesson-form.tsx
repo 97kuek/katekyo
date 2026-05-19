@@ -8,27 +8,34 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
 const DURATION_KEY = "lesson_default_duration"
-const HOURLY_RATE_KEY = "lesson_default_hourly_rate"
-const TRAVEL_EXPENSE_KEY = "lesson_default_travel_expense"
 
-type Student = { id: string; grade: string; user: { name: string } }
+type Student = {
+  id: string
+  grade: string
+  user: { name: string }
+  defaultHourlyRate?: number | null
+  defaultTravelExpense?: number | null
+}
 
 export function LessonForm({ students, defaultDate }: { students: Student[]; defaultDate: string }) {
   const [state, action, isPending] = useActionState(createLesson, { error: "" })
   const [open, setOpen] = useState(false)
   const [defaultDuration, setDefaultDuration] = useState("60")
-  const [defaultHourlyRate, setDefaultHourlyRate] = useState("")
-  const [defaultTravelExpense, setDefaultTravelExpense] = useState("")
+  const [hourlyRate, setHourlyRate] = useState("")
+  const [travelExpense, setTravelExpense] = useState("")
   const [lessonType, setLessonType] = useState<"online" | "offline">("online")
 
   useEffect(() => {
     const saved = localStorage.getItem(DURATION_KEY)
     if (saved) setDefaultDuration(saved)
-    const rate = localStorage.getItem(HOURLY_RATE_KEY)
-    if (rate) setDefaultHourlyRate(rate)
-    const travel = localStorage.getItem(TRAVEL_EXPENSE_KEY)
-    if (travel) setDefaultTravelExpense(travel)
-  }, [])
+
+    // 生徒が1人だけなら、その生徒のデフォルト料金で初期化
+    if (students.length === 1) {
+      const s = students[0]
+      setHourlyRate(s.defaultHourlyRate != null ? String(s.defaultHourlyRate) : "")
+      setTravelExpense(s.defaultTravelExpense != null ? String(s.defaultTravelExpense) : "")
+    }
+  }, [students])
 
   useEffect(() => {
     if (!state.timestamp) return
@@ -36,16 +43,15 @@ export function LessonForm({ students, defaultDate }: { students: Student[]; def
     toast.success("授業を追加しました")
   }, [state.timestamp])
 
+  function handleStudentChange(e: React.ChangeEvent<HTMLSelectElement>) {
+    const student = students.find((s) => s.id === e.target.value)
+    if (!student) return
+    if (student.defaultHourlyRate != null) setHourlyRate(String(student.defaultHourlyRate))
+    if (student.defaultTravelExpense != null) setTravelExpense(String(student.defaultTravelExpense))
+  }
+
   function handleDurationChange(e: React.ChangeEvent<HTMLInputElement>) {
     localStorage.setItem(DURATION_KEY, e.target.value)
-  }
-  function handleHourlyRateChange(e: React.ChangeEvent<HTMLInputElement>) {
-    localStorage.setItem(HOURLY_RATE_KEY, e.target.value)
-    setDefaultHourlyRate(e.target.value)
-  }
-  function handleTravelExpenseChange(e: React.ChangeEvent<HTMLInputElement>) {
-    localStorage.setItem(TRAVEL_EXPENSE_KEY, e.target.value)
-    setDefaultTravelExpense(e.target.value)
   }
 
   if (!open) {
@@ -76,6 +82,7 @@ export function LessonForm({ students, defaultDate }: { students: Student[]; def
                 id="studentId"
                 name="studentId"
                 required
+                onChange={handleStudentChange}
                 className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <option value="">選択してください</option>
@@ -138,17 +145,30 @@ export function LessonForm({ students, defaultDate }: { students: Student[]; def
           </div>
           <div className="space-y-1">
             <Label htmlFor="hourlyRate" className="text-xs">時給（円・任意）</Label>
-            <Input id="hourlyRate" name="hourlyRate" type="number" min="0" placeholder="3000"
-              value={defaultHourlyRate} onChange={handleHourlyRateChange} className="h-9 text-sm" />
+            <Input
+              id="hourlyRate"
+              name="hourlyRate"
+              type="number"
+              min="0"
+              placeholder="3000"
+              value={hourlyRate}
+              onChange={(e) => setHourlyRate(e.target.value)}
+              className="h-9 text-sm"
+            />
           </div>
           <div className="space-y-1">
             <Label htmlFor="travelExpense" className="text-xs">交通費（円・任意）</Label>
-            <Input id="travelExpense" name="travelExpense" type="number" min="0"
+            <Input
+              id="travelExpense"
+              name="travelExpense"
+              type="number"
+              min="0"
               placeholder={lessonType === "online" ? "0（自動）" : "500"}
               disabled={lessonType === "online"}
-              value={lessonType === "online" ? "" : defaultTravelExpense}
-              onChange={handleTravelExpenseChange}
-              className="h-9 text-sm disabled:bg-gray-50 disabled:text-muted-foreground" />
+              value={lessonType === "online" ? "" : travelExpense}
+              onChange={(e) => setTravelExpense(e.target.value)}
+              className="h-9 text-sm disabled:bg-gray-50 disabled:text-muted-foreground"
+            />
           </div>
           <div className="col-span-2 space-y-1">
             <Label htmlFor="notes" className="text-xs">メモ（任意）</Label>

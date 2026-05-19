@@ -72,7 +72,7 @@ type ExamEvent = {
   studentName?: string
 }
 
-type Student = { id: string; grade: string; user: { name: string } }
+type Student = { id: string; grade: string; user: { name: string }; defaultHourlyRate?: number | null; defaultTravelExpense?: number | null }
 
 type Props = {
   lessons: Lesson[]

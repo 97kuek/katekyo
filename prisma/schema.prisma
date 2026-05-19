@@ -80,12 +80,14 @@ model LineLinkToken {
 }
 
 model Student {
-  id               String   @id @default(uuid())
-  userId           String   @unique
-  teacherId        String
-  grade            String
-  gardenGeneration Int      @default(1)
-  createdAt        DateTime @default(now())
+  id                   String   @id @default(uuid())
+  userId               String   @unique
+  teacherId            String
+  grade                String
+  gardenGeneration     Int      @default(1)
+  defaultHourlyRate    Int?
+  defaultTravelExpense Int?
+  createdAt            DateTime @default(now())
 
   user       User              @relation("StudentUser", fields: [userId], references: [id], onDelete: Cascade)
   teacher    User              @relation("TeacherStudents", fields: [teacherId], references: [id])

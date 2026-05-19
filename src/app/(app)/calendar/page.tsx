@@ -55,7 +55,13 @@ export default async function CalendarPage() {
             testType: e.testType,
             studentName: e.student.user.name,
           }))}
-          students={students.map((s) => ({ id: s.id, grade: s.grade, user: s.user }))}
+          students={students.map((s) => ({
+            id: s.id,
+            grade: s.grade,
+            user: s.user,
+            defaultHourlyRate: s.defaultHourlyRate,
+            defaultTravelExpense: s.defaultTravelExpense,
+          }))}
           isTeacher={true}
         />
       </div>
