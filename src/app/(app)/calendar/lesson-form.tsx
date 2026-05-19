@@ -17,7 +17,9 @@ type Student = {
   defaultTravelExpense?: number | null
 }
 
-export function LessonForm({ students, defaultDate }: { students: Student[]; defaultDate: string }) {
+type Subject = { id: string; name: string }
+
+export function LessonForm({ students, defaultDate, subjects }: { students: Student[]; defaultDate: string; subjects: Subject[] }) {
   const [state, action, isPending] = useActionState(createLesson, { error: "" })
   const [open, setOpen] = useState(false)
   const [defaultDuration, setDefaultDuration] = useState("60")
@@ -170,6 +172,19 @@ export function LessonForm({ students, defaultDate }: { students: Student[]; def
               className="h-9 text-sm disabled:bg-gray-50 disabled:text-muted-foreground"
             />
           </div>
+          {subjects.length > 0 && (
+            <div className="col-span-2 space-y-1">
+              <Label className="text-xs">科目（任意）</Label>
+              <div className="flex flex-wrap gap-x-3 gap-y-1.5 pt-0.5">
+                {subjects.map((s) => (
+                  <label key={s.id} className="flex items-center gap-1.5 text-sm cursor-pointer">
+                    <input type="checkbox" name="subjectIds" value={s.id} className="accent-primary" />
+                    {s.name}
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
           <div className="col-span-2 space-y-1">
             <Label htmlFor="notes" className="text-xs">メモ（任意）</Label>
             <Input id="notes" name="notes" placeholder="事前メモ" className="h-9 text-sm" />

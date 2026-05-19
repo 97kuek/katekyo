@@ -14,7 +14,7 @@ export default async function CalendarPage() {
   const monthEnd = new Date(now.getFullYear(), now.getMonth() + 2, 0)
 
   if (isTeacher) {
-    const [lessons, homeworks, students, examEvents] = await Promise.all([
+    const [lessons, homeworks, students, examEvents, subjects] = await Promise.all([
       db.lesson.findMany({
         where: { teacherId: session.user.id, date: { gte: monthStart, lte: monthEnd } },
         include: { student: { include: { user: { select: { name: true } } } } },
@@ -34,6 +34,10 @@ export default async function CalendarPage() {
         where: { teacherId: session.user.id, date: { gte: monthStart, lte: monthEnd } },
         include: { student: { include: { user: { select: { name: true } } } } },
         orderBy: { date: "asc" },
+      }),
+      db.subject.findMany({
+        where: { teacherId: session.user.id },
+        orderBy: { name: "asc" },
       }),
     ])
 
@@ -62,6 +66,7 @@ export default async function CalendarPage() {
             defaultHourlyRate: s.defaultHourlyRate,
             defaultTravelExpense: s.defaultTravelExpense,
           }))}
+          subjects={subjects.map((s) => ({ id: s.id, name: s.name }))}
           isTeacher={true}
         />
       </div>
@@ -106,6 +111,7 @@ export default async function CalendarPage() {
           testType: e.testType,
         }))}
         students={[]}
+        subjects={[]}
         isTeacher={false}
       />
     </div>

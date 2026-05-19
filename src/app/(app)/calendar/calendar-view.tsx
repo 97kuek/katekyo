@@ -45,6 +45,8 @@ function DeleteLessonButton({ lessonId }: { lessonId: string }) {
   )
 }
 
+type Subject = { id: string; name: string }
+
 type Lesson = {
   id: string
   date: Date
@@ -52,6 +54,8 @@ type Lesson = {
   durationMin: number | null
   notes: string | null
   lessonLog: string | null
+  lessonLogPublic: boolean
+  subjectIds: string[]
   hourlyRate: number | null
   travelExpense: number | null
   completedAt: Date | null
@@ -133,6 +137,7 @@ type Props = {
   deadlines: HomeworkDeadline[]
   examEvents: ExamEvent[]
   students: Student[]
+  subjects: Subject[]
   isTeacher: boolean
 }
 
@@ -261,6 +266,7 @@ function DayDetail({
   examEvents,
   isTeacher,
   students,
+  subjects,
   editingLessonId,
   setEditingLessonId,
 }: {
@@ -271,6 +277,7 @@ function DayDetail({
   examEvents: ExamEvent[]
   isTeacher: boolean
   students: Student[]
+  subjects: Subject[]
   editingLessonId: string | null
   setEditingLessonId: (id: string | null) => void
 }) {
@@ -280,7 +287,7 @@ function DayDetail({
         <h2 className="font-semibold text-sm mt-0.5 shrink-0">{dateStr}</h2>
         {isTeacher && (
           <div className="flex gap-2 flex-wrap justify-end">
-            <LessonForm students={students} defaultDate={dayKey} />
+            <LessonForm students={students} defaultDate={dayKey} subjects={subjects} />
             <ExamEventForm students={students} defaultDate={dayKey} />
           </div>
         )}
@@ -311,10 +318,22 @@ function DayDetail({
                     <p className="text-xs text-muted-foreground mt-0.5">
                       {l.date.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })}〜
                     </p>
+                    {l.subjectIds.length > 0 && (
+                      <div className="flex gap-1 flex-wrap mt-1">
+                        {l.subjectIds.map((sid) => {
+                          const sub = subjects.find((s) => s.id === sid)
+                          return sub ? (
+                            <span key={sid} className="text-xs bg-indigo-50 text-indigo-600 rounded px-1.5 py-0.5">{sub.name}</span>
+                          ) : null
+                        })}
+                      </div>
+                    )}
                     {l.notes && <p className="text-xs text-gray-500 mt-1">📝 {l.notes}</p>}
-                    {l.lessonLog && (
+                    {(isTeacher ? l.lessonLog : (l.lessonLogPublic ? l.lessonLog : null)) && (
                       <div className="mt-1.5 bg-amber-50 rounded p-2">
-                        <p className="text-xs font-medium text-amber-700 mb-0.5">授業ログ</p>
+                        <p className="text-xs font-medium text-amber-700 mb-0.5">
+                          授業ログ{isTeacher && l.lessonLogPublic && <span className="ml-1 text-green-600">（生徒に公開中）</span>}
+                        </p>
                         <p className="text-xs text-amber-900 whitespace-pre-wrap">{l.lessonLog}</p>
                       </div>
                     )}
@@ -340,7 +359,7 @@ function DayDetail({
                   )}
                 </div>
                 {isTeacher && editingLessonId === l.id && (
-                  <LessonEditForm lesson={l} onClose={() => setEditingLessonId(null)} />
+                  <LessonEditForm lesson={l} onClose={() => setEditingLessonId(null)} subjects={subjects} />
                 )}
               </div>
             )
@@ -431,7 +450,7 @@ function NextLessonBanner({ lessons, isTeacher }: { lessons: Lesson[]; isTeacher
   )
 }
 
-export default function CalendarView({ lessons, deadlines, examEvents, students, isTeacher }: Props) {
+export default function CalendarView({ lessons, deadlines, examEvents, students, subjects, isTeacher }: Props) {
   const today = new Date()
   const [year, setYear] = useState(today.getFullYear())
   const [month, setMonth] = useState(today.getMonth())
@@ -606,6 +625,7 @@ export default function CalendarView({ lessons, deadlines, examEvents, students,
               examEvents={selectedExamEvents}
               isTeacher={isTeacher}
               students={students}
+              subjects={subjects}
               editingLessonId={editingLessonId}
               setEditingLessonId={setEditingLessonId}
             />
@@ -673,6 +693,7 @@ export default function CalendarView({ lessons, deadlines, examEvents, students,
               examEvents={selectedExamEvents}
               isTeacher={isTeacher}
               students={students}
+              subjects={subjects}
               editingLessonId={editingLessonId}
               setEditingLessonId={setEditingLessonId}
             />

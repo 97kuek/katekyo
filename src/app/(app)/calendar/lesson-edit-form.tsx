@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
+type Subject = { id: string; name: string }
+
 type Lesson = {
   id: string
   date: Date
@@ -14,6 +16,8 @@ type Lesson = {
   durationMin: number | null
   notes: string | null
   lessonLog: string | null
+  lessonLogPublic: boolean
+  subjectIds: string[]
   hourlyRate: number | null
   travelExpense: number | null
 }
@@ -28,7 +32,7 @@ function toTimeStr(d: Date) {
   return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`
 }
 
-export function LessonEditForm({ lesson, onClose }: { lesson: Lesson; onClose: () => void }) {
+export function LessonEditForm({ lesson, onClose, subjects }: { lesson: Lesson; onClose: () => void; subjects: Subject[] }) {
   const [state, action, isPending] = useActionState(updateLesson, { error: "" })
   const [lessonType, setLessonType] = useState<"online" | "offline">(lesson.type)
 
@@ -87,6 +91,25 @@ export function LessonEditForm({ lesson, onClose }: { lesson: Lesson; onClose: (
           <Label className="text-xs">メモ</Label>
           <Input name="notes" defaultValue={lesson.notes ?? ""} className="h-8 text-xs" />
         </div>
+        {subjects.length > 0 && (
+          <div className="col-span-2 space-y-1">
+            <Label className="text-xs">科目</Label>
+            <div className="flex flex-wrap gap-x-3 gap-y-1.5 pt-0.5">
+              {subjects.map((s) => (
+                <label key={s.id} className="flex items-center gap-1.5 text-xs cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="subjectIds"
+                    value={s.id}
+                    defaultChecked={lesson.subjectIds.includes(s.id)}
+                    className="accent-primary"
+                  />
+                  {s.name}
+                </label>
+              ))}
+            </div>
+          </div>
+        )}
         <div className="col-span-2 space-y-1">
           <Label className="text-xs">授業ログ（実施内容・次回目標）</Label>
           <textarea
@@ -96,6 +119,15 @@ export function LessonEditForm({ lesson, onClose }: { lesson: Lesson; onClose: (
             placeholder="今日の内容、宿題、次回の目標など"
             className="flex w-full rounded-md border border-input bg-background px-2.5 py-1.5 text-xs ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
           />
+          <label className="flex items-center gap-1.5 text-xs cursor-pointer text-muted-foreground">
+            <input
+              type="checkbox"
+              name="lessonLogPublic"
+              defaultChecked={lesson.lessonLogPublic}
+              className="accent-primary"
+            />
+            生徒に公開する
+          </label>
         </div>
       </div>
       <div className="flex gap-2">

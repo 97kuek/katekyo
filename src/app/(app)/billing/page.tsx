@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { db } from "@/lib/db"
+import { markAsPaid, markAsUnpaid } from "./actions"
 
 function pad(n: number) { return String(n).padStart(2, "0") }
 
@@ -26,17 +27,23 @@ export default async function BillingPage({
   const monthStart = new Date(year, month, 1)
   const monthEnd = new Date(year, month + 1, 0, 23, 59, 59)
 
-  const lessons = await db.lesson.findMany({
+  const [lessons, payments] = await Promise.all([db.lesson.findMany({
     where: {
       teacherId: session.user.id,
       date: { gte: monthStart, lte: monthEnd },
     },
     include: { student: { include: { user: { select: { name: true } } } } },
     orderBy: { date: "asc" },
-  })
+  }),
+  db.monthlyPayment.findMany({
+    where: { teacherId: session.user.id, year, month: month + 1 },
+  }),
+  ])
 
   const completedLessons = lessons.filter((l) => l.completedAt != null)
   const unconfirmedCount = lessons.filter((l) => l.completedAt == null && l.date < now).length
+
+  const paidStudentIds = new Set(payments.map((p) => p.studentId))
 
   // Group by student (completed only)
   const studentMap = new Map<string, { name: string; lessons: typeof lessons }>()
@@ -119,21 +126,38 @@ export default async function BillingPage({
           </div>
 
           {/* Per-student breakdown */}
-          {Array.from(studentMap.entries()).map(([, { name, lessons: sLessons }]) => {
+          {Array.from(studentMap.entries()).map(([sid, { name, lessons: sLessons }]) => {
             const studentTotal = sLessons.reduce((sum, l) => {
               const fee = calcFee(l.durationMin, l.hourlyRate, l.travelExpense)
               return fee != null ? sum + fee : sum
             }, 0)
             const studentMin = sLessons.reduce((sum, l) => sum + (l.durationMin ?? 0), 0)
             const hasStudentFee = sLessons.some((l) => l.hourlyRate != null)
+            const isPaid = paidStudentIds.has(sid)
 
             return (
               <div key={name} className="rounded-lg border bg-white overflow-hidden">
                 <div className="flex items-center justify-between px-5 py-3 border-b bg-gray-50">
-                  <p className="font-medium text-sm">{name}</p>
-                  <div className="text-sm text-right">
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium text-sm">{name}</p>
+                    {isPaid && (
+                      <span className="text-xs bg-green-100 text-green-700 font-medium rounded-full px-2 py-0.5">入金済み</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3 text-sm text-right">
                     <span className="text-muted-foreground">{sLessons.length}回 · {Math.floor(studentMin / 60)}h{studentMin % 60 > 0 ? `${studentMin % 60}m` : ""}</span>
-                    {hasStudentFee && <span className="ml-3 font-semibold">¥{studentTotal.toLocaleString()}</span>}
+                    {hasStudentFee && <span className="font-semibold">¥{studentTotal.toLocaleString()}</span>}
+                    <form action={isPaid ? markAsUnpaid : markAsPaid}>
+                      <input type="hidden" name="studentId" value={sid} />
+                      <input type="hidden" name="year" value={year} />
+                      <input type="hidden" name="month" value={month + 1} />
+                      <button
+                        type="submit"
+                        className={`text-xs rounded px-2 py-1 border transition-colors ${isPaid ? "border-green-300 text-green-700 hover:bg-green-50" : "border-gray-300 text-gray-500 hover:bg-gray-50"}`}
+                      >
+                        {isPaid ? "✓ 入金済み" : "入金確認"}
+                      </button>
+                    </form>
                   </div>
                 </div>
                 <div className="divide-y">

@@ -76,55 +76,5 @@ export async function GET(req: NextRequest) {
     await sendLineMessage(teacher.lineUserId, lines.join("\n"))
   }
 
-  // --- 生徒向けレポート ---
-  const students = await db.student.findMany({
-    where: { user: { lineUserId: { not: null } } },
-    include: {
-      user: { select: { lineUserId: true, name: true } },
-    },
-  })
-
-  for (const student of students) {
-    const lineUserId = student.user.lineUserId!
-
-    const [approved, totalHomework, testCount, newGardenItems] = await Promise.all([
-      db.homework.count({
-        where: {
-          studentId: student.id,
-          status: "approved",
-          reviewedAt: { gte: prevMonth, lte: prevMonthEnd },
-        },
-      }),
-      db.homework.count({
-        where: {
-          studentId: student.id,
-          createdAt: { gte: prevMonth, lte: prevMonthEnd },
-        },
-      }),
-      db.gradeRecord.count({
-        where: {
-          studentId: student.id,
-          date: { gte: prevMonth, lte: prevMonthEnd },
-        },
-      }),
-      db.gardenItem.count({
-        where: {
-          studentId: student.id,
-          createdAt: { gte: prevMonth, lte: prevMonthEnd },
-        },
-      }),
-    ])
-
-    const lines: string[] = [
-      `📖 ${monthLabel}の学習まとめ`,
-      `\n宿題: ${approved}件承認 / ${totalHomework}件`,
-    ]
-    if (testCount > 0) lines.push(`テスト: ${testCount}回`)
-    if (newGardenItems > 0) lines.push(`森: +${newGardenItems}本育ちました 🌲`)
-    lines.push("\n引き続きがんばりましょう！")
-
-    await sendLineMessage(lineUserId, lines.join("\n"))
-  }
-
   return NextResponse.json({ ok: true })
 }

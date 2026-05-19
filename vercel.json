@@ -6,7 +6,7 @@
     },
     {
       "path": "/api/cron/line-daily",
-      "schedule": "0 23 * * *"
+      "schedule": "0 23 * * 0"
     },
     {
       "path": "/api/cron/line-monthly",

@@ -61,6 +61,7 @@ model User {
   materialsGiven      StudentMaterial[]   @relation("TeacherMaterials")
   examEventsGiven     ExamEvent[]         @relation("TeacherExamEvents")
   homeworkTemplates   HomeworkTemplate[]  @relation("TeacherTemplates")
+  monthlyPayments     MonthlyPayment[]    @relation("TeacherPayments")
 
   // student relation
   studentProfile Student?  @relation("StudentUser")
@@ -92,12 +93,13 @@ model Student {
 
   user       User              @relation("StudentUser", fields: [userId], references: [id], onDelete: Cascade)
   teacher    User              @relation("TeacherStudents", fields: [teacherId], references: [id])
-  homeworks    Homework[]
-  grades       GradeRecord[]
-  lessons      Lesson[]
-  materials    StudentMaterial[]
-  examEvents   ExamEvent[]
-  gardenItems  GardenItem[]
+  homeworks       Homework[]
+  grades          GradeRecord[]
+  lessons         Lesson[]
+  materials       StudentMaterial[]
+  examEvents      ExamEvent[]
+  gardenItems     GardenItem[]
+  monthlyPayments MonthlyPayment[]
 
   @@index([teacherId])
 }
@@ -187,18 +189,20 @@ model GradeRecord {
 }
 
 model Lesson {
-  id            String     @id @default(uuid())
-  teacherId     String
-  studentId     String
-  date          DateTime
-  durationMin   Int?
-  type          LessonType @default(online)
-  notes         String?
-  lessonLog     String?
-  hourlyRate    Int?
-  travelExpense Int?
-  completedAt   DateTime?
-  createdAt     DateTime   @default(now())
+  id              String     @id @default(uuid())
+  teacherId       String
+  studentId       String
+  date            DateTime
+  durationMin     Int?
+  type            LessonType @default(online)
+  notes           String?
+  lessonLog       String?
+  lessonLogPublic Boolean    @default(false)
+  subjectIds      String[]   @default([])
+  hourlyRate      Int?
+  travelExpense   Int?
+  completedAt     DateTime?
+  createdAt       DateTime   @default(now())
 
   teacher User    @relation("TeacherLessons", fields: [teacherId], references: [id], onDelete: Cascade)
   student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
@@ -264,5 +268,21 @@ model HomeworkTemplate {
 
   teacher User @relation("TeacherTemplates", fields: [teacherId], references: [id], onDelete: Cascade)
 
+  @@index([teacherId])
+}
+
+model MonthlyPayment {
+  id        String   @id @default(uuid())
+  teacherId String
+  studentId String
+  year      Int
+  month     Int
+  paidAt    DateTime @default(now())
+  createdAt DateTime @default(now())
+
+  teacher User    @relation("TeacherPayments", fields: [teacherId], references: [id], onDelete: Cascade)
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([teacherId, studentId, year, month])
   @@index([teacherId])
 }

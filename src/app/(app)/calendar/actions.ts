@@ -52,6 +52,7 @@ export async function createLesson(
   })
 
   const effectiveTravelExpense = type === "online" ? 0 : (travelExpense ?? null)
+  const subjectIds = formData.getAll("subjectIds") as string[]
   await db.lesson.createMany({
     data: dates.map((dateTime) => ({
       teacherId: session.user.id,
@@ -60,6 +61,7 @@ export async function createLesson(
       type,
       durationMin: durationMin ? parseInt(durationMin) : null,
       notes: notes || null,
+      subjectIds,
       hourlyRate: hourlyRate ?? null,
       travelExpense: effectiveTravelExpense,
     })),
@@ -103,6 +105,8 @@ export async function updateLesson(
 
   const { lessonId, date, time, type, durationMin, notes, lessonLog, hourlyRate, travelExpense } = result.data
   const effectiveTravelExpense = type === "online" ? 0 : (travelExpense ?? null)
+  const lessonLogPublic = formData.get("lessonLogPublic") === "on"
+  const subjectIds = formData.getAll("subjectIds") as string[]
 
   await db.lesson.updateMany({
     where: { id: lessonId, teacherId: session.user.id },
@@ -112,6 +116,8 @@ export async function updateLesson(
       durationMin: durationMin ? parseInt(durationMin) : null,
       notes: notes || null,
       lessonLog: lessonLog || null,
+      lessonLogPublic,
+      subjectIds,
       hourlyRate: hourlyRate ?? null,
       travelExpense: effectiveTravelExpense,
     },
