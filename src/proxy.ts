@@ -11,7 +11,9 @@ export default auth((req) => {
   const isPublicPath =
     pathname.startsWith("/login") ||
     pathname.startsWith("/register") ||
-    pathname.startsWith("/invite")
+    pathname.startsWith("/invite") ||
+    pathname.startsWith("/terms") ||
+    pathname.startsWith("/privacy")
 
   if (!isLoggedIn && !isPublicPath) {
     return NextResponse.redirect(new URL("/login", req.url))
