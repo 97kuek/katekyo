@@ -7,6 +7,7 @@ import { z } from "zod"
 import { uploadHomeworkPhoto } from "@/lib/supabase-storage"
 import { plantGardenItem } from "@/lib/garden"
 import type { GardenItemType } from "@/lib/garden-utils"
+import { sendLineMessage } from "@/lib/line"
 
 const MAX_PHOTO_BYTES = 5 * 1024 * 1024
 
@@ -66,6 +67,17 @@ export async function submitHomework(
     },
   })
 
+  const teacher = await db.user.findUnique({
+    where: { id: homework.teacherId },
+    select: { lineUserId: true },
+  })
+  if (teacher?.lineUserId) {
+    await sendLineMessage(
+      teacher.lineUserId,
+      `📬 宿題が提出されました\n\n${session.user.name}さんが「${homework.title}」を提出しました。\nkatekyoで確認してください。`
+    )
+  }
+
   redirect("/homework?toast=submitted")
 }
 
@@ -105,6 +117,18 @@ export async function reviewHomework(
     where: { id },
     data: { status: action, teacherFeedback: feedback ?? null, reviewedAt: new Date() },
   })
+
+  const studentUser = await db.student.findUnique({
+    where: { id: homework.studentId },
+    include: { user: { select: { lineUserId: true } } },
+  })
+  if (studentUser?.user.lineUserId) {
+    const msg =
+      action === "approved"
+        ? `✅ 宿題が承認されました\n\n「${homework.title}」が承認されました！\n森に植物が1つ育ちました 🌱`
+        : `🔁 宿題が差し戻されました\n\n「${homework.title}」が差し戻されました。\n\nフィードバック：\n${feedback ?? "（なし）"}\n\nkatekyoで確認してください。`
+    await sendLineMessage(studentUser.user.lineUserId, msg)
+  }
 
   if (action === "approved") {
     try {

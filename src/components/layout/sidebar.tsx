@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { BookOpen, GraduationCap, LayoutDashboard, Tag, ClipboardList, BarChart2, CalendarDays, HelpCircle, UserCircle, TreePine, Receipt, Images, FileText } from "lucide-react"
+import { BookOpen, GraduationCap, LayoutDashboard, Tag, ClipboardList, BarChart2, CalendarDays, HelpCircle, UserCircle, TreePine, Receipt, Images, FileText, Settings } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const teacherNav = [
@@ -59,6 +59,7 @@ export default function Sidebar({ role }: { role: string }) {
 
       <div className="p-2 lg:p-3 border-t border-green-800/60 space-y-0.5">
         {[
+          { href: "/settings", label: "設定", icon: Settings },
           { href: "/profile", label: "プロフィール", icon: UserCircle },
           { href: "/help", label: "使い方ガイド", icon: HelpCircle },
         ].map(({ href, label, icon: Icon }) => (

@@ -2,7 +2,7 @@
 
 import { signOut } from "next-auth/react"
 import { Button } from "@/components/ui/button"
-import { BookOpen, LogOut, HelpCircle } from "lucide-react"
+import { BookOpen, LogOut, HelpCircle, Settings } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 
@@ -29,6 +29,7 @@ const PAGE_TITLES: { pattern: (p: string) => boolean; label: string }[] = [
   { pattern: (p) => p === "/materials", label: "教材" },
   { pattern: (p) => p === "/profile", label: "プロフィール" },
   { pattern: (p) => p === "/help", label: "使い方ガイド" },
+  { pattern: (p) => p === "/settings", label: "設定" },
 ]
 
 function getPageTitle(pathname: string): string {
@@ -51,6 +52,9 @@ export default function Header({ name }: { name: string }) {
       </div>
       <span className="text-sm font-medium hidden md:block">{title}</span>
       <div className="flex items-center gap-1">
+        <Link href="/settings" className="inline-flex items-center justify-center rounded-md p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors md:hidden">
+          <Settings className="h-4 w-4" />
+        </Link>
         <Link href="/help" className="inline-flex items-center justify-center rounded-md p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors md:hidden">
           <HelpCircle className="h-4 w-4" />
         </Link>

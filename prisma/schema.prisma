@@ -42,12 +42,13 @@ enum GardenItemType {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  name      String
-  role      Role
-  password  String
-  createdAt DateTime @default(now())
+  id         String   @id @default(uuid())
+  email      String   @unique
+  name       String
+  role       Role
+  password   String
+  lineUserId String?  @unique
+  createdAt  DateTime @default(now())
 
   // teacher relations
   students            Student[]           @relation("TeacherStudents")
@@ -62,6 +63,20 @@ model User {
 
   // student relation
   studentProfile Student?  @relation("StudentUser")
+
+  lineLinkToken  LineLinkToken?
+}
+
+model LineLinkToken {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
 }
 
 model Student {
