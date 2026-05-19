@@ -28,6 +28,10 @@ export default async function DashboardPage() {
 function TeacherDashboard({ teacherId }: { teacherId: string }) {
   return (
     <div className="space-y-6">
+      <Suspense fallback={null}>
+        <UncompletedLessonsSection teacherId={teacherId} />
+      </Suspense>
+
       {/* 承認待ちを最上部に */}
       <Suspense fallback={null}>
         <PendingHomeworksSection teacherId={teacherId} />
@@ -84,6 +88,29 @@ async function TeacherSummaryCards({ teacherId }: { teacherId: string }) {
       <SummaryCard title="期限切れ" value={String(overdueCount)} danger={overdueCount > 0} href="/homework" />
       <SummaryCard title="登録生徒数" value={String(studentCount)} href="/students" />
       <SummaryCard title="今月の成績" value={String(gradeCount)} href="/grades" />
+    </div>
+  )
+}
+
+async function UncompletedLessonsSection({ teacherId }: { teacherId: string }) {
+  const now = new Date()
+  const count = await db.lesson.count({
+    where: { teacherId, date: { lt: now }, completedAt: null },
+  })
+  if (count === 0) return null
+
+  return (
+    <div className="rounded-lg border border-orange-200 bg-orange-50 px-4 py-3 flex items-center justify-between gap-3">
+      <div className="flex items-center gap-3">
+        <div className="h-8 w-8 rounded-full bg-orange-100 flex items-center justify-center shrink-0 text-base">📋</div>
+        <div>
+          <p className="text-sm font-semibold text-orange-900">{count}件の授業が完了確認待ちです</p>
+          <p className="text-xs text-orange-700 mt-0.5">カレンダーから授業を完了にしてください</p>
+        </div>
+      </div>
+      <Link href="/calendar" className={buttonVariants({ variant: "outline", size: "sm", className: "shrink-0 border-orange-300 text-orange-800 hover:bg-orange-100" })}>
+        カレンダーへ
+      </Link>
     </div>
   )
 }

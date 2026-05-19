@@ -132,6 +132,22 @@ export async function deleteLesson(formData: FormData) {
   revalidatePath("/calendar")
 }
 
+export async function completeLesson(formData: FormData) {
+  const session = await auth()
+  if (!session || session.user.role !== "teacher") redirect("/dashboard")
+
+  const lessonId = formData.get("lessonId") as string
+  if (!lessonId) return
+
+  await db.lesson.updateMany({
+    where: { id: lessonId, teacherId: session.user.id, completedAt: null },
+    data: { completedAt: new Date() },
+  })
+  revalidatePath("/calendar")
+  revalidatePath("/dashboard")
+  revalidatePath("/billing")
+}
+
 const examEventSchema = z.object({
   studentId: z.string().min(1, "生徒を選択してください"),
   date: z.string().min(1, "日付を入力してください"),

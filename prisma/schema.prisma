@@ -196,6 +196,7 @@ model Lesson {
   lessonLog     String?
   hourlyRate    Int?
   travelExpense Int?
+  completedAt   DateTime?
   createdAt     DateTime   @default(now())
 
   teacher User    @relation("TeacherLessons", fields: [teacherId], references: [id], onDelete: Cascade)

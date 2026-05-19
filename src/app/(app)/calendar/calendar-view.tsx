@@ -5,7 +5,7 @@ import Link from "next/link"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { LessonForm } from "./lesson-form"
 import { LessonEditForm } from "./lesson-edit-form"
-import { deleteLesson, createExamEvent, deleteExamEvent } from "./actions"
+import { deleteLesson, createExamEvent, deleteExamEvent, completeLesson } from "./actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -54,7 +54,25 @@ type Lesson = {
   lessonLog: string | null
   hourlyRate: number | null
   travelExpense: number | null
+  completedAt: Date | null
   student: { user: { name: string } }
+}
+
+function CompleteLessonButton({ lessonId }: { lessonId: string }) {
+  const [isPending, startTransition] = useTransition()
+  return (
+    <button
+      onClick={() => startTransition(async () => {
+        const fd = new FormData()
+        fd.append("lessonId", lessonId)
+        await completeLesson(fd)
+      })}
+      disabled={isPending}
+      className="text-xs font-medium text-green-600 hover:text-green-800 border border-green-200 rounded px-1.5 py-0.5 disabled:opacity-50"
+    >
+      {isPending ? "..." : "完了"}
+    </button>
+  )
 }
 
 type HomeworkDeadline = {
@@ -235,53 +253,61 @@ function DayDetail({
       {lessons.length > 0 && (
         <div className="space-y-2">
           <p className="text-xs font-medium text-muted-foreground">授業</p>
-          {lessons.map((l) => (
-            <div key={l.id} className="rounded-md bg-blue-50 px-3 py-2">
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-sm font-medium">{l.student.user.name}</span>
-                    <span className={`text-xs rounded-full px-2 py-0.5 ${l.type === "online" ? "bg-green-100 text-green-700" : "bg-purple-100 text-purple-700"}`}>
-                      {l.type === "online" ? "オンライン" : "対面"}
-                    </span>
-                    {l.durationMin && (
-                      <span className="text-xs text-muted-foreground">{l.durationMin}分</span>
+          {lessons.map((l) => {
+            const now = new Date()
+            const isPast = l.date < now
+            return (
+              <div key={l.id} className={`rounded-md px-3 py-2 ${l.completedAt ? "bg-green-50" : "bg-blue-50"}`}>
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-sm font-medium">{l.student.user.name}</span>
+                      <span className={`text-xs rounded-full px-2 py-0.5 ${l.type === "online" ? "bg-green-100 text-green-700" : "bg-purple-100 text-purple-700"}`}>
+                        {l.type === "online" ? "オンライン" : "対面"}
+                      </span>
+                      {l.durationMin && (
+                        <span className="text-xs text-muted-foreground">{l.durationMin}分</span>
+                      )}
+                      {l.completedAt && (
+                        <span className="text-xs text-green-700 font-medium">✓ 完了</span>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {l.date.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })}〜
+                    </p>
+                    {l.notes && <p className="text-xs text-gray-500 mt-1">📝 {l.notes}</p>}
+                    {l.lessonLog && (
+                      <div className="mt-1.5 bg-amber-50 rounded p-2">
+                        <p className="text-xs font-medium text-amber-700 mb-0.5">授業ログ</p>
+                        <p className="text-xs text-amber-900 whitespace-pre-wrap">{l.lessonLog}</p>
+                      </div>
+                    )}
+                    {(l.hourlyRate || l.travelExpense != null) && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {l.hourlyRate && l.durationMin ? `¥${Math.round((l.durationMin / 60) * l.hourlyRate).toLocaleString()}` : l.hourlyRate ? `時給¥${l.hourlyRate.toLocaleString()}` : ""}
+                        {l.travelExpense != null && l.travelExpense > 0 ? ` + 交通費¥${l.travelExpense.toLocaleString()}` : ""}
+                      </p>
                     )}
                   </div>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    {l.date.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })}〜
-                  </p>
-                  {l.notes && <p className="text-xs text-gray-500 mt-1">📝 {l.notes}</p>}
-                  {l.lessonLog && (
-                    <div className="mt-1.5 bg-amber-50 rounded p-2">
-                      <p className="text-xs font-medium text-amber-700 mb-0.5">授業ログ</p>
-                      <p className="text-xs text-amber-900 whitespace-pre-wrap">{l.lessonLog}</p>
+                  {isTeacher && (
+                    <div className="flex items-center gap-2 shrink-0">
+                      {isPast && !l.completedAt && <CompleteLessonButton lessonId={l.id} />}
+                      <button
+                        onClick={() => setEditingLessonId(editingLessonId === l.id ? null : l.id)}
+                        className="text-xs text-blue-500 hover:text-blue-700"
+                      >
+                        {editingLessonId === l.id ? "閉じる" : "編集"}
+                      </button>
+                      <DeleteLessonButton lessonId={l.id} />
                     </div>
                   )}
-                  {(l.hourlyRate || l.travelExpense != null) && (
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {l.hourlyRate && l.durationMin ? `¥${Math.round((l.durationMin / 60) * l.hourlyRate).toLocaleString()}` : l.hourlyRate ? `時給¥${l.hourlyRate.toLocaleString()}` : ""}
-                      {l.travelExpense != null && l.travelExpense > 0 ? ` + 交通費¥${l.travelExpense.toLocaleString()}` : ""}
-                    </p>
-                  )}
                 </div>
-                {isTeacher && (
-                  <div className="flex items-center gap-2 shrink-0">
-                    <button
-                      onClick={() => setEditingLessonId(editingLessonId === l.id ? null : l.id)}
-                      className="text-xs text-blue-500 hover:text-blue-700"
-                    >
-                      {editingLessonId === l.id ? "閉じる" : "編集"}
-                    </button>
-                    <DeleteLessonButton lessonId={l.id} />
-                  </div>
+                {isTeacher && editingLessonId === l.id && (
+                  <LessonEditForm lesson={l} onClose={() => setEditingLessonId(null)} />
                 )}
               </div>
-              {isTeacher && editingLessonId === l.id && (
-                <LessonEditForm lesson={l} onClose={() => setEditingLessonId(null)} />
-              )}
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
 

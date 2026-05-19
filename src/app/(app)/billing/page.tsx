@@ -35,9 +35,12 @@ export default async function BillingPage({
     orderBy: { date: "asc" },
   })
 
-  // Group by student
+  const completedLessons = lessons.filter((l) => l.completedAt != null)
+  const unconfirmedCount = lessons.filter((l) => l.completedAt == null && l.date < now).length
+
+  // Group by student (completed only)
   const studentMap = new Map<string, { name: string; lessons: typeof lessons }>()
-  for (const l of lessons) {
+  for (const l of completedLessons) {
     const sid = l.studentId
     if (!studentMap.has(sid)) {
       studentMap.set(sid, { name: l.student.user.name, lessons: [] })
@@ -50,13 +53,13 @@ export default async function BillingPage({
   const nextYear = month === 11 ? year + 1 : year
   const nextMonth = month === 11 ? 1 : month + 2
 
-  const grandTotal = lessons.reduce((sum, l) => {
+  const grandTotal = completedLessons.reduce((sum, l) => {
     const fee = calcFee(l.durationMin, l.hourlyRate, l.travelExpense)
     return fee != null ? sum + fee : sum
   }, 0)
 
-  const totalMinutes = lessons.reduce((sum, l) => sum + (l.durationMin ?? 0), 0)
-  const hasFeeData = lessons.some((l) => l.hourlyRate != null)
+  const totalMinutes = completedLessons.reduce((sum, l) => sum + (l.durationMin ?? 0), 0)
+  const hasFeeData = completedLessons.some((l) => l.hourlyRate != null)
 
   return (
     <div className="max-w-2xl space-y-6">
@@ -79,17 +82,26 @@ export default async function BillingPage({
         </a>
       </div>
 
-      {lessons.length === 0 ? (
+      {unconfirmedCount > 0 && (
+        <div className="rounded-lg border border-orange-200 bg-orange-50 px-4 py-3 flex items-center justify-between gap-3">
+          <p className="text-sm text-orange-800">
+            <span className="font-semibold">{unconfirmedCount}件</span>の授業が未完了です。カレンダーで完了にすると請求に反映されます。
+          </p>
+          <a href="/calendar" className="text-xs text-orange-700 underline hover:text-orange-900 shrink-0">カレンダーへ</a>
+        </div>
+      )}
+
+      {completedLessons.length === 0 ? (
         <div className="rounded-lg border bg-white p-12 text-center text-muted-foreground text-sm">
-          この月の授業記録はありません
+          {lessons.length > 0 ? "完了済みの授業がありません" : "この月の授業記録はありません"}
         </div>
       ) : (
         <>
           {/* Summary */}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             <div className="rounded-lg border bg-white p-4">
-              <p className="text-xs text-muted-foreground">授業回数</p>
-              <p className="text-2xl font-bold mt-1">{lessons.length}<span className="text-sm font-normal text-muted-foreground ml-1">回</span></p>
+              <p className="text-xs text-muted-foreground">完了授業</p>
+              <p className="text-2xl font-bold mt-1">{completedLessons.length}<span className="text-sm font-normal text-muted-foreground ml-1">回</span></p>
             </div>
             <div className="rounded-lg border bg-white p-4">
               <p className="text-xs text-muted-foreground">合計時間</p>
