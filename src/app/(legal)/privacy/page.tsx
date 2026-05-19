@@ -8,7 +8,7 @@ export default function PrivacyPage() {
   return (
     <article className="prose prose-sm prose-gray max-w-none">
       <h1 className="text-2xl font-bold mb-1">プライバシーポリシー</h1>
-      <p className="text-xs text-gray-400 mb-8">最終更新: 2025年6月1日</p>
+      <p className="text-xs text-gray-400 mb-8">最終更新: 2026年5月19日</p>
 
       <section className="mb-8">
         <h2 className="text-base font-semibold mb-2">収集する情報</h2>
@@ -67,7 +67,7 @@ export default function PrivacyPage() {
       <section className="mb-8">
         <h2 className="text-base font-semibold mb-2">お問い合わせ</h2>
         <p className="text-sm text-gray-700 leading-relaxed">
-          プライバシーに関するお問い合わせは、本サービス管理者までご連絡ください。
+          プライバシーに関するお問い合わせは <a href="mailto:ueki.keitaro@gmail.com" className="text-green-700 underline">ueki.keitaro@gmail.com</a> までご連絡ください。
         </p>
       </section>
     </article>

@@ -210,7 +210,7 @@ function AboutSection() {
         <div className="pt-1 space-y-1 text-xs text-muted-foreground border-t">
           <p>開発者：植木敬太郎</p>
           <p>連絡先：ueki.keitaro@gmail.com</p>
-          <p>バージョン：2025年5月</p>
+          <p>バージョン：2026年5月</p>
           <p>技術スタック：Next.js 16 · Prisma · Supabase · Tailwind CSS</p>
         </div>
       </div>
