@@ -5,7 +5,7 @@ import Link from "next/link"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { LessonForm } from "./lesson-form"
 import { LessonEditForm } from "./lesson-edit-form"
-import { deleteLesson, createExamEvent, deleteExamEvent, completeLesson } from "./actions"
+import { deleteLesson, createExamEvent, deleteExamEvent, completeLesson, uncompleteLesson } from "./actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -71,6 +71,42 @@ function CompleteLessonButton({ lessonId }: { lessonId: string }) {
       className="text-xs font-medium text-green-600 hover:text-green-800 border border-green-200 rounded px-1.5 py-0.5 disabled:opacity-50"
     >
       {isPending ? "..." : "完了"}
+    </button>
+  )
+}
+
+function UncompleteLessonButton({ lessonId }: { lessonId: string }) {
+  const [confirming, setConfirming] = useState(false)
+  const [isPending, startTransition] = useTransition()
+
+  if (confirming) {
+    return (
+      <div className="flex items-center gap-1.5 shrink-0">
+        <span className="text-xs text-gray-600">取り消し?</span>
+        <button
+          onClick={() => startTransition(async () => {
+            const fd = new FormData()
+            fd.append("lessonId", lessonId)
+            await uncompleteLesson(fd)
+          })}
+          disabled={isPending}
+          className="text-xs font-medium text-orange-600 hover:text-orange-800 disabled:opacity-50"
+        >
+          {isPending ? "..." : "はい"}
+        </button>
+        <button onClick={() => setConfirming(false)} className="text-xs text-gray-400 hover:text-gray-600">
+          ✕
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <button
+      onClick={() => setConfirming(true)}
+      className="text-xs text-orange-400 hover:text-orange-600"
+    >
+      取り消し
     </button>
   )
 }
@@ -292,6 +328,7 @@ function DayDetail({
                   {isTeacher && (
                     <div className="flex items-center gap-2 shrink-0">
                       {isPast && !l.completedAt && <CompleteLessonButton lessonId={l.id} />}
+                      {l.completedAt && <UncompleteLessonButton lessonId={l.id} />}
                       <button
                         onClick={() => setEditingLessonId(editingLessonId === l.id ? null : l.id)}
                         className="text-xs text-blue-500 hover:text-blue-700"
