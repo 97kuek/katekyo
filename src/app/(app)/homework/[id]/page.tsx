@@ -89,7 +89,7 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
       )}
 
       <div className="rounded-lg border bg-white p-5 space-y-4">
-        <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div className="space-y-2 sm:flex sm:items-start sm:justify-between sm:gap-4 sm:space-y-0">
           <div>
             <div className="flex items-center gap-2 flex-wrap">
               <h1 className="text-xl font-bold">{homework.title}</h1>
@@ -99,7 +99,7 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
               <p className="text-sm text-muted-foreground mt-1">生徒: {homework.student.user.name}</p>
             )}
           </div>
-          <div className="text-right text-sm shrink-0">
+          <div className="text-sm sm:text-right sm:shrink-0">
             <p className="text-muted-foreground">作成: {homework.createdAt.toLocaleDateString("ja-JP")}</p>
             <p className={`mt-0.5 ${deadlineColorClass(homework.dueDate)}`}>
               期限: {homework.dueDate.toLocaleDateString("ja-JP")}
@@ -183,9 +183,9 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
         </div>
       )}
 
-      <div className="flex gap-3 flex-wrap items-center">
+      <div className="flex flex-col sm:flex-row gap-3">
         {!isTeacher && ["assigned", "rejected"].includes(homework.status) && (
-          <Link href={`/homework/${id}/submit`} className={buttonVariants()}>
+          <Link href={`/homework/${id}/submit`} className={buttonVariants({ className: "justify-center" })}>
             提出する
           </Link>
         )}
@@ -193,7 +193,7 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
           <CancelSubmissionButton homeworkId={id} />
         )}
         {isTeacher && homework.status === "submitted" && (
-          <Link href={`/homework/${id}/review`} className={buttonVariants()}>
+          <Link href={`/homework/${id}/review`} className={buttonVariants({ className: "justify-center" })}>
             確認・承認する
           </Link>
         )}

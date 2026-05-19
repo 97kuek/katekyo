@@ -87,15 +87,15 @@ async function TeacherHomeworkPage({
         <div className="flex gap-2 flex-wrap">
           <Link href="/homework/photos" className={buttonVariants({ variant: "outline", size: "sm", className: "gap-1.5" })}>
             <Images className="h-4 w-4 shrink-0" />
-            <span className="hidden sm:inline">提出写真</span>
+            提出写真
           </Link>
           <Link href="/homework/templates" className={buttonVariants({ variant: "outline", size: "sm", className: "gap-1.5" })}>
             <FileText className="h-4 w-4 shrink-0" />
-            <span className="hidden sm:inline">テンプレート</span>
+            テンプレート
           </Link>
           <Link href="/homework/new" className={buttonVariants({ size: "sm", className: "gap-1.5" })}>
             <Plus className="h-4 w-4 shrink-0" />
-            <span className="hidden sm:inline">宿題を作成</span>
+            宿題を作成
           </Link>
         </div>
       </div>

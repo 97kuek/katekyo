@@ -475,14 +475,17 @@ async function StudentUpcomingSection({ userId }: { userId: string }) {
           </div>
           <div className="space-y-2">
             {upcomingDeadlines.map((h) => (
-              <Link key={h.id} href={`/homework/${h.id}`} className="block rounded-lg border bg-white p-3 hover:bg-gray-50 transition-colors">
-                <div className="flex items-center justify-between gap-2">
+              <div key={h.id} className="rounded-lg border bg-white p-3 flex items-center justify-between gap-3">
+                <div className="min-w-0">
                   <p className="text-sm font-medium truncate">{h.title}</p>
-                  <span className="text-xs text-muted-foreground shrink-0">
-                    {h.dueDate.toLocaleDateString("ja-JP", { month: "short", day: "numeric" })}
-                  </span>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    期限: {h.dueDate.toLocaleDateString("ja-JP", { month: "short", day: "numeric" })}
+                  </p>
                 </div>
-              </Link>
+                <Link href={`/homework/${h.id}/submit`} className={buttonVariants({ size: "sm", className: "shrink-0" })}>
+                  提出する
+                </Link>
+              </div>
             ))}
           </div>
         </section>

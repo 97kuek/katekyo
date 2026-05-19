@@ -57,7 +57,7 @@ export function LineSettings({ isLinked }: { isLinked: boolean }) {
                 katekyoのLINE公式アカウントを友だち追加
               </a>
             </p>
-            <div className="flex flex-col items-center gap-3">
+            <div className="flex justify-center">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="https://qr-official.line.me/gs/M_176cvrwc_GW.png?oat_content=qr"
@@ -66,15 +66,6 @@ export function LineSettings({ isLinked }: { isLinked: boolean }) {
                 height={160}
                 className="rounded-lg border"
               />
-              <a href="https://lin.ee/nflz4R4" target="_blank" rel="noopener noreferrer">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="https://scdn.line-apps.com/n/line_add_friends/btn/ja.png"
-                  alt="友だち追加"
-                  height={36}
-                  className="border-0"
-                />
-              </a>
             </div>
             <p className="text-sm">
               <span className="font-medium">STEP 2.</span>{" "}
