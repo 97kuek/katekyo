@@ -72,9 +72,10 @@ export async function submitHomework(
     select: { lineUserId: true },
   })
   if (teacher?.lineUserId) {
+    const baseUrl = process.env.NEXTAUTH_URL ?? ""
     await sendLineMessage(
       teacher.lineUserId,
-      `📬 宿題が提出されました\n\n${session.user.name}さんが「${homework.title}」を提出しました。\nkatekyoで確認してください。`
+      `📬 宿題が提出されました\n\n${session.user.name}さんが「${homework.title}」を提出しました。\n${baseUrl}/homework/${id}`
     )
   }
 
@@ -123,10 +124,11 @@ export async function reviewHomework(
     include: { user: { select: { lineUserId: true } } },
   })
   if (studentUser?.user.lineUserId) {
+    const baseUrl = process.env.NEXTAUTH_URL ?? ""
     const msg =
       action === "approved"
-        ? `✅ 宿題が承認されました\n\n「${homework.title}」が承認されました！\n森に植物が1つ育ちました 🌱`
-        : `🔁 宿題が差し戻されました\n\n「${homework.title}」が差し戻されました。\n\nフィードバック：\n${feedback ?? "（なし）"}\n\nkatekyoで確認してください。`
+        ? `✅ 宿題が承認されました\n\n「${homework.title}」が承認されました！\n森に植物が1つ育ちました 🌱\n${baseUrl}/homework/${id}`
+        : `🔁 宿題が差し戻されました\n\n「${homework.title}」が差し戻されました。\n\nフィードバック：\n${feedback ?? "（なし）"}\n\n${baseUrl}/homework/${id}`
     await sendLineMessage(studentUser.user.lineUserId, msg)
   }
 

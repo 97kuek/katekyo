@@ -44,6 +44,7 @@ export async function GET(req: NextRequest) {
 
     if (todayDue.length === 0 && overdue.length === 0) continue
 
+    const baseUrl = process.env.NEXTAUTH_URL ?? ""
     const lines: string[] = ["📚 宿題リマインダー"]
 
     if (todayDue.length > 0) {
@@ -58,6 +59,8 @@ export async function GET(req: NextRequest) {
         lines.push(`・${h.title}（${d}が期限でした）`)
       })
     }
+
+    lines.push(`\n${baseUrl}/homework`)
 
     await sendLineMessage(lineUserId, lines.join("\n"))
     sent++
