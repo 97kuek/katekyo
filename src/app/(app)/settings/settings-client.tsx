@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState, useTransition } from "react"
+import { useActionState, useTransition, useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -9,6 +9,16 @@ import { generateLinkToken, unlinkLine, saveMeetLink } from "./actions"
 
 export function MeetLinkSettings({ currentMeetLink }: { currentMeetLink: string | null }) {
   const [state, action, isPending] = useActionState(saveMeetLink, {})
+  const [isEditing, setIsEditing] = useState(!currentMeetLink)
+  const [displayedLink, setDisplayedLink] = useState(currentMeetLink)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (state.success && inputRef.current) {
+      setDisplayedLink(inputRef.current.value || null)
+      setIsEditing(false)
+    }
+  }, [state.success])
 
   return (
     <Card>
@@ -19,26 +29,71 @@ export function MeetLinkSettings({ currentMeetLink }: { currentMeetLink: string 
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <form action={action} className="space-y-3">
-          <div className="space-y-1.5">
-            <Label htmlFor="meetLink">Meet URL（固定リンク）</Label>
-            <Input
-              id="meetLink"
-              name="meetLink"
-              type="url"
-              placeholder="https://meet.google.com/xxx-yyyy-zzz"
-              defaultValue={currentMeetLink ?? ""}
-            />
-            <p className="text-xs text-muted-foreground">
-              Google Meet のパーソナルルーム URL を入力してください
-            </p>
+        {displayedLink && !isEditing ? (
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 text-sm text-green-700 font-medium">
+              <span className="h-2 w-2 rounded-full bg-green-500 inline-block" />
+              登録済み
+            </div>
+            <div className="flex items-center gap-2 rounded-lg border bg-muted px-3 py-2">
+              <span className="flex-1 text-sm truncate text-muted-foreground">{displayedLink}</span>
+              <a
+                href={displayedLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="shrink-0 text-xs text-primary underline font-medium"
+              >
+                開く
+              </a>
+            </div>
+            <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
+              変更する
+            </Button>
           </div>
-          {state.error && <p className="text-sm text-destructive">{state.error}</p>}
-          {state.success && <p className="text-sm text-green-600">保存しました</p>}
-          <Button type="submit" size="sm" disabled={isPending}>
-            {isPending ? "保存中..." : "保存する"}
-          </Button>
-        </form>
+        ) : (
+          <div className="space-y-4">
+            <div className="rounded-lg border bg-muted/50 p-3 space-y-2 text-sm">
+              <p className="font-medium text-xs text-muted-foreground uppercase tracking-wide">Meet リンクの取得方法</p>
+              <ol className="space-y-1.5 text-sm list-decimal list-inside text-muted-foreground">
+                <li>
+                  <a href="https://meet.google.com" target="_blank" rel="noopener noreferrer" className="text-primary underline">
+                    meet.google.com
+                  </a>
+                  {" "}を開く
+                </li>
+                <li>「新しい会議」→「後で開始する会議を作成」をクリック</li>
+                <li>表示された URL をコピーしてここに貼り付ける</li>
+              </ol>
+              <p className="text-xs text-muted-foreground pt-1">
+                ※ このリンクは毎回同じURLを使い回せます
+              </p>
+            </div>
+            <form action={action} className="space-y-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="meetLink">Meet URL</Label>
+                <Input
+                  ref={inputRef}
+                  id="meetLink"
+                  name="meetLink"
+                  type="url"
+                  placeholder="https://meet.google.com/xxx-yyyy-zzz"
+                  defaultValue={displayedLink ?? ""}
+                />
+              </div>
+              {state.error && <p className="text-sm text-destructive">{state.error}</p>}
+              <div className="flex gap-2">
+                <Button type="submit" size="sm" disabled={isPending}>
+                  {isPending ? "保存中..." : "保存する"}
+                </Button>
+                {displayedLink && (
+                  <Button type="button" variant="outline" size="sm" onClick={() => setIsEditing(false)}>
+                    キャンセル
+                  </Button>
+                )}
+              </div>
+            </form>
+          </div>
+        )}
       </CardContent>
     </Card>
   )
