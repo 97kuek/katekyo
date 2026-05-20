@@ -55,6 +55,20 @@ export async function POST(req: NextRequest) {
         await db.lineLinkToken.delete({ where: { id: linkToken.id } })
 
         await sendLineMessage(lineUserId, `${linkToken.user.name}さんのLINE連携が完了しました✅\nこれからkatekyoの通知をお届けします。`)
+
+        if (linkToken.user.role === "student") {
+          const student = await db.student.findUnique({
+            where: { userId: linkToken.userId },
+            include: { teacher: { select: { lineUserId: true } } },
+          })
+          if (student?.teacher.lineUserId) {
+            await sendLineMessage(
+              student.teacher.lineUserId,
+              `📲 ${linkToken.user.name}さんがLINE連携を完了しました\nこれから通知が届くようになります。`
+            )
+          }
+        }
+
         continue
       }
 
