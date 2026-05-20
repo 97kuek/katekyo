@@ -1,95 +1,108 @@
 # katekyo
 
-家庭教師と生徒の間で宿題の進捗・成績・授業スケジュールを管理するWebアプリ。
+> 家庭教師と生徒をつなぐ、学習管理 Web アプリ
 
-## 機能
+宿題の提出・承認から授業スケジュール・成績管理まで、家庭教師業務をまるごとデジタル化。LINE 通知や Google Meet 連携で、授業外のコミュニケーションもスムーズに。
 
-### 先生側
+---
 
-#### 生徒管理
+## こんな課題を解決します
 
-- 7日間有効の招待リンク発行を発行し、生徒のアカウントを作成
-- 作成した生徒の一覧や削除、生徒パスワードリセット
+| よくある悩み | katekyo での解決策 |
+| --- | --- |
+| 宿題の提出状況を LINEで逐一確認している | 生徒が提出・先生が承認をアプリ上で完結。完了時に LINE 通知 |
+| テストの点数をメモや Excel で管理している | 点数・偏差値を入力するだけでグラフが自動生成 |
+| 授業前に Meet リンクを毎回送り忘れる | オンライン授業の 10 分前に生徒の LINE へ自動送信 |
+| 生徒のモチベーションが続かない | 宿題承認・好成績で「学習の森」が育つゲーム要素 |
 
-#### 宿題管理
+---
 
-- 宿題の作成・編集・削除・期限延長
-- 宿題のタイトル検索やソート、提出物の承認/差し戻し/一括承認
+## 主な機能
 
-#### 成績管理
+### 生徒ダッシュボード
 
-- 模試やテストなどの成績記録
-- 種別フィルタ・生徒フィルタ、生徒選択時にグラフ表示、生徒個別成績ページ（グラフ付き）
+今日やるべきことが一目でわかる。期限切れ宿題・直近テスト・次の授業をまとめて表示。
 
-#### 授業カレンダー
+![ダッシュボード](assets/home.jpg)
 
-- 授業の登録・編集・削除に対応
+---
 
-#### 科目タグ管理
+### 宿題管理
 
-- 科目の追加・削除（確認ダイアログ付き）
+先生が宿題を登録 → 生徒が提出（写真添付可）→ 先生が承認 / 差し戻し。ステータスの流れがシンプルで直感的。
 
-#### ダッシュボード
+![宿題](assets/homework.jpg)
 
-- 承認待ち宿題・生徒別進捗・成績動向・直近授業/期限をストリーミング表示
+- 提出時に写真（5MB 以内）を添付できるので、ノートの写真でそのまま提出
+- 承認・差し戻し時に生徒の LINE へ即時通知
+- 複数宿題の一括承認に対応
 
-### 生徒側
+---
 
-#### ホーム画面
+### 学習の森
 
-- 宿題の未完了・期限切れ・承認待ちに関して、ダッシュボードで確認できる
-- 直近のテストや模試の成績・授業予定なども概要を確認できる
+宿題が承認されるたびに、アイソメトリックな森に植物が 1 つ育つ。差し戻しや期限切れで木が枯れ、再提出で回復するシンプルなゲーム要素で継続を後押し。
 
-![ダッシュボード](/assets/home.jpg)
+![学習の森](assets/forest.jpg)
 
-#### 学習の森
+---
 
-- 宿題の提出状況・成績に応じて森が育つというゲーム性を持たせた
-- あくまでも**勉強アプリ**であるためゲーム性はシンプルに
+### 成績管理
 
-![学習の森](/assets/forest.jpg)
+テスト・模試の点数と偏差値を記録。生徒ごとの推移グラフでどれだけ伸びたかが一目でわかる。
 
-#### カレンダー
+![成績推移](assets/grades.jpg)
 
-- 授業・テスト日程の確認や宿題の期限を確認できる（月/週表示、読み取り専用）
+---
 
-![カレンダー](/assets/calendar.jpg)
+### 授業カレンダー
 
-#### 宿題提出
+対面・オンラインの授業を登録・管理。先生・生徒ともに月表示・週表示で確認できる。
 
-- 宿題の提出報告・取り消し、ステータス確認（未着手/提出済/承認/差し戻し）が出来る
+![カレンダー](assets/calendar.jpg)
 
-![宿題](/assets/homework.jpg)
+- オンライン授業の登録で Google Meet 参加ボタンをカードに表示
+- 授業開始 10 分前に生徒の LINE へ Meet リンクを自動送信（[Upstash QStash](https://upstash.com/docs/qstash/overall/getstarted) 使用）
+- 授業完了マークをつけると請求管理に自動反映
 
-#### 成績確認
+---
 
-- 過去のテスト・模試での点数率・偏差値のグラフを参照できる
+### LINE 通知
 
-![成績推移](/assets/grades.jpg)
+設定ページで 6 桁コードを発行 → LINE 公式アカウントに送信するだけで連携完了。以降は以下のイベントで自動通知が届く。
 
-### 共通
+| タイミング | 受信者 |
+| --- | --- |
+| 宿題提出 | 先生 |
+| 宿題承認 / 差し戻し | 生徒 |
+| オンライン授業 10 分前 | 生徒 |
+| 毎週日曜（未提出・期限切れ宿題がある場合） | 生徒 |
+| 毎月 1 日（前月の授業レポート） | 先生 |
 
-#### プロフィール編集
+---
 
-- 名前やパスワードを後から変更できる
+### 請求管理
 
-#### 使い方ガイド
+完了済み授業の時給・交通費から月次の請求額を自動計算。生徒別の内訳と合計を一覧表示し、入金確認もアプリ上で管理できる。
 
-- アプリ内ヘルプページ（先生・生徒別）
-
-#### レスポンシブ対応
-
-- モバイルはカード表示・ボトムナビ、タブレットはアイコンサイドバー、PC はフルサイドバー
+---
 
 ## 技術スタック
 
-- **Next.js 16** (App Router, Turbopack) + TypeScript
-- **Prisma 7** + **Supabase** (PostgreSQL)
-- **NextAuth.js v5** (JWT認証)
-- **shadcn/ui** + Tailwind CSS v4
-- **Recharts** (成績グラフ)
-- **Zod** (バリデーション)
-- **Sonner** (トースト通知)
+| カテゴリ | 採用技術 |
+| --- | --- |
+| フレームワーク | Next.js 16 (App Router) + TypeScript |
+| データベース | Prisma 7 + Supabase (PostgreSQL) |
+| 認証 | NextAuth.js v5 (JWT) |
+| UI | shadcn/ui + Tailwind CSS v4 |
+| グラフ | Recharts |
+| バリデーション | Zod |
+| 通知 | LINE Messaging API |
+| スケジューリング | Upstash QStash |
+| ストレージ | Supabase Storage |
+| デプロイ | Vercel |
+
+---
 
 ## ローカル開発
 
@@ -106,15 +119,15 @@ npm install
 `.env.local` を作成し、以下を設定する：
 
 ```env
-DATABASE_URL="postgresql://..."   # Supabase pooler URL (port 6543, ?pgbouncer=true)
-DIRECT_URL="postgresql://..."     # Supabase direct URL (port 5432, マイグレーション用)
-NEXTAUTH_SECRET="..."             # openssl rand -base64 32 で生成
+DATABASE_URL="postgresql://..."      # Supabase pooler URL (port 6543, ?pgbouncer=true)
+DIRECT_URL="postgresql://..."        # Supabase direct URL (port 5432, マイグレーション用)
+NEXTAUTH_SECRET="..."                # openssl rand -base64 32 で生成
 NEXTAUTH_URL="http://localhost:3000"
 ```
 
-Supabase の接続文字列は Dashboard → Project Settings → Database → Connection string から取得。
+LINE 通知・Meet リマインダーを使う場合は追加で設定が必要。詳細は [docs/development.md](docs/development.md) を参照。
 
-### 3. DBのセットアップ
+### 3. DB のセットアップ
 
 ```bash
 npx prisma migrate dev
@@ -129,37 +142,38 @@ npm run dev
 
 `http://localhost:3000` にアクセス → `/register` で先生アカウントを作成。
 
-## 開発コマンド
+### 開発コマンド
 
 ```bash
-npm run dev          # 開発サーバー起動
-npm run build        # ビルド
-npm run lint         # ESLint
-npx tsc --noEmit     # 型チェック
-npx prisma studio    # DB GUI
-npx prisma migrate dev --name <name>  # マイグレーション作成
-npx prisma generate  # Prisma Client 再生成
+npm run dev                               # 開発サーバー起動
+npm run build && npm run lint             # ビルド + lint
+npx tsc --noEmit                          # 型チェック
+npx prisma studio                         # DB GUI
+npx prisma migrate dev --name <name>      # マイグレーション作成
+npx prisma generate                       # Prisma Client 再生成
 ```
+
+---
 
 ## デプロイ (Vercel)
 
 1. Vercel でプロジェクトを作成し、このリポジトリを接続
 2. Environment Variables に以下を設定：
-   - `DATABASE_URL`: Supabase pooler URL
-   - `DIRECT_URL`: Supabase direct URL（マイグレーション用）
-   - `NEXTAUTH_SECRET`: ランダムな秘密鍵
-   - `NEXTAUTH_URL`: 本番ドメイン（例: `https://katekyo-one.vercel.app`）
+   - `DATABASE_URL` / `DIRECT_URL` — Supabase 接続文字列
+   - `NEXTAUTH_SECRET` — ランダムな秘密鍵
+   - `NEXTAUTH_URL` — 本番ドメイン（例: `https://katekyo-one.vercel.app`）
 3. Deploy
 
-スキーマ変更時は `npx prisma migrate dev` → `git push` でVercelが自動デプロイ。
+スキーマ変更時は `npx prisma migrate dev` → `git push` で Vercel が自動デプロイ。
 
-## Supabase 無料枠について
+---
 
-| 項目               | 制限                         |
-| ------------------ | ---------------------------- |
-| DB容量             | 500MB                        |
-| 転送量             | 5GB / 月                     |
-| 同時プロジェクト数 | 2                            |
-| 非アクティブ停止   | 7日間アクセスなしで自動停止  |
+## ドキュメント
 
-> **注意**: 7日間DBへのアクセスがないとプロジェクトが一時停止されます。停止後は次のアクセス時に約30秒で復旧しますが、定期的に使用することで防止できます。有料プラン（Pro: $25/月）にアップグレードすると停止しなくなります。
+| ファイル | 内容 |
+| --- | --- |
+| [docs/architecture.md](docs/architecture.md) | ディレクトリ構成・ページ一覧・レイアウト |
+| [docs/data-models.md](docs/data-models.md) | Prisma モデル全定義 |
+| [docs/requirements.md](docs/requirements.md) | 機能要件・ビジネスロジック |
+| [docs/api-spec.md](docs/api-spec.md) | Server Actions・Route Handlers 一覧 |
+| [docs/development.md](docs/development.md) | 開発環境セットアップ・トラブルシューティング |
