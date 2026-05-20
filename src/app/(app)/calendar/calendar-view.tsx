@@ -59,6 +59,7 @@ type Lesson = {
   hourlyRate: number | null
   travelExpense: number | null
   completedAt: Date | null
+  meetLink: string | null
   student: { user: { name: string } }
 }
 
@@ -425,6 +426,16 @@ function DayDetail({
                       </div>
                     )}
                     {l.notes && <p className="text-xs text-gray-500 mt-1">📝 {l.notes}</p>}
+                    {l.type === "online" && l.meetLink && (
+                      <a
+                        href={l.meetLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 mt-1.5 text-xs font-medium text-white bg-green-600 hover:bg-green-700 rounded px-2.5 py-1"
+                      >
+                        Meet に参加する →
+                      </a>
+                    )}
                     {(isTeacher ? l.lessonLog : (l.lessonLogPublic ? l.lessonLog : null)) && (
                       <div className="mt-1.5 bg-amber-50 rounded p-2">
                         <p className="text-xs font-medium text-amber-700 mb-0.5">
@@ -543,7 +554,7 @@ function NextLessonBanner({ lessons, isTeacher }: { lessons: Lesson[]; isTeacher
   return (
     <div className="rounded-lg bg-blue-50 border border-blue-200 px-4 py-3 flex items-center gap-3">
       <div className="h-9 w-9 rounded-full bg-blue-100 flex items-center justify-center shrink-0 text-lg">📅</div>
-      <div className="min-w-0">
+      <div className="min-w-0 flex-1">
         <p className="text-sm font-semibold text-blue-900">
           次の授業: <span className="text-blue-600">{when}</span>
           {" — "}
@@ -556,6 +567,16 @@ function NextLessonBanner({ lessons, isTeacher }: { lessons: Lesson[]; isTeacher
           {next.durationMin ? ` · ${next.durationMin}分` : ""}
         </p>
       </div>
+      {next.type === "online" && next.meetLink && (
+        <a
+          href={next.meetLink}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="shrink-0 text-xs font-medium text-white bg-green-600 hover:bg-green-700 rounded px-3 py-1.5"
+        >
+          参加する
+        </a>
+      )}
     </div>
   )
 }

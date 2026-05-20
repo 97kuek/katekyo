@@ -17,7 +17,10 @@ export default async function CalendarPage() {
     const [lessons, homeworks, students, examEvents, subjects] = await Promise.all([
       db.lesson.findMany({
         where: { teacherId: session.user.id, date: { gte: monthStart, lte: monthEnd } },
-        include: { student: { include: { user: { select: { name: true } } } } },
+        include: {
+          student: { include: { user: { select: { name: true } } } },
+          teacher: { select: { meetLink: true } },
+        },
         orderBy: { date: "asc" },
       }),
       db.homework.findMany({
@@ -45,7 +48,7 @@ export default async function CalendarPage() {
       <div className="space-y-6 max-w-4xl">
         <h1 className="text-2xl font-bold">カレンダー</h1>
         <CalendarView
-          lessons={lessons.map((l) => ({ ...l, type: l.type as "online" | "offline" }))}
+          lessons={lessons.map((l) => ({ ...l, type: l.type as "online" | "offline", meetLink: l.teacher.meetLink }))}
           deadlines={homeworks.map((h) => ({
             id: h.id,
             title: h.title,
@@ -80,7 +83,10 @@ export default async function CalendarPage() {
   const [lessons, homeworks, examEvents] = await Promise.all([
     db.lesson.findMany({
       where: { studentId: student.id, date: { gte: monthStart, lte: monthEnd } },
-      include: { student: { include: { user: { select: { name: true } } } } },
+      include: {
+        student: { include: { user: { select: { name: true } } } },
+        teacher: { select: { meetLink: true } },
+      },
       orderBy: { date: "asc" },
     }),
     db.homework.findMany({
@@ -98,7 +104,7 @@ export default async function CalendarPage() {
     <div className="space-y-6 max-w-2xl">
       <h1 className="text-2xl font-bold">カレンダー</h1>
       <CalendarView
-        lessons={lessons.map((l) => ({ ...l, type: l.type as "online" | "offline" }))}
+        lessons={lessons.map((l) => ({ ...l, type: l.type as "online" | "offline", meetLink: l.teacher.meetLink }))}
         deadlines={homeworks.map((h) => ({
           id: h.id,
           title: h.title,
