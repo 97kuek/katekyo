@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { generateLinkToken, unlinkLine, saveMeetLink } from "./actions"
+import { toast } from "sonner"
 
 export function MeetLinkSettings({ currentMeetLink }: { currentMeetLink: string | null }) {
   const [state, action, isPending] = useActionState(saveMeetLink, {})
@@ -17,6 +18,7 @@ export function MeetLinkSettings({ currentMeetLink }: { currentMeetLink: string 
     if (state.success && inputRef.current) {
       setDisplayedLink(inputRef.current.value || null)
       setIsEditing(false)
+      toast.success("Meet リンクを保存しました")
     }
   }, [state.success])
 
