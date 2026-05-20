@@ -5,6 +5,7 @@
 ## モデル一覧
 
 ### User
+
 ```prisma
 User {
   id            String
@@ -31,6 +32,7 @@ User {
 ```
 
 ### Student
+
 ```prisma
 Student {
   id              String
@@ -53,6 +55,7 @@ Student {
 ```
 
 ### Homework
+
 ```prisma
 Homework {
   id           String
@@ -75,6 +78,7 @@ Homework {
 ```
 
 ### Lesson（授業）
+
 ```prisma
 Lesson {
   id              String
@@ -96,6 +100,7 @@ Lesson {
 ```
 
 ### GradeRecord（成績）
+
 ```prisma
 GradeRecord {
   id        String
@@ -113,6 +118,7 @@ GradeRecord {
 ```
 
 ### GardenItem（学習の森アイテム）
+
 ```prisma
 GardenItem {
   id        String
@@ -127,6 +133,7 @@ GardenItem {
 ```
 
 ### HomeworkTemplate（宿題テンプレート）
+
 ```prisma
 HomeworkTemplate {
   id          String
@@ -138,6 +145,7 @@ HomeworkTemplate {
 ```
 
 ### StudentInvitation（招待トークン）
+
 ```prisma
 StudentInvitation {
   id          String
@@ -153,6 +161,7 @@ StudentInvitation {
 ```
 
 ### ExamEvent（テスト予定日）
+
 ```prisma
 ExamEvent {
   id        String
@@ -166,6 +175,7 @@ ExamEvent {
 ```
 
 ### Subject（科目タグ）
+
 ```prisma
 Subject {
   id        String
@@ -176,6 +186,7 @@ Subject {
 ```
 
 ### Material（教材）
+
 ```prisma
 Material {
   id        String
