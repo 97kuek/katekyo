@@ -1,7 +1,7 @@
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { redirect } from "next/navigation"
-import { LineSettings } from "./settings-client"
+import { LineSettings, MeetLinkSettings } from "./settings-client"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { NameForm } from "../profile/name-form"
 import { PasswordForm } from "../profile/password-form"
@@ -12,7 +12,7 @@ export default async function SettingsPage() {
 
   const user = await db.user.findUnique({
     where: { id: session.user.id },
-    select: { lineUserId: true },
+    select: { lineUserId: true, meetLink: true },
   })
 
   return (
@@ -43,6 +43,9 @@ export default async function SettingsPage() {
       <section className="space-y-4">
         <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">通知</h2>
         <LineSettings isLinked={!!user?.lineUserId} />
+        {session.user.role === "teacher" && (
+          <MeetLinkSettings currentMeetLink={user?.meetLink ?? null} />
+        )}
       </section>
     </div>
   )

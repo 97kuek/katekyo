@@ -16,6 +16,7 @@
 | [docs/garden-spec.md](docs/garden-spec.md) | 学習の森の仕様（植物種別・枯れロジック・グリッド・SVG 描画） |
 | [docs/development.md](docs/development.md) | 開発環境セットアップ・デプロイ・トラブルシューティング |
 | [docs/line-notification-plan.md](docs/line-notification-plan.md) | LINE通知機能の実装計画（DB設計・フロー・フェーズ別タスク） |
+| [docs/meet-reminder-plan.md](docs/meet-reminder-plan.md) | Google Meet 授業前リマインダー実装計画（QStash・DB設計・Webhook） |
 | [todo.md](todo.md) | バックログ・完了済みタスク |
 
 ## 技術スタック
@@ -46,6 +47,9 @@ NEXTAUTH_URL=          # 開発時: http://localhost:3000
 SUPABASE_URL=          # Project Settings > API
 SUPABASE_SERVICE_ROLE_KEY=   # Service Role Key ※絶対に公開しない
 CRON_SECRET=           # openssl rand -base64 32
+QSTASH_TOKEN=                 # Upstash QStash API トークン
+QSTASH_CURRENT_SIGNING_KEY=   # QStash Webhook 署名検証キー（現在）
+QSTASH_NEXT_SIGNING_KEY=      # QStash Webhook 署名検証キー（ローテーション用）
 ```
 
 Supabase Storage: バケット `homework-photos` を **Public** で作成する。

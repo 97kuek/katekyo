@@ -12,6 +12,9 @@ User {
   email         String   @unique
   password      String   # bcrypt ハッシュ
   role          Role     # "teacher" | "student"
+  lineUserId    String?  @unique  # LINE 連携後に設定
+  meetLink      String?           # Google Meet 固定 URL（先生のみ使用）
+  agreedToTermsAt DateTime?
   createdAt     DateTime
 
   # Relations
@@ -74,18 +77,21 @@ Homework {
 ### Lesson（授業）
 ```prisma
 Lesson {
-  id            String
-  teacherId     String
-  studentId     String
-  date          DateTime
-  type          String    # "online" | "offline"
-  durationMin   Int?      # 所要時間（分）
-  notes         String?   # 事前メモ
-  lessonLog     String?   # 授業後のログ（何を教えたか）
-  hourlyRate    Int?      # 時給（円）
-  travelExpense Int?      # 交通費（円）。online の場合は 0 に強制
-  completedAt   DateTime? # 完了確定日時。null = 未完了（請求対象外）
-  createdAt     DateTime
+  id              String
+  teacherId       String
+  studentId       String
+  date            DateTime
+  type            String    # "online" | "offline"
+  durationMin     Int?      # 所要時間（分）
+  notes           String?   # 事前メモ
+  lessonLog       String?   # 授業後のログ（何を教えたか）
+  lessonLogPublic Boolean   # 授業ログを生徒に公開するか
+  subjectIds      String[]  # Subject.id の配列
+  hourlyRate      Int?      # 時給（円）
+  travelExpense   Int?      # 交通費（円）。online の場合は 0 に強制
+  completedAt     DateTime? # 完了確定日時。null = 未完了（請求対象外）
+  qstashMessageId String?   # QStash メッセージ ID（授業前リマインダーキャンセル用）
+  createdAt       DateTime
 }
 ```
 

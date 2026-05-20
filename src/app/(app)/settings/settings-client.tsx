@@ -3,7 +3,46 @@
 import { useActionState, useTransition } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { generateLinkToken, unlinkLine } from "./actions"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { generateLinkToken, unlinkLine, saveMeetLink } from "./actions"
+
+export function MeetLinkSettings({ currentMeetLink }: { currentMeetLink: string | null }) {
+  const [state, action, isPending] = useActionState(saveMeetLink, {})
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">Google Meet リンク</CardTitle>
+        <CardDescription>
+          オンライン授業の10分前に生徒のLINEへ自動送信されます
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <form action={action} className="space-y-3">
+          <div className="space-y-1.5">
+            <Label htmlFor="meetLink">Meet URL（固定リンク）</Label>
+            <Input
+              id="meetLink"
+              name="meetLink"
+              type="url"
+              placeholder="https://meet.google.com/xxx-yyyy-zzz"
+              defaultValue={currentMeetLink ?? ""}
+            />
+            <p className="text-xs text-muted-foreground">
+              Google Meet のパーソナルルーム URL を入力してください
+            </p>
+          </div>
+          {state.error && <p className="text-sm text-destructive">{state.error}</p>}
+          {state.success && <p className="text-sm text-green-600">保存しました</p>}
+          <Button type="submit" size="sm" disabled={isPending}>
+            {isPending ? "保存中..." : "保存する"}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
+  )
+}
 
 export function LineSettings({ isLinked }: { isLinked: boolean }) {
   const [tokenState, generateAction, isGenerating] = useActionState(generateLinkToken, {})

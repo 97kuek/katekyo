@@ -5,6 +5,7 @@ import { db } from "@/lib/db"
 import { redirect } from "next/navigation"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
+import { scheduleReminderMessage, cancelReminderMessage } from "@/lib/qstash"
 
 const createSchema = z.object({
   studentId: z.string().min(1, "生徒を選択してください"),
@@ -53,19 +54,39 @@ export async function createLesson(
 
   const effectiveTravelExpense = type === "online" ? 0 : (travelExpense ?? null)
   const subjectIds = formData.getAll("subjectIds") as string[]
-  await db.lesson.createMany({
-    data: dates.map((dateTime) => ({
-      teacherId: session.user.id,
-      studentId,
-      date: dateTime,
-      type,
-      durationMin: durationMin ? parseInt(durationMin) : null,
-      notes: notes || null,
-      subjectIds,
-      hourlyRate: hourlyRate ?? null,
-      travelExpense: effectiveTravelExpense,
-    })),
-  })
+
+  const teacher = type === "online"
+    ? await db.user.findUnique({ where: { id: session.user.id }, select: { meetLink: true } })
+    : null
+
+  const lessons = await Promise.all(
+    dates.map((dateTime) =>
+      db.lesson.create({
+        data: {
+          teacherId: session.user.id,
+          studentId,
+          date: dateTime,
+          type,
+          durationMin: durationMin ? parseInt(durationMin) : null,
+          notes: notes || null,
+          subjectIds,
+          hourlyRate: hourlyRate ?? null,
+          travelExpense: effectiveTravelExpense,
+        },
+      })
+    )
+  )
+
+  if (type === "online" && teacher?.meetLink) {
+    await Promise.all(
+      lessons.map(async (lesson) => {
+        const messageId = await scheduleReminderMessage(lesson.id, lesson.date)
+        if (messageId) {
+          await db.lesson.update({ where: { id: lesson.id }, data: { qstashMessageId: messageId } })
+        }
+      })
+    )
+  }
 
   revalidatePath("/calendar")
   return { error: "", timestamp: Date.now() }
@@ -107,11 +128,22 @@ export async function updateLesson(
   const effectiveTravelExpense = type === "online" ? 0 : (travelExpense ?? null)
   const lessonLogPublic = formData.get("lessonLogPublic") === "on"
   const subjectIds = formData.getAll("subjectIds") as string[]
+  const newDate = new Date(`${date}T${time}:00+09:00`)
 
-  await db.lesson.updateMany({
+  const existing = await db.lesson.findFirst({
     where: { id: lessonId, teacherId: session.user.id },
+    select: { qstashMessageId: true },
+  })
+  if (!existing) return { error: "授業が見つかりません" }
+
+  if (existing.qstashMessageId) {
+    await cancelReminderMessage(existing.qstashMessageId)
+  }
+
+  const updated = await db.lesson.update({
+    where: { id: lessonId },
     data: {
-      date: new Date(`${date}T${time}:00+09:00`),
+      date: newDate,
       type,
       durationMin: durationMin ? parseInt(durationMin) : null,
       notes: notes || null,
@@ -120,8 +152,19 @@ export async function updateLesson(
       subjectIds,
       hourlyRate: hourlyRate ?? null,
       travelExpense: effectiveTravelExpense,
+      qstashMessageId: null,
     },
   })
+
+  if (type === "online") {
+    const teacher = await db.user.findUnique({ where: { id: session.user.id }, select: { meetLink: true } })
+    if (teacher?.meetLink) {
+      const messageId = await scheduleReminderMessage(updated.id, updated.date)
+      if (messageId) {
+        await db.lesson.update({ where: { id: updated.id }, data: { qstashMessageId: messageId } })
+      }
+    }
+  }
 
   revalidatePath("/calendar")
   return { error: "", timestamp: Date.now() }
@@ -133,6 +176,14 @@ export async function deleteLesson(formData: FormData) {
 
   const lessonId = formData.get("lessonId") as string
   if (!lessonId) return
+
+  const lesson = await db.lesson.findFirst({
+    where: { id: lessonId, teacherId: session.user.id },
+    select: { qstashMessageId: true },
+  })
+  if (lesson?.qstashMessageId) {
+    await cancelReminderMessage(lesson.qstashMessageId)
+  }
 
   await db.lesson.deleteMany({ where: { id: lessonId, teacherId: session.user.id } })
   revalidatePath("/calendar")
