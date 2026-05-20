@@ -48,13 +48,14 @@ assigned ─► submitted ─► approved
 - **オンライン授業は交通費を強制的に 0 に設定**（server action 側で `effectiveTravelExpense = type === "online" ? 0 : travelExpense`）
 - 生徒は自分の授業のみ閲覧可（作成・削除不可）
 
-### 授業前リマインダー（Meet リンク通知）
+### 授業前リマインダー・Meet 参加
 
-- 先生が設定ページで Google Meet の固定 URL（パーソナルルーム）を登録
+- 先生が設定ページで Google Meet の固定 URL（パーソナルルーム）を登録（取得手順を UI 内に掲載）
 - オンライン授業を登録すると、開始 10 分前に生徒の LINE へ Meet リンクを自動送信
 - スケジューリングは Upstash QStash を使用（Vercel Hobby プランでも動作）
 - 授業変更・削除時は QStash メッセージをキャンセルして再予約
-- 先生の `meetLink` が未設定、または生徒が LINE 未連携の場合はスキップ
+- 先生の `meetLink` が未設定、または生徒が LINE 未連携の場合は LINE 通知をスキップ
+- **カレンダーの授業カード**（先生・生徒とも）と**「次の授業」バナー**から Meet に直接参加できるボタンを表示
 - 詳細: [docs/meet-reminder-plan.md](meet-reminder-plan.md)
 
 ### 授業完了フロー

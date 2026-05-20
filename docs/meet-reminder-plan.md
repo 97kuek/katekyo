@@ -13,10 +13,12 @@
 
 ```
 1. 先生が設定ページで Google Meet の固定リンクを登録
+   └─ 登録済みリンクは「開く」ボタンで動作確認可能。保存時にトーストで確認
 2. 先生がカレンダーでオンライン授業を登録
    └─ Server Action が QStash に「授業開始 10 分前に叩いて」と予約
 3. 授業開始 10 分前になると QStash が Webhook を叩く
 4. Webhook が生徒の LINE に Meet リンクを送信
+5. 生徒・先生ともカレンダーの授業カードと「次の授業」バナーから Meet に直接参加可能
 ```
 
 ---
@@ -116,9 +118,11 @@ Upstash Console → QStash → 「Request Keys」タブで取得。
 |--------|--------|
 | `prisma/schema.prisma` | `User.meetLink`、`Lesson.qstashMessageId` を追加 |
 | `src/app/(app)/settings/actions.ts` | `saveMeetLink` アクションを追加 |
-| `src/app/(app)/settings/settings-client.tsx` | `MeetLinkSettings` コンポーネントを追加 |
+| `src/app/(app)/settings/settings-client.tsx` | `MeetLinkSettings` コンポーネントを追加（登録済み表示・「開く」ボタン・取得手順・保存トースト） |
 | `src/app/(app)/settings/page.tsx` | 先生ロールのみ Meet リンク設定セクションを表示 |
 | `src/app/(app)/calendar/actions.ts` | `createLesson` / `updateLesson` / `deleteLesson` に QStash 連携を追加 |
+| `src/app/(app)/calendar/page.tsx` | 先生・生徒クエリで `teacher.meetLink` を取得 |
+| `src/app/(app)/calendar/calendar-view.tsx` | 授業カードと次の授業バナーに「Meet に参加する」ボタンを追加 |
 | `docs/data-models.md` | `User.meetLink`、`Lesson.qstashMessageId` を追記 |
 | `docs/api-spec.md` | `saveMeetLink`・Webhook エンドポイントを追記 |
 | `docs/requirements.md` | Meet リマインダー仕様を追記 |
