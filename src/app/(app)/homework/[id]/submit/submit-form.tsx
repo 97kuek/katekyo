@@ -78,7 +78,7 @@ export default function SubmitForm({ id, rejectedFeedback, requiresPhoto = false
               )}
             </div>
             <p className="text-xs text-muted-foreground">代表的なページを1枚だけ撮影して添付してください</p>
-            {preview ? (
+            {preview && (
               <div className="space-y-2">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -96,21 +96,20 @@ export default function SubmitForm({ id, rejectedFeedback, requiresPhoto = false
                   写真を削除
                 </Button>
               </div>
-            ) : (
-              <label className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-input rounded-md cursor-pointer hover:bg-muted/50 transition-colors">
-                <span className="text-sm text-muted-foreground">タップして写真を選択</span>
-                <span className="text-xs text-muted-foreground mt-1">カメラで撮影も可能です（5MB以内）</span>
-                <input
-                  ref={fileRef}
-                  type="file"
-                  name="photo"
-                  accept="image/*"
-                  capture="environment"
-                  className="hidden"
-                  onChange={handleFileChange}
-                />
-              </label>
             )}
+            <label className={`flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-input rounded-md cursor-pointer hover:bg-muted/50 transition-colors${preview ? " hidden" : ""}`}>
+              <span className="text-sm text-muted-foreground">タップして写真を選択</span>
+              <span className="text-xs text-muted-foreground mt-1">カメラで撮影も可能です（5MB以内）</span>
+              <input
+                ref={fileRef}
+                type="file"
+                name="photo"
+                accept="image/*"
+                capture="environment"
+                className="hidden"
+                onChange={handleFileChange}
+              />
+            </label>
           </div>
 
           <div className="space-y-2">
