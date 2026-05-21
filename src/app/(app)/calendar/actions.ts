@@ -80,14 +80,18 @@ export async function createLesson(
   )
 
   if (type === "online" && teacher?.meetLink) {
-    await Promise.all(
-      lessons.map(async (lesson) => {
-        const messageId = await scheduleReminderMessage(lesson.id, lesson.date)
-        if (messageId) {
-          await db.lesson.update({ where: { id: lesson.id }, data: { qstashMessageId: messageId } })
-        }
-      })
-    )
+    try {
+      await Promise.all(
+        lessons.map(async (lesson) => {
+          const messageId = await scheduleReminderMessage(lesson.id, lesson.date)
+          if (messageId) {
+            await db.lesson.update({ where: { id: lesson.id }, data: { qstashMessageId: messageId } })
+          }
+        })
+      )
+    } catch {
+      // リマインダー登録失敗は無視（授業は保存済み）
+    }
   }
 
   revalidatePath("/calendar")
