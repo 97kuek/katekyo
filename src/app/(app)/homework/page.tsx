@@ -4,7 +4,7 @@ import { db } from "@/lib/db"
 import { getStudentByUserId } from "@/lib/queries"
 import Link from "next/link"
 import { buttonVariants } from "@/components/ui/button"
-import { Images, Plus } from "lucide-react"
+import { Plus } from "lucide-react"
 import { StatusBadge } from "@/components/homework/status-badge"
 import { CancelSubmissionButton } from "./cancel-button"
 import { HomeworkFilter } from "./homework-filter"
@@ -56,13 +56,34 @@ async function TeacherHomeworkPage({
 }) {
   const subjectIds = subjectFilter?.split(",").filter(Boolean) ?? []
   const orderBy = sort === "due" ? { dueDate: "asc" as const } : { createdAt: "desc" as const }
+
+  // 科目タグで絞り込む場合、教材経由でマッチする materialId も対象に含める
+  const matchingMaterialIds: string[] = []
+  if (subjectIds.length > 0) {
+    const mats = await db.studentMaterial.findMany({
+      where: { teacherId, subjectIds: { hasSome: subjectIds } },
+      select: { id: true },
+    })
+    matchingMaterialIds.push(...mats.map((m) => m.id))
+  }
+
+  const subjectWhere =
+    subjectIds.length > 0
+      ? {
+          OR: [
+            { subjectIds: { hasSome: subjectIds } },
+            ...(matchingMaterialIds.length > 0 ? [{ materialId: { in: matchingMaterialIds } }] : []),
+          ],
+        }
+      : {}
+
   const [homeworks, subjects, students] = await Promise.all([
     db.homework.findMany({
       where: {
         teacherId,
         ...(studentIdFilter ? { studentId: studentIdFilter } : {}),
         ...(q ? { title: { contains: q, mode: "insensitive" as const } } : {}),
-        ...(subjectIds.length > 0 ? { subjectIds: { hasSome: subjectIds } } : {}),
+        ...subjectWhere,
       },
       include: { student: { include: { user: { select: { name: true } } } } },
       orderBy,
@@ -84,16 +105,10 @@ async function TeacherHomeworkPage({
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <h1 className="text-2xl font-bold">宿題管理</h1>
-        <div className="flex gap-2 flex-wrap">
-          <Link href="/homework/photos" className={buttonVariants({ variant: "outline", size: "sm", className: "gap-1.5" })}>
-            <Images className="h-4 w-4 shrink-0" />
-            提出写真
-          </Link>
-<Link href="/homework/new" className={buttonVariants({ size: "sm", className: "gap-1.5" })}>
-            <Plus className="h-4 w-4 shrink-0" />
-            宿題を作成
-          </Link>
-        </div>
+        <Link href="/homework/new" className={buttonVariants({ size: "sm", className: "gap-1.5" })}>
+          <Plus className="h-4 w-4 shrink-0" />
+          宿題を作成
+        </Link>
       </div>
 
       <HomeworkFilter students={students} subjects={subjects} />

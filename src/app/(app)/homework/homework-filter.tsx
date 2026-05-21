@@ -1,6 +1,7 @@
 "use client"
 
 import { useRouter, useSearchParams } from "next/navigation"
+import { useTransition } from "react"
 
 type Student = { id: string; user: { name: string } }
 type Subject = { id: string; name: string }
@@ -8,6 +9,8 @@ type Subject = { id: string; name: string }
 export function HomeworkFilter({ students, subjects }: { students: Student[]; subjects: Subject[] }) {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const [isPending, startTransition] = useTransition()
+
   const currentStudent = searchParams.get("studentId") ?? ""
   const currentSort = searchParams.get("sort") ?? "created"
   const currentQ = searchParams.get("q") ?? ""
@@ -20,7 +23,9 @@ export function HomeworkFilter({ students, subjects }: { students: Student[]; su
     } else {
       params.delete(key)
     }
-    router.push(`/homework?${params.toString()}`)
+    startTransition(() => {
+      router.push(`/homework?${params.toString()}`)
+    })
   }
 
   function toggleSubject(id: string) {
@@ -33,11 +38,13 @@ export function HomeworkFilter({ students, subjects }: { students: Student[]; su
     } else {
       params.delete("subjects")
     }
-    router.push(`/homework?${params.toString()}`)
+    startTransition(() => {
+      router.push(`/homework?${params.toString()}`)
+    })
   }
 
   return (
-    <div className="space-y-2">
+    <div className={`space-y-2 transition-opacity duration-150 ${isPending ? "opacity-50 pointer-events-none" : ""}`}>
       <div className="flex items-center gap-3 flex-wrap">
         <div className="flex items-center gap-2">
           <span className="text-xs text-muted-foreground">生徒:</span>
@@ -79,6 +86,10 @@ export function HomeworkFilter({ students, subjects }: { students: Student[]; su
             期限順
           </button>
         </div>
+
+        {isPending && (
+          <span className="text-xs text-muted-foreground animate-pulse">読み込み中...</span>
+        )}
       </div>
 
       {subjects.length > 0 && (

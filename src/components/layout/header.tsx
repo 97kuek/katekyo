@@ -16,7 +16,6 @@ const PAGE_TITLES: { pattern: (p: string) => boolean; label: string }[] = [
   { pattern: (p) => p.startsWith("/students/") && p.endsWith("/materials"), label: "教材管理" },
   { pattern: (p) => p === "/students", label: "生徒一覧" },
   { pattern: (p) => p === "/homework/new", label: "宿題を作成" },
-  { pattern: (p) => p === "/homework/photos", label: "提出写真" },
 { pattern: (p) => p === "/billing", label: "請求管理" },
   { pattern: (p) => p.endsWith("/review"), label: "宿題を確認" },
   { pattern: (p) => p.endsWith("/submit"), label: "宿題を提出" },
