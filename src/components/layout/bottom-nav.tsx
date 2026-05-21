@@ -2,15 +2,16 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { GraduationCap, LayoutDashboard, ClipboardList, BarChart2, CalendarDays, TreePine } from "lucide-react"
+import { GraduationCap, LayoutDashboard, ClipboardList, BarChart2, CalendarDays, TreePine, Receipt } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const teacherNav = [
   { href: "/dashboard", label: "ホーム", icon: LayoutDashboard },
   { href: "/students", label: "生徒", icon: GraduationCap },
   { href: "/homework", label: "宿題", icon: ClipboardList },
-  { href: "/grades", label: "成績", icon: BarChart2 },
   { href: "/calendar", label: "予定", icon: CalendarDays },
+  { href: "/billing", label: "請求", icon: Receipt },
+  { href: "/grades", label: "成績", icon: BarChart2 },
 ]
 
 const studentNav = [
