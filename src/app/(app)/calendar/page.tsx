@@ -58,6 +58,7 @@ export default async function CalendarPage() {
           examEvents={examEvents.map((e) => ({
             id: e.id,
             date: e.date,
+            endDate: e.endDate,
             name: e.name,
             testType: e.testType,
             studentName: e.student.user.name,
@@ -115,6 +116,7 @@ export default async function CalendarPage() {
         examEvents={examEvents.map((e) => ({
           id: e.id,
           date: e.date,
+          endDate: e.endDate,
           name: e.name,
           testType: e.testType,
         }))}

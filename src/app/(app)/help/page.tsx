@@ -28,23 +28,13 @@ function H1({ children }: { children: React.ReactNode }) {
 
 function SectionCard({
   title,
-  color = "gray",
   children,
 }: {
   title: string
-  color?: "green" | "blue" | "orange" | "purple" | "gray"
   children: React.ReactNode
 }) {
-  const border = {
-    green:  "border-l-4 border-l-green-400",
-    blue:   "border-l-4 border-l-blue-400",
-    orange: "border-l-4 border-l-orange-400",
-    purple: "border-l-4 border-l-purple-400",
-    gray:   "border-l-4 border-l-gray-300",
-  }[color]
-
   return (
-    <div className={`rounded-lg border bg-white p-5 space-y-3 ${border}`}>
+    <div className="rounded-lg border bg-white p-5 space-y-3">
       <h2 className="font-semibold text-base">{title}</h2>
       <div className="space-y-2.5 text-sm text-gray-700">{children}</div>
     </div>
@@ -96,8 +86,8 @@ function TeacherHelp() {
       <H1>使い方ガイド（先生）</H1>
 
       {/* クイックスタート */}
-      <div className="rounded-lg bg-green-50 border border-green-200 p-5 space-y-3">
-        <p className="font-semibold text-green-800">🚀 はじめてのセットアップ（3ステップ）</p>
+      <div className="rounded-lg border bg-white p-5 space-y-3">
+        <p className="font-semibold">はじめてのセットアップ（3ステップ）</p>
         <Steps items={[
           "「生徒一覧」→「生徒を招待」で生徒を登録する",
           "「設定」→「通知」でLINE連携を行う（任意・推奨）",
@@ -106,7 +96,7 @@ function TeacherHelp() {
       </div>
 
       {/* 生徒を招待する */}
-      <SectionCard title="👤 生徒を招待する" color="green">
+      <SectionCard title="生徒を招待する">
         <Steps items={[
           "「生徒一覧」→「生徒を招待」で名前・学年を入力します。",
           "生成された招待URLをLINE・メール等で生徒に送ります。",
@@ -116,7 +106,7 @@ function TeacherHelp() {
       </SectionCard>
 
       {/* 生徒を管理する */}
-      <SectionCard title="👥 生徒を管理する" color="green">
+      <SectionCard title="生徒を管理する">
         <BulletList items={[
           { label: "学年変更", desc: "生徒一覧の「学年変更」で新学年に更新できます。" },
           { label: "パスワードリセット", desc: "「PW変更」から直接設定できます。生徒がパスワードを忘れた時に使用してください。" },
@@ -126,7 +116,7 @@ function TeacherHelp() {
       </SectionCard>
 
       {/* 宿題を出す */}
-      <SectionCard title="📚 宿題を出す" color="blue">
+      <SectionCard title="宿題を出す">
         <Steps items={[
           "「宿題管理」→「宿題を作成」で生徒・タイトル・期限を入力します。",
           "「写真提出を必須にする」をオンにすると、生徒は写真なしで提出できなくなります。",
@@ -137,7 +127,7 @@ function TeacherHelp() {
       </SectionCard>
 
       {/* 宿題を絞り込む */}
-      <SectionCard title="🔍 宿題を絞り込む" color="blue">
+      <SectionCard title="宿題を絞り込む">
         <BulletList items={[
           { label: "タイトル検索", desc: "検索ボックスにキーワードを入力するとリアルタイムで絞り込めます。" },
           { label: "生徒フィルタ", desc: "特定の生徒の宿題だけを表示できます。" },
@@ -147,7 +137,7 @@ function TeacherHelp() {
       </SectionCard>
 
       {/* 授業を管理する */}
-      <SectionCard title="📅 授業を管理する" color="orange">
+      <SectionCard title="授業を管理する">
         <Steps items={[
           "「予定（カレンダー）」で月表示または週表示を開きます。",
           "日付をタップして「授業を追加」から生徒・日時・形式・時間・科目を入力します。",
@@ -158,7 +148,7 @@ function TeacherHelp() {
       </SectionCard>
 
       {/* 請求管理 */}
-      <SectionCard title="💰 請求管理" color="orange">
+      <SectionCard title="請求管理">
         <BulletList items={[
           { label: "対象授業", desc: "「完了」マークをつけた授業のみが請求に反映されます（未完了は除外）。" },
           { label: "料金計算", desc: "授業料 = 時給 × 時間（時）。対面授業は交通費が加算されます。" },
@@ -168,7 +158,7 @@ function TeacherHelp() {
       </SectionCard>
 
       {/* 成績を記録する */}
-      <SectionCard title="📊 成績を記録する" color="purple">
+      <SectionCard title="成績を記録する">
         <Steps items={[
           "「成績管理」→「成績を記録」でテスト名・日付・生徒を選びます。",
           "得点・順位・偏差値は任意入力です。わかる範囲で入力してください。",
@@ -178,12 +168,12 @@ function TeacherHelp() {
       </SectionCard>
 
       {/* 科目タグ */}
-      <SectionCard title="🏷️ 科目タグを使う" color="purple">
+      <SectionCard title="科目タグ">
         <p>「設定」→「タグ管理」から科目タグを作成・削除できます。宿題・成績・授業・教材に紐づけることで、絞り込みフィルターとして活用できます。</p>
       </SectionCard>
 
       {/* 教材を登録する */}
-      <SectionCard title="📖 教材を登録する" color="gray">
+      <SectionCard title="教材を登録する">
         <p>「生徒一覧」→ 生徒名 →「教材」から、その生徒の使用教材を登録できます。</p>
         <BulletList items={[
           { label: "科目タグとの紐づけ", desc: "教材に科目タグを設定しておくと、宿題の科目フィルターで教材経由の宿題も絞り込めます。" },
@@ -193,7 +183,7 @@ function TeacherHelp() {
       </SectionCard>
 
       {/* LINE・Meet */}
-      <SectionCard title="🔔 LINE通知・Meet連携" color="gray">
+      <SectionCard title="LINE通知・Meet連携">
         <p className="font-medium text-xs text-muted-foreground mb-1">LINE通知（先生への通知）</p>
         <Steps items={[
           "「設定」→「LINE連携を開始する」をタップします。",
@@ -215,8 +205,8 @@ function StudentHelp() {
       <H1>使い方ガイド（生徒）</H1>
 
       {/* クイックスタート */}
-      <div className="rounded-lg bg-green-50 border border-green-200 p-5 space-y-3">
-        <p className="font-semibold text-green-800">🚀 はじめてのセットアップ（3ステップ）</p>
+      <div className="rounded-lg border bg-white p-5 space-y-3">
+        <p className="font-semibold">はじめてのセットアップ（3ステップ）</p>
         <Steps items={[
           "先生から送られた招待URLを開いてアカウントを作成する",
           "「設定」→「LINE連携」を行う（任意・推奨）",
@@ -225,7 +215,7 @@ function StudentHelp() {
       </div>
 
       {/* アカウント作成 */}
-      <SectionCard title="📬 招待を受けてアカウントを作る" color="green">
+      <SectionCard title="招待を受けてアカウントを作る">
         <Steps items={[
           "先生から送られた招待URLをブラウザで開きます。",
           "メールアドレスとパスワード（8文字以上）を入力して「アカウントを作成」します。",
@@ -235,7 +225,7 @@ function StudentHelp() {
       </SectionCard>
 
       {/* 宿題 */}
-      <SectionCard title="📚 宿題を確認・提出する" color="blue">
+      <SectionCard title="宿題を確認・提出する">
         <Steps items={[
           "「宿題」メニューを開くと「やること」に未完了の宿題が表示されます。",
           "「提出する」ボタンから完了報告をします。難易度評価やコメントも添えられます。",
@@ -246,7 +236,7 @@ function StudentHelp() {
       </SectionCard>
 
       {/* 授業・カレンダー */}
-      <SectionCard title="📅 授業・カレンダーを確認する" color="orange">
+      <SectionCard title="授業・カレンダーを確認する">
         <Steps items={[
           "「予定（カレンダー）」を開くと授業と宿題期限がカレンダーに表示されます。",
           "日付をタップすると授業の詳細（時刻・形式・先生のメモ）が確認できます。",
@@ -256,7 +246,7 @@ function StudentHelp() {
       </SectionCard>
 
       {/* 教材写真 */}
-      <SectionCard title="📸 授業中に教材を先生に送る" color="orange">
+      <SectionCard title="授業中に教材を先生に送る">
         <Steps items={[
           "カレンダーの授業カードにあるカメラアイコンをタップします。",
           "手元の教材を撮影して選択します。",
@@ -265,18 +255,18 @@ function StudentHelp() {
       </SectionCard>
 
       {/* 成績 */}
-      <SectionCard title="📊 成績を確認する" color="purple">
+      <SectionCard title="成績を確認する">
         <p>「成績」メニューを開くと過去のテスト結果が一覧・グラフで表示されます。点数・偏差値の推移を視覚的に確認できます。</p>
         <Tip>成績の入力は先生が行います。テスト後に結果を先生に共有してください。</Tip>
       </SectionCard>
 
       {/* 教材 */}
-      <SectionCard title="📖 教材を確認する" color="gray">
+      <SectionCard title="教材を確認する">
         <p>先生に登録してもらった教材の一覧を「教材」メニューから確認できます。教材には科目タグが付いている場合があります。</p>
       </SectionCard>
 
       {/* 学習の森 */}
-      <SectionCard title="🌲 学習の森" color="gray">
+      <SectionCard title="学習の森">
         <p className="mb-2">宿題が承認されたりテストで好成績を取ると、森にアイテムが育ちます。</p>
         <div className="bg-gray-50 rounded-md p-3 space-y-1 text-xs">
           <p><span className="font-semibold">🎋 竹</span>　満点 / 偏差値70以上（超レア）</p>
@@ -290,7 +280,7 @@ function StudentHelp() {
       </SectionCard>
 
       {/* LINE通知 */}
-      <SectionCard title="🔔 LINE通知を設定する" color="gray">
+      <SectionCard title="LINE通知を設定する">
         <Steps items={[
           "「設定」→「LINE連携を開始する」をタップします。",
           "表示された6桁のコードをkatekyoのLINE公式アカウントに送信します。",
@@ -300,7 +290,7 @@ function StudentHelp() {
       </SectionCard>
 
       {/* アカウント設定 */}
-      <SectionCard title="⚙️ アカウント設定" color="gray">
+      <SectionCard title="アカウント設定">
         <p>「設定」メニューから名前・パスワードの変更ができます。ログアウトはヘッダー右上のボタンから行えます。</p>
       </SectionCard>
     </div>

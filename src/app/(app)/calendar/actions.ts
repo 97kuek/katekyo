@@ -231,6 +231,7 @@ export async function uncompleteLesson(formData: FormData) {
 const examEventSchema = z.object({
   studentId: z.string().min(1, "生徒を選択してください"),
   date: z.string().min(1, "日付を入力してください"),
+  endDate: z.string().optional(),
   name: z.string().min(1, "テスト名を入力してください"),
   testType: z.enum(["mock", "exam", "quiz", "other"]).default("exam"),
 })
@@ -245,12 +246,13 @@ export async function createExamEvent(
   const result = examEventSchema.safeParse({
     studentId: formData.get("studentId"),
     date: formData.get("date"),
+    endDate: formData.get("endDate") || undefined,
     name: formData.get("name"),
     testType: formData.get("testType") || "exam",
   })
   if (!result.success) return { error: result.error.issues[0].message }
 
-  const { studentId, date, name, testType } = result.data
+  const { studentId, date, endDate, name, testType } = result.data
 
   const student = await db.student.findFirst({ where: { id: studentId, teacherId: session.user.id } })
   if (!student) return { error: "生徒が見つかりません" }
@@ -260,6 +262,7 @@ export async function createExamEvent(
       teacherId: session.user.id,
       studentId,
       date: new Date(`${date}T00:00:00+09:00`),
+      endDate: endDate ? new Date(`${endDate}T00:00:00+09:00`) : null,
       name,
       testType,
     },

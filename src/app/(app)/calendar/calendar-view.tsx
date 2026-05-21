@@ -154,6 +154,7 @@ type HomeworkDeadline = {
 type ExamEvent = {
   id: string
   date: Date
+  endDate?: Date | null
   name: string
   testType: string
   studentName?: string
@@ -229,7 +230,7 @@ function HomeworkForm({ students, defaultDate }: { students: Student[]; defaultD
   }
 
   return (
-    <div className="rounded-lg border border-orange-200 bg-orange-50/30 p-3 space-y-3">
+    <div className="rounded-lg border border-orange-200 bg-orange-50/30 p-3 space-y-3 w-full">
       <h3 className="font-medium text-sm">宿題を追加</h3>
       <form action={action} className="space-y-3">
         {state.error && <p className="text-xs text-red-600 bg-red-50 p-2 rounded">{state.error}</p>}
@@ -295,7 +296,7 @@ function ExamEventForm({ students, defaultDate }: { students: Student[]; default
   }
 
   return (
-    <div className="rounded-lg border border-red-200 bg-red-50/30 p-3 space-y-3">
+    <div className="rounded-lg border border-red-200 bg-red-50/30 p-3 space-y-3 w-full">
       <h3 className="font-medium text-sm">テストを追加</h3>
       <form action={action} className="space-y-3">
         {state.error && (
@@ -322,7 +323,16 @@ function ExamEventForm({ students, defaultDate }: { students: Student[]; default
               </select>
             )}
           </div>
-          <input type="hidden" name="date" value={defaultDate} />
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-1">
+              <Label className="text-xs">開始日</Label>
+              <Input name="date" type="date" required defaultValue={defaultDate} className="h-9 text-sm" />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">終了日（任意）</Label>
+              <Input name="endDate" type="date" className="h-9 text-sm" />
+            </div>
+          </div>
           <div className="space-y-1">
             <Label className="text-xs">テスト名</Label>
             <Input name="name" placeholder="例: 英語期末テスト" required className="h-9 text-sm" />
@@ -380,16 +390,14 @@ function DayDetail({
 
   return (
     <div className="rounded-lg border bg-white p-4 space-y-3">
-      <div className="flex items-start justify-between gap-2 flex-wrap">
-        <h2 className="font-semibold text-sm mt-0.5 shrink-0">{dateStr}</h2>
-        {isTeacher && (
-          <div className="flex gap-2 flex-wrap justify-end">
-            <LessonForm students={students} defaultDate={dayKey} subjects={subjects} />
-            <HomeworkForm students={students} defaultDate={dayKey} />
-            <ExamEventForm students={students} defaultDate={dayKey} />
-          </div>
-        )}
-      </div>
+      <h2 className="font-semibold text-sm">{dateStr}</h2>
+      {isTeacher && (
+        <div className="flex gap-2 flex-wrap">
+          <LessonForm students={students} defaultDate={dayKey} subjects={subjects} />
+          <HomeworkForm students={students} defaultDate={dayKey} />
+          <ExamEventForm students={students} defaultDate={dayKey} />
+        </div>
+      )}
 
       {lessons.length > 0 && (
         <div className="space-y-2">
@@ -527,6 +535,12 @@ function DayDetail({
                   {isTeacher && e.studentName && (
                     <p className="text-xs text-muted-foreground mt-0.5">{e.studentName}</p>
                   )}
+                  {e.endDate && (
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {e.date.toLocaleDateString("ja-JP", { timeZone: "Asia/Tokyo", month: "numeric", day: "numeric" })}〜
+                      {e.endDate.toLocaleDateString("ja-JP", { timeZone: "Asia/Tokyo", month: "numeric", day: "numeric" })}
+                    </p>
+                  )}
                 </div>
                 {isTeacher && <DeleteExamEventButton examEventId={e.id} />}
               </div>
@@ -610,9 +624,14 @@ export default function CalendarView({ lessons, deadlines, examEvents, students,
 
   const examEventMap = new Map<string, ExamEvent[]>()
   for (const e of examEvents) {
-    const key = toDateKey(e.date)
-    if (!examEventMap.has(key)) examEventMap.set(key, [])
-    examEventMap.get(key)!.push(e)
+    const end = e.endDate ?? e.date
+    const current = new Date(e.date)
+    while (current <= end) {
+      const key = toDateKey(current)
+      if (!examEventMap.has(key)) examEventMap.set(key, [])
+      examEventMap.get(key)!.push(e)
+      current.setDate(current.getDate() + 1)
+    }
   }
 
   function prevMonth() {

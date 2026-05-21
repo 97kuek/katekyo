@@ -217,13 +217,14 @@ model Lesson {
 }
 
 model ExamEvent {
-  id        String   @id @default(uuid())
+  id        String    @id @default(uuid())
   studentId String
   teacherId String
   name      String
   date      DateTime
-  testType  TestType @default(exam)
-  createdAt DateTime @default(now())
+  endDate   DateTime?
+  testType  TestType  @default(exam)
+  createdAt DateTime  @default(now())
 
   student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
   teacher User    @relation("TeacherExamEvents", fields: [teacherId], references: [id], onDelete: Cascade)
