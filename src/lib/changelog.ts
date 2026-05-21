@@ -19,3 +19,15 @@ export const CHANGELOG: ChangelogEntry[] = [
 ]
 
 export const LATEST_CHANGELOG_ID = CHANGELOG[0].id
+
+export type NotificationData =
+  | {
+      role: "teacher"
+      pendingHomework: { id: string; title: string; studentName: string }[]
+      lessons: { id: string; date: string; type: string; studentName: string }[]
+    }
+  | {
+      role: "student"
+      homework: { id: string; title: string; dueDate: string; isOverdue: boolean }[]
+      lessons: { id: string; date: string; type: string }[]
+    }

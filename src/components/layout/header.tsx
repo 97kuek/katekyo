@@ -6,6 +6,7 @@ import { BookOpen, LogOut, HelpCircle, Settings } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import ChangelogBell from "@/components/changelog-bell"
+import type { NotificationData } from "@/lib/changelog"
 
 const PAGE_TITLES: { pattern: (p: string) => boolean; label: string }[] = [
   { pattern: (p) => p === "/dashboard", label: "ダッシュボード" },
@@ -37,7 +38,7 @@ function getPageTitle(pathname: string): string {
   return PAGE_TITLES.find(({ pattern }) => pattern(pathname))?.label ?? ""
 }
 
-export default function Header({ name }: { name: string }) {
+export default function Header({ name, notificationData }: { name: string; notificationData: NotificationData }) {
   const pathname = usePathname()
   const title = getPageTitle(pathname)
 
@@ -53,7 +54,7 @@ export default function Header({ name }: { name: string }) {
       </div>
       <span className="text-sm font-medium hidden md:block">{title}</span>
       <div className="flex items-center gap-1">
-        <ChangelogBell />
+        <ChangelogBell notificationData={notificationData} />
         <Link href="/settings" className="inline-flex items-center justify-center rounded-md p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors md:hidden">
           <Settings className="h-4 w-4" />
         </Link>
