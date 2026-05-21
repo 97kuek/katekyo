@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
-import { deleteTempMaterialsOlderThan } from "@/lib/supabase-storage"
 
 // Vercel Cron calls this daily at 18:00 UTC (03:00 JST).
 export async function GET(req: NextRequest) {
@@ -36,12 +35,8 @@ export async function GET(req: NextRequest) {
     },
   })
 
-  const tempMaterialCutoff = new Date(now.getTime() - 24 * 60 * 60 * 1000)
-  const deletedMaterials = await deleteTempMaterialsOlderThan(tempMaterialCutoff)
-
   return NextResponse.json({
     deletedHomework: homework.count,
     deletedTokens: tokens.count,
-    deletedTempMaterials: deletedMaterials,
   })
 }

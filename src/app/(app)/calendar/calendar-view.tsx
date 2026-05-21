@@ -6,7 +6,6 @@ import { ChevronLeft, ChevronRight } from "lucide-react"
 import { LessonForm } from "./lesson-form"
 import { LessonEditForm } from "./lesson-edit-form"
 import { deleteLesson, createExamEvent, deleteExamEvent, completeLesson, uncompleteLesson, createHomeworkFromCalendar } from "./actions"
-import { MaterialSendButton } from "@/components/material-send-button"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -445,7 +444,6 @@ function DayDetail({
                         Meet に参加する →
                       </a>
                     )}
-                    {!isTeacher && <MaterialSendButton lessonId={l.id} />}
                     {(isTeacher ? l.lessonLog : (l.lessonLogPublic ? l.lessonLog : null)) && (
                       <div className="mt-1.5 bg-amber-50 rounded p-2">
                         <p className="text-xs font-medium text-amber-700 mb-0.5">

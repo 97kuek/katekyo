@@ -34,7 +34,9 @@
       "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\yamashita\\\\Documents\\\\katekyo\" -Directory)",
       "Bash(Select-Object Name)",
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\yamashita\\\\Documents\\\\katekyo\\\\src\" -Recurse -Filter \"layout.tsx\")",
-      "Bash(Select-Object -ExpandProperty FullName)"
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(del \"c:\\\\Users\\\\yamashita\\\\Documents\\\\katekyo\\\\src\\\\app\\\\\\(app\\)\\\\homework\\\\photos\\\\page.tsx\")",
+      "Bash(git reset *)"
     ]
   }
 }

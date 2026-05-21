@@ -6,8 +6,6 @@ import { redirect } from "next/navigation"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import { scheduleReminderMessage, cancelReminderMessage } from "@/lib/qstash"
-import { uploadTempMaterial } from "@/lib/supabase-storage"
-import { sendLineImageWithCaption } from "@/lib/line"
 
 const createSchema = z.object({
   studentId: z.string().min(1, "生徒を選択してください"),
@@ -324,44 +322,3 @@ export async function createHomeworkFromCalendar(
   return { error: "", timestamp: Date.now() }
 }
 
-const MAX_MATERIAL_BYTES = 5 * 1024 * 1024
-
-export async function sendMaterialPhoto(
-  formData: FormData
-): Promise<{ error?: string; url?: string; sent?: boolean }> {
-  const session = await auth()
-  if (!session || session.user.role !== "student") return { error: "権限がありません" }
-
-  const lessonId = formData.get("lessonId") as string
-  const photoFile = formData.get("photo") as File | null
-
-  if (!photoFile || photoFile.size === 0) return { error: "写真を選択してください" }
-  if (photoFile.size > MAX_MATERIAL_BYTES) return { error: "写真は5MB以内にしてください" }
-  if (!photoFile.type.startsWith("image/")) return { error: "画像ファイルを選択してください" }
-
-  const student = await db.student.findFirst({
-    where: { userId: session.user.id },
-    select: { id: true, teacher: { select: { lineUserId: true } } },
-  })
-  if (!student) return { error: "生徒プロフィールが見つかりません" }
-
-  const lesson = await db.lesson.findFirst({
-    where: { id: lessonId, studentId: student.id },
-  })
-  if (!lesson) return { error: "授業が見つかりません" }
-
-  const url = await uploadTempMaterial(photoFile)
-  if (!url) return { error: "写真のアップロードに失敗しました" }
-
-  const teacherLineUserId = student.teacher.lineUserId
-  if (teacherLineUserId) {
-    await sendLineImageWithCaption(
-      teacherLineUserId,
-      url,
-      `📷 ${session.user.name} さんから教材が届きました`
-    )
-    return { url, sent: true }
-  }
-
-  return { url, sent: false }
-}

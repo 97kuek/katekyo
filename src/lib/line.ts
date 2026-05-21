@@ -20,13 +20,3 @@ export async function sendLineMessage(lineUserId: string, text: string): Promise
   await pushLineMessages(lineUserId, [{ type: "text", text }])
 }
 
-export async function sendLineImageWithCaption(
-  lineUserId: string,
-  imageUrl: string,
-  caption: string
-): Promise<void> {
-  await pushLineMessages(lineUserId, [
-    { type: "text", text: caption },
-    { type: "image", originalContentUrl: imageUrl, previewImageUrl: imageUrl },
-  ])
-}
