@@ -6,6 +6,7 @@ import { redirect } from "next/navigation"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import bcrypt from "bcryptjs"
+import { deleteHomeworkPhoto } from "@/lib/supabase-storage"
 
 const resetSchema = z.object({
   studentId: z.string().min(1),
@@ -101,6 +102,15 @@ export async function deleteStudent(formData: FormData) {
     select: { userId: true },
   })
   if (!student) return
+
+  // Supabase Storage の宿題写真を先に削除（DB cascade では消えないため）
+  const homeworkPhotos = await db.homework.findMany({
+    where: { studentId, photoUrl: { not: null } },
+    select: { photoUrl: true },
+  })
+  await Promise.allSettled(
+    homeworkPhotos.map((h) => deleteHomeworkPhoto(h.photoUrl!))
+  )
 
   await db.user.delete({ where: { id: student.userId } })
   revalidatePath("/students")

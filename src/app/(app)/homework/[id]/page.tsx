@@ -136,7 +136,7 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
           <h2 className="text-sm font-semibold">提出情報</h2>
           {homework.submittedAt && (
             <p className="text-xs text-muted-foreground">
-              提出日時: {homework.submittedAt.toLocaleString("ja-JP")}
+              提出日時: {homework.submittedAt.toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" })}
             </p>
           )}
           {homework.difficultyRating && (() => {
@@ -172,7 +172,7 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
           <h2 className="text-sm font-semibold">先生のフィードバック</h2>
           {homework.reviewedAt && (
             <p className="text-xs text-muted-foreground">
-              確認日時: {homework.reviewedAt.toLocaleString("ja-JP")}
+              確認日時: {homework.reviewedAt.toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" })}
             </p>
           )}
           {homework.teacherFeedback && (

@@ -12,22 +12,73 @@ const DIFFICULTIES = [
   { value: 3, label: "むずかしい", emoji: "😰", active: "bg-red-100 border-red-400 text-red-800", inactive: "border-input hover:bg-red-50" },
 ] as const
 
+const MAX_DIMENSION = 1200
+const JPEG_QUALITY = 0.78
+
+async function compressImage(file: File): Promise<File> {
+  return new Promise((resolve) => {
+    const img = new Image()
+    const url = URL.createObjectURL(file)
+    img.onload = () => {
+      URL.revokeObjectURL(url)
+      const scale = Math.min(1, MAX_DIMENSION / Math.max(img.width, img.height))
+      const canvas = document.createElement("canvas")
+      canvas.width = Math.round(img.width * scale)
+      canvas.height = Math.round(img.height * scale)
+      const ctx = canvas.getContext("2d")
+      if (!ctx) { resolve(file); return }
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) { resolve(file); return }
+          const outName = file.name.replace(/\.[^.]+$/, ".jpg") || "photo.jpg"
+          resolve(new File([blob], outName, { type: "image/jpeg" }))
+        },
+        "image/jpeg",
+        JPEG_QUALITY
+      )
+    }
+    img.onerror = () => { URL.revokeObjectURL(url); resolve(file) }
+    img.src = url
+  })
+}
+
 export default function SubmitForm({ id, rejectedFeedback, requiresPhoto = false }: { id: string; rejectedFeedback?: string | null; requiresPhoto?: boolean }) {
-  const [state, action, isPending] = useActionState(submitHomework, { error: "" })
+  const [state, dispatch, isPending] = useActionState(submitHomework, { error: "" })
   const [preview, setPreview] = useState<string | null>(null)
   const [difficulty, setDifficulty] = useState<number | null>(null)
+  const [isCompressing, setIsCompressing] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
+  const compressedFileRef = useRef<File | null>(null)
 
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
-    if (!file) { setPreview(null); return }
+    if (!file) { setPreview(null); compressedFileRef.current = null; return }
     setPreview(URL.createObjectURL(file))
+    setIsCompressing(true)
+    try {
+      compressedFileRef.current = await compressImage(file)
+    } finally {
+      setIsCompressing(false)
+    }
   }
 
   function handleRemovePhoto() {
     setPreview(null)
+    compressedFileRef.current = null
     if (fileRef.current) fileRef.current.value = ""
   }
+
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    const formData = new FormData(e.currentTarget)
+    if (compressedFileRef.current) {
+      formData.set("photo", compressedFileRef.current)
+    }
+    dispatch(formData)
+  }
+
+  const isSubmitDisabled = isPending || isCompressing || (requiresPhoto && !preview)
 
   return (
     <Card>
@@ -36,7 +87,7 @@ export default function SubmitForm({ id, rejectedFeedback, requiresPhoto = false
         <CardDescription>完了したことを先生に報告します</CardDescription>
       </CardHeader>
       <CardContent>
-        <form action={action} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <input type="hidden" name="id" value={id} />
           <input type="hidden" name="difficultyRating" value={difficulty ?? ""} />
           {state.error && (
@@ -86,20 +137,30 @@ export default function SubmitForm({ id, rejectedFeedback, requiresPhoto = false
                   alt="提出写真プレビュー"
                   className="w-full max-h-64 object-contain rounded-md border bg-gray-50"
                 />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleRemovePhoto}
-                  className="text-red-600 border-red-200 hover:bg-red-50"
-                >
-                  写真を削除
-                </Button>
+                {isCompressing ? (
+                  <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                    <svg className="animate-spin h-3 w-3 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                    </svg>
+                    写真を圧縮中...
+                  </p>
+                ) : (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleRemovePhoto}
+                    className="text-red-600 border-red-200 hover:bg-red-50"
+                  >
+                    写真を削除
+                  </Button>
+                )}
               </div>
             )}
             <label className={`flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-input rounded-md cursor-pointer hover:bg-muted/50 transition-colors${preview ? " hidden" : ""}`}>
               <span className="text-sm text-muted-foreground">タップして写真を選択</span>
-              <span className="text-xs text-muted-foreground mt-1">カメラで撮影も可能です（5MB以内）</span>
+              <span className="text-xs text-muted-foreground mt-1">カメラで撮影も可能です</span>
               <input
                 ref={fileRef}
                 type="file"
@@ -130,12 +191,12 @@ export default function SubmitForm({ id, rejectedFeedback, requiresPhoto = false
               </svg>
               <div>
                 <p className="text-sm font-medium text-blue-700">写真をアップロード中...</p>
-                <p className="text-xs text-blue-500 mt-0.5">写真のサイズによって数秒〜数十秒かかります</p>
+                <p className="text-xs text-blue-500 mt-0.5">そのままお待ちください</p>
               </div>
             </div>
           )}
-          <Button type="submit" className="w-full" disabled={isPending || (requiresPhoto && !preview)}>
-            {isPending ? "提出中..." : requiresPhoto && !preview ? "写真を添付してください" : "提出する"}
+          <Button type="submit" className="w-full" disabled={isSubmitDisabled}>
+            {isPending ? "提出中..." : isCompressing ? "写真を処理中..." : requiresPhoto && !preview ? "写真を添付してください" : "提出する"}
           </Button>
         </form>
       </CardContent>

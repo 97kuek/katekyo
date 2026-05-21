@@ -22,9 +22,9 @@ export async function GET(req: NextRequest) {
   const expiredCutoff = new Date(now)
   expiredCutoff.setDate(expiredCutoff.getDate() - 7)
 
-  // 3. Used invite tokens (used 30+ days ago)
+  // 3. Used invite tokens (used 7+ days ago)
   const usedCutoff = new Date(now)
-  usedCutoff.setDate(usedCutoff.getDate() - 30)
+  usedCutoff.setDate(usedCutoff.getDate() - 7)
 
   const tokens = await db.inviteToken.deleteMany({
     where: {
