@@ -52,7 +52,12 @@ export async function submitHomework(
   if (photoFile && photoFile.size > 0) {
     if (photoFile.size > MAX_PHOTO_BYTES) return { error: "写真のサイズは5MB以内にしてください" }
     if (!photoFile.type.startsWith("image/")) return { error: "画像ファイルを選択してください" }
-    photoUrl = await uploadHomeworkPhoto(photoFile, id)
+    try {
+      photoUrl = await uploadHomeworkPhoto(photoFile, id)
+    } catch (err) {
+      console.error("[submitHomework] photo upload threw:", err)
+      return { error: "写真のアップロードに失敗しました。Supabase Storageの設定を確認してください。" }
+    }
     if (!photoUrl) return { error: "写真のアップロードに失敗しました。もう一度お試しください。" }
   }
 
