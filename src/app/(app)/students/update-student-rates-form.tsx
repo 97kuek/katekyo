@@ -7,19 +7,21 @@ type Props = {
   studentId: string
   defaultHourlyRate: number | null
   defaultTravelExpense: number | null
+  defaultDurationMin: number | null
   defaultSubjectIds: string[]
   subjects: { id: string; name: string }[]
 }
 
-export function UpdateStudentRatesForm({ studentId, defaultHourlyRate, defaultTravelExpense, defaultSubjectIds, subjects }: Props) {
+export function UpdateStudentRatesForm({ studentId, defaultHourlyRate, defaultTravelExpense, defaultDurationMin, defaultSubjectIds, subjects }: Props) {
   const [open, setOpen] = useState(false)
   const [state, action, isPending] = useActionState(updateStudentRates, { error: "", success: false })
 
   const summary =
-    defaultHourlyRate != null || defaultTravelExpense != null
+    defaultHourlyRate != null || defaultTravelExpense != null || defaultDurationMin != null
       ? [
           defaultHourlyRate != null ? `¥${defaultHourlyRate.toLocaleString()}/h` : null,
           defaultTravelExpense != null ? `交通費¥${defaultTravelExpense.toLocaleString()}` : null,
+          defaultDurationMin != null ? `${defaultDurationMin / 60}h` : null,
         ]
           .filter(Boolean)
           .join(" · ")
@@ -62,6 +64,15 @@ export function UpdateStudentRatesForm({ studentId, defaultHourlyRate, defaultTr
         placeholder="交通費（円）"
         defaultValue={defaultTravelExpense ?? ""}
         className="h-7 w-24 rounded border border-input bg-background px-2 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
+      />
+      <input
+        name="defaultDurationHours"
+        type="number"
+        min="0.5"
+        step="0.5"
+        placeholder="授業時間（h）"
+        defaultValue={defaultDurationMin != null ? defaultDurationMin / 60 : ""}
+        className="h-7 w-28 rounded border border-input bg-background px-2 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
       />
       {subjects.length > 0 && (
         <div className="w-full flex flex-wrap gap-x-3 gap-y-1">

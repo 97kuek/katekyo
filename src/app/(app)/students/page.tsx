@@ -139,6 +139,7 @@ export default async function StudentsPage({
                     studentId={s.id}
                     defaultHourlyRate={s.defaultHourlyRate}
                     defaultTravelExpense={s.defaultTravelExpense}
+                    defaultDurationMin={s.defaultDurationMin}
                     defaultSubjectIds={s.defaultSubjectIds}
                     subjects={subjects.map((sub) => ({ id: sub.id, name: sub.name }))}
                   />
@@ -212,6 +213,7 @@ export default async function StudentsPage({
                             studentId={s.id}
                             defaultHourlyRate={s.defaultHourlyRate}
                             defaultTravelExpense={s.defaultTravelExpense}
+                            defaultDurationMin={s.defaultDurationMin}
                             defaultSubjectIds={s.defaultSubjectIds}
                             subjects={subjects.map((sub) => ({ id: sub.id, name: sub.name }))}
                           />

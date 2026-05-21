@@ -191,8 +191,8 @@ async function TeacherUpcomingSection({ teacherId }: { teacherId: string }) {
                 <div>
                   <p className="text-sm font-medium">{l.student.user.name}</p>
                   <p className="text-xs text-muted-foreground">
-                    {l.date.toLocaleDateString("ja-JP", { month: "short", day: "numeric", weekday: "short" })}{" "}
-                    {l.date.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })}
+                    {l.date.toLocaleDateString("ja-JP", { timeZone: "Asia/Tokyo", month: "short", day: "numeric", weekday: "short" })}{" "}
+                    {l.date.toLocaleTimeString("ja-JP", { timeZone: "Asia/Tokyo", hour: "2-digit", minute: "2-digit" })}
                     {l.durationMin ? `（${l.durationMin}分）` : ""}
                   </p>
                 </div>
@@ -483,8 +483,8 @@ async function StudentUpcomingSection({ userId }: { userId: string }) {
                 <div>
                   <p className="text-sm font-medium">{l.type === "online" ? "オンライン授業" : "対面授業"}</p>
                   <p className="text-xs text-muted-foreground">
-                    {l.date.toLocaleDateString("ja-JP", { month: "short", day: "numeric", weekday: "short" })}{" "}
-                    {l.date.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })}
+                    {l.date.toLocaleDateString("ja-JP", { timeZone: "Asia/Tokyo", month: "short", day: "numeric", weekday: "short" })}{" "}
+                    {l.date.toLocaleTimeString("ja-JP", { timeZone: "Asia/Tokyo", hour: "2-digit", minute: "2-digit" })}
                     {l.durationMin ? `（${l.durationMin}分）` : ""}
                   </p>
                 </div>

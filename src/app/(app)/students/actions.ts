@@ -47,6 +47,7 @@ const ratesSchema = z.object({
   studentId: z.string().min(1),
   defaultHourlyRate: z.coerce.number().int().min(0).optional(),
   defaultTravelExpense: z.coerce.number().int().min(0).optional(),
+  defaultDurationHours: z.coerce.number().min(0.5).optional(),
 })
 
 export async function updateStudentRates(
@@ -60,11 +61,12 @@ export async function updateStudentRates(
     studentId: formData.get("studentId"),
     defaultHourlyRate: formData.get("defaultHourlyRate") || undefined,
     defaultTravelExpense: formData.get("defaultTravelExpense") || undefined,
+    defaultDurationHours: formData.get("defaultDurationHours") || undefined,
   }
   const result = ratesSchema.safeParse(raw)
   if (!result.success) return { error: result.error.issues[0].message, success: false }
 
-  const { studentId, defaultHourlyRate, defaultTravelExpense } = result.data
+  const { studentId, defaultHourlyRate, defaultTravelExpense, defaultDurationHours } = result.data
 
   const student = await db.student.findFirst({
     where: { id: studentId, teacherId: session.user.id },
@@ -78,6 +80,7 @@ export async function updateStudentRates(
     data: {
       defaultHourlyRate: defaultHourlyRate ?? null,
       defaultTravelExpense: defaultTravelExpense ?? null,
+      defaultDurationMin: defaultDurationHours != null ? Math.round(defaultDurationHours * 60) : null,
       defaultSubjectIds,
     },
   })

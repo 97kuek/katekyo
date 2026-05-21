@@ -15,6 +15,7 @@ type Student = {
   user: { name: string }
   defaultHourlyRate?: number | null
   defaultTravelExpense?: number | null
+  defaultDurationMin?: number | null
   defaultSubjectIds?: string[] | null
 }
 
@@ -23,7 +24,7 @@ type Subject = { id: string; name: string }
 export function LessonForm({ students, defaultDate, subjects }: { students: Student[]; defaultDate: string; subjects: Subject[] }) {
   const [state, action, isPending] = useActionState(createLesson, { error: "" })
   const [open, setOpen] = useState(false)
-  const [defaultDuration, setDefaultDuration] = useState("60")
+  const [duration, setDuration] = useState("60")
   const [hourlyRate, setHourlyRate] = useState("")
   const [travelExpense, setTravelExpense] = useState("")
   const [lessonType, setLessonType] = useState<"online" | "offline">("online")
@@ -31,13 +32,18 @@ export function LessonForm({ students, defaultDate, subjects }: { students: Stud
 
   useEffect(() => {
     const saved = localStorage.getItem(DURATION_KEY)
-    if (saved) setDefaultDuration(saved)
-
     if (students.length === 1) {
       const s = students[0]
       setHourlyRate(s.defaultHourlyRate != null ? String(s.defaultHourlyRate) : "")
       setTravelExpense(s.defaultTravelExpense != null ? String(s.defaultTravelExpense) : "")
       setSelectedSubjectIds(s.defaultSubjectIds ?? [])
+      if (s.defaultDurationMin != null) {
+        setDuration(String(s.defaultDurationMin))
+      } else if (saved) {
+        setDuration(saved)
+      }
+    } else if (saved) {
+      setDuration(saved)
     }
   }, [students])
 
@@ -53,9 +59,13 @@ export function LessonForm({ students, defaultDate, subjects }: { students: Stud
     if (student.defaultHourlyRate != null) setHourlyRate(String(student.defaultHourlyRate))
     if (student.defaultTravelExpense != null) setTravelExpense(String(student.defaultTravelExpense))
     setSelectedSubjectIds(student.defaultSubjectIds ?? [])
+    if (student.defaultDurationMin != null) {
+      setDuration(String(student.defaultDurationMin))
+    }
   }
 
   function handleDurationChange(e: React.ChangeEvent<HTMLInputElement>) {
+    setDuration(e.target.value)
     localStorage.setItem(DURATION_KEY, e.target.value)
   }
 
@@ -135,7 +145,7 @@ export function LessonForm({ students, defaultDate, subjects }: { students: Stud
               name="durationMin"
               type="number"
               min="1"
-              defaultValue={defaultDuration}
+              value={duration}
               onChange={handleDurationChange}
               className="h-9 text-sm"
             />

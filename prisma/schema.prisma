@@ -89,6 +89,7 @@ model Student {
   gardenGeneration     Int      @default(1)
   defaultHourlyRate    Int?
   defaultTravelExpense Int?
+  defaultDurationMin   Int?
   defaultSubjectIds    String[] @default([])
   createdAt            DateTime @default(now())
 

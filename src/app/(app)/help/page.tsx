@@ -6,213 +6,315 @@ export default async function HelpPage() {
   if (!session) redirect("/login")
 
   return (
-    <div className="space-y-8">
-      <AboutSection />
+    <div className="max-w-2xl space-y-8">
       {session.user.role === "teacher" ? <TeacherHelp /> : <StudentHelp />}
+      <AboutSection />
     </div>
   )
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+// ---- 共通コンポーネント ----
+
+function H1({ children }: { children: React.ReactNode }) {
   return (
-    <div className="rounded-lg border bg-white p-5 space-y-3">
+    <div>
+      <h1 className="text-2xl font-bold">{children}</h1>
+      <p className="text-sm text-muted-foreground mt-1">
+        katekyo の使い方をまとめています
+      </p>
+    </div>
+  )
+}
+
+function SectionCard({
+  title,
+  color = "gray",
+  children,
+}: {
+  title: string
+  color?: "green" | "blue" | "orange" | "purple" | "gray"
+  children: React.ReactNode
+}) {
+  const border = {
+    green:  "border-l-4 border-l-green-400",
+    blue:   "border-l-4 border-l-blue-400",
+    orange: "border-l-4 border-l-orange-400",
+    purple: "border-l-4 border-l-purple-400",
+    gray:   "border-l-4 border-l-gray-300",
+  }[color]
+
+  return (
+    <div className={`rounded-lg border bg-white p-5 space-y-3 ${border}`}>
       <h2 className="font-semibold text-base">{title}</h2>
-      <div className="space-y-2 text-sm text-gray-700">{children}</div>
+      <div className="space-y-2.5 text-sm text-gray-700">{children}</div>
     </div>
   )
 }
 
-function Step({ n, children }: { n: number; children: React.ReactNode }) {
+function Steps({ items }: { items: string[] }) {
   return (
-    <div className="flex gap-3">
-      <span className="h-6 w-6 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
-        {n}
-      </span>
-      <p className="leading-relaxed">{children}</p>
-    </div>
+    <ol className="space-y-2">
+      {items.map((item, i) => (
+        <li key={i} className="flex gap-3">
+          <span className="h-5 w-5 rounded-full bg-primary text-primary-foreground text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">
+            {i + 1}
+          </span>
+          <span className="leading-relaxed">{item}</span>
+        </li>
+      ))}
+    </ol>
   )
 }
 
 function Tip({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex gap-2 bg-blue-50 rounded-md p-3">
-      <span className="text-blue-500 shrink-0">💡</span>
-      <p className="text-sm text-blue-800 leading-relaxed">{children}</p>
+    <div className="flex gap-2 bg-amber-50 border border-amber-200 rounded-md p-3 mt-1">
+      <span className="shrink-0 text-amber-500">💡</span>
+      <p className="text-sm text-amber-900 leading-relaxed">{children}</p>
     </div>
   )
 }
+
+function BulletList({ items }: { items: { label: string; desc: string }[] }) {
+  return (
+    <ul className="space-y-1.5">
+      {items.map(({ label, desc }) => (
+        <li key={label} className="flex gap-2">
+          <span className="text-muted-foreground shrink-0">•</span>
+          <span><strong>{label}</strong>：{desc}</span>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+// ---- 先生用ガイド ----
 
 function TeacherHelp() {
   return (
-    <div className="max-w-2xl space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">使い方ガイド（先生）</h1>
-        <p className="text-sm text-muted-foreground mt-1">katekyo の主な機能と操作方法を説明します</p>
+    <div className="space-y-6">
+      <H1>使い方ガイド（先生）</H1>
+
+      {/* クイックスタート */}
+      <div className="rounded-lg bg-green-50 border border-green-200 p-5 space-y-3">
+        <p className="font-semibold text-green-800">🚀 はじめてのセットアップ（3ステップ）</p>
+        <Steps items={[
+          "「生徒一覧」→「生徒を招待」で生徒を登録する",
+          "「設定」→「通知」でLINE連携を行う（任意・推奨）",
+          "「予定」で最初の授業を登録する",
+        ]} />
       </div>
 
-      <Section title="🎓 生徒を招待する">
-        <Step n={1}>「生徒」→「招待リンクを作成」で生徒の名前と学年を入力します。</Step>
-        <Step n={2}>生成された招待URLをコピーして、LINE・メール等で生徒に送ります。</Step>
-        <Step n={3}>生徒がリンクを開き、メールアドレスとパスワードを設定すると登録完了です。</Step>
-        <Tip>招待リンクは7日間有効です。「招待管理」ページで有効なリンクの「URLをコピー」ボタンから再コピーできます。期限切れになったら「新しく招待する」から再作成してください。</Tip>
-      </Section>
+      {/* 生徒を招待する */}
+      <SectionCard title="👤 生徒を招待する" color="green">
+        <Steps items={[
+          "「生徒一覧」→「生徒を招待」で名前・学年を入力します。",
+          "生成された招待URLをLINE・メール等で生徒に送ります。",
+          "生徒がリンクを開いてパスワードを設定すると登録完了です。",
+        ]} />
+        <Tip>招待リンクは7日間有効。「招待管理」ページで再コピーや取り消しができます。期限切れになったら「生徒を招待」から再作成してください。</Tip>
+      </SectionCard>
 
-      <Section title="👥 生徒を管理する">
-        <div className="space-y-1.5">
-          <p>• <strong>ソート</strong>：生徒一覧の「並び替え」で登録日順・名前順・学年順・進捗順に切り替えられます。</p>
-          <p>• <strong>学年変更</strong>：生徒一覧の「学年変更」で新学年に更新できます（新学期対応）。</p>
-          <p>• <strong>パスワードリセット</strong>：生徒一覧の「PW変更」からパスワードを直接設定できます。生徒がパスワードを忘れた時に使ってください。</p>
-          <p>• <strong>生徒削除</strong>：確認ダイアログの後、宿題・成績データも含めて削除されます。</p>
-          <p>• <strong>招待管理</strong>：未使用の招待リンクを一覧・URLコピー・取消しできます。</p>
-        </div>
-      </Section>
+      {/* 生徒を管理する */}
+      <SectionCard title="👥 生徒を管理する" color="green">
+        <BulletList items={[
+          { label: "学年変更", desc: "生徒一覧の「学年変更」で新学年に更新できます。" },
+          { label: "パスワードリセット", desc: "「PW変更」から直接設定できます。生徒がパスワードを忘れた時に使用してください。" },
+          { label: "時給・交通費のデフォルト", desc: "「時給・交通費を設定」をクリックすると、授業登録時に自動入力されます。" },
+          { label: "生徒削除", desc: "宿題・成績データも含めて削除されます（取り消し不可）。" },
+        ]} />
+      </SectionCard>
 
-      <Section title="📚 宿題を出す">
-        <Step n={1}>「宿題」→「宿題を作成」で生徒・タイトル・期限を入力します。</Step>
-        <Step n={2}>内容・科目タグも追加できます（任意）。</Step>
-        <Step n={3}>生徒が提出報告をすると、ダッシュボードの「承認待ち」に表示されます。</Step>
-        <Step n={4}>「確認する」から内容を確認し、承認または差し戻しを行います。複数まとめて「一括承認」も可能です。</Step>
-        <Tip>差し戻しにはコメントを添えると生徒に伝わります。宿題詳細ページの「期限を延長」ボタンで期限の変更もできます。</Tip>
-      </Section>
+      {/* 宿題を出す */}
+      <SectionCard title="📚 宿題を出す" color="blue">
+        <Steps items={[
+          "「宿題管理」→「宿題を作成」で生徒・タイトル・期限を入力します。",
+          "「写真提出を必須にする」をオンにすると、生徒は写真なしで提出できなくなります。",
+          "生徒が提出するとダッシュボードの「承認待ち」に表示されます。",
+          "「確認する」から承認または差し戻しを行います。「一括承認」も可能です。",
+        ]} />
+        <Tip>差し戻しにはコメントを添えると生徒に伝わります。宿題詳細ページから期限の延長もできます。</Tip>
+      </SectionCard>
 
-      <Section title="🔍 宿題を絞り込む">
-        <div className="space-y-1.5">
-          <p>• <strong>タイトル検索</strong>：検索ボックスにキーワードを入力するとタイトルで絞り込めます。</p>
-          <p>• <strong>生徒フィルタ</strong>：特定の生徒の宿題だけを表示できます。</p>
-          <p>• <strong>科目タグフィルタ</strong>：科目ボタンをクリックして複数選択できます。</p>
-          <p>• <strong>ソート</strong>：作成日順・期限順を切り替えられます。</p>
-        </div>
-      </Section>
+      {/* 宿題を絞り込む */}
+      <SectionCard title="🔍 宿題を絞り込む" color="blue">
+        <BulletList items={[
+          { label: "タイトル検索", desc: "検索ボックスにキーワードを入力するとリアルタイムで絞り込めます。" },
+          { label: "生徒フィルタ", desc: "特定の生徒の宿題だけを表示できます。" },
+          { label: "科目タグフィルタ", desc: "科目ボタンを複数選択できます。教材に紐づいた科目タグでも絞り込めます。" },
+          { label: "ソート", desc: "作成日順・期限順を切り替えられます。" },
+        ]} />
+      </SectionCard>
 
-      <Section title="📊 成績を記録する">
-        <Step n={1}>「成績」→「成績を記録」でテスト名・日付・生徒を選びます。</Step>
-        <Step n={2}>得点・順位・偏差値は任意入力です。わかる範囲で入力してください。</Step>
-        <Step n={3}>科目タグや主観評価・コメントも記録できます。</Step>
-        <Step n={4}>記録した成績は後から編集・削除できます。</Step>
-        <Tip>「生徒」セレクタで特定の生徒を絞り込むと、その生徒の成績グラフが表示されます。生徒個別の詳細は「生徒一覧」→「成績を見る」で確認できます。</Tip>
-      </Section>
+      {/* 授業を管理する */}
+      <SectionCard title="📅 授業を管理する" color="orange">
+        <Steps items={[
+          "「予定（カレンダー）」で月表示または週表示を開きます。",
+          "日付をタップして「授業を追加」から生徒・日時・形式・時間・科目を入力します。",
+          "「週次繰り返し」で最大12週分まとめて登録できます。",
+          "授業終了後は「完了」ボタンを押すと請求管理に反映されます。",
+        ]} />
+        <Tip>授業カードの「編集」から授業ログ（指導内容・次回目標）を記録できます。「生徒に公開する」をオンにすると生徒も閲覧できます。</Tip>
+      </SectionCard>
 
-      <Section title="📅 授業スケジュールを管理する">
-        <Step n={1}>「予定（カレンダー）」で月表示または週表示カレンダーを開きます。</Step>
-        <Step n={2}>日付をタップして「授業を追加」から生徒・時刻・形式・時間を入力します。</Step>
-        <Step n={3}>「週次繰り返し」で最大12週分まとめて登録できます。所要時間は前回入力値が自動でセットされます。</Step>
-        <Tip>月/週の切り替えは左上のタブで行います。「今月」「今週」ボタンで現在の期間に素早く戻れます。青いドットが授業、オレンジのドットが宿題期限です。</Tip>
-      </Section>
+      {/* 請求管理 */}
+      <SectionCard title="💰 請求管理" color="orange">
+        <BulletList items={[
+          { label: "対象授業", desc: "「完了」マークをつけた授業のみが請求に反映されます（未完了は除外）。" },
+          { label: "料金計算", desc: "授業料 = 時給 × 時間（時）。対面授業は交通費が加算されます。" },
+          { label: "月のナビゲーション", desc: "画面上部の矢印で月を切り替えられます。" },
+          { label: "支払い記録", desc: "「支払い済みにする」で記録でき、月次サマリーで管理できます。" },
+        ]} />
+      </SectionCard>
 
-      <Section title="🏷️ 科目タグを使う">
-        <p>「科目タグ」メニューから科目を作成しておくと、宿題・成績に紐づけができます。宿題一覧・成績一覧の科目ボタンで複数選択フィルタリングが可能です。</p>
-      </Section>
+      {/* 成績を記録する */}
+      <SectionCard title="📊 成績を記録する" color="purple">
+        <Steps items={[
+          "「成績管理」→「成績を記録」でテスト名・日付・生徒を選びます。",
+          "得点・順位・偏差値は任意入力です。わかる範囲で入力してください。",
+          "科目タグや主観評価・コメントも記録できます。",
+        ]} />
+        <Tip>成績が入力されると、スコアに応じた植物が生徒の「学習の森」に育ちます。満点で竹、90%以上で桜が育ちます。</Tip>
+      </SectionCard>
 
-      <Section title="📖 教材を登録する">
-        <p>「生徒一覧」→生徒名→「教材」タブから、その生徒の教材を登録・管理できます。登録した教材は宿題作成時に紐づけでき、生徒も自分の教材一覧を確認できます。</p>
-      </Section>
+      {/* 科目タグ */}
+      <SectionCard title="🏷️ 科目タグを使う" color="purple">
+        <p>「設定」→「タグ管理」から科目タグを作成・削除できます。宿題・成績・授業・教材に紐づけることで、絞り込みフィルターとして活用できます。</p>
+      </SectionCard>
 
-      <Section title="📋 宿題テンプレートを使う">
-        <Step n={1}>「宿題テンプレート」メニューからよく使う宿題のタイトル・内容を登録しておきます。</Step>
-        <Step n={2}>宿題作成時に「テンプレートから選ぶ」を選ぶと、タイトルと内容が自動入力されます。</Step>
-        <Tip>毎週同じ宿題を出す場合など、入力の手間を省けます。テンプレートは後から編集・削除できます。</Tip>
-      </Section>
+      {/* 教材を登録する */}
+      <SectionCard title="📖 教材を登録する" color="gray">
+        <p>「生徒一覧」→ 生徒名 →「教材」から、その生徒の使用教材を登録できます。</p>
+        <BulletList items={[
+          { label: "科目タグとの紐づけ", desc: "教材に科目タグを設定しておくと、宿題の科目フィルターで教材経由の宿題も絞り込めます。" },
+          { label: "宿題への紐づけ", desc: "宿題作成時に教材を選択できます。生徒も自分の教材一覧を確認できます。" },
+          { label: "タグの編集", desc: "登録後もペンアイコンから科目タグをいつでも編集できます。" },
+        ]} />
+      </SectionCard>
 
-      <Section title="💰 請求管理">
-        <div className="space-y-1.5">
-          <p>「請求管理」メニューで月別の授業料・交通費を確認できます。</p>
-          <p>• <strong>時給・交通費のデフォルト設定</strong>：「生徒一覧」で各生徒の「時給・交通費を設定」をクリックすると、授業登録時に自動入力されます。</p>
-          <p>• <strong>月のナビゲーション</strong>：画面上部の矢印で月を切り替えられます。</p>
-          <p>• <strong>計算方法</strong>：授業料 = 時給 × 時間（時間）、対面授業は交通費が加算されます。</p>
-        </div>
-        <Tip>カレンダーで授業を登録する際、生徒を選ぶと時給・交通費が自動で入力されます（「生徒一覧」でデフォルト設定済みの場合）。</Tip>
-      </Section>
-
-      <Section title="🔔 LINE通知を設定する（先生）">
-        <Step n={1}>「設定」メニューを開き、「LINE連携を開始する」をタップします。</Step>
-        <Step n={2}>6桁のコードが表示されたら、QRコードまたはリンクから katekyo の LINE 公式アカウントを友だち追加します。</Step>
-        <Step n={3}>LINE のトーク画面に6桁のコードを送信すると連携完了です。</Step>
-        <Tip>連携すると、生徒が宿題を提出したときに LINE へ通知が届きます。通知には宿題の確認ページへのリンクが含まれます。</Tip>
-      </Section>
+      {/* LINE・Meet */}
+      <SectionCard title="🔔 LINE通知・Meet連携" color="gray">
+        <p className="font-medium text-xs text-muted-foreground mb-1">LINE通知（先生への通知）</p>
+        <Steps items={[
+          "「設定」→「LINE連携を開始する」をタップします。",
+          "表示された6桁のコードをkatekyoのLINE公式アカウントに送信します。",
+          "連携完了後、生徒の提出時・週次サマリーがLINEに届きます。",
+        ]} />
+        <p className="font-medium text-xs text-muted-foreground mt-3 mb-1">Google Meet（オンライン授業）</p>
+        <p>「設定」でMeetのパーソナルルームURLを登録しておくと、授業カードに「Meet に参加する」ボタンが表示されます。オンライン授業の10分前に生徒のLINEへ自動でリンクが送られます（生徒がLINE連携済みの場合）。</p>
+      </SectionCard>
     </div>
   )
 }
 
+// ---- 生徒用ガイド ----
+
 function StudentHelp() {
   return (
-    <div className="max-w-2xl space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">使い方ガイド（生徒）</h1>
-        <p className="text-sm text-muted-foreground mt-1">katekyo の使い方を説明します</p>
+    <div className="space-y-6">
+      <H1>使い方ガイド（生徒）</H1>
+
+      {/* クイックスタート */}
+      <div className="rounded-lg bg-green-50 border border-green-200 p-5 space-y-3">
+        <p className="font-semibold text-green-800">🚀 はじめてのセットアップ（3ステップ）</p>
+        <Steps items={[
+          "先生から送られた招待URLを開いてアカウントを作成する",
+          "「設定」→「LINE連携」を行う（任意・推奨）",
+          "「宿題」メニューで宿題を確認する",
+        ]} />
       </div>
 
-      <Section title="📬 招待を受けてアカウントを作る">
-        <Step n={1}>先生から送られてきた招待URLをブラウザで開きます。</Step>
-        <Step n={2}>メールアドレスとパスワード（8文字以上）を入力して「アカウントを作成」します。</Step>
-        <Step n={3}>ログインページに移動するので、設定したメールとパスワードでログインします。</Step>
-        <Tip>すでにログイン中の場合は、先にログアウトしてから招待リンクを開いてください。パスワードを忘れた場合は先生にパスワードリセットを依頼してください。</Tip>
-      </Section>
+      {/* アカウント作成 */}
+      <SectionCard title="📬 招待を受けてアカウントを作る" color="green">
+        <Steps items={[
+          "先生から送られた招待URLをブラウザで開きます。",
+          "メールアドレスとパスワード（8文字以上）を入力して「アカウントを作成」します。",
+          "ログインページに移動するので、設定したメールとパスワードでログインします。",
+        ]} />
+        <Tip>すでにログイン中の場合は、先にログアウトしてから招待リンクを開いてください。パスワードを忘れた場合は先生にリセットを依頼してください。</Tip>
+      </SectionCard>
 
-      <Section title="📚 宿題を確認・提出する">
-        <Step n={1}>「宿題」メニューを開くと「やること」に未完了の宿題が表示されます。</Step>
-        <Step n={2}>「提出する」ボタンから完了報告をします。コメントを添えることもできます。</Step>
-        <Step n={3}>先生が確認後、「承認」または「差し戻し」の結果が届きます。</Step>
-        <Step n={4}>差し戻しになった場合はコメントを確認して再度提出してください。</Step>
-        <Tip>提出後に取り消したい場合は、承認待ち欄の「取り消す」ボタンを使ってください。期限切れの宿題も提出できます。</Tip>
-      </Section>
+      {/* 宿題 */}
+      <SectionCard title="📚 宿題を確認・提出する" color="blue">
+        <Steps items={[
+          "「宿題」メニューを開くと「やること」に未完了の宿題が表示されます。",
+          "「提出する」ボタンから完了報告をします。難易度評価やコメントも添えられます。",
+          "写真提出が必要な宿題は、代表的なページを1枚だけ撮影して添付してください。",
+          "先生が確認後、「承認」または「差し戻し」の結果が届きます。",
+        ]} />
+        <Tip>提出後に取り消したい場合は、承認待ち欄の「取り消す」ボタンを使ってください。差し戻しになった場合はコメントを確認して再提出してください。</Tip>
+      </SectionCard>
 
-      <Section title="📊 成績を確認する">
-        <Step n={1}>「成績」メニューを開くと過去のテスト結果が一覧で表示されます。</Step>
-        <Step n={2}>グラフで点数・偏差値の推移を視覚的に確認できます。科目別にフィルタリングも可能です。</Step>
+      {/* 授業・カレンダー */}
+      <SectionCard title="📅 授業・カレンダーを確認する" color="orange">
+        <Steps items={[
+          "「予定（カレンダー）」を開くと授業と宿題期限がカレンダーに表示されます。",
+          "日付をタップすると授業の詳細（時刻・形式・先生のメモ）が確認できます。",
+          "オンライン授業には「Meet に参加する」ボタンが表示されます。",
+        ]} />
+        <Tip>ダッシュボード（ホーム）でも今週の授業と期限が一目で確認できます。授業ログが公開されている場合はカレンダーでも閲覧できます。</Tip>
+      </SectionCard>
+
+      {/* 教材写真 */}
+      <SectionCard title="📸 授業中に教材を先生に送る" color="orange">
+        <Steps items={[
+          "カレンダーの授業カードにあるカメラアイコンをタップします。",
+          "手元の教材を撮影して選択します。",
+          "先生がLINE連携済みの場合は自動でLINEに送信されます。未連携の場合はURLをコピーして共有できます。",
+        ]} />
+      </SectionCard>
+
+      {/* 成績 */}
+      <SectionCard title="📊 成績を確認する" color="purple">
+        <p>「成績」メニューを開くと過去のテスト結果が一覧・グラフで表示されます。点数・偏差値の推移を視覚的に確認できます。</p>
         <Tip>成績の入力は先生が行います。テスト後に結果を先生に共有してください。</Tip>
-      </Section>
+      </SectionCard>
 
-      <Section title="📅 授業・宿題期限を確認する">
-        <Step n={1}>「予定（カレンダー）」を開くと授業と宿題期限がカレンダーに表示されます。</Step>
-        <Step n={2}>月表示と週表示を切り替えられます。「今月」「今週」ボタンで現在の期間に戻れます。</Step>
-        <Step n={3}>日付をタップすると授業の詳細（時刻・形式・メモ）が確認できます。</Step>
-        <Tip>ダッシュボード（ホーム）でも今週の授業と期限が一目で確認できます。</Tip>
-      </Section>
+      {/* 教材 */}
+      <SectionCard title="📖 教材を確認する" color="gray">
+        <p>先生に登録してもらった教材の一覧を「教材」メニューから確認できます。教材には科目タグが付いている場合があります。</p>
+      </SectionCard>
 
-      <Section title="📖 教材を確認する">
-        <p>先生に登録してもらった教材の一覧を「教材」メニューから確認できます（PC・タブレットのサイドバーから開けます）。</p>
-      </Section>
-
-      <Section title="🌲 学習の森">
-        <div className="space-y-1.5">
-          <p>宿題が承認されたりテストで好成績を取ると、森にアイテムが1つ育ちます。</p>
-          <p>• <strong>竹</strong>：満点 / 偏差値70以上で出現する超レアアイテム</p>
-          <p>• <strong>桜</strong>：90%以上 / 偏差値65以上で出現するレアアイテム</p>
-          <p>• <strong>大木</strong>：宿題が5件承認されるごとに出現する記念アイテム</p>
-          <p>• <strong>木</strong>：80〜89% / 偏差値60〜64で出現</p>
-          <p>• <strong>茂み</strong>：60〜79% / 偏差値50〜59で出現</p>
-          <p>• <strong>花・きのこ</strong>：宿題承認時にランダムで出現</p>
-          <p>• 期限切れ・差し戻しの宿題があると古い植物が枯れますが、提出すると回復します</p>
-          <p>• 64個育て終わると次の世代の森が始まります</p>
+      {/* 学習の森 */}
+      <SectionCard title="🌲 学習の森" color="gray">
+        <p className="mb-2">宿題が承認されたりテストで好成績を取ると、森にアイテムが育ちます。</p>
+        <div className="bg-gray-50 rounded-md p-3 space-y-1 text-xs">
+          <p><span className="font-semibold">🎋 竹</span>　満点 / 偏差値70以上（超レア）</p>
+          <p><span className="font-semibold">🌸 桜</span>　90%以上 / 偏差値65以上（レア）</p>
+          <p><span className="font-semibold">🌳 大木</span>　80〜89% / 偏差値60〜64</p>
+          <p><span className="font-semibold">🌲 木</span>　宿題承認時にランダムで出現</p>
+          <p><span className="font-semibold">🌿 茂み / 🌼 花</span>　60〜79% / 偏差値50〜59 など</p>
+          <p><span className="font-semibold">🍄 きのこ</span>　宿題承認時に低確率で出現（ラッキー！）</p>
         </div>
-      </Section>
+        <Tip>期限切れ・差し戻しの宿題があると古い植物が枯れますが、提出すると回復します。64個すべて育つと次の世代の森が始まります。</Tip>
+      </SectionCard>
 
-      <Section title="🔔 LINE通知を設定する（生徒）">
-        <Step n={1}>「設定」メニューを開き、「LINE連携を開始する」をタップします。</Step>
-        <Step n={2}>6桁のコードが表示されたら、QRコードまたはリンクから katekyo の LINE 公式アカウントを友だち追加します。</Step>
-        <Step n={3}>LINE のトーク画面に6桁のコードを送信すると連携完了です。</Step>
-        <Tip>連携すると、宿題の承認・差し戻し時や、毎朝8時に期限が近い宿題のリマインダーが LINE に届きます。通知から宿題のページに直接移動できます。</Tip>
-      </Section>
+      {/* LINE通知 */}
+      <SectionCard title="🔔 LINE通知を設定する" color="gray">
+        <Steps items={[
+          "「設定」→「LINE連携を開始する」をタップします。",
+          "表示された6桁のコードをkatekyoのLINE公式アカウントに送信します。",
+          "連携完了です。",
+        ]} />
+        <Tip>連携すると、宿題の承認・差し戻し時や、毎朝の期限リマインダーがLINEに届きます。オンライン授業の10分前にMeetリンクも届きます。</Tip>
+      </SectionCard>
 
-      <Section title="ログアウト・パスワード変更">
-        <p>画面右上のアイコンからプロフィール編集（名前・パスワード変更）・ログアウトができます。パスワードを忘れた場合は先生に連絡してください。</p>
-      </Section>
+      {/* アカウント設定 */}
+      <SectionCard title="⚙️ アカウント設定" color="gray">
+        <p>「設定」メニューから名前・パスワードの変更ができます。ログアウトはヘッダー右上のボタンから行えます。</p>
+      </SectionCard>
     </div>
   )
 }
 
 function AboutSection() {
   return (
-    <div className="max-w-2xl">
-      <div className="rounded-lg border bg-white p-5 space-y-3 text-sm text-gray-600">
-        <p className="font-semibold text-gray-800">katekyo について</p>
-        <p>家庭教師と生徒の学習をサポートするWebアプリです。宿題・成績・授業スケジュールを一元管理し、学習の継続を「学習の森」として可視化します。</p>
-        <div className="pt-1 space-y-1 text-xs text-muted-foreground border-t">
-          <p>開発者：植木敬太郎</p>
-          <p>連絡先：ueki.keitaro@gmail.com</p>
-          <p>バージョン：2026年5月</p>
-          <p>技術スタック：Next.js 16 · Prisma · Supabase · Tailwind CSS</p>
-        </div>
+    <div className="rounded-lg border bg-white p-5 space-y-2 text-sm text-gray-600">
+      <p className="font-semibold text-gray-800">katekyo について</p>
+      <p>家庭教師と生徒の学習をサポートするWebアプリです。宿題・成績・授業スケジュールを一元管理し、学習の継続を「学習の森」として可視化します。</p>
+      <div className="pt-2 space-y-0.5 text-xs text-muted-foreground border-t">
+        <p>開発者：植木敬太郎　/ 　連絡先：ueki.keitaro@gmail.com</p>
+        <p>技術スタック：Next.js · Prisma · Supabase · Tailwind CSS</p>
       </div>
     </div>
   )

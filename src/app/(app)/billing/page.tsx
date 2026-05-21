@@ -163,12 +163,13 @@ export default async function BillingPage({
                 <div className="divide-y">
                   {sLessons.map((l) => {
                     const fee = calcFee(l.durationMin, l.hourlyRate, l.travelExpense)
-                    const timeStr = l.date.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })
+                    const dateLabel = l.date.toLocaleDateString("ja-JP", { timeZone: "Asia/Tokyo", month: "numeric", day: "numeric", weekday: "short" })
+                    const timeStr = l.date.toLocaleTimeString("ja-JP", { timeZone: "Asia/Tokyo", hour: "2-digit", minute: "2-digit" })
                     return (
                       <div key={l.id} className="px-5 py-3 flex items-start justify-between gap-3 text-sm">
                         <div>
                           <p className="font-medium">
-                            {l.date.getMonth() + 1}/{l.date.getDate()}（{["日","月","火","水","木","金","土"][l.date.getDay()]}）{timeStr}〜
+                            {dateLabel} {timeStr}〜
                           </p>
                           <p className="text-xs text-muted-foreground mt-0.5">
                             {l.type === "online" ? "オンライン" : "対面"}
