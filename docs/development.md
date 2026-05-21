@@ -117,6 +117,31 @@ npx prisma migrate dev
 npm run dev
 ```
 
+## 年次データクリーンアップ（手動実行）
+
+毎年4月1日ごろに実行する。前々年度（1年前の4月1日より前）のデータを削除する。
+
+Supabase ダッシュボード → **SQL Editor** で以下を実行：
+
+```sql
+-- 前々年度のカットオフ日（例: 2025年4月実行なら 2024-04-01）
+-- 実行前に年を確認すること
+
+DO $$
+DECLARE
+  cutoff TIMESTAMP := (DATE_TRUNC('year', NOW()) - INTERVAL '1 year' + INTERVAL '3 months');
+BEGIN
+  DELETE FROM "Lesson"      WHERE date < cutoff;
+  DELETE FROM "GradeRecord" WHERE date < cutoff;
+  DELETE FROM "Homework"    WHERE "dueDate" < cutoff;
+  DELETE FROM "ExamEvent"   WHERE date < cutoff;
+END $$;
+```
+
+> **注意**: 実行前に `SELECT COUNT(*)` で件数を確認してから削除すること。
+
+---
+
 ## 便利コマンド
 
 ```bash
