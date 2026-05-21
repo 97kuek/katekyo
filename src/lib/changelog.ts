@@ -7,8 +7,8 @@ export type ChangelogEntry = {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
-    id: "2025-05-21",
-    date: "2025年5月21日",
+    id: "2026-05-21",
+    date: "2026年5月21日",
     title: "Google Meet リンク・授業リマインダー",
     items: [
       "授業ページに Google Meet リンクを保存できるようになりました",
