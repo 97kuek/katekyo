@@ -13,6 +13,11 @@ export async function markAsPaid(formData: FormData) {
   const year = parseInt(formData.get("year") as string)
   const month = parseInt(formData.get("month") as string)
 
+  const student = await db.student.findFirst({
+    where: { id: studentId, teacherId: session.user.id },
+  })
+  if (!student) return
+
   await db.monthlyPayment.upsert({
     where: { teacherId_studentId_year_month: { teacherId: session.user.id, studentId, year, month } },
     create: { teacherId: session.user.id, studentId, year, month },
@@ -29,6 +34,11 @@ export async function markAsUnpaid(formData: FormData) {
   const studentId = formData.get("studentId") as string
   const year = parseInt(formData.get("year") as string)
   const month = parseInt(formData.get("month") as string)
+
+  const student = await db.student.findFirst({
+    where: { id: studentId, teacherId: session.user.id },
+  })
+  if (!student) return
 
   await db.monthlyPayment.deleteMany({
     where: { teacherId: session.user.id, studentId, year, month },
