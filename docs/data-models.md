@@ -19,15 +19,17 @@ User {
   createdAt     DateTime
 
   # Relations
-  student       Student?               # role=student のみ
-  taughtStudents Student[] @relation("TeacherStudents")  # role=teacher のみ
-  lessons       Lesson[]
-  gradeRecords  GradeRecord[]
-  homeworks     Homework[]
-  examEvents    ExamEvent[]
-  invitations   StudentInvitation[]
-  subjects      Subject[]
-  homeworkTemplates HomeworkTemplate[] @relation("TeacherTemplates")
+  studentProfile Student?          # role=student のみ
+  students       Student[]         # role=teacher のみ（担当生徒）
+  subjects       Subject[]
+  homeworks      Homework[]
+  gradeRecords   GradeRecord[]
+  lessons        Lesson[]
+  materials      StudentMaterial[]
+  examEvents     ExamEvent[]
+  monthlyPayments MonthlyPayment[]
+  inviteTokens   InviteToken[]
+  lineLinkToken  LineLinkToken?
 }
 ```
 
@@ -35,22 +37,26 @@ User {
 
 ```prisma
 Student {
-  id              String
-  userId          String   @unique
-  teacherId       String
-  grade           String   # GRADE_OPTIONS の値（例: "中学1年"）
-  gardenGeneration Int     @default(1)  # 森が満開リセットされた世代数
-  createdAt       DateTime
+  id                   String
+  userId               String   @unique
+  teacherId            String
+  grade                String   # GRADE_OPTIONS の値（例: "中学1年"）
+  gardenGeneration     Int      @default(1)  # 森が満開リセットされた世代数
+  defaultHourlyRate    Int?     # 授業登録時のデフォルト時給
+  defaultTravelExpense Int?     # 授業登録時のデフォルト交通費
+  defaultSubjectIds    String[] @default([])  # 授業登録時のデフォルト科目タグ
+  createdAt            DateTime
 
   # Relations
-  user     User
-  teacher  User       @relation("TeacherStudents")
-  homeworks    Homework[]
-  gradeRecords GradeRecord[]
-  lessons      Lesson[]
-  gardenItems  GardenItem[]
-  materials    Material[]
-  examEvents   ExamEvent[]
+  user        User
+  teacher     User              @relation("TeacherStudents")
+  homeworks   Homework[]
+  grades      GradeRecord[]
+  lessons     Lesson[]
+  materials   StudentMaterial[]
+  gardenItems GardenItem[]
+  examEvents  ExamEvent[]
+  monthlyPayments MonthlyPayment[]
 }
 ```
 
@@ -58,22 +64,27 @@ Student {
 
 ```prisma
 Homework {
-  id           String
-  teacherId    String
-  studentId    String
-  title        String
-  description  String?
-  dueDate      DateTime
-  status       HomeworkStatus  # assigned | submitted | approved | rejected
-  subjectIds   String[]        # Subject.id の配列
-  materialId   String?
-  photoUrl     String?         # Supabase Storage の公開 URL
-  submittedAt  DateTime?
+  id              String
+  teacherId       String
+  studentId       String
+  title           String
+  description     String?
+  dueDate         DateTime
+  status          HomeworkStatus  # assigned | submitted | approved | rejected
+  subjectIds      String[]        # Subject.id の配列
+  materialId      String?         # StudentMaterial.id
+  requiresPhoto   Boolean         @default(false)  # 写真提出を必須にするか
+  photoUrl        String?         # Supabase Storage の公開 URL
+  studentNote     String?         # 生徒からのコメント
+  difficultyRating Int?           # 難易度評価（1=かんたん 2=ふつう 3=むずかしい）
   teacherFeedback String?
-  createdAt    DateTime
+  submittedAt     DateTime?
+  reviewedAt      DateTime?
+  createdAt       DateTime
 
   # Relations
   student  Student
+  material StudentMaterial?
 }
 ```
 
@@ -85,16 +96,16 @@ Lesson {
   teacherId       String
   studentId       String
   date            DateTime
-  type            String    # "online" | "offline"
-  durationMin     Int?      # 所要時間（分）
-  notes           String?   # 事前メモ
-  lessonLog       String?   # 授業後のログ（何を教えたか）
-  lessonLogPublic Boolean   # 授業ログを生徒に公開するか
-  subjectIds      String[]  # Subject.id の配列
-  hourlyRate      Int?      # 時給（円）
-  travelExpense   Int?      # 交通費（円）。online の場合は 0 に強制
-  completedAt     DateTime? # 完了確定日時。null = 未完了（請求対象外）
-  qstashMessageId String?   # QStash メッセージ ID（授業前リマインダーキャンセル用）
+  type            LessonType  # online | offline
+  durationMin     Int?        # 所要時間（分）
+  notes           String?     # 事前メモ
+  lessonLog       String?     # 授業後のログ（何を教えたか）
+  lessonLogPublic Boolean     # 授業ログを生徒に公開するか
+  subjectIds      String[]    # Subject.id の配列
+  hourlyRate      Int?        # 時給（円）
+  travelExpense   Int?        # 交通費（円）。online の場合は 0 に強制
+  completedAt     DateTime?   # 完了確定日時。null = 未完了（請求対象外）
+  qstashMessageId String?     # QStash メッセージ ID（授業前リマインダーキャンセル用）
   createdAt       DateTime
 }
 ```
@@ -103,17 +114,22 @@ Lesson {
 
 ```prisma
 GradeRecord {
-  id        String
-  teacherId String
-  studentId String
-  testName  String
-  testType  String   # mock | exam | quiz | other
-  date      DateTime
-  score     Float?   # 得点
-  maxScore  Float?   # 満点
-  deviation Float?   # 偏差値
-  memo      String?
-  createdAt DateTime
+  id            String
+  teacherId     String
+  studentId     String
+  testName      String
+  testType      TestType  # mock | exam | quiz | other
+  date          DateTime
+  subjectIds    String[]
+  score         Int?
+  maxScore      Int?
+  rank          Int?
+  totalStudents Int?
+  deviation     Float?
+  avgScore      Int?
+  teacherRating Int?
+  comment       String?
+  createdAt     DateTime
 }
 ```
 
@@ -132,31 +148,36 @@ GardenItem {
 }
 ```
 
-### HomeworkTemplate（宿題テンプレート）
+### StudentMaterial（生徒の使用教材）
 
 ```prisma
-HomeworkTemplate {
-  id          String
-  teacherId   String
-  title       String
-  description String?
-  createdAt   DateTime
+StudentMaterial {
+  id         String
+  studentId  String
+  teacherId  String
+  name       String
+  note       String?
+  subjectIds String[]  @default([])  # 紐づく科目タグ
+  createdAt  DateTime
+
+  # Relations（宿題から materialId で参照される）
+  homeworks  Homework[]
 }
 ```
 
-### StudentInvitation（招待トークン）
+### InviteToken（招待トークン）
 
 ```prisma
-StudentInvitation {
-  id          String
-  teacherId   String
-  token       String   @unique
-  name        String
-  email       String
-  grade       String
-  expiresAt   DateTime  # 7日後
-  usedAt      DateTime? # 使用済みの場合に記録
-  createdAt   DateTime
+InviteToken {
+  id        String
+  teacherId String
+  token     String   @unique
+  name      String
+  email     String?
+  grade     String
+  expiresAt DateTime  # 7日後
+  usedAt    DateTime? # 使用済みの場合に記録
+  createdAt DateTime
 }
 ```
 
@@ -168,7 +189,7 @@ ExamEvent {
   teacherId String
   studentId String
   name      String
-  testType  String   # mock | exam | quiz | other
+  testType  TestType  # mock | exam | quiz | other
   date      DateTime
   createdAt DateTime
 }
@@ -182,18 +203,24 @@ Subject {
   teacherId String
   name      String
   createdAt DateTime
+
+  @@unique([name, teacherId])
 }
 ```
 
-### Material（教材）
+### MonthlyPayment（月次支払い記録）
 
 ```prisma
-Material {
+MonthlyPayment {
   id        String
   teacherId String
   studentId String
-  name      String
+  year      Int
+  month     Int
+  paidAt    DateTime
   createdAt DateTime
+
+  @@unique([teacherId, studentId, year, month])
 }
 ```
 
@@ -212,12 +239,24 @@ enum HomeworkStatus {
   rejected   # 差し戻し
 }
 
+enum LessonType {
+  online
+  offline
+}
+
+enum TestType {
+  mock   # 模試
+  exam   # 定期テスト
+  quiz   # 小テスト
+  other  # その他
+}
+
 enum GardenItemType {
-  tree      # 通常の木（big_tree も DB 上はこれ）
+  tree      # 通常の木
   bush      # 茂み
   flower    # 花
   cherry    # 桜（90%以上 or 偏差値65+）
-  big_tree  # 大木（80%以上 or 偏差値60+）—garden-canvas.tsx 参照
+  big_tree  # 大木（80%以上 or 偏差値60+）
   bamboo    # 竹（満点 or 偏差値70+）
   mushroom  # キノコ（宿題承認時 ≈5% ランダム）
 }

@@ -77,7 +77,7 @@ export default function SubmitForm({ id, rejectedFeedback, requiresPhoto = false
                 <span className="text-xs text-muted-foreground">任意</span>
               )}
             </div>
-            <p className="text-xs text-muted-foreground">宿題の完了ページを1枚撮影して添付できます</p>
+            <p className="text-xs text-muted-foreground">代表的なページを1枚だけ撮影して添付してください</p>
             {preview ? (
               <div className="space-y-2">
                 {/* eslint-disable-next-line @next/next/no-img-element */}

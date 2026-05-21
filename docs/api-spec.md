@@ -17,26 +17,27 @@ if (session.user.role !== "teacher") return { error: "権限がありません" 
 
 | ファイル | Action | 概要 |
 | --- | --- | --- |
-| `homework/new/actions.ts` | `createHomework` | 宿題作成。Zod バリデーション、teacherId 自動付与 |
+| `homework/new/actions.ts` | `createHomework` | 宿題作成。`requiresPhoto` フラグ対応。Zod バリデーション、teacherId 自動付与 |
 | `homework/[id]/actions.ts` | `updateHomework` | 宿題編集（assigned/rejected のみ） |
 | `homework/[id]/actions.ts` | `approveHomework` | 承認（先生のみ） |
 | `homework/[id]/actions.ts` | `rejectHomework` | 差し戻し（先生のみ、フィードバック必須） |
 | `homework/[id]/submit/actions.ts` | `submitHomework` | 提出（生徒のみ）。写真は Supabase Storage へアップロード |
 | `homework/page.tsx` | `cancelSubmission` | 提出取り消し（生徒・submitted 状態のみ） |
-| `homework/templates/actions.ts` | `createTemplate` | テンプレート作成 |
-| `homework/templates/actions.ts` | `deleteTemplate` | テンプレート削除 |
 
 #### 宿題一括承認
+
 `src/app/(app)/homework/bulk-approve-section.tsx` の `BulkApproveSection` コンポーネントから呼び出し。
 
 ### 授業（Lesson）
 
 | ファイル | Action | 概要 |
 | --- | --- | --- |
-| `calendar/actions.ts` | `createLesson` | 授業作成。online かつ先生の meetLink あれば QStash でリマインダー予約 |
+| `calendar/actions.ts` | `createLesson` | 授業作成。週次繰り返し対応（最大12週）。QStash スケジューリングは try-catch で囲む |
 | `calendar/actions.ts` | `updateLesson` | 授業更新。online の場合 travelExpense を 0 に強制。QStash を再予約 |
 | `calendar/actions.ts` | `deleteLesson` | 授業削除（先生のみ）。QStash をキャンセル |
 | `calendar/actions.ts` | `completeLesson` | 授業完了確定。`completedAt` に現在時刻をセット（先生のみ・未完了のみ） |
+| `calendar/actions.ts` | `uncompleteLesson` | 授業完了取り消し |
+| `calendar/actions.ts` | `sendMaterialPhoto` | 生徒が教材写真を先生に送信。LINE連携済みなら LINE 画像送信、未連携なら一時 URL を返す |
 
 ### 設定（Settings）
 
@@ -69,19 +70,20 @@ if (session.user.role !== "teacher") return { error: "権限がありません" 
 | `students/[id]/actions.ts` | `deleteStudent` | 生徒削除（関連データも cascade） |
 | `students/[id]/actions.ts` | `resetPassword` | 生徒のパスワードリセット |
 
-### 教材（Material）
+### 教材（StudentMaterial）
 
 | ファイル | Action | 概要 |
 | --- | --- | --- |
-| `students/[id]/materials/actions.ts` | `createMaterial` | 教材登録 |
+| `students/[id]/materials/actions.ts` | `createMaterial` | 教材登録（名前・メモ・科目タグ） |
 | `students/[id]/materials/actions.ts` | `deleteMaterial` | 教材削除 |
+| `students/[id]/materials/actions.ts` | `updateMaterialSubjects` | 教材の科目タグをインライン編集 |
 
 ### 科目タグ（Subject）
 
 | ファイル | Action | 概要 |
 | --- | --- | --- |
-| `subjects/actions.ts` | `createSubject` | 科目タグ作成 |
-| `subjects/actions.ts` | `deleteSubject` | 科目タグ削除 |
+| `subjects/actions.ts` | `createSubject` | 科目タグ作成（設定ページから呼び出し） |
+| `subjects/actions.ts` | `deleteSubject` | 科目タグ削除（設定ページから呼び出し） |
 
 ### 学習の森（Garden）
 
@@ -94,20 +96,27 @@ if (session.user.role !== "teacher") return { error: "権限がありません" 
 | パス | メソッド | 概要 |
 | --- | --- | --- |
 | `/api/auth/[...nextauth]` | GET/POST | NextAuth ハンドラ |
-| `/api/cron/cleanup-homework` | GET | Vercel Cron: 古い宿題・招待トークン削除（毎日 18:00 UTC） |
-| `/api/cron/line-daily` | GET | Vercel Cron: LINE 日次通知（毎日 23:00 UTC） |
-| `/api/cron/line-monthly` | GET | Vercel Cron: LINE 月次通知（毎月1日 00:00 UTC） |
-| `/api/cron/annual-cleanup` | GET | Vercel Cron: 前年度以前のデータ全削除（毎年4月1日 00:00 UTC） |
+| `/api/cron/cleanup-homework` | GET | Vercel Cron: 古い宿題・招待トークン・temp教材削除（毎日 18:00 UTC） |
+| `/api/cron/line-daily` | GET | Vercel Cron: LINE 週次通知（毎週日曜 23:00 UTC） |
 | `/api/webhooks/lesson-reminder` | POST | QStash Webhook: オンライン授業 10 分前に生徒の LINE へ Meet リンクを送信。署名検証あり |
 
 ## Supabase Storage
 
 ```typescript
 // src/lib/supabase-storage.ts
+
 // バケット: homework-photos（Public）
 // パス: {teacherId}/{homeworkId}/{timestamp}.{ext}
-uploadHomeworkPhoto(file: File, teacherId: string, homeworkId: string): Promise<string>
+uploadHomeworkPhoto(file: File, teacherId: string, homeworkId: string): Promise<string | null>
 // → 公開 URL を返す。Homework.photoUrl に保存する
+
+// バケット: temp-materials（Public）
+// パス: temp/{uuid}.{ext}
+uploadTempMaterial(file: File): Promise<string | null>
+// → 一時公開 URL を返す。24時間後に cleanup-homework Cron で削除
+
+deleteTempMaterialsOlderThan(cutoff: Date): Promise<number>
+// → 指定日時より古い temp-materials ファイルを削除し、削除件数を返す
 ```
 
 ## Zod バリデーション規則

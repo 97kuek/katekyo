@@ -18,7 +18,7 @@
 
 ### ステータス遷移
 
-```
+```text
 assigned ─► submitted ─► approved
     ▲              └────► rejected
     └─────────────────────────────
@@ -31,21 +31,39 @@ assigned ─► submitted ─► approved
 
 ### 写真提出
 
-- 生徒が提出時に宿題のページ写真を1枚添付できる（任意、5MB以内）
+- 生徒が提出時に宿題の**代表的なページを1枚だけ**撮影して添付できる（5MB以内）
 - 写真は Supabase Storage の `homework-photos` バケット（Public）へサーバーサイドでアップロード
 - URL は `Homework.photoUrl` に保存
 - アップロードヘルパー: `src/lib/supabase-storage.ts`
+- `requiresPhoto = true` の宿題は写真がないと提出ボタンが無効化される
 
-### テンプレート
+### 写真提出必須オプション
 
-- 先生が `HomeworkTemplate` を作成・削除
-- 宿題作成時にテンプレートを選択すると title/description が自動入力される
+- 先生が宿題作成時に「写真提出を必須にする」を設定できる（`Homework.requiresPhoto`）
+- 生徒の提出フォームで必須バッジを表示し、写真なしでは提出不可
+
+## 使用教材管理
+
+- 先生が生徒ごとに使用教材（`StudentMaterial`）を登録
+  - 教材名・メモ・科目タグ（複数選択）を設定
+  - 登録後に科目タグをインライン編集可能
+- 生徒は `/materials` で自分に登録された教材一覧を閲覧（参照のみ）
+- 宿題作成時に教材を1つ紐づけられる
+
+### 教材写真の先生への送信（生徒側）
+
+- オンライン授業時など、生徒が手元の教材を撮影して先生に送れる機能
+- カレンダーの授業カードからカメラアイコンをタップ → 写真選択 → 送信
+- 先生が LINE 連携済みの場合: Supabase `temp-materials` バケットに一時アップロード後、LINE 画像メッセージで送信
+- LINE 未連携の場合: 一時 URL を生成してコピーリンクを表示
+- 一時ファイルは毎日の `cleanup-homework` Cron で 24 時間後に自動削除
 
 ## 授業（Lesson）管理
 
 - 先生がカレンダーから登録：日時・生徒・オンライン/対面・所要時間・メモ（事前）・授業ログ（事後）
 - 時給（hourlyRate）と交通費（travelExpense）を記録可能
 - **オンライン授業は交通費を強制的に 0 に設定**（server action 側で `effectiveTravelExpense = type === "online" ? 0 : travelExpense`）
+- 週次繰り返し登録（最大12週）：QStash スケジューリングは try-catch で囲み、失敗しても授業は保存される
 - 生徒は自分の授業のみ閲覧可（作成・削除不可）
 
 ### 授業前リマインダー・Meet 参加
@@ -89,6 +107,12 @@ function calcFee(durationMin, hourlyRate, travelExpense) {
 - 月の合計：完了授業回数・合計時間・合計金額
 - 生徒別に授業一覧と費用内訳を表示
 - 未完了授業がある月はオレンジ色の警告バナーを表示
+
+## 科目タグ（Subject）管理
+
+- 先生が `/settings` の「タグ管理」セクションで科目タグを追加・削除
+- タグは宿題・成績・授業・教材に付与できる
+- `@@unique([name, teacherId])` で同名タグの重複登録を防止
 
 ## 成績（GradeRecord）管理
 
@@ -155,24 +179,31 @@ function calcFee(durationMin, hourlyRate, travelExpense) {
 
 ## 自動クリーンアップ（Vercel Cron）
 
-認証: すべてのCronエンドポイントで `Authorization: Bearer CRON_SECRET` が必須。
+認証: すべての Cron エンドポイントで `Authorization: Bearer {CRON_SECRET}` ヘッダーが必須（小文字 `authorization`）。
 設定ファイル: `vercel.json`
 
 | エンドポイント | スケジュール | 内容 |
 | --- | --- | --- |
-| `GET /api/cron/cleanup-homework` | 毎日 18:00 UTC（03:00 JST） | 古い宿題・招待トークンを削除 |
-| `GET /api/cron/line-daily` | 毎日 23:00 UTC（08:00 JST翌日） | LINE 日次通知送信 |
-| `GET /api/cron/line-monthly` | 毎月1日 00:00 UTC | LINE 月次通知送信 |
-| `GET /api/cron/annual-cleanup` | 毎年4月1日 00:00 UTC（09:00 JST） | 前年度以前のデータを全削除 |
+| `GET /api/cron/cleanup-homework` | 毎日 18:00 UTC（03:00 JST） | 古い宿題・招待トークン・temp教材ファイルを削除 |
+| `GET /api/cron/line-daily` | 毎週日曜 23:00 UTC（月曜 08:00 JST） | LINE 週次通知送信 |
+
+> **注意**: Vercel Hobby プランは Cron を 2 本まで。`line-monthly` と `annual-cleanup` は削除済み。
 
 ### cleanup-homework の対象
 
 1. `status = "approved"` かつ `dueDate` から7日以上経過した宿題
 2. 未使用かつ `expiresAt` から7日以上経過した招待トークン
 3. 使用済みかつ `usedAt` から30日以上経過した招待トークン
+4. Supabase `temp-materials` バケット内の作成から24時間以上経過したファイル
 
-### annual-cleanup の対象
+### 年次データクリーンアップ（手動実行）
 
-- カットオフ: 実行年の前年4月1日（例: 2026年4月1日実行 → 2025年4月1日より前を削除）
-- 削除対象モデル: `Lesson`（date）/ `GradeRecord`（date）/ `Homework`（dueDate）/ `ExamEvent`（date）
-- 日本の学校年度（4月〜3月）に合わせて1年分のデータを保持する
+annual-cleanup Cron は削除済み。必要な場合は Supabase SQL エディタで以下を実行する。
+
+```sql
+-- 実行前年度の4月1日以前のデータを削除（例: 2026年実行 → 2025-04-01 より前を削除）
+DELETE FROM "Lesson"       WHERE date       < '2025-04-01';
+DELETE FROM "GradeRecord"  WHERE date       < '2025-04-01';
+DELETE FROM "Homework"     WHERE "dueDate"  < '2025-04-01';
+DELETE FROM "ExamEvent"    WHERE date       < '2025-04-01';
+```

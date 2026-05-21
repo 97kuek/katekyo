@@ -14,12 +14,10 @@ src/
 │       ├── homework/
 │       │   ├── new/
 │       │   ├── photos/
-│       │   ├── templates/
 │       │   └── [id]/         # submit/, review/, edit/
 │       ├── grades/
 │       ├── calendar/
 │       ├── billing/
-│       ├── subjects/
 │       ├── garden/
 │       └── materials/
 ├── components/
@@ -38,10 +36,8 @@ src/
 │   └── date-utils.ts         # relativeDeadline / deadlineColorClass
 └── api/
     └── cron/
-        ├── cleanup-homework/  # 宿題・招待トークン削除（毎日）
-        ├── line-daily/        # LINE 日次通知
-        ├── line-monthly/      # LINE 月次通知
-        └── annual-cleanup/    # 前年度データ削除（毎年4月1日）
+        ├── cleanup-homework/  # 宿題・招待トークン・temp教材削除（毎日）
+        └── line-daily/        # LINE 日次通知（毎週日曜）
 prisma/
 └── schema.prisma
 ```
@@ -62,12 +58,12 @@ prisma/
 | ダッシュボード | `/dashboard` | Suspense 並列ロード。UncompletedLessonsSection / TeacherSummaryCards / PendingHomeworksSection / TeacherUpcomingSection / HomeworkStatusSection / GradeTrendsSection |
 | 生徒一覧 | `/students` | モバイル=カード、デスクトップ=テーブル。progressMap/gardenMap/problemMap |
 | 宿題管理 | `/homework` | BulkApproveSection（submitted を一括承認）。モバイル=カード、デスクトップ=テーブル |
-| 宿題作成 | `/homework/new` | CreateHomeworkForm。テンプレートピッカー（title/description を useState 制御） |
-| 宿題テンプレート | `/homework/templates` | HomeworkTemplate CRUD。TemplateManager クライアントコンポーネント |
+| 宿題作成 | `/homework/new` | CreateHomeworkForm。写真提出必須オプション（requiresPhoto） |
 | 提出写真 | `/homework/photos` | photoUrl IS NOT NULL の宿題を 2〜4 カラムグリッド表示。生徒フィルター |
 | 請求管理 | `/billing` | 月別ナビ（year/month searchParams）。calcFee() で金額計算。生徒別内訳 |
 | カレンダー | `/calendar` | CalendarView クライアントコンポーネント。授業（Lesson）+ テスト日（ExamEvent） |
 | 成績管理 | `/grades` | `?type=mock` 等サーバーサイドフィルタ |
+| 設定 | `/settings` | アカウント / LINE連携 / Meet URL / 科目タグ管理（先生のみ） |
 
 ## ページ一覧（生徒）
 
@@ -75,19 +71,23 @@ prisma/
 | --- | --- | --- |
 | ダッシュボード | `/dashboard` | StudentSummaryCards(3col) / StudentUpcomingExams / StudentUpcomingSection / StudentGardenPreview |
 | 宿題 | `/homework` | active/submitted/approved 分類。CancelSubmissionButton |
+| 宿題提出 | `/homework/[id]/submit` | SubmitForm。写真は代表ページを1枚。requiresPhoto=true の場合は写真必須 |
 | 成績 | `/grades` | Recharts グラフ。点数/偏差値切り替え。複数種別のみフィルタ表示 |
 | 学習の森 | `/garden` | garden-canvas.tsx がアイソメトリック SVG 描画。植物7種+枯れ版 |
-| 教材 | `/materials` | 担当先生の教材一覧（参照のみ） |
+| 教材 | `/materials` | 担当先生に登録してもらった教材一覧（科目タグ表示・参照のみ） |
+| カレンダー | `/calendar` | 授業・テスト予定閲覧。オンライン授業から Meet 参加。教材写真を先生に送信 |
 
 ## ナビゲーション構成
 
-**先生サイドバー:** ダッシュボード / 生徒一覧 / 宿題管理 / 提出写真 / 宿題テンプレート / 成績管理 / カレンダー / 請求管理 / 科目タグ
+**先生サイドバー:** ダッシュボード / 生徒一覧 / 宿題管理 / 成績管理 / カレンダー / 請求管理
 
 **生徒サイドバー:** ダッシュボード / 宿題 / 成績 / カレンダー / 教材 / 学習の森
 
 **先生ボトムナビ(5):** ホーム / 生徒 / 宿題 / 成績 / 予定
 
 **生徒ボトムナビ(5):** ホーム / 宿題 / 成績 / 予定 / 森
+
+**設定（サイドバー下部・両ロール共通）:** 設定 / 使い方ガイド
 
 ## レスポンシブ設計
 
