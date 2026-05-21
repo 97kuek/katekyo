@@ -446,7 +446,7 @@ function DayDetail({
                         <p className="text-xs text-amber-900 whitespace-pre-wrap">{l.lessonLog}</p>
                       </div>
                     )}
-                    {(l.hourlyRate || l.travelExpense != null) && (
+                    {isTeacher && (l.hourlyRate || l.travelExpense != null) && (
                       <p className="text-xs text-muted-foreground mt-1">
                         {l.hourlyRate && l.durationMin ? `¥${Math.round((l.durationMin / 60) * l.hourlyRate).toLocaleString()}` : l.hourlyRate ? `時給¥${l.hourlyRate.toLocaleString()}` : ""}
                         {l.travelExpense != null && l.travelExpense > 0 ? ` + 交通費¥${l.travelExpense.toLocaleString()}` : ""}
