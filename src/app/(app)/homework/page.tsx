@@ -4,7 +4,7 @@ import { db } from "@/lib/db"
 import { getStudentByUserId } from "@/lib/queries"
 import Link from "next/link"
 import { buttonVariants } from "@/components/ui/button"
-import { Images, FileText, Plus } from "lucide-react"
+import { Images, Plus } from "lucide-react"
 import { StatusBadge } from "@/components/homework/status-badge"
 import { CancelSubmissionButton } from "./cancel-button"
 import { HomeworkFilter } from "./homework-filter"
@@ -89,11 +89,7 @@ async function TeacherHomeworkPage({
             <Images className="h-4 w-4 shrink-0" />
             提出写真
           </Link>
-          <Link href="/homework/templates" className={buttonVariants({ variant: "outline", size: "sm", className: "gap-1.5" })}>
-            <FileText className="h-4 w-4 shrink-0" />
-            テンプレート
-          </Link>
-          <Link href="/homework/new" className={buttonVariants({ size: "sm", className: "gap-1.5" })}>
+<Link href="/homework/new" className={buttonVariants({ size: "sm", className: "gap-1.5" })}>
             <Plus className="h-4 w-4 shrink-0" />
             宿題を作成
           </Link>

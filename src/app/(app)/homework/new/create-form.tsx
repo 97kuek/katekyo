@@ -14,7 +14,6 @@ type Student = {
 }
 
 type Material = { id: string; name: string }
-type Template = { id: string; title: string; description: string | null }
 
 const tomorrowISO = () => {
   const d = new Date()
@@ -25,11 +24,9 @@ const tomorrowISO = () => {
 export default function CreateHomeworkForm({
   students,
   materialsByStudent,
-  templates = [],
 }: {
   students: Student[]
   materialsByStudent: Record<string, Material[]>
-  templates?: Template[]
 }) {
   const [state, action, isPending] = useActionState(createHomework, { error: "" })
   const singleStudent = students.length === 1 ? students[0] : null
@@ -39,35 +36,12 @@ export default function CreateHomeworkForm({
 
   const materials = selectedStudentId ? (materialsByStudent[selectedStudentId] ?? []) : []
 
-  function applyTemplate(t: Template) {
-    setTitle(t.title)
-    setDescription(t.description ?? "")
-  }
-
   return (
     <form action={action} className="space-y-4">
       {state.error && (
         <p className="text-sm text-red-600 bg-red-50 p-3 rounded-md">{state.error}</p>
       )}
       <p className="text-xs text-muted-foreground"><span className="text-destructive font-medium">*</span> は必須項目です</p>
-
-      {templates.length > 0 && (
-        <div className="space-y-1.5">
-          <p className="text-xs text-muted-foreground font-medium">テンプレートから入力</p>
-          <div className="flex flex-wrap gap-2">
-            {templates.map((t) => (
-              <button
-                key={t.id}
-                type="button"
-                onClick={() => applyTemplate(t)}
-                className="text-xs px-3 py-1.5 rounded-full border border-input bg-white hover:bg-gray-50 transition-colors"
-              >
-                {t.title}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
       <div className="space-y-2">
         <Label htmlFor="studentId">生徒 <span className="text-destructive">*</span></Label>
         {singleStudent ? (

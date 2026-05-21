@@ -10,10 +10,18 @@ export default async function StudentMaterialsPage() {
   const student = await db.student.findUnique({ where: { userId: session.user.id } })
   if (!student) redirect("/dashboard")
 
-  const materials = await db.studentMaterial.findMany({
-    where: { studentId: student.id },
-    orderBy: { createdAt: "asc" },
-  })
+  const [materials, subjects] = await Promise.all([
+    db.studentMaterial.findMany({
+      where: { studentId: student.id },
+      orderBy: { createdAt: "asc" },
+    }),
+    db.subject.findMany({
+      where: { teacherId: student.teacherId },
+      select: { id: true, name: true },
+    }),
+  ])
+
+  const subjectMap = new Map(subjects.map((s) => [s.id, s.name]))
 
   return (
     <div className="max-w-2xl space-y-6">
@@ -35,6 +43,18 @@ export default async function StudentMaterialsPage() {
               <div className="min-w-0">
                 <p className="text-sm font-medium">{m.name}</p>
                 {m.note && <p className="text-xs text-muted-foreground mt-0.5">{m.note}</p>}
+                {m.subjectIds.length > 0 && (
+                  <div className="flex gap-1 flex-wrap mt-1">
+                    {m.subjectIds.map((sid) => {
+                      const name = subjectMap.get(sid)
+                      return name ? (
+                        <span key={sid} className="text-xs bg-indigo-50 text-indigo-600 rounded px-1.5 py-0.5">
+                          {name}
+                        </span>
+                      ) : null
+                    })}
+                  </div>
+                )}
               </div>
             </div>
           ))}

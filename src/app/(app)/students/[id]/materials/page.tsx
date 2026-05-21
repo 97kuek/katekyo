@@ -17,10 +17,18 @@ export default async function StudentMaterialsPage({ params }: { params: Promise
   })
   if (!student) notFound()
 
-  const materials = await db.studentMaterial.findMany({
-    where: { studentId: id, teacherId: session.user.id },
-    orderBy: { createdAt: "asc" },
-  })
+  const [materials, subjects] = await Promise.all([
+    db.studentMaterial.findMany({
+      where: { studentId: id, teacherId: session.user.id },
+      orderBy: { createdAt: "asc" },
+    }),
+    db.subject.findMany({
+      where: { teacherId: session.user.id },
+      orderBy: { name: "asc" },
+    }),
+  ])
+
+  const subjectMap = new Map(subjects.map((s) => [s.id, s.name]))
 
   return (
     <div className="max-w-2xl space-y-6">
@@ -36,7 +44,7 @@ export default async function StudentMaterialsPage({ params }: { params: Promise
 
       <div className="rounded-lg border bg-white p-5 space-y-4">
         <h2 className="text-sm font-semibold">教材を追加</h2>
-        <AddMaterialForm studentId={id} />
+        <AddMaterialForm studentId={id} subjects={subjects} />
       </div>
 
       {materials.length === 0 ? (
@@ -50,6 +58,18 @@ export default async function StudentMaterialsPage({ params }: { params: Promise
               <div className="min-w-0">
                 <p className="text-sm font-medium truncate">{m.name}</p>
                 {m.note && <p className="text-xs text-muted-foreground truncate">{m.note}</p>}
+                {m.subjectIds.length > 0 && (
+                  <div className="flex gap-1 flex-wrap mt-1">
+                    {m.subjectIds.map((sid) => {
+                      const name = subjectMap.get(sid)
+                      return name ? (
+                        <span key={sid} className="text-xs bg-indigo-50 text-indigo-600 rounded px-1.5 py-0.5">
+                          {name}
+                        </span>
+                      ) : null
+                    })}
+                  </div>
+                )}
               </div>
               <DeleteMaterialButton materialId={m.id} studentId={id} />
             </div>

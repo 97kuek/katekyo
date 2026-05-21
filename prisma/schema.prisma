@@ -61,7 +61,6 @@ model User {
   lessonsGiven        Lesson[]            @relation("TeacherLessons")
   materialsGiven      StudentMaterial[]   @relation("TeacherMaterials")
   examEventsGiven     ExamEvent[]         @relation("TeacherExamEvents")
-  homeworkTemplates   HomeworkTemplate[]  @relation("TeacherTemplates")
   monthlyPayments     MonthlyPayment[]    @relation("TeacherPayments")
 
   // student relation
@@ -247,30 +246,19 @@ model GardenItem {
 }
 
 model StudentMaterial {
-  id        String   @id @default(uuid())
-  studentId String
-  teacherId String
-  name      String
-  note      String?
-  createdAt DateTime @default(now())
+  id         String   @id @default(uuid())
+  studentId  String
+  teacherId  String
+  name       String
+  note       String?
+  subjectIds String[] @default([])
+  createdAt  DateTime @default(now())
 
   student   Student    @relation(fields: [studentId], references: [id], onDelete: Cascade)
   teacher   User       @relation("TeacherMaterials", fields: [teacherId], references: [id], onDelete: Cascade)
   homeworks Homework[]
 
   @@index([studentId])
-  @@index([teacherId])
-}
-
-model HomeworkTemplate {
-  id          String   @id @default(uuid())
-  teacherId   String
-  title       String
-  description String?
-  createdAt   DateTime @default(now())
-
-  teacher User @relation("TeacherTemplates", fields: [teacherId], references: [id], onDelete: Cascade)
-
   @@index([teacherId])
 }
 

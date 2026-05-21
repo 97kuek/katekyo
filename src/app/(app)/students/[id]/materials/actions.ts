@@ -26,6 +26,7 @@ export async function createMaterial(
   if (!result.success) return { error: result.error.issues[0].message }
 
   const { studentId, name, note } = result.data
+  const subjectIds = formData.getAll("subjectId") as string[]
 
   const student = await db.student.findFirst({
     where: { id: studentId, teacherId: session.user.id },
@@ -33,7 +34,7 @@ export async function createMaterial(
   if (!student) return { error: "生徒が見つかりません" }
 
   await db.studentMaterial.create({
-    data: { studentId, teacherId: session.user.id, name, note: note ?? null },
+    data: { studentId, teacherId: session.user.id, name, note: note ?? null, subjectIds },
   })
 
   revalidatePath(`/students/${studentId}/materials`)
