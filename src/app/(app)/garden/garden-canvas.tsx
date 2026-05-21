@@ -335,14 +335,17 @@ function WiltedBigTree({ cx, cy }: { cx: number; cy: number }) {
 
 // ---- Seasonal overlay -------------------------------------------------------
 
-type Season = "spring" | "summer" | "autumn" | "winter"
+type Season = "spring" | "may" | "rainy" | "summer" | "september" | "autumn" | "winter"
 
 function getSeason(): Season {
-  const m = new Date().getMonth()
-  if (m >= 2 && m <= 4) return "spring"
-  if (m >= 5 && m <= 7) return "summer"
-  if (m >= 8 && m <= 10) return "autumn"
-  return "winter"
+  const m = new Date().getMonth() // 0-indexed
+  if (m === 2 || m === 3) return "spring"   // 3-4月: 春（桜）
+  if (m === 4)            return "may"      // 5月:   演出なし
+  if (m === 5)            return "rainy"    // 6月:   梅雨
+  if (m === 6 || m === 7) return "summer"   // 7-8月: 夏（蛍）
+  if (m === 8)            return "september"// 9月:   秋雨
+  if (m === 9 || m === 10) return "autumn"  // 10-11月: 秋（紅葉）
+  return "winter"                           // 12-2月: 冬（雪）
 }
 
 const SPRING_PETALS = [
@@ -379,6 +382,30 @@ const AUTUMN_LEAVES = [
   { x: 80,   y: 130,  dur: "7.5s", delay: "1.8s", fill: "#b45309" },
   { x: -180, y: 300,  dur: "7s",   delay: "4s",   fill: "#f97316" },
 ]
+const RAINY_DROPS = [
+  { x: -220, dur: "1.4s", delay: "0s"   },
+  { x: -160, dur: "1.6s", delay: "0.3s" },
+  { x: -100, dur: "1.5s", delay: "0.8s" },
+  { x: -40,  dur: "1.3s", delay: "0.1s" },
+  { x: 20,   dur: "1.6s", delay: "0.5s" },
+  { x: 80,   dur: "1.4s", delay: "1.0s" },
+  { x: 140,  dur: "1.5s", delay: "0.2s" },
+  { x: 200,  dur: "1.3s", delay: "0.7s" },
+  { x: -180, dur: "1.6s", delay: "1.2s" },
+  { x: -60,  dur: "1.4s", delay: "0.4s" },
+  { x: 50,   dur: "1.5s", delay: "0.9s" },
+  { x: 170,  dur: "1.3s", delay: "0.6s" },
+]
+const SEPTEMBER_DROPS = [
+  { x: -200, dur: "2.2s", delay: "0s"   },
+  { x: -110, dur: "2.4s", delay: "0.6s" },
+  { x: -30,  dur: "2.3s", delay: "1.3s" },
+  { x: 60,   dur: "2.2s", delay: "0.3s" },
+  { x: 150,  dur: "2.5s", delay: "0.9s" },
+  { x: 230,  dur: "2.3s", delay: "1.6s" },
+  { x: -160, dur: "2.4s", delay: "1.1s" },
+  { x: 100,  dur: "2.2s", delay: "0.5s" },
+]
 const SNOWFLAKES = [
   { x: -200, y: -100, dur: "8s",   delay: "0s" },
   { x: -80,  y: -120, dur: "9s",   delay: "1.5s" },
@@ -401,6 +428,16 @@ function SeasonalOverlay({ season }: { season: Season }) {
       ))}
     </>
   }
+  if (season === "may") return null
+  if (season === "rainy") {
+    return <>
+      {RAINY_DROPS.map((d, i) => (
+        <line key={i} x1={d.x} y1={-130} x2={d.x + 3} y2={-116}
+          stroke="rgba(120,160,210,0.65)" strokeWidth={1.5} opacity={0}
+          style={{ animation: `rainDrop ${d.dur} linear ${d.delay} infinite` }} />
+      ))}
+    </>
+  }
   if (season === "summer") {
     return <>
       {FIREFLIES.map((f, i) => (
@@ -410,6 +447,15 @@ function SeasonalOverlay({ season }: { season: Season }) {
           <circle cx={f.x} cy={f.y} r={7} fill="rgba(254,240,138,0.18)"
             style={{ animation: `fireflyGlow ${f.dur} ease-in-out ${f.delay} infinite` }} />
         </g>
+      ))}
+    </>
+  }
+  if (season === "september") {
+    return <>
+      {SEPTEMBER_DROPS.map((d, i) => (
+        <line key={i} x1={d.x} y1={-130} x2={d.x + 1} y2={-122}
+          stroke="rgba(150,180,215,0.45)" strokeWidth={1} opacity={0}
+          style={{ animation: `rainDropLight ${d.dur} linear ${d.delay} infinite` }} />
       ))}
     </>
   }
@@ -501,6 +547,18 @@ export default function GardenCanvas({ items, milestone }: { items: Item[]; mile
             15%  { opacity: 0.85; }
             85%  { opacity: 0.75; }
             100% { opacity: 0;    transform: translateY(120px); }
+          }
+          @keyframes rainDrop {
+            0%   { opacity: 0;    transform: translateY(0); }
+            8%   { opacity: 0.7; }
+            90%  { opacity: 0.7; }
+            100% { opacity: 0;    transform: translateY(460px); }
+          }
+          @keyframes rainDropLight {
+            0%   { opacity: 0;    transform: translateY(0); }
+            8%   { opacity: 0.5; }
+            90%  { opacity: 0.5; }
+            100% { opacity: 0;    transform: translateY(460px); }
           }
           @keyframes sparkleIn {
             0%   { opacity: 0; transform: scale(0) rotate(0deg); }
