@@ -445,11 +445,11 @@ function DayDetail({
                       </a>
                     )}
                     {(isTeacher ? l.lessonLog : (l.lessonLogPublic ? l.lessonLog : null)) && (
-                      <div className="mt-1.5 bg-amber-50 rounded p-2">
-                        <p className="text-xs font-medium text-amber-700 mb-0.5">
+                      <div className="mt-2 bg-amber-50 rounded-md p-3">
+                        <p className="text-xs font-medium text-amber-700 mb-1">
                           授業ログ{isTeacher && l.lessonLogPublic && <span className="ml-1 text-green-600">（生徒に公開中）</span>}
                         </p>
-                        <p className="text-xs text-amber-900 whitespace-pre-wrap">{l.lessonLog}</p>
+                        <p className="text-sm text-amber-900 whitespace-pre-wrap leading-relaxed">{l.lessonLog}</p>
                       </div>
                     )}
                     {isTeacher && (l.hourlyRate || l.travelExpense != null) && (

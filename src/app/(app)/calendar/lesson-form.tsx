@@ -151,16 +151,16 @@ export function LessonForm({ students, defaultDate, subjects }: { students: Stud
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="repeatWeeks" className="text-xs font-medium">週次繰り返し</Label>
+            <Label htmlFor="repeatWeeks" className="text-xs font-medium">繰り返し登録（毎週同じ時間）</Label>
             <select
               id="repeatWeeks"
               name="repeatWeeks"
               defaultValue="0"
               className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
-              <option value="0">繰り返しなし</option>
+              <option value="0">繰り返さない（1回のみ）</option>
               {[1,2,3,4,5,6,7,8,9,10,11,12].map((w) => (
-                <option key={w} value={w}>{w}週間（計{w+1}回）</option>
+                <option key={w} value={w}>計{w+1}回（今日 + {w}週後まで）</option>
               ))}
             </select>
           </div>
