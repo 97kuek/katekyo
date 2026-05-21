@@ -29,7 +29,7 @@ export async function createSubject(
   if (existing) return { error: "この科目名は既に存在します", success: false }
 
   await db.subject.create({ data: { name, teacherId: session.user.id } })
-  revalidatePath("/subjects")
+  revalidatePath("/settings")
   return { error: "", success: true }
 }
 
@@ -39,5 +39,5 @@ export async function deleteSubject(formData: FormData) {
 
   const id = formData.get("id") as string
   await db.subject.deleteMany({ where: { id, teacherId: session.user.id } })
-  revalidatePath("/subjects")
+  revalidatePath("/settings")
 }

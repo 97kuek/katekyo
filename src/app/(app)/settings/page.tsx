@@ -5,15 +5,22 @@ import { LineSettings, MeetLinkSettings } from "./settings-client"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { NameForm } from "../profile/name-form"
 import { PasswordForm } from "../profile/password-form"
+import SubjectForm from "../subjects/subject-form"
+import { DeleteSubjectButton } from "../subjects/delete-button"
 
 export default async function SettingsPage() {
   const session = await auth()
   if (!session) redirect("/login")
 
-  const user = await db.user.findUnique({
-    where: { id: session.user.id },
-    select: { lineUserId: true, meetLink: true },
-  })
+  const [user, subjects] = await Promise.all([
+    db.user.findUnique({
+      where: { id: session.user.id },
+      select: { lineUserId: true, meetLink: true },
+    }),
+    session.user.role === "teacher"
+      ? db.subject.findMany({ where: { teacherId: session.user.id }, orderBy: { createdAt: "asc" } })
+      : Promise.resolve([]),
+  ])
 
   return (
     <div className="max-w-lg space-y-8">
@@ -47,6 +54,34 @@ export default async function SettingsPage() {
           <MeetLinkSettings currentMeetLink={user?.meetLink ?? null} />
         )}
       </section>
+
+      {session.user.role === "teacher" && (
+        <section className="space-y-4">
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">タグ管理</h2>
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">科目タグ</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <SubjectForm />
+              {subjects.length > 0 ? (
+                <div className="border-t pt-4 space-y-2">
+                  {subjects.map((s) => (
+                    <div key={s.id} className="flex items-center justify-between gap-3 py-1.5">
+                      <span className="text-sm font-medium">{s.name}</span>
+                      <DeleteSubjectButton id={s.id} />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground text-center py-2">
+                  まだ科目タグがありません
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        </section>
+      )}
     </div>
   )
 }

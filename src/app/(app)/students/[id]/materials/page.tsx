@@ -4,6 +4,7 @@ import { db } from "@/lib/db"
 import Link from "next/link"
 import { AddMaterialForm } from "./add-material-form"
 import { DeleteMaterialButton } from "./delete-material-button"
+import { EditSubjectTags } from "./edit-subject-tags"
 
 export default async function StudentMaterialsPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
@@ -58,18 +59,22 @@ export default async function StudentMaterialsPage({ params }: { params: Promise
               <div className="min-w-0">
                 <p className="text-sm font-medium truncate">{m.name}</p>
                 {m.note && <p className="text-xs text-muted-foreground truncate">{m.note}</p>}
-                {m.subjectIds.length > 0 && (
-                  <div className="flex gap-1 flex-wrap mt-1">
-                    {m.subjectIds.map((sid) => {
-                      const name = subjectMap.get(sid)
-                      return name ? (
-                        <span key={sid} className="text-xs bg-indigo-50 text-indigo-600 rounded px-1.5 py-0.5">
-                          {name}
-                        </span>
-                      ) : null
-                    })}
-                  </div>
-                )}
+                <div className="flex items-center gap-1 flex-wrap mt-1">
+                  {m.subjectIds.map((sid) => {
+                    const name = subjectMap.get(sid)
+                    return name ? (
+                      <span key={sid} className="text-xs bg-indigo-50 text-indigo-600 rounded px-1.5 py-0.5">
+                        {name}
+                      </span>
+                    ) : null
+                  })}
+                  <EditSubjectTags
+                    materialId={m.id}
+                    studentId={id}
+                    currentSubjectIds={m.subjectIds}
+                    subjects={subjects}
+                  />
+                </div>
               </div>
               <DeleteMaterialButton materialId={m.id} studentId={id} />
             </div>

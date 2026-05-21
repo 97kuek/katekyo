@@ -147,6 +147,7 @@ model Homework {
   studentNote      String?
   difficultyRating Int?
   teacherFeedback  String?
+  requiresPhoto   Boolean        @default(false)
   photoUrl        String?
   submittedAt     DateTime?
   reviewedAt      DateTime?

@@ -113,6 +113,12 @@ export default function CreateHomeworkForm({
           )}
         </div>
       )}
+      <div className="flex items-center gap-2">
+        <input type="checkbox" name="requiresPhoto" id="requiresPhoto" value="1" className="rounded" />
+        <Label htmlFor="requiresPhoto" className="text-sm font-normal cursor-pointer">
+          写真提出を必須にする
+        </Label>
+      </div>
       <Button type="submit" disabled={isPending}>
         {isPending ? "作成中..." : "宿題を作成する"}
       </Button>

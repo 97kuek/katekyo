@@ -52,3 +52,25 @@ export async function deleteMaterial(materialId: string, studentId: string): Pro
   revalidatePath(`/students/${studentId}/materials`)
   return { error: "" }
 }
+
+export async function updateMaterialSubjects(
+  materialId: string,
+  studentId: string,
+  subjectIds: string[]
+): Promise<{ error: string }> {
+  const session = await auth()
+  if (!session || session.user.role !== "teacher") return { error: "権限がありません" }
+
+  const material = await db.studentMaterial.findFirst({
+    where: { id: materialId, teacherId: session.user.id, studentId },
+  })
+  if (!material) return { error: "教材が見つかりません" }
+
+  await db.studentMaterial.update({
+    where: { id: materialId },
+    data: { subjectIds },
+  })
+
+  revalidatePath(`/students/${studentId}/materials`)
+  return { error: "" }
+}

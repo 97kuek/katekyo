@@ -11,6 +11,7 @@ const schema = z.object({
   description: z.string().optional(),
   dueDate: z.string().min(1, "期限を設定してください"),
   materialId: z.string().optional(),
+  requiresPhoto: z.string().optional(),
 })
 
 export async function createHomework(
@@ -28,13 +29,14 @@ export async function createHomework(
     description: formData.get("description") || undefined,
     dueDate: formData.get("dueDate"),
     materialId: formData.get("materialId") || undefined,
+    requiresPhoto: formData.get("requiresPhoto") || undefined,
   })
 
   if (!result.success) {
     return { error: result.error.issues[0].message }
   }
 
-  const { studentId, title, description, dueDate, materialId } = result.data
+  const { studentId, title, description, dueDate, materialId, requiresPhoto } = result.data
 
   const student = await db.student.findFirst({
     where: { id: studentId, teacherId: session.user.id },
@@ -52,6 +54,7 @@ export async function createHomework(
       dueDate: new Date(dueDate),
       subjectIds: [],
       materialId: materialId || null,
+      requiresPhoto: requiresPhoto === "1",
     },
   })
 

@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { BookOpen, GraduationCap, LayoutDashboard, Tag, ClipboardList, BarChart2, CalendarDays, HelpCircle, TreePine, Receipt, Settings } from "lucide-react"
+import { BookOpen, GraduationCap, LayoutDashboard, ClipboardList, BarChart2, CalendarDays, HelpCircle, TreePine, Receipt, Settings } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const teacherNav = [
@@ -12,7 +12,6 @@ const teacherNav = [
   { href: "/grades", label: "成績管理", icon: BarChart2 },
   { href: "/calendar", label: "カレンダー", icon: CalendarDays },
   { href: "/billing", label: "請求管理", icon: Receipt },
-  { href: "/subjects", label: "科目タグ", icon: Tag },
 ]
 
 const studentNav = [

@@ -12,7 +12,7 @@ const DIFFICULTIES = [
   { value: 3, label: "むずかしい", emoji: "😰", active: "bg-red-100 border-red-400 text-red-800", inactive: "border-input hover:bg-red-50" },
 ] as const
 
-export default function SubmitForm({ id, rejectedFeedback }: { id: string; rejectedFeedback?: string | null }) {
+export default function SubmitForm({ id, rejectedFeedback, requiresPhoto = false }: { id: string; rejectedFeedback?: string | null; requiresPhoto?: boolean }) {
   const [state, action, isPending] = useActionState(submitHomework, { error: "" })
   const [preview, setPreview] = useState<string | null>(null)
   const [difficulty, setDifficulty] = useState<number | null>(null)
@@ -69,7 +69,14 @@ export default function SubmitForm({ id, rejectedFeedback }: { id: string; rejec
           </div>
 
           <div className="space-y-2">
-            <Label>提出写真（任意）</Label>
+            <div className="flex items-center gap-2">
+              <Label>提出写真</Label>
+              {requiresPhoto ? (
+                <span className="text-xs font-medium text-red-600 bg-red-50 px-1.5 py-0.5 rounded">必須</span>
+              ) : (
+                <span className="text-xs text-muted-foreground">任意</span>
+              )}
+            </div>
             <p className="text-xs text-muted-foreground">宿題の完了ページを1枚撮影して添付できます</p>
             {preview ? (
               <div className="space-y-2">
@@ -116,8 +123,8 @@ export default function SubmitForm({ id, rejectedFeedback }: { id: string; rejec
               placeholder="質問や報告があれば入力してください"
             />
           </div>
-          <Button type="submit" className="w-full" disabled={isPending}>
-            {isPending ? "提出中..." : "提出する"}
+          <Button type="submit" className="w-full" disabled={isPending || (requiresPhoto && !preview)}>
+            {isPending ? "提出中..." : requiresPhoto && !preview ? "写真を添付してください" : "提出する"}
           </Button>
         </form>
       </CardContent>
