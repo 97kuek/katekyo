@@ -382,6 +382,18 @@ const AUTUMN_LEAVES = [
   { x: 80,   y: 130,  dur: "7.5s", delay: "1.8s", fill: "#b45309" },
   { x: -180, y: 300,  dur: "7s",   delay: "4s",   fill: "#f97316" },
 ]
+const DANDELION_SEEDS = [
+  { x: -200, y: 200,  dur: "7s",   delay: "0s"   },
+  { x: -120, y: 260,  dur: "8s",   delay: "1.2s" },
+  { x: -50,  y: 180,  dur: "7.5s", delay: "2.5s" },
+  { x: 30,   y: 300,  dur: "8.5s", delay: "0.4s" },
+  { x: 110,  y: 220,  dur: "7s",   delay: "1.8s" },
+  { x: 190,  y: 280,  dur: "8s",   delay: "3.2s" },
+  { x: -170, y: 310,  dur: "7.5s", delay: "0.8s" },
+  { x: 60,   y: 160,  dur: "8.5s", delay: "2.0s" },
+  { x: 150,  y: 140,  dur: "7s",   delay: "3.8s" },
+  { x: -80,  y: 130,  dur: "8s",   delay: "1.5s" },
+]
 const RAINY_DROPS = [
   { x: -220, dur: "1.4s", delay: "0s"   },
   { x: -160, dur: "1.6s", delay: "0.3s" },
@@ -428,7 +440,18 @@ function SeasonalOverlay({ season }: { season: Season }) {
       ))}
     </>
   }
-  if (season === "may") return null
+  if (season === "may") {
+    return <>
+      {DANDELION_SEEDS.map((d, i) => (
+        <g key={i} opacity={0} style={{ animation: `dandelionFloat ${d.dur} ease-in-out ${d.delay} infinite` }}>
+          <circle cx={d.x} cy={d.y} r={2.5} fill="rgba(255,255,255,0.9)" />
+          <line x1={d.x} y1={d.y} x2={d.x}     y2={d.y + 6} stroke="rgba(200,200,180,0.7)" strokeWidth={0.8} />
+          <line x1={d.x} y1={d.y} x2={d.x - 4} y2={d.y + 4} stroke="rgba(200,200,180,0.6)" strokeWidth={0.7} />
+          <line x1={d.x} y1={d.y} x2={d.x + 4} y2={d.y + 4} stroke="rgba(200,200,180,0.6)" strokeWidth={0.7} />
+        </g>
+      ))}
+    </>
+  }
   if (season === "rainy") {
     return <>
       {RAINY_DROPS.map((d, i) => (
@@ -547,6 +570,12 @@ export default function GardenCanvas({ items, milestone }: { items: Item[]; mile
             15%  { opacity: 0.85; }
             85%  { opacity: 0.75; }
             100% { opacity: 0;    transform: translateY(120px); }
+          }
+          @keyframes dandelionFloat {
+            0%   { opacity: 0;    transform: translate(0, 0); }
+            10%  { opacity: 0.85; }
+            85%  { opacity: 0.7; }
+            100% { opacity: 0;    transform: translate(20px, -180px); }
           }
           @keyframes rainDrop {
             0%   { opacity: 0;    transform: translateY(0); }
