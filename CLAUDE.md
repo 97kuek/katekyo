@@ -50,6 +50,10 @@ CRON_SECRET=           # openssl rand -base64 32
 QSTASH_TOKEN=                 # Upstash QStash API トークン
 QSTASH_CURRENT_SIGNING_KEY=   # QStash Webhook 署名検証キー（現在）
 QSTASH_NEXT_SIGNING_KEY=      # QStash Webhook 署名検証キー（ローテーション用）
+LINE_CHANNEL_ACCESS_TOKEN=    # LINE Messaging API チャネルアクセストークン
+LINE_CHANNEL_SECRET=          # LINE チャネルシークレット（Webhook署名検証用）
+LINE_RICH_MENU_TEACHER_ID=    # LINE リッチメニューID（先生用）
+LINE_RICH_MENU_STUDENT_ID=    # LINE リッチメニューID（生徒用）
 ```
 
 Supabase Storage: バケット `homework-photos` を **Public** で作成する。

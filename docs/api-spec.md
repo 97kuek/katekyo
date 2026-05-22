@@ -37,14 +37,13 @@ if (session.user.role !== "teacher") return { error: "権限がありません" 
 | `calendar/actions.ts` | `deleteLesson` | 授業削除（先生のみ）。QStash をキャンセル |
 | `calendar/actions.ts` | `completeLesson` | 授業完了確定。`completedAt` に現在時刻をセット（先生のみ・未完了のみ） |
 | `calendar/actions.ts` | `uncompleteLesson` | 授業完了取り消し |
-| `calendar/actions.ts` | `sendMaterialPhoto` | 生徒が教材写真を先生に送信。LINE連携済みなら LINE 画像送信、未連携なら一時 URL を返す |
 
 ### 設定（Settings）
 
 | ファイル | Action | 概要 |
 | --- | --- | --- |
 | `settings/actions.ts` | `generateLinkToken` | LINE 連携用 6 桁トークン発行（10 分有効） |
-| `settings/actions.ts` | `unlinkLine` | LINE 連携解除（`lineUserId` を null に） |
+| `settings/actions.ts` | `unlinkLine` | LINE 連携解除。リッチメニューを解除してから `lineUserId` を null に |
 | `settings/actions.ts` | `saveMeetLink` | Google Meet 固定 URL を保存（先生のみ。空文字で削除） |
 
 ### テスト予定（ExamEvent）
@@ -67,7 +66,7 @@ if (session.user.role !== "teacher") return { error: "権限がありません" 
 | --- | --- | --- |
 | `students/invite/actions.ts` | `createInvitation` | 招待トークン生成（7日有効） |
 | `students/[id]/actions.ts` | `updateStudentGrade` | 学年変更 |
-| `students/[id]/actions.ts` | `deleteStudent` | 生徒削除（関連データも cascade） |
+| `students/[id]/actions.ts` | `deleteStudent` | 生徒削除。Supabase Storage の宿題写真を先に削除してから `db.user.delete`（DB は cascade） |
 | `students/[id]/actions.ts` | `resetPassword` | 生徒のパスワードリセット |
 
 ### 教材（StudentMaterial）
@@ -96,9 +95,11 @@ if (session.user.role !== "teacher") return { error: "権限がありません" 
 | パス | メソッド | 概要 |
 | --- | --- | --- |
 | `/api/auth/[...nextauth]` | GET/POST | NextAuth ハンドラ |
-| `/api/cron/cleanup-homework` | GET | Vercel Cron: 古い宿題・招待トークン・temp教材削除（毎日 18:00 UTC） |
+| `/api/cron/cleanup-homework` | GET | Vercel Cron: 古い宿題・招待トークン削除（毎日 18:00 UTC） |
 | `/api/cron/line-daily` | GET | Vercel Cron: LINE 週次通知（毎週日曜 23:00 UTC） |
 | `/api/webhooks/lesson-reminder` | POST | QStash Webhook: オンライン授業 10 分前に生徒の LINE へ Meet リンクを送信。署名検証あり |
+| `/api/line/setup-rich-menus` | POST | 一回限り: LINE リッチメニュー作成（先生・生徒用）。`Authorization: Bearer CRON_SECRET` 必須 |
+| `/api/line/apply-rich-menus` | POST | 一回限り: LINE 連携済み既存ユーザー全員にリッチメニューを一括適用。`Authorization: Bearer CRON_SECRET` 必須 |
 
 ## Supabase Storage
 
@@ -110,13 +111,23 @@ if (session.user.role !== "teacher") return { error: "権限がありません" 
 uploadHomeworkPhoto(file: File, teacherId: string, homeworkId: string): Promise<string | null>
 // → 公開 URL を返す。Homework.photoUrl に保存する
 
-// バケット: temp-materials（Public）
-// パス: temp/{uuid}.{ext}
-uploadTempMaterial(file: File): Promise<string | null>
-// → 一時公開 URL を返す。24時間後に cleanup-homework Cron で削除
+deleteHomeworkPhoto(url: string): Promise<void>
+// → URL から Storage パスを解析して削除。生徒削除時に呼び出す
+```
 
-deleteTempMaterialsOlderThan(cutoff: Date): Promise<number>
-// → 指定日時より古い temp-materials ファイルを削除し、削除件数を返す
+## lib/line.ts — LINE ヘルパー関数
+
+```typescript
+// src/lib/line.ts
+
+sendLineMessage(lineUserId: string, text: string): Promise<void>
+// fire-and-forget。lineUserId が null のユーザーはスキップ
+
+linkRichMenuToUser(lineUserId: string, richMenuId: string): Promise<void>
+// LINE 連携完了時・一括適用時に呼び出す
+
+unlinkRichMenuFromUser(lineUserId: string): Promise<void>
+// LINE 連携解除時に呼び出す
 ```
 
 ## Zod バリデーション規則

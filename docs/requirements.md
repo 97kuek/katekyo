@@ -31,8 +31,10 @@ assigned ─► submitted ─► approved
 
 ### 写真提出
 
-- 生徒が提出時に宿題の**代表的なページを1枚だけ**撮影して添付できる（5MB以内）
-- 写真は Supabase Storage の `homework-photos` バケット（Public）へサーバーサイドでアップロード
+- 生徒が提出時に宿題の**代表的なページを1枚だけ**撮影して添付できる
+- **ブラウザ側で圧縮してからアップロード**（Canvas API・最大辺 1200px・JPEG 78%品質）。典型的な 5MB スマホ写真が 100〜300KB 程度に圧縮される
+- 圧縮処理中はスピナーを表示し、完了まで提出ボタンを無効化
+- 圧縮済みファイルを Supabase Storage の `homework-photos` バケット（Public）へサーバーサイドでアップロード
 - URL は `Homework.photoUrl` に保存
 - アップロードヘルパー: `src/lib/supabase-storage.ts`
 - `requiresPhoto = true` の宿題は写真がないと提出ボタンが無効化される
@@ -50,13 +52,9 @@ assigned ─► submitted ─► approved
 - 生徒は `/materials` で自分に登録された教材一覧を閲覧（参照のみ）
 - 宿題作成時に教材を1つ紐づけられる
 
-### 教材写真の先生への送信（生徒側）
+### 教材写真の先生への送信
 
-- オンライン授業時など、生徒が手元の教材を撮影して先生に送れる機能
-- カレンダーの授業カードからカメラアイコンをタップ → 写真選択 → 送信
-- 先生が LINE 連携済みの場合: Supabase `temp-materials` バケットに一時アップロード後、LINE 画像メッセージで送信
-- LINE 未連携の場合: 一時 URL を生成してコピーリンクを表示
-- 一時ファイルは毎日の `cleanup-homework` Cron で 24 時間後に自動削除
+**廃止済み（2026年5月）**。代替手段として Google Drive 等の共有リンクを使うことを推奨。
 
 ## 授業（Lesson）管理
 
@@ -193,8 +191,7 @@ function calcFee(durationMin, hourlyRate, travelExpense) {
 
 1. `status = "approved"` かつ `dueDate` から7日以上経過した宿題
 2. 未使用かつ `expiresAt` から7日以上経過した招待トークン
-3. 使用済みかつ `usedAt` から30日以上経過した招待トークン
-4. Supabase `temp-materials` バケット内の作成から24時間以上経過したファイル
+3. 使用済みかつ `usedAt` から **7日以上**経過した招待トークン
 
 ### 年次データクリーンアップ（手動実行）
 
