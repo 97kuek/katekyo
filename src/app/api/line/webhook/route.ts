@@ -1,7 +1,7 @@
 import { createHmac } from "crypto"
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
-import { sendLineMessage } from "@/lib/line"
+import { sendLineMessage, linkRichMenuToUser } from "@/lib/line"
 
 function verifySignature(body: string, signature: string): boolean {
   const secret = process.env.LINE_CHANNEL_SECRET
@@ -53,6 +53,11 @@ export async function POST(req: NextRequest) {
           data: { lineUserId },
         })
         await db.lineLinkToken.delete({ where: { id: linkToken.id } })
+
+        const richMenuId = linkToken.user.role === "teacher"
+          ? process.env.LINE_RICH_MENU_TEACHER_ID
+          : process.env.LINE_RICH_MENU_STUDENT_ID
+        if (richMenuId) await linkRichMenuToUser(lineUserId, richMenuId)
 
         await sendLineMessage(lineUserId, `${linkToken.user.name}さんのLINE連携が完了しました✅\nこれからkatekyoの通知をお届けします。`)
 

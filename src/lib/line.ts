@@ -20,3 +20,21 @@ export async function sendLineMessage(lineUserId: string, text: string): Promise
   await pushLineMessages(lineUserId, [{ type: "text", text }])
 }
 
+export async function linkRichMenuToUser(lineUserId: string, richMenuId: string): Promise<void> {
+  const token = process.env.LINE_CHANNEL_ACCESS_TOKEN
+  if (!token || !richMenuId) return
+  await fetch(`https://api.line.me/v2/bot/user/${lineUserId}/richmenu/${richMenuId}`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+  }).catch(() => {})
+}
+
+export async function unlinkRichMenuFromUser(lineUserId: string): Promise<void> {
+  const token = process.env.LINE_CHANNEL_ACCESS_TOKEN
+  if (!token) return
+  await fetch(`https://api.line.me/v2/bot/user/${lineUserId}/richmenu`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  }).catch(() => {})
+}
+
