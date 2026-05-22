@@ -8,6 +8,7 @@ export default async function HelpPage() {
   return (
     <div className="max-w-2xl space-y-8">
       {session.user.role === "teacher" ? <TeacherHelp /> : <StudentHelp />}
+      <HomeScreenSection />
       <AboutSection />
     </div>
   )
@@ -284,6 +285,39 @@ function StudentHelp() {
       <SectionCard title="アカウント設定">
         <p>「設定」メニューから名前・パスワードの変更ができます。ログアウトはヘッダー右上のボタンから行えます。</p>
       </SectionCard>
+    </div>
+  )
+}
+
+function HomeScreenSection() {
+  return (
+    <div className="rounded-lg border bg-white p-5 space-y-4">
+      <h2 className="font-semibold text-base">ホーム画面に追加する</h2>
+      <p className="text-sm text-gray-600">アプリのようにホーム画面から直接起動できます。</p>
+
+      <div className="space-y-3 text-sm text-gray-700">
+        <p className="font-medium text-xs text-muted-foreground uppercase tracking-wide">iPhone / iPad（Safari）</p>
+        <Steps items={[
+          "Safari でこのサイトを開く",
+          "画面下部の共有ボタン（□↑）をタップ",
+          "「ホーム画面に追加」をタップ",
+          "「追加」をタップして完了",
+        ]} />
+        <div className="flex gap-2 bg-blue-50 border border-blue-100 rounded-md p-3">
+          <span className="shrink-0 text-blue-500">ℹ</span>
+          <p className="text-sm text-blue-900 leading-relaxed">Safari 以外のブラウザ（Chrome など）では追加できません。</p>
+        </div>
+      </div>
+
+      <div className="space-y-3 text-sm text-gray-700 pt-1">
+        <p className="font-medium text-xs text-muted-foreground uppercase tracking-wide">Android（Chrome）</p>
+        <Steps items={[
+          "Chrome でこのサイトを開く",
+          "右上の ⋮ メニューをタップ",
+          "「ホーム画面に追加」をタップ",
+          "「追加」をタップして完了",
+        ]} />
+      </div>
     </div>
   )
 }
