@@ -21,11 +21,11 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
                 <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 0 3-3h7z" />
               </svg>
             </div>
-            <span className="text-2xl font-bold tracking-tight">katekyo</span>
+            <div>
+              <p className="text-2xl font-bold tracking-tight leading-none">katekyo</p>
+              <p className="text-xs text-white/80 mt-0.5">家庭教師と生徒を繋ぐ学習管理アプリ</p>
+            </div>
           </div>
-          <p className="text-base md:text-lg font-medium leading-snug">
-            家庭教師と生徒を<br />つなぐ学習管理アプリ
-          </p>
 
           {/* モバイル: 2×2グリッドで短いラベルのみ */}
           <div className="grid grid-cols-2 gap-2 md:hidden">
