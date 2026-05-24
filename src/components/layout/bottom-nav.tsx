@@ -36,12 +36,12 @@ export default function BottomNav({ role }: { role: string }) {
               key={href}
               href={href}
               className={cn(
-                "flex flex-1 flex-col items-center justify-center py-2 gap-0.5 font-medium transition-colors",
-                "text-[10px]",
+                "flex flex-1 flex-col items-center justify-center py-3 gap-1 font-medium transition-colors",
+                "text-[11px]",
                 active ? "text-primary" : "text-gray-400 hover:text-gray-600"
               )}
             >
-              <Icon className="h-5 w-5" />
+              <Icon className="h-6 w-6" />
               <span>{label}</span>
             </Link>
           )
