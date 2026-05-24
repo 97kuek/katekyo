@@ -12,8 +12,8 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
       {/* ブランドパネル */}
-      <div className="bg-[#2e743a] text-white flex flex-col justify-center px-8 py-6 md:w-1/2 md:min-h-screen md:py-10">
-        <div className="max-w-sm mx-auto w-full space-y-4 md:space-y-6">
+      <div className="bg-[#2e743a] text-white flex flex-col justify-center px-8 pt-6 pb-4 md:w-1/2 md:min-h-screen md:py-10">
+        <div className="max-w-sm mx-auto w-full space-y-3 md:space-y-6">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shrink-0">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2e743a" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -28,7 +28,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           </div>
 
           {/* モバイル: 2×2グリッドで短いラベルのみ */}
-          <div className="grid grid-cols-2 gap-2 md:hidden">
+          <div className="grid grid-cols-2 gap-x-4 gap-y-2 md:hidden w-fit mx-auto">
             {FEATURES.map(({ Icon, label }) => (
               <div key={label} className="flex items-center gap-2 text-sm text-white/90">
                 <Icon className="h-4 w-4 shrink-0" />
@@ -50,7 +50,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       </div>
 
       {/* フォームパネル */}
-      <div className="flex-1 flex flex-col items-center justify-center px-4 py-6 bg-gray-50 md:w-1/2 md:min-h-screen md:py-10">
+      <div className="flex-1 flex flex-col items-center justify-center px-4 pt-4 pb-6 bg-gray-50 md:w-1/2 md:min-h-screen md:py-10">
         <div className="w-full max-w-md space-y-6">
           {children}
           <footer className="flex justify-center gap-4 text-xs text-gray-400">
