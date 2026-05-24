@@ -2,6 +2,7 @@
 
 import { useTransition, useState } from "react"
 import { deleteHomework } from "./edit-actions"
+import { Button } from "@/components/ui/button"
 
 export function DeleteHomeworkButton({ homeworkId }: { homeworkId: string }) {
   const [confirming, setConfirming] = useState(false)
@@ -33,11 +34,13 @@ export function DeleteHomeworkButton({ homeworkId }: { homeworkId: string }) {
   }
 
   return (
-    <button
+    <Button
+      variant="outline"
+      size="sm"
       onClick={() => setConfirming(true)}
-      className="inline-flex items-center justify-center rounded-md border border-red-200 bg-white px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 transition-colors"
+      className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-600"
     >
       削除
-    </button>
+    </Button>
   )
 }
