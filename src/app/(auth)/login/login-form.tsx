@@ -49,7 +49,7 @@ export default function LoginForm() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-2xl">katekyo</CardTitle>
+        <CardTitle className="text-xl">ログイン</CardTitle>
         <CardDescription>アカウントにログインしてください</CardDescription>
       </CardHeader>
       <CardContent>
