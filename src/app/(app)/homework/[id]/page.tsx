@@ -28,6 +28,7 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
         where: { id, teacherId: session.user.id },
         include: {
           student: { include: { user: { select: { name: true } } } },
+          events: { orderBy: { createdAt: "asc" } },
         },
       })
     : await (async () => {
@@ -35,7 +36,10 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
         if (!student) return null
         return db.homework.findFirst({
           where: { id, studentId: student.id },
-          include: { student: { include: { user: { select: { name: true } } } } },
+          include: {
+            student: { include: { user: { select: { name: true } } } },
+            events: { orderBy: { createdAt: "asc" } },
+          },
         })
       })()
 
@@ -53,12 +57,12 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
 
   return (
     <div className="max-w-2xl space-y-6">
-      <div className="flex items-center justify-between">
-        <Link href="/homework" className="text-sm text-muted-foreground hover:underline">
+      <div className="flex flex-col gap-2">
+        <Link href="/homework" className="text-sm text-muted-foreground hover:underline self-start">
           ← 宿題一覧に戻る
         </Link>
         {isTeacher && (
-          <div className="flex gap-2">
+          <div className="flex gap-2 self-end">
             {["assigned", "rejected"].includes(homework.status) && (
               <Link
                 href={`/homework/${id}/edit`}
@@ -154,7 +158,7 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
               <img
                 src={homework.photoUrl}
                 alt="提出写真"
-                className="w-full max-h-80 object-contain rounded-md border bg-gray-50"
+                className="w-full max-h-60 sm:max-h-80 object-contain rounded-md border bg-gray-50"
               />
             </div>
           )}
@@ -180,6 +184,41 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
               <p className="text-sm">{homework.teacherFeedback}</p>
             </div>
           )}
+        </div>
+      )}
+
+      {homework.events.length > 0 && (
+        <div className="rounded-lg border bg-white p-5 space-y-3">
+          <h2 className="text-sm font-semibold">やり取り履歴</h2>
+          <ol className="relative border-l border-gray-200 ml-2 space-y-4">
+            {homework.events.map((ev) => {
+              const config =
+                ev.eventType === "approved"
+                  ? { icon: "✅", label: "承認", color: "text-green-700" }
+                  : ev.eventType === "rejected"
+                  ? { icon: "🔁", label: "差し戻し", color: "text-red-700" }
+                  : { icon: "📬", label: "提出", color: "text-blue-700" }
+              return (
+                <li key={ev.id} className="ml-4">
+                  <span className="absolute -left-1.5 flex h-3 w-3 items-center justify-center">
+                    <span className="h-2 w-2 rounded-full bg-gray-300" />
+                  </span>
+                  <div className="flex items-baseline gap-2 flex-wrap">
+                    <span className={`text-xs font-semibold ${config.color}`}>
+                      {config.icon} {config.label}
+                    </span>
+                    <span className="text-xs text-muted-foreground">{ev.actorName}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {ev.createdAt.toLocaleString("ja-JP", { timeZone: "Asia/Tokyo", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                    </span>
+                  </div>
+                  {ev.note && (
+                    <p className="mt-1 text-sm text-gray-600 leading-relaxed">{ev.note}</p>
+                  )}
+                </li>
+              )
+            })}
+          </ol>
         </div>
       )}
 

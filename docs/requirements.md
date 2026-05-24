@@ -61,7 +61,7 @@ assigned ─► submitted ─► approved
 - 先生がカレンダーから登録：日時・生徒・オンライン/対面・所要時間・メモ（事前）・授業ログ（事後）
 - 時給（hourlyRate）と交通費（travelExpense）を記録可能
 - **オンライン授業は交通費を強制的に 0 に設定**（server action 側で `effectiveTravelExpense = type === "online" ? 0 : travelExpense`）
-- 週次繰り返し登録（最大12週）：QStash スケジューリングは try-catch で囲み、失敗しても授業は保存される
+- 週次繰り返し登録（最大52週）：QStash スケジューリングは try-catch で囲み、失敗しても授業は保存される
 - 生徒は自分の授業のみ閲覧可（作成・削除不可）
 
 ### 授業前リマインダー・Meet 参加
@@ -182,7 +182,7 @@ function calcFee(durationMin, hourlyRate, travelExpense) {
 
 | エンドポイント | スケジュール | 内容 |
 | --- | --- | --- |
-| `GET /api/cron/cleanup-homework` | 毎日 18:00 UTC（03:00 JST） | 古い宿題・招待トークン・temp教材ファイルを削除 |
+| `GET /api/cron/cleanup-homework` | 毎日 18:00 UTC（03:00 JST） | 古い宿題・招待トークンを削除 |
 | `GET /api/cron/line-daily` | 毎週日曜 23:00 UTC（月曜 08:00 JST） | LINE 週次通知送信 |
 
 > **注意**: Vercel Hobby プランは Cron を 2 本まで。`line-monthly` と `annual-cleanup` は削除済み。

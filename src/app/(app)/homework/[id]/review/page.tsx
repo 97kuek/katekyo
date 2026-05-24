@@ -45,7 +45,7 @@ export default async function ReviewHomeworkPage({ params }: { params: Promise<{
             <img
               src={homework.photoUrl}
               alt="提出写真"
-              className="w-full max-h-80 object-contain rounded-md border bg-gray-50"
+              className="w-full max-h-60 sm:max-h-80 object-contain rounded-md border bg-gray-50"
             />
           </div>
         )}

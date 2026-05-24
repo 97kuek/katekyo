@@ -41,6 +41,12 @@ enum GardenItemType {
   mushroom
 }
 
+enum HomeworkEventType {
+  submitted
+  approved
+  rejected
+}
+
 model User {
   id         String   @id @default(uuid())
   email      String   @unique
@@ -157,11 +163,25 @@ model Homework {
   student  Student          @relation(fields: [studentId], references: [id], onDelete: Cascade)
   teacher  User             @relation("TeacherHomework", fields: [teacherId], references: [id], onDelete: Cascade)
   material StudentMaterial? @relation(fields: [materialId], references: [id], onDelete: SetNull)
+  events   HomeworkEvent[]
 
   @@index([teacherId])
   @@index([studentId])
   @@index([teacherId, status])
   @@index([dueDate])
+}
+
+model HomeworkEvent {
+  id         String            @id @default(uuid())
+  homeworkId String
+  eventType  HomeworkEventType
+  actorName  String
+  note       String?
+  createdAt  DateTime          @default(now())
+
+  homework Homework @relation(fields: [homeworkId], references: [id], onDelete: Cascade)
+
+  @@index([homeworkId])
 }
 
 model GradeRecord {

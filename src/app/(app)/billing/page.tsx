@@ -73,19 +73,31 @@ export default async function BillingPage({
       <h1 className="text-2xl font-bold">請求管理</h1>
 
       {/* Month navigator */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-3">
+          <a
+            href={`/billing?year=${prevYear}&month=${prevMonth}`}
+            className="px-3 py-1.5 rounded-md border text-sm hover:bg-gray-50 transition-colors"
+          >
+            ← 前月
+          </a>
+          <span className="font-semibold text-sm">{year}年 {month + 1}月</span>
+          <a
+            href={`/billing?year=${nextYear}&month=${nextMonth}`}
+            className="px-3 py-1.5 rounded-md border text-sm hover:bg-gray-50 transition-colors"
+          >
+            翌月 →
+          </a>
+        </div>
         <a
-          href={`/billing?year=${prevYear}&month=${prevMonth}`}
-          className="px-3 py-1.5 rounded-md border text-sm hover:bg-gray-50 transition-colors"
+          href={`/api/billing/export?year=${year}&month=${month + 1}`}
+          download
+          className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
         >
-          ← 前月
-        </a>
-        <span className="font-semibold text-sm">{year}年 {month + 1}月</span>
-        <a
-          href={`/billing?year=${nextYear}&month=${nextMonth}`}
-          className="px-3 py-1.5 rounded-md border text-sm hover:bg-gray-50 transition-colors"
-        >
-          翌月 →
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          CSV
         </a>
       </div>
 

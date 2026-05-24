@@ -18,25 +18,24 @@ if (session.user.role !== "teacher") return { error: "権限がありません" 
 | ファイル | Action | 概要 |
 | --- | --- | --- |
 | `homework/new/actions.ts` | `createHomework` | 宿題作成。`requiresPhoto` フラグ対応。Zod バリデーション、teacherId 自動付与 |
-| `homework/[id]/actions.ts` | `updateHomework` | 宿題編集（assigned/rejected のみ） |
-| `homework/[id]/actions.ts` | `approveHomework` | 承認（先生のみ） |
-| `homework/[id]/actions.ts` | `rejectHomework` | 差し戻し（先生のみ、フィードバック必須） |
-| `homework/[id]/submit/actions.ts` | `submitHomework` | 提出（生徒のみ）。写真は Supabase Storage へアップロード |
-| `homework/page.tsx` | `cancelSubmission` | 提出取り消し（生徒・submitted 状態のみ） |
-
-#### 宿題一括承認
-
-`src/app/(app)/homework/bulk-approve-section.tsx` の `BulkApproveSection` コンポーネントから呼び出し。
+| `homework/[id]/actions.ts` | `submitHomework` | 提出（生徒のみ）。写真は Supabase Storage へアップロード |
+| `homework/[id]/actions.ts` | `reviewHomework` | 承認 / 差し戻し（先生のみ）。`action: "approved" \| "rejected"` で切り替え |
+| `homework/[id]/edit-actions.ts` | `updateHomework` | 宿題編集（assigned/rejected のみ） |
+| `homework/[id]/edit-actions.ts` | `extendDueDate` | 期限延長（先生のみ） |
+| `homework/[id]/edit-actions.ts` | `deleteHomework` | 宿題削除（先生のみ） |
+| `homework/[id]/cancel-actions.ts` | `cancelSubmission` | 提出取り消し（生徒・submitted 状態のみ） |
+| `homework/bulk-actions.ts` | `bulkApproveHomework` | 複数宿題の一括承認（先生のみ） |
 
 ### 授業（Lesson）
 
 | ファイル | Action | 概要 |
 | --- | --- | --- |
-| `calendar/actions.ts` | `createLesson` | 授業作成。週次繰り返し対応（最大12週）。QStash スケジューリングは try-catch で囲む |
+| `calendar/actions.ts` | `createLesson` | 授業作成。週次繰り返し対応（最大52週）。QStash スケジューリングは try-catch で囲む |
 | `calendar/actions.ts` | `updateLesson` | 授業更新。online の場合 travelExpense を 0 に強制。QStash を再予約 |
 | `calendar/actions.ts` | `deleteLesson` | 授業削除（先生のみ）。QStash をキャンセル |
 | `calendar/actions.ts` | `completeLesson` | 授業完了確定。`completedAt` に現在時刻をセット（先生のみ・未完了のみ） |
 | `calendar/actions.ts` | `uncompleteLesson` | 授業完了取り消し |
+| `calendar/actions.ts` | `createHomeworkFromCalendar` | カレンダー画面から直接宿題を作成（先生のみ） |
 
 ### 設定（Settings）
 
@@ -58,16 +57,19 @@ if (session.user.role !== "teacher") return { error: "権限がありません" 
 | ファイル | Action | 概要 |
 | --- | --- | --- |
 | `grades/new/actions.ts` | `createGradeRecord` | 成績登録。数値データがあれば `plantGardenItem` も呼ぶ |
-| `grades/[id]/actions.ts` | `deleteGradeRecord` | 成績削除 |
+| `grades/[id]/edit-actions.ts` | `updateGradeRecord` | 成績編集 |
+| `grades/[id]/edit-actions.ts` | `deleteGradeRecord` | 成績削除 |
 
 ### 生徒（Student）
 
 | ファイル | Action | 概要 |
 | --- | --- | --- |
-| `students/invite/actions.ts` | `createInvitation` | 招待トークン生成（7日有効） |
+| `students/invite/actions.ts` | `createInvite` | 招待トークン生成（7日有効） |
+| `students/invites/actions.ts` | `revokeInvite` | 招待トークン無効化（削除） |
 | `students/[id]/actions.ts` | `updateStudentGrade` | 学年変更 |
-| `students/[id]/actions.ts` | `deleteStudent` | 生徒削除。Supabase Storage の宿題写真を先に削除してから `db.user.delete`（DB は cascade） |
-| `students/[id]/actions.ts` | `resetPassword` | 生徒のパスワードリセット |
+| `students/actions.ts` | `resetStudentPassword` | 生徒のパスワードリセット |
+| `students/actions.ts` | `updateStudentRates` | 授業デフォルト値（時給・交通費・時間・科目）の更新 |
+| `students/actions.ts` | `deleteStudent` | 生徒削除。Supabase Storage の宿題写真を先に削除してから `db.user.delete`（DB は cascade） |
 
 ### 教材（StudentMaterial）
 
@@ -76,6 +78,26 @@ if (session.user.role !== "teacher") return { error: "権限がありません" 
 | `students/[id]/materials/actions.ts` | `createMaterial` | 教材登録（名前・メモ・科目タグ） |
 | `students/[id]/materials/actions.ts` | `deleteMaterial` | 教材削除 |
 | `students/[id]/materials/actions.ts` | `updateMaterialSubjects` | 教材の科目タグをインライン編集 |
+
+### プロフィール（Profile）
+
+| ファイル | Action | 概要 |
+| --- | --- | --- |
+| `profile/actions.ts` | `updateName` | 表示名変更（両ロール共通） |
+| `profile/actions.ts` | `updatePassword` | パスワード変更（現在のパスワード確認あり） |
+
+### 請求（Billing）
+
+| ファイル | Action | 概要 |
+| --- | --- | --- |
+| `billing/actions.ts` | `markAsPaid` | 月次支払いを入金済みに設定（先生のみ） |
+| `billing/actions.ts` | `markAsUnpaid` | 月次支払いを未払いに戻す（先生のみ） |
+
+### 利用規約（Terms）
+
+| ファイル | Action | 概要 |
+| --- | --- | --- |
+| `terms-actions.ts` | `agreeToTerms` | 利用規約への同意を記録（`agreedToTermsAt` に現在時刻をセット） |
 
 ### 科目タグ（Subject）
 
@@ -107,8 +129,8 @@ if (session.user.role !== "teacher") return { error: "権限がありません" 
 // src/lib/supabase-storage.ts
 
 // バケット: homework-photos（Public）
-// パス: {teacherId}/{homeworkId}/{timestamp}.{ext}
-uploadHomeworkPhoto(file: File, teacherId: string, homeworkId: string): Promise<string | null>
+// パス: homework/{homeworkId}/{timestamp}.{ext}
+uploadHomeworkPhoto(file: File, homeworkId: string): Promise<string | null>
 // → 公開 URL を返す。Homework.photoUrl に保存する
 
 deleteHomeworkPhoto(url: string): Promise<void>

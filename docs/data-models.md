@@ -44,6 +44,7 @@ Student {
   gardenGeneration     Int      @default(1)  # 森が満開リセットされた世代数
   defaultHourlyRate    Int?     # 授業登録時のデフォルト時給
   defaultTravelExpense Int?     # 授業登録時のデフォルト交通費
+  defaultDurationMin   Int?     # 授業登録時のデフォルト所要時間（分）
   defaultSubjectIds    String[] @default([])  # 授業登録時のデフォルト科目タグ
   createdAt            DateTime
 
@@ -191,6 +192,7 @@ ExamEvent {
   name      String
   testType  TestType  # mock | exam | quiz | other
   date      DateTime
+  endDate   DateTime?  # 試験期間の終了日（任意）
   createdAt DateTime
 }
 ```

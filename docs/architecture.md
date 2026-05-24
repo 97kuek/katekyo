@@ -6,20 +6,27 @@
 src/
 ├── app/
 │   ├── (auth)/           # login, register, invite/[token]
+│   ├── (legal)/          # privacy, terms
 │   └── (app)/            # 認証済みページ全般
 │       ├── layout.tsx        # Sidebar/Header/BottomNav/Toaster
 │       ├── dashboard/
 │       ├── students/
+│       │   ├── invite/       # 招待トークン生成
+│       │   ├── invites/      # 招待トークン管理
 │       │   └── [id]/         # grades/, materials/, garden/
 │       ├── homework/
 │       │   ├── new/
-│       │   ├── photos/
 │       │   └── [id]/         # submit/, review/, edit/
 │       ├── grades/
+│       │   ├── new/
+│       │   └── [id]/         # edit/
 │       ├── calendar/
 │       ├── billing/
 │       ├── garden/
-│       └── materials/
+│       ├── materials/
+│       ├── profile/
+│       ├── settings/
+│       └── help/
 ├── components/
 │   ├── ui/               # shadcn/ui 基本コンポーネント
 │   ├── homework/         # StatusBadge 等
@@ -27,17 +34,30 @@ src/
 ├── lib/
 │   ├── auth.ts               # NextAuth 設定
 │   ├── db.ts                 # Prisma クライアント（シングルトン）
-│   ├── garden.ts             # plantGardenItem Server Action
+│   ├── garden.ts             # plantGardenItem ヘルパー
 │   ├── garden-utils.ts       # scoreToGardenItemType 純粋関数
 │   ├── grades.ts             # GRADE_OPTIONS 定数
+│   ├── line.ts               # LINE Messaging API ヘルパー
+│   ├── qstash.ts             # Upstash QStash ヘルパー（授業リマインダー）
 │   ├── queries.ts            # React.cache() 共通クエリ
 │   ├── supabase-storage.ts   # Supabase Storage ヘルパー
 │   ├── test-types.ts         # TEST_TYPE_LABELS / TEST_TYPE_OPTIONS
-│   └── date-utils.ts         # relativeDeadline / deadlineColorClass
+│   ├── date-utils.ts         # relativeDeadline / deadlineColorClass
+│   ├── changelog.ts          # 変更ログデータ定義
+│   └── utils.ts              # clsx/twMerge ユーティリティ
 └── api/
-    └── cron/
-        ├── cleanup-homework/  # 宿題・招待トークン・temp教材削除（毎日）
-        └── line-daily/        # LINE 日次通知（毎週日曜）
+    ├── auth/[...nextauth]/   # NextAuth ハンドラ
+    ├── cron/
+    │   ├── cleanup-homework/ # 宿題・招待トークン削除（毎日 Vercel Cron）
+    │   ├── line-daily/       # LINE 週次通知（毎週日曜 Vercel Cron）
+    │   ├── line-monthly/     # LINE 月次通知（手動実行のみ・Cron 無効）
+    │   └── annual-cleanup/   # 年次データ削除（手動実行のみ・Cron 無効）
+    ├── line/
+    │   ├── webhook/          # LINE Bot Webhook（メッセージ受信・連携処理）
+    │   ├── setup-rich-menus/ # リッチメニュー作成（初回一回限り）
+    │   └── apply-rich-menus/ # 既存ユーザーへのリッチメニュー一括適用
+    └── webhooks/
+        └── lesson-reminder/  # QStash Webhook: 授業前リマインダー送信
 prisma/
 └── schema.prisma
 ```
@@ -59,11 +79,12 @@ prisma/
 | 生徒一覧 | `/students` | モバイル=カード、デスクトップ=テーブル。progressMap/gardenMap/problemMap |
 | 宿題管理 | `/homework` | BulkApproveSection（submitted を一括承認）。モバイル=カード、デスクトップ=テーブル |
 | 宿題作成 | `/homework/new` | CreateHomeworkForm。写真提出必須オプション（requiresPhoto） |
-| 提出写真 | `/homework/photos` | photoUrl IS NOT NULL の宿題を 2〜4 カラムグリッド表示。生徒フィルター |
 | 請求管理 | `/billing` | 月別ナビ（year/month searchParams）。calcFee() で金額計算。生徒別内訳 |
 | カレンダー | `/calendar` | CalendarView クライアントコンポーネント。授業（Lesson）+ テスト日（ExamEvent） |
 | 成績管理 | `/grades` | `?type=mock` 等サーバーサイドフィルタ |
-| 設定 | `/settings` | アカウント / LINE連携 / Meet URL / 科目タグ管理（先生のみ） |
+| プロフィール | `/profile` | 表示名・パスワード変更（両ロール共通） |
+| 設定 | `/settings` | LINE連携 / Meet URL / 科目タグ管理 |
+| 使い方ガイド | `/help` | 操作説明・ホーム画面追加手順 |
 
 ## ページ一覧（生徒）
 
@@ -75,7 +96,10 @@ prisma/
 | 成績 | `/grades` | Recharts グラフ。点数/偏差値切り替え。複数種別のみフィルタ表示 |
 | 学習の森 | `/garden` | garden-canvas.tsx がアイソメトリック SVG 描画。植物7種+枯れ版 |
 | 教材 | `/materials` | 担当先生に登録してもらった教材一覧（科目タグ表示・参照のみ） |
-| カレンダー | `/calendar` | 授業・テスト予定閲覧。オンライン授業から Meet 参加。教材写真を先生に送信 |
+| カレンダー | `/calendar` | 授業・テスト予定閲覧。オンライン授業から Meet 参加 |
+| プロフィール | `/profile` | 表示名・パスワード変更（両ロール共通） |
+| 設定 | `/settings` | LINE連携 |
+| 使い方ガイド | `/help` | 操作説明・ホーム画面追加手順 |
 
 ## ナビゲーション構成
 

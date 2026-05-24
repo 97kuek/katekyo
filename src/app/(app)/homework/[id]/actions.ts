@@ -72,6 +72,15 @@ export async function submitHomework(
     },
   })
 
+  await db.homeworkEvent.create({
+    data: {
+      homeworkId: id,
+      eventType: "submitted",
+      actorName: session.user.name ?? "",
+      note: note ?? null,
+    },
+  })
+
   const teacher = await db.user.findUnique({
     where: { id: homework.teacherId },
     select: { lineUserId: true },
@@ -122,6 +131,15 @@ export async function reviewHomework(
   await db.homework.update({
     where: { id },
     data: { status: action, teacherFeedback: feedback ?? null, reviewedAt: new Date() },
+  })
+
+  await db.homeworkEvent.create({
+    data: {
+      homeworkId: id,
+      eventType: action,
+      actorName: session.user.name ?? "",
+      note: action === "rejected" ? (feedback ?? null) : null,
+    },
   })
 
   const studentUser = await db.student.findUnique({
