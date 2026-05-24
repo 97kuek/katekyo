@@ -28,7 +28,7 @@ export default function BottomNav({ role }: { role: string }) {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 border-t bg-white md:hidden z-50">
-      <div className="flex">
+      <div className="flex px-3">
         {navItems.map(({ href, label, icon: Icon }) => {
           const active = pathname === href || pathname.startsWith(href + "/")
           return (
