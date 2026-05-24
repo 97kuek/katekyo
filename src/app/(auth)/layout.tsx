@@ -50,7 +50,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       </div>
 
       {/* フォームパネル */}
-      <div className="flex flex-col items-center justify-center px-4 py-6 bg-gray-50 md:w-1/2 md:min-h-screen md:py-10">
+      <div className="flex-1 flex flex-col items-center justify-center px-4 py-6 bg-gray-50 md:w-1/2 md:min-h-screen md:py-10">
         <div className="w-full max-w-md space-y-6">
           {children}
           <footer className="flex justify-center gap-4 text-xs text-gray-400">
