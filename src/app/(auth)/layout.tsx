@@ -31,7 +31,10 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             {FEATURES.map(({ Icon, label, text }) => (
               <li key={label} className="flex items-start gap-2.5 text-sm text-white/90">
                 <Icon className="h-4 w-4 mt-0.5 shrink-0" />
-                <span><span className="font-medium">{label}</span>　{text}</span>
+                <div className="flex gap-2 min-w-0">
+                  <span className="font-medium shrink-0">{label}</span>
+                  <span className="text-white/75">{text}</span>
+                </div>
               </li>
             ))}
           </ul>
