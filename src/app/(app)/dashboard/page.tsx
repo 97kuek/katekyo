@@ -100,15 +100,15 @@ async function UncompletedLessonsSection({ teacherId }: { teacherId: string }) {
   if (count === 0) return null
 
   return (
-    <div className="rounded-lg border border-orange-200 bg-orange-50 px-4 py-3 flex items-center justify-between gap-3">
+    <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 flex items-center justify-between gap-3">
       <div className="flex items-center gap-3">
-        <div className="h-8 w-8 rounded-full bg-orange-100 flex items-center justify-center shrink-0 text-base">📋</div>
+        <div className="h-8 w-8 rounded-full bg-amber-100 flex items-center justify-center shrink-0 text-base">📋</div>
         <div>
-          <p className="text-sm font-semibold text-orange-900">{count}件の授業が完了確認待ちです</p>
-          <p className="text-xs text-orange-700 mt-0.5">カレンダーから授業を完了にしてください</p>
+          <p className="text-sm font-semibold text-amber-900">{count}件の授業が完了確認待ちです</p>
+          <p className="text-xs text-amber-700 mt-0.5">カレンダーから授業を完了にしてください</p>
         </div>
       </div>
-      <Link href="/calendar" className={buttonVariants({ variant: "outline", size: "sm", className: "shrink-0 border-orange-300 text-orange-800 hover:bg-orange-100" })}>
+      <Link href="/calendar" className={buttonVariants({ variant: "outline", size: "sm" })}>
         カレンダーへ
       </Link>
     </div>
@@ -129,8 +129,8 @@ async function PendingHomeworksSection({ teacherId }: { teacherId: string }) {
   return (
     <section className="space-y-3">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-yellow-800 bg-yellow-50 px-3 py-1.5 rounded-md inline-flex items-center gap-1.5">
-          <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-yellow-600 text-white text-xs">
+        <h2 className="text-sm font-semibold text-amber-800 bg-amber-50 px-3 py-1.5 rounded-md inline-flex items-center gap-1.5">
+          <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-amber-600 text-white text-xs">
             {pendingCount}
           </span>
           承認待ちの宿題
@@ -185,7 +185,7 @@ async function TeacherUpcomingSection({ teacherId }: { teacherId: string }) {
           <div className="space-y-2">
             {upcomingLessons.map((l) => (
               <div key={l.id} className="rounded-lg border bg-white p-3 flex items-center gap-3">
-                <div className={`h-8 w-8 rounded-full flex items-center justify-center shrink-0 text-xs font-bold ${l.type === "online" ? "bg-green-100 text-green-700" : "bg-purple-100 text-purple-700"}`}>
+                <div className={`h-8 w-8 rounded-full flex items-center justify-center shrink-0 text-xs font-bold ${l.type === "online" ? "bg-primary/10 text-primary" : "bg-slate-100 text-slate-600"}`}>
                   {l.type === "online" ? "ON" : "OF"}
                 </div>
                 <div>
@@ -244,7 +244,7 @@ async function HomeworkStatusSection({ teacherId }: { teacherId: string }) {
 
   const colors: Record<StatusKey, string> = {
     assigned: "bg-gray-100 text-gray-700",
-    submitted: "bg-yellow-100 text-yellow-700",
+    submitted: "bg-amber-100 text-amber-700",
     approved: "bg-green-100 text-green-700",
     rejected: "bg-red-100 text-red-700",
   }
@@ -359,7 +359,7 @@ async function GradeTrendsSection({ teacherId }: { teacherId: string }) {
           const up = t.diff > 0
           return (
             <div key={t.studentId} className="flex items-center gap-3 px-4 py-2.5">
-              <span className={`text-base font-bold w-4 shrink-0 ${up ? "text-green-600" : "text-red-600"}`}>
+              <span className={`text-base font-bold w-4 shrink-0 ${up ? "text-primary" : "text-destructive"}`}>
                 {up ? "↑" : "↓"}
               </span>
               <div className="flex-1 min-w-0">
@@ -368,7 +368,7 @@ async function GradeTrendsSection({ teacherId }: { teacherId: string }) {
                   {TEST_TYPE_LABELS[t.latest.testType as keyof typeof TEST_TYPE_LABELS]}「{t.latest.testName}」
                 </p>
               </div>
-              <span className={`text-sm font-bold shrink-0 ${up ? "text-green-600" : "text-red-600"}`}>
+              <span className={`text-sm font-bold shrink-0 ${up ? "text-primary" : "text-destructive"}`}>
                 {up ? "+" : ""}{Math.round(t.diff)}{t.latest.deviation != null ? "" : "%"}
               </span>
             </div>
@@ -477,7 +477,7 @@ async function StudentUpcomingSection({ userId }: { userId: string }) {
           <div className="space-y-2">
             {upcomingLessons.map((l) => (
               <div key={l.id} className="rounded-lg border bg-white p-3 flex items-center gap-3">
-                <div className={`h-8 w-8 rounded-full flex items-center justify-center shrink-0 text-xs font-bold ${l.type === "online" ? "bg-green-100 text-green-700" : "bg-purple-100 text-purple-700"}`}>
+                <div className={`h-8 w-8 rounded-full flex items-center justify-center shrink-0 text-xs font-bold ${l.type === "online" ? "bg-primary/10 text-primary" : "bg-slate-100 text-slate-600"}`}>
                   {l.type === "online" ? "ON" : "OF"}
                 </div>
                 <div>
@@ -628,10 +628,10 @@ function SummaryCard({ title, value, accent, danger, sub, href }: {
 }) {
   const inner = (
     <div className={`rounded-lg border bg-white p-3 shadow-sm transition-colors
-      ${danger ? "border-red-300" : accent ? "border-yellow-300" : ""}
+      ${danger ? "border-destructive/40" : accent ? "border-amber-300" : ""}
       ${href ? "hover:bg-gray-50" : ""}`}>
       <p className="text-xs text-muted-foreground">{title}</p>
-      <p className={`mt-1 text-2xl font-bold ${danger ? "text-red-600" : accent ? "text-yellow-700" : ""}`}>{value}</p>
+      <p className={`mt-1 text-2xl font-bold ${danger ? "text-destructive" : accent ? "text-amber-700" : ""}`}>{value}</p>
       {sub && <p className="text-xs text-muted-foreground mt-0.5 truncate">{sub}</p>}
     </div>
   )

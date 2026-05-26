@@ -16,7 +16,7 @@ function SubjectTags({ ids, map }: { ids: string[]; map: Map<string, string> }) 
   return (
     <div className="flex flex-wrap gap-1 mt-1">
       {names.map((name) => (
-        <span key={name} className="text-xs bg-blue-50 text-blue-700 rounded-full px-2 py-0.5">
+        <span key={name} className="text-xs bg-primary/10 text-primary rounded-full px-2 py-0.5">
           {name}
         </span>
       ))}
@@ -25,9 +25,9 @@ function SubjectTags({ ids, map }: { ids: string[]; map: Map<string, string> }) 
 }
 
 const TEST_TYPE_BADGE: Record<string, string> = {
-  mock: "bg-purple-50 text-purple-700",
-  exam: "bg-blue-50 text-blue-700",
-  quiz: "bg-green-50 text-green-700",
+  mock: "bg-slate-100 text-slate-700",
+  exam: "bg-primary/10 text-primary",
+  quiz: "bg-slate-100 text-slate-700",
   other: "bg-gray-100 text-gray-600",
 }
 
@@ -35,7 +35,7 @@ function DiffBadge({ diff }: { diff: number | null }) {
   if (diff == null || Math.abs(diff) < 0.5) return null
   const up = diff > 0
   return (
-    <span className={`ml-1.5 text-xs font-medium ${up ? "text-green-600" : "text-red-500"}`}>
+    <span className={`ml-1.5 text-xs font-medium ${up ? "text-primary" : "text-destructive"}`}>
       {up ? "+" : ""}{Math.round(diff)}
     </span>
   )
@@ -46,7 +46,7 @@ function VsAvg({ score, avgScore }: { score: number | null; avgScore: number | n
   const diff = score - avgScore
   const up = diff >= 0
   return (
-    <span className={`text-sm font-medium ${up ? "text-green-600" : "text-red-500"}`}>
+    <span className={`text-sm font-medium ${up ? "text-primary" : "text-destructive"}`}>
       {up ? "+" : ""}{diff}点
     </span>
   )

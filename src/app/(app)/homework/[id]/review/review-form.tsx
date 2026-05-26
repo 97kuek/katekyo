@@ -35,7 +35,7 @@ export default function ReviewForm({ id }: { id: string }) {
               type="submit"
               name="action"
               value="approved"
-              className="flex-1 bg-green-600 hover:bg-green-700"
+              className="flex-1"
               disabled={isPending}
             >
               承認する
@@ -45,7 +45,7 @@ export default function ReviewForm({ id }: { id: string }) {
               name="action"
               value="rejected"
               variant="outline"
-              className="flex-1 border-red-300 text-red-600 hover:bg-red-50"
+              className="flex-1 border-destructive/40 text-destructive hover:bg-destructive/5"
               disabled={isPending}
             >
               差し戻す

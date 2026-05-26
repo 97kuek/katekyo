@@ -78,8 +78,8 @@ function CompleteLessonLogForm({ lessonId, onClose }: { lessonId: string; onClos
   }
 
   return (
-    <div className="mt-2 pt-2 border-t border-green-100 space-y-2">
-      <p className="text-xs font-medium text-green-700">授業ログを残す（任意）</p>
+    <div className="mt-2 pt-2 border-t space-y-2">
+      <p className="text-xs font-medium text-primary">授業ログを残す（任意）</p>
       <textarea
         value={log}
         onChange={(e) => setLog(e.target.value)}
@@ -92,7 +92,7 @@ function CompleteLessonLogForm({ lessonId, onClose }: { lessonId: string; onClos
         <button
           onClick={() => submit(true)}
           disabled={isPending}
-          className="text-xs font-medium text-white bg-green-600 hover:bg-green-700 rounded px-2.5 py-1 disabled:opacity-50"
+          className="text-xs font-medium text-primary-foreground bg-primary hover:bg-primary/90 rounded px-2.5 py-1 disabled:opacity-50"
         >
           {isPending ? "..." : "完了にする"}
         </button>
@@ -122,7 +122,7 @@ function UncompleteLessonButton({ lessonId }: { lessonId: string }) {
             await uncompleteLesson(fd)
           })}
           disabled={isPending}
-          className="text-xs font-medium text-orange-600 hover:text-orange-800 disabled:opacity-50"
+          className="text-xs font-medium text-muted-foreground hover:text-foreground disabled:opacity-50"
         >
           {isPending ? "..." : "はい"}
         </button>
@@ -136,7 +136,7 @@ function UncompleteLessonButton({ lessonId }: { lessonId: string }) {
   return (
     <button
       onClick={() => setConfirming(true)}
-      className="text-xs text-orange-400 hover:text-orange-600"
+      className="text-xs text-muted-foreground hover:text-foreground"
     >
       取り消し
     </button>
@@ -222,14 +222,14 @@ function HomeworkForm({ students, defaultDate }: { students: Student[]; defaultD
 
   if (!open) {
     return (
-      <Button onClick={() => setOpen(true)} size="sm" variant="outline" className="text-orange-600 border-orange-200 hover:bg-orange-50">
+      <Button onClick={() => setOpen(true)} size="sm" variant="outline">
         宿題を追加
       </Button>
     )
   }
 
   return (
-    <div className="rounded-lg border border-orange-200 bg-orange-50/30 p-3 space-y-3 w-full">
+    <div className="rounded-lg border bg-white p-3 space-y-3 w-full">
       <h3 className="font-medium text-sm">宿題を追加</h3>
       <form action={action} className="space-y-3">
         {state.error && <p className="text-xs text-red-600 bg-red-50 p-2 rounded">{state.error}</p>}
@@ -264,7 +264,7 @@ function HomeworkForm({ students, defaultDate }: { students: Student[]; defaultD
           </div>
         </div>
         <div className="flex gap-2">
-          <Button type="submit" size="sm" disabled={isPending} className="bg-orange-500 hover:bg-orange-600">
+          <Button type="submit" size="sm" disabled={isPending}>
             {isPending ? "追加中..." : "追加"}
           </Button>
           <Button type="button" variant="outline" size="sm" onClick={() => setOpen(false)}>
@@ -288,14 +288,14 @@ function ExamEventForm({ students, defaultDate }: { students: Student[]; default
 
   if (!open) {
     return (
-      <Button onClick={() => setOpen(true)} size="sm" variant="outline" className="text-red-600 border-red-200 hover:bg-red-50">
+      <Button onClick={() => setOpen(true)} size="sm" variant="outline">
         テストを追加
       </Button>
     )
   }
 
   return (
-    <div className="rounded-lg border border-red-200 bg-red-50/30 p-3 space-y-3 w-full">
+    <div className="rounded-lg border bg-white p-3 space-y-3 w-full">
       <h3 className="font-medium text-sm">テストを追加</h3>
       <form action={action} className="space-y-3">
         {state.error && (
@@ -350,7 +350,7 @@ function ExamEventForm({ students, defaultDate }: { students: Student[]; default
           </div>
         </div>
         <div className="flex gap-2">
-          <Button type="submit" size="sm" disabled={isPending} className="bg-red-600 hover:bg-red-700">
+          <Button type="submit" size="sm" disabled={isPending}>
             {isPending ? "追加中..." : "追加"}
           </Button>
           <Button type="button" variant="outline" size="sm" onClick={() => setOpen(false)}>
@@ -405,19 +405,19 @@ function DayDetail({
             const now = new Date()
             const isPast = l.date < now
             return (
-              <div key={l.id} className={`rounded-md px-3 py-2 ${l.completedAt ? "bg-green-50" : "bg-blue-50"}`}>
+              <div key={l.id} className={`rounded-md px-3 py-2 ${l.completedAt ? "bg-primary/5" : "bg-slate-50"}`}>
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-sm font-medium">{l.student.user.name}</span>
-                      <span className={`text-xs rounded-full px-2 py-0.5 ${l.type === "online" ? "bg-green-100 text-green-700" : "bg-purple-100 text-purple-700"}`}>
+                      <span className={`text-xs rounded-full px-2 py-0.5 ${l.type === "online" ? "bg-primary/10 text-primary" : "bg-slate-100 text-slate-600"}`}>
                         {l.type === "online" ? "オンライン" : "対面"}
                       </span>
                       {l.durationMin && (
                         <span className="text-xs text-muted-foreground">{l.durationMin}分</span>
                       )}
                       {l.completedAt && (
-                        <span className="text-xs text-green-700 font-medium">✓ 完了</span>
+                        <span className="text-xs text-primary font-medium">✓ 完了</span>
                       )}
                     </div>
                     <p className="text-xs text-muted-foreground mt-0.5">
@@ -428,7 +428,7 @@ function DayDetail({
                         {l.subjectIds.map((sid) => {
                           const sub = subjects.find((s) => s.id === sid)
                           return sub ? (
-                            <span key={sid} className="text-xs bg-indigo-50 text-indigo-600 rounded px-1.5 py-0.5">{sub.name}</span>
+                            <span key={sid} className="text-xs bg-primary/10 text-primary rounded px-1.5 py-0.5">{sub.name}</span>
                           ) : null
                         })}
                       </div>
@@ -439,7 +439,7 @@ function DayDetail({
                         href={l.meetLink}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 mt-1.5 text-xs font-medium text-white bg-green-600 hover:bg-green-700 rounded px-2.5 py-1"
+                        className="inline-flex items-center gap-1 mt-1.5 text-xs font-medium text-primary-foreground bg-primary hover:bg-primary/90 rounded px-2.5 py-1"
                       >
                         Meet に参加する →
                       </a>
@@ -447,7 +447,7 @@ function DayDetail({
                     {(isTeacher ? l.lessonLog : (l.lessonLogPublic ? l.lessonLog : null)) && (
                       <div className="mt-2 bg-amber-50 rounded-md p-3">
                         <p className="text-xs font-medium text-amber-700 mb-1">
-                          授業ログ{isTeacher && l.lessonLogPublic && <span className="ml-1 text-green-600">（生徒に公開中）</span>}
+                          授業ログ{isTeacher && l.lessonLogPublic && <span className="ml-1 text-primary">（生徒に公開中）</span>}
                         </p>
                         <p className="text-sm text-amber-900 whitespace-pre-wrap leading-relaxed">{l.lessonLog}</p>
                       </div>
@@ -467,7 +467,7 @@ function DayDetail({
                         ) : (
                           <button
                             onClick={() => { setCompletingLessonId(l.id); setEditingLessonId(null) }}
-                            className="text-xs font-medium text-green-600 hover:text-green-800 border border-green-200 rounded px-1.5 py-0.5"
+                            className="text-xs font-medium text-primary hover:text-primary/80 border border-primary/20 rounded px-1.5 py-0.5"
                           >
                             完了
                           </button>
@@ -476,7 +476,7 @@ function DayDetail({
                       {l.completedAt && <UncompleteLessonButton lessonId={l.id} />}
                       <button
                         onClick={() => { setEditingLessonId(editingLessonId === l.id ? null : l.id); setCompletingLessonId(null) }}
-                        className="text-xs text-blue-500 hover:text-blue-700"
+                        className="text-xs text-muted-foreground hover:text-foreground"
                       >
                         {editingLessonId === l.id ? "閉じる" : "編集"}
                       </button>
@@ -503,7 +503,7 @@ function DayDetail({
             <Link
               key={d.id}
               href={`/homework/${d.id}`}
-              className="flex items-center justify-between rounded-md bg-orange-50 px-3 py-2 hover:bg-orange-100 transition-colors"
+              className="flex items-center justify-between rounded-md bg-amber-50 px-3 py-2 hover:bg-amber-100 transition-colors"
             >
               <div>
                 <p className="text-sm font-medium">{d.title}</p>
@@ -521,12 +521,12 @@ function DayDetail({
         <div className="space-y-2">
           <p className="text-xs font-medium text-muted-foreground">テスト</p>
           {examEvents.map((e) => (
-            <div key={e.id} className="rounded-md bg-red-50 px-3 py-2">
+            <div key={e.id} className="rounded-md bg-slate-50 px-3 py-2">
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-sm font-medium">{e.name}</span>
-                    <span className="text-xs rounded-full px-2 py-0.5 bg-red-100 text-red-700">
+                    <span className="text-xs rounded-full px-2 py-0.5 bg-slate-200 text-slate-700">
                       {TEST_TYPE_LABELS[e.testType as keyof typeof TEST_TYPE_LABELS] ?? e.testType}
                     </span>
                   </div>
@@ -566,16 +566,16 @@ function NextLessonBanner({ lessons, isTeacher }: { lessons: Lesson[]; isTeacher
   const when = diffDays === 0 ? "今日" : diffDays === 1 ? "明日" : diffDays === 2 ? "明後日" : `${diffDays}日後`
 
   return (
-    <div className="rounded-lg bg-blue-50 border border-blue-200 px-4 py-3 flex items-center gap-3">
-      <div className="h-9 w-9 rounded-full bg-blue-100 flex items-center justify-center shrink-0 text-lg">📅</div>
+    <div className="rounded-lg bg-primary/5 border border-primary/20 px-4 py-3 flex items-center gap-3">
+      <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0 text-lg">📅</div>
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-semibold text-blue-900">
-          次の授業: <span className="text-blue-600">{when}</span>
+        <p className="text-sm font-semibold">
+          次の授業: <span className="text-primary">{when}</span>
           {" — "}
           {next.date.toLocaleDateString("ja-JP", { month: "short", day: "numeric", weekday: "short" })}{" "}
           {next.date.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })}
         </p>
-        <p className="text-xs text-blue-700 mt-0.5 truncate">
+        <p className="text-xs text-muted-foreground mt-0.5 truncate">
           {isTeacher ? `${next.student.user.name} · ` : ""}
           {next.type === "online" ? "オンライン" : "対面"}
           {next.durationMin ? ` · ${next.durationMin}分` : ""}
@@ -586,7 +586,7 @@ function NextLessonBanner({ lessons, isTeacher }: { lessons: Lesson[]; isTeacher
           href={next.meetLink}
           target="_blank"
           rel="noopener noreferrer"
-          className="shrink-0 text-xs font-medium text-white bg-green-600 hover:bg-green-700 rounded px-3 py-1.5"
+          className="shrink-0 text-xs font-medium text-primary-foreground bg-primary hover:bg-primary/90 rounded px-3 py-1.5"
         >
           参加する
         </a>
