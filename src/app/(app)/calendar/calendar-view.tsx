@@ -27,11 +27,11 @@ function DeleteLessonButton({ lessonId }: { lessonId: string }) {
             await deleteLesson(fd)
           })}
           disabled={isPending}
-          className="text-xs font-medium text-red-600 hover:text-red-800 disabled:opacity-50"
+          className="text-xs font-medium text-destructive hover:text-destructive/80 disabled:opacity-50"
         >
           {isPending ? "..." : "削除"}
         </button>
-        <button onClick={() => setConfirming(false)} className="text-xs text-gray-400 hover:text-gray-600">
+        <button onClick={() => setConfirming(false)} className="text-xs text-muted-foreground hover:text-foreground">
           ✕
         </button>
       </div>
@@ -39,7 +39,7 @@ function DeleteLessonButton({ lessonId }: { lessonId: string }) {
   }
 
   return (
-    <button onClick={() => setConfirming(true)} className="text-xs text-red-400 hover:text-red-600 shrink-0">
+    <button onClick={() => setConfirming(true)} className="text-xs text-muted-foreground hover:text-foreground shrink-0">
       削除
     </button>
   )
@@ -193,18 +193,18 @@ function DeleteExamEventButton({ examEventId }: { examEventId: string }) {
             await deleteExamEvent(fd)
           })}
           disabled={isPending}
-          className="text-xs font-medium text-red-600 hover:text-red-800 disabled:opacity-50"
+          className="text-xs font-medium text-destructive hover:text-destructive/80 disabled:opacity-50"
         >
           {isPending ? "..." : "削除"}
         </button>
-        <button onClick={() => setConfirming(false)} className="text-xs text-gray-400 hover:text-gray-600">
+        <button onClick={() => setConfirming(false)} className="text-xs text-muted-foreground hover:text-foreground">
           ✕
         </button>
       </div>
     )
   }
   return (
-    <button onClick={() => setConfirming(true)} className="text-xs text-red-400 hover:text-red-600 shrink-0">
+    <button onClick={() => setConfirming(true)} className="text-xs text-muted-foreground hover:text-foreground shrink-0">
       削除
     </button>
   )
@@ -405,12 +405,12 @@ function DayDetail({
             const now = new Date()
             const isPast = l.date < now
             return (
-              <div key={l.id} className={`rounded-md px-3 py-2 ${l.completedAt ? "bg-primary/5" : "bg-slate-50"}`}>
+              <div key={l.id} className="rounded-md px-3 py-2 bg-gray-50">
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-sm font-medium">{l.student.user.name}</span>
-                      <span className={`text-xs rounded-full px-2 py-0.5 ${l.type === "online" ? "bg-primary/10 text-primary" : "bg-slate-100 text-slate-600"}`}>
+                      <span className="text-xs text-muted-foreground">
                         {l.type === "online" ? "オンライン" : "対面"}
                       </span>
                       {l.durationMin && (
@@ -428,7 +428,7 @@ function DayDetail({
                         {l.subjectIds.map((sid) => {
                           const sub = subjects.find((s) => s.id === sid)
                           return sub ? (
-                            <span key={sid} className="text-xs bg-primary/10 text-primary rounded px-1.5 py-0.5">{sub.name}</span>
+                            <span key={sid} className="text-xs bg-gray-100 text-gray-700 rounded px-1.5 py-0.5">{sub.name}</span>
                           ) : null
                         })}
                       </div>
@@ -566,8 +566,8 @@ function NextLessonBanner({ lessons, isTeacher }: { lessons: Lesson[]; isTeacher
   const when = diffDays === 0 ? "今日" : diffDays === 1 ? "明日" : diffDays === 2 ? "明後日" : `${diffDays}日後`
 
   return (
-    <div className="rounded-lg bg-primary/5 border border-primary/20 px-4 py-3 flex items-center gap-3">
-      <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0 text-lg">📅</div>
+    <div className="rounded-lg bg-gray-50 border px-4 py-3 flex items-center gap-3">
+      <div className="h-9 w-9 rounded-full bg-gray-200 flex items-center justify-center shrink-0 text-lg">📅</div>
       <div className="min-w-0 flex-1">
         <p className="text-sm font-semibold">
           次の授業: <span className="text-primary">{when}</span>

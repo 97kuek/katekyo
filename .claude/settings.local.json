@@ -40,7 +40,8 @@
       "Bash(node -e \"console.log\\(require\\('crypto'\\).randomBytes\\(32\\).toString\\('base64url'\\)\\)\")",
       "Bash(node scripts/generate-rich-menu.mjs)",
       "Bash(node -e ' *)",
-      "Bash(node scripts/upload-rich-menu-images.mjs)"
+      "Bash(node scripts/upload-rich-menu-images.mjs)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\yamashita\\\\Documents\\\\katekyo\\\\src\\\\app\\\\\\(app\\)\" -Recurse -Filter \"*.tsx\")"
     ]
   }
 }

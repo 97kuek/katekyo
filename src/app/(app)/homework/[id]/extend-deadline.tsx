@@ -2,6 +2,7 @@
 
 import { useState, useActionState, useEffect } from "react"
 import { extendDueDate } from "./edit-actions"
+import { Button } from "@/components/ui/button"
 
 export function ExtendDeadlineButton({ homeworkId, currentDueDate }: { homeworkId: string; currentDueDate: string }) {
   const [open, setOpen] = useState(false)
@@ -13,12 +14,9 @@ export function ExtendDeadlineButton({ homeworkId, currentDueDate }: { homeworkI
 
   if (!open) {
     return (
-      <button
-        onClick={() => setOpen(true)}
-        className="text-sm text-muted-foreground hover:text-foreground border border-input rounded-md px-3 py-1.5 hover:bg-gray-50 transition-colors"
-      >
+      <Button variant="outline" size="sm" onClick={() => setOpen(true)}>
         期限を延長
-      </button>
+      </Button>
     )
   }
 
@@ -34,22 +32,14 @@ export function ExtendDeadlineButton({ homeworkId, currentDueDate }: { homeworkI
           defaultValue={currentDueDate}
           className="h-9 rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         />
-        <button
-          type="submit"
-          disabled={isPending}
-          className="h-9 rounded-md bg-primary text-primary-foreground px-4 text-sm font-medium hover:bg-primary/90 disabled:opacity-50"
-        >
+        <Button type="submit" size="sm" disabled={isPending}>
           {isPending ? "更新中..." : "更新"}
-        </button>
-        <button
-          type="button"
-          onClick={() => setOpen(false)}
-          className="h-9 rounded-md border border-input px-4 text-sm hover:bg-gray-50"
-        >
+        </Button>
+        <Button type="button" variant="outline" size="sm" onClick={() => setOpen(false)}>
           キャンセル
-        </button>
+        </Button>
       </form>
-      {state.error && <p className="text-xs text-red-600">{state.error}</p>}
+      {state.error && <p className="text-xs text-destructive">{state.error}</p>}
     </div>
   )
 }

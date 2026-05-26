@@ -11,9 +11,9 @@ import { ExtendDeadlineButton } from "./extend-deadline"
 import { AlertCircle } from "lucide-react"
 
 const DIFFICULTY_LABELS: Record<number, { label: string; emoji: string; color: string }> = {
-  1: { label: "かんたん",    emoji: "😊", color: "text-green-700 bg-green-50" },
-  2: { label: "ふつう",      emoji: "😐", color: "text-yellow-700 bg-yellow-50" },
-  3: { label: "むずかしい",  emoji: "😰", color: "text-red-700 bg-red-50" },
+  1: { label: "かんたん",    emoji: "😊", color: "text-gray-700 bg-gray-100" },
+  2: { label: "ふつう",      emoji: "😐", color: "text-gray-700 bg-gray-100" },
+  3: { label: "むずかしい",  emoji: "😰", color: "text-gray-700 bg-gray-100" },
 }
 
 export default async function HomeworkDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -78,15 +78,15 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
 
       {/* 差し戻しフィードバック — 生徒向け目立つバナー */}
       {!isTeacher && homework.status === "rejected" && (
-        <div className="rounded-xl border-2 border-red-300 bg-red-50 p-4 space-y-3">
+        <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-4 space-y-3">
           <div className="flex items-center gap-2">
-            <AlertCircle className="h-5 w-5 text-red-500 shrink-0" />
-            <p className="font-semibold text-red-800">先生から差し戻しがあります</p>
+            <AlertCircle className="h-5 w-5 text-destructive shrink-0" />
+            <p className="font-semibold">先生から差し戻しがあります</p>
           </div>
           {homework.teacherFeedback && (
-            <p className="text-sm text-red-700 leading-relaxed">{homework.teacherFeedback}</p>
+            <p className="text-sm text-foreground/80 leading-relaxed">{homework.teacherFeedback}</p>
           )}
-          <Link href={`/homework/${homework.id}/submit`} className={buttonVariants({ size: "sm", className: "bg-red-600 hover:bg-red-700 text-white" })}>
+          <Link href={`/homework/${homework.id}/submit`} className={buttonVariants({ size: "sm" })}>
             修正して再提出する →
           </Link>
         </div>
@@ -115,12 +115,12 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
         {(subjects.length > 0 || material) && (
           <div className="flex flex-wrap gap-1">
             {material && (
-              <span className="text-xs bg-amber-50 text-amber-700 rounded-full px-2 py-0.5">
-                📖 {material.name}
+              <span className="text-xs bg-gray-100 text-gray-700 rounded-full px-2 py-0.5">
+                {material.name}
               </span>
             )}
             {subjects.map((s) => (
-              <span key={s.id} className="text-xs bg-blue-50 text-blue-700 rounded-full px-2 py-0.5">
+              <span key={s.id} className="text-xs bg-gray-100 text-gray-700 rounded-full px-2 py-0.5">
                 {s.name}
               </span>
             ))}

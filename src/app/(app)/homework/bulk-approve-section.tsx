@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react"
 import Link from "next/link"
-import { buttonVariants } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { SubjectTagsList } from "./subject-tags"
 import { bulkApproveHomework } from "./bulk-actions"
 
@@ -50,20 +50,11 @@ export function BulkApproveSection({
   return (
     <section className="space-y-3">
       <div className="flex items-center gap-3 flex-wrap">
-        <h2 className="text-sm font-semibold text-amber-800 bg-amber-50 px-3 py-1.5 rounded-md inline-flex items-center gap-1.5">
-          <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-amber-600 text-white text-xs">
-            {submitted.length}
-          </span>
-          承認待ち
-        </h2>
+        <h2 className="text-sm font-semibold">承認待ち（{submitted.length}件）</h2>
         {selected.size > 0 && (
-          <button
-            onClick={approve}
-            disabled={isPending}
-            className={buttonVariants({ size: "sm" }) + " disabled:opacity-50"}
-          >
+          <Button size="sm" onClick={approve} disabled={isPending}>
             {isPending ? "処理中..." : `${selected.size}件を一括承認`}
-          </button>
+          </Button>
         )}
       </div>
 

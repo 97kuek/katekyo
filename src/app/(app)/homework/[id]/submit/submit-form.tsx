@@ -7,9 +7,9 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
 const DIFFICULTIES = [
-  { value: 1, label: "かんたん",   emoji: "😊", active: "bg-primary/10 border-primary/50 text-primary", inactive: "border-input hover:bg-primary/5" },
-  { value: 2, label: "ふつう",     emoji: "😐", active: "bg-amber-100 border-amber-400 text-amber-800", inactive: "border-input hover:bg-amber-50" },
-  { value: 3, label: "むずかしい", emoji: "😰", active: "bg-destructive/10 border-destructive/40 text-destructive", inactive: "border-input hover:bg-destructive/5" },
+  { value: 1, label: "かんたん",   emoji: "😊", active: "bg-gray-900 border-gray-900 text-white", inactive: "border-input text-gray-600 hover:bg-gray-50" },
+  { value: 2, label: "ふつう",     emoji: "😐", active: "bg-gray-900 border-gray-900 text-white", inactive: "border-input text-gray-600 hover:bg-gray-50" },
+  { value: 3, label: "むずかしい", emoji: "😰", active: "bg-gray-900 border-gray-900 text-white", inactive: "border-input text-gray-600 hover:bg-gray-50" },
 ] as const
 
 const MAX_DIMENSION = 1200

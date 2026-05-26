@@ -129,12 +129,7 @@ async function PendingHomeworksSection({ teacherId }: { teacherId: string }) {
   return (
     <section className="space-y-3">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-amber-800 bg-amber-50 px-3 py-1.5 rounded-md inline-flex items-center gap-1.5">
-          <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-amber-600 text-white text-xs">
-            {pendingCount}
-          </span>
-          承認待ちの宿題
-        </h2>
+        <h2 className="text-sm font-semibold">承認待ちの宿題（{pendingCount}件）</h2>
         <Link href="/homework" className="text-xs text-muted-foreground hover:underline">すべて見る</Link>
       </div>
       <div className="space-y-2">
@@ -185,7 +180,7 @@ async function TeacherUpcomingSection({ teacherId }: { teacherId: string }) {
           <div className="space-y-2">
             {upcomingLessons.map((l) => (
               <div key={l.id} className="rounded-lg border bg-white p-3 flex items-center gap-3">
-                <div className={`h-8 w-8 rounded-full flex items-center justify-center shrink-0 text-xs font-bold ${l.type === "online" ? "bg-primary/10 text-primary" : "bg-slate-100 text-slate-600"}`}>
+                <div className="h-8 w-8 rounded-full flex items-center justify-center shrink-0 text-xs font-bold bg-gray-100 text-gray-600">
                   {l.type === "online" ? "ON" : "OF"}
                 </div>
                 <div>
@@ -477,7 +472,7 @@ async function StudentUpcomingSection({ userId }: { userId: string }) {
           <div className="space-y-2">
             {upcomingLessons.map((l) => (
               <div key={l.id} className="rounded-lg border bg-white p-3 flex items-center gap-3">
-                <div className={`h-8 w-8 rounded-full flex items-center justify-center shrink-0 text-xs font-bold ${l.type === "online" ? "bg-primary/10 text-primary" : "bg-slate-100 text-slate-600"}`}>
+                <div className="h-8 w-8 rounded-full flex items-center justify-center shrink-0 text-xs font-bold bg-gray-100 text-gray-600">
                   {l.type === "online" ? "ON" : "OF"}
                 </div>
                 <div>

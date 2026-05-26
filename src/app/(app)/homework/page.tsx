@@ -17,7 +17,7 @@ function SubjectTags({ ids, map }: { ids: string[]; map: Map<string, string> }) 
   return (
     <div className="flex flex-wrap gap-1 mt-1.5">
       {names.map((name) => (
-        <span key={name} className="text-xs bg-blue-50 text-blue-700 rounded-full px-2 py-0.5">
+        <span key={name} className="text-xs bg-gray-100 text-gray-700 rounded-full px-2 py-0.5">
           {name}
         </span>
       ))}
@@ -273,10 +273,10 @@ async function StudentHomeworkPage({ userId }: { userId: string }) {
 
       {submitted.length > 0 && (
         <section className="space-y-3">
-          <h2 className="text-sm font-medium text-yellow-700">承認待ち（{submitted.length}件）</h2>
+          <h2 className="text-sm font-semibold">承認待ち（{submitted.length}件）</h2>
           <div className="space-y-2">
             {submitted.map((h) => (
-              <div key={h.id} className="rounded-lg border border-yellow-200 bg-yellow-50/30 p-4 flex items-start justify-between gap-4">
+              <div key={h.id} className="rounded-lg border bg-white p-4 flex items-start justify-between gap-4">
                 <div className="min-w-0">
                   <p className="font-medium truncate">{h.title}</p>
                   <p className="text-xs text-muted-foreground mt-0.5">
