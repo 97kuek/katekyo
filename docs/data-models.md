@@ -86,6 +86,24 @@ Homework {
   # Relations
   student  Student
   material StudentMaterial?
+  events   HomeworkEvent[]
+}
+```
+
+### HomeworkEvent（宿題やり取り履歴）
+
+```prisma
+HomeworkEvent {
+  id         String
+  homeworkId String
+  eventType  HomeworkEventType  # submitted | approved | rejected
+  actorName  String             # 操作者の表示名スナップショット
+  note       String?            # 差し戻し時の理由など
+  createdAt  DateTime
+
+  # Relations
+  homework Homework
+  @@index([homeworkId])
 }
 ```
 

@@ -253,7 +253,7 @@ async function StudentHomeworkPage({ userId }: { userId: string }) {
                       <p className="text-sm text-gray-600 mt-1">{h.description}</p>
                     )}
                     {h.status === "rejected" && h.teacherFeedback && (
-                      <p className="text-sm text-red-600 mt-2 border-l-2 border-red-300 pl-3">
+                      <p className="text-sm text-destructive mt-2 border-l-2 border-destructive/30 pl-3">
                         先生のコメント: {h.teacherFeedback}
                       </p>
                     )}

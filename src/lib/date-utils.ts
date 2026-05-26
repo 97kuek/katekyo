@@ -16,6 +16,6 @@ export function deadlineColorClass(dueDate: Date): string {
 
   if (diffDays < 0) return "text-red-600 font-semibold"
   if (diffDays <= 1) return "text-red-500 font-semibold"
-  if (diffDays <= 3) return "text-orange-500"
+  if (diffDays <= 3) return "text-amber-600"
   return "text-muted-foreground"
 }

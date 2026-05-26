@@ -18,8 +18,8 @@ if (session.user.role !== "teacher") return { error: "権限がありません" 
 | ファイル | Action | 概要 |
 | --- | --- | --- |
 | `homework/new/actions.ts` | `createHomework` | 宿題作成。`requiresPhoto` フラグ対応。Zod バリデーション、teacherId 自動付与 |
-| `homework/[id]/actions.ts` | `submitHomework` | 提出（生徒のみ）。写真は Supabase Storage へアップロード |
-| `homework/[id]/actions.ts` | `reviewHomework` | 承認 / 差し戻し（先生のみ）。`action: "approved" \| "rejected"` で切り替え |
+| `homework/[id]/actions.ts` | `submitHomework` | 提出（生徒のみ）。写真は Supabase Storage へアップロード。`HomeworkEvent(submitted)` を記録 |
+| `homework/[id]/actions.ts` | `reviewHomework` | 承認 / 差し戻し（先生のみ）。`action: "approved" \| "rejected"` で切り替え。`HomeworkEvent` を記録（差し戻し時のみ note あり） |
 | `homework/[id]/edit-actions.ts` | `updateHomework` | 宿題編集（assigned/rejected のみ） |
 | `homework/[id]/edit-actions.ts` | `extendDueDate` | 期限延長（先生のみ） |
 | `homework/[id]/edit-actions.ts` | `deleteHomework` | 宿題削除（先生のみ） |
@@ -117,6 +117,7 @@ if (session.user.role !== "teacher") return { error: "権限がありません" 
 | パス | メソッド | 概要 |
 | --- | --- | --- |
 | `/api/auth/[...nextauth]` | GET/POST | NextAuth ハンドラ |
+| `/api/billing/export` | GET | 請求CSVエクスポート（先生のみ）。`?year=&month=` で月指定。UTF-8 BOM付きでExcel対応。列: 生徒名/日付/開始時刻/種別/所要時間/時給/交通費/授業料/合計 |
 | `/api/cron/cleanup-homework` | GET | Vercel Cron: 古い宿題・招待トークン削除（毎日 18:00 UTC） |
 | `/api/cron/line-daily` | GET | Vercel Cron: LINE 週次通知（毎週日曜 23:00 UTC） |
 | `/api/webhooks/lesson-reminder` | POST | QStash Webhook: オンライン授業 10 分前に生徒の LINE へ Meet リンクを送信。署名検証あり |
