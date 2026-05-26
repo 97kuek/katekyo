@@ -43,11 +43,7 @@ export default function Header({ name, notificationData }: { name: string; notif
     <header className="h-14 border-b bg-white flex items-center justify-between px-4 md:px-6 shrink-0">
       <div className="flex items-center gap-2 md:hidden min-w-0">
         <BookOpen className="h-5 w-5 text-primary shrink-0" />
-        {title ? (
-          <span className="text-sm font-medium truncate">{title}</span>
-        ) : (
-          <span className="font-bold tracking-tight">katekyo</span>
-        )}
+        <span className="font-bold tracking-tight">katekyo</span>
       </div>
       <span className="text-sm font-medium hidden md:block">{title}</span>
       <div className="flex items-center gap-1">

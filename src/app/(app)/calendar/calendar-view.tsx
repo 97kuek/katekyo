@@ -445,11 +445,11 @@ function DayDetail({
                       </a>
                     )}
                     {(isTeacher ? l.lessonLog : (l.lessonLogPublic ? l.lessonLog : null)) && (
-                      <div className="mt-2 bg-amber-50 rounded-md p-3">
-                        <p className="text-xs font-medium text-amber-700 mb-1">
+                      <div className="mt-2 bg-gray-50 rounded-md p-3">
+                        <p className="text-xs font-medium text-muted-foreground mb-1">
                           授業ログ{isTeacher && l.lessonLogPublic && <span className="ml-1 text-primary">（生徒に公開中）</span>}
                         </p>
-                        <p className="text-sm text-amber-900 whitespace-pre-wrap leading-relaxed">{l.lessonLog}</p>
+                        <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{l.lessonLog}</p>
                       </div>
                     )}
                     {isTeacher && (l.hourlyRate || l.travelExpense != null) && (
@@ -602,6 +602,10 @@ export default function CalendarView({ lessons, deadlines, examEvents, students,
   const [selectedDay, setSelectedDay] = useState<string | null>(toDateKey(today))
   const [editingLessonId, setEditingLessonId] = useState<string | null>(null)
   const [viewMode, setViewMode] = useState<"month" | "week">("week")
+
+  useEffect(() => {
+    setEditingLessonId(null)
+  }, [selectedDay])
   const [weekOffset, setWeekOffset] = useState(0)
 
   const lessonMap = new Map<string, Lesson[]>()

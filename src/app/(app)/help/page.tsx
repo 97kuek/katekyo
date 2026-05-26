@@ -59,9 +59,9 @@ function Steps({ items }: { items: string[] }) {
 
 function Tip({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex gap-2 bg-amber-50 border border-amber-200 rounded-md p-3 mt-1">
-      <span className="shrink-0 text-amber-500">💡</span>
-      <p className="text-sm text-amber-900 leading-relaxed">{children}</p>
+    <div className="flex gap-2 bg-gray-50 border border-gray-200 rounded-md p-3 mt-1">
+      <span className="shrink-0 text-gray-500">💡</span>
+      <p className="text-sm text-gray-700 leading-relaxed">{children}</p>
     </div>
   )
 }
@@ -303,9 +303,9 @@ function HomeScreenSection() {
           "「ホーム画面に追加」をタップ",
           "「追加」をタップして完了",
         ]} />
-        <div className="flex gap-2 bg-blue-50 border border-blue-100 rounded-md p-3">
-          <span className="shrink-0 text-blue-500">ℹ</span>
-          <p className="text-sm text-blue-900 leading-relaxed">Safari 以外のブラウザ（Chrome など）では追加できません。</p>
+        <div className="flex gap-2 bg-gray-50 border border-gray-200 rounded-md p-3">
+          <span className="shrink-0 text-gray-500">ℹ</span>
+          <p className="text-sm text-gray-700 leading-relaxed">Safari 以外のブラウザ（Chrome など）では追加できません。</p>
         </div>
       </div>
 
