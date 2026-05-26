@@ -7,9 +7,9 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
 const DIFFICULTIES = [
-  { value: 1, label: "かんたん",   emoji: "😊", active: "bg-green-100 border-green-400 text-green-800", inactive: "border-input hover:bg-green-50" },
-  { value: 2, label: "ふつう",     emoji: "😐", active: "bg-yellow-100 border-yellow-400 text-yellow-800", inactive: "border-input hover:bg-yellow-50" },
-  { value: 3, label: "むずかしい", emoji: "😰", active: "bg-red-100 border-red-400 text-red-800", inactive: "border-input hover:bg-red-50" },
+  { value: 1, label: "かんたん",   emoji: "😊", active: "bg-primary/10 border-primary/50 text-primary", inactive: "border-input hover:bg-primary/5" },
+  { value: 2, label: "ふつう",     emoji: "😐", active: "bg-amber-100 border-amber-400 text-amber-800", inactive: "border-input hover:bg-amber-50" },
+  { value: 3, label: "むずかしい", emoji: "😰", active: "bg-destructive/10 border-destructive/40 text-destructive", inactive: "border-input hover:bg-destructive/5" },
 ] as const
 
 const MAX_DIMENSION = 1200
@@ -95,9 +95,9 @@ export default function SubmitForm({ id, rejectedFeedback, requiresPhoto = false
           )}
 
           {rejectedFeedback && (
-            <div className="rounded-md bg-red-50 border border-red-200 p-3">
-              <p className="text-xs font-medium text-red-700 mb-1">先生のコメント（差し戻し理由）</p>
-              <p className="text-sm text-red-800">{rejectedFeedback}</p>
+            <div className="rounded-md bg-destructive/5 border border-destructive/20 p-3">
+              <p className="text-xs font-medium text-destructive mb-1">先生のコメント（差し戻し理由）</p>
+              <p className="text-sm text-destructive/80">{rejectedFeedback}</p>
             </div>
           )}
 
@@ -123,7 +123,7 @@ export default function SubmitForm({ id, rejectedFeedback, requiresPhoto = false
             <div className="flex items-center gap-2">
               <Label>提出写真</Label>
               {requiresPhoto ? (
-                <span className="text-xs font-medium text-red-600 bg-red-50 px-1.5 py-0.5 rounded">必須</span>
+                <span className="text-xs font-medium text-destructive bg-destructive/10 px-1.5 py-0.5 rounded">必須</span>
               ) : (
                 <span className="text-xs text-muted-foreground">任意</span>
               )}
@@ -151,7 +151,7 @@ export default function SubmitForm({ id, rejectedFeedback, requiresPhoto = false
                     variant="outline"
                     size="sm"
                     onClick={handleRemovePhoto}
-                    className="text-red-600 border-red-200 hover:bg-red-50"
+                    className="border-destructive/40 text-destructive hover:bg-destructive/5"
                   >
                     写真を削除
                   </Button>
@@ -184,14 +184,14 @@ export default function SubmitForm({ id, rejectedFeedback, requiresPhoto = false
             />
           </div>
           {isPending && preview && (
-            <div className="flex items-center gap-2.5 rounded-md bg-blue-50 border border-blue-100 px-4 py-3">
-              <svg className="animate-spin h-4 w-4 text-blue-500 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <div className="flex items-center gap-2.5 rounded-md bg-primary/5 border border-primary/20 px-4 py-3">
+              <svg className="animate-spin h-4 w-4 text-primary shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
               </svg>
               <div>
-                <p className="text-sm font-medium text-blue-700">写真をアップロード中...</p>
-                <p className="text-xs text-blue-500 mt-0.5">そのままお待ちください</p>
+                <p className="text-sm font-medium text-primary">写真をアップロード中...</p>
+                <p className="text-xs text-primary/70 mt-0.5">そのままお待ちください</p>
               </div>
             </div>
           )}

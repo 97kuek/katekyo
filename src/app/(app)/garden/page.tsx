@@ -52,7 +52,7 @@ export default async function GardenPage() {
         <div className="flex items-center gap-2">
           <h1 className="text-2xl font-bold">学習の森</h1>
           {generation > 1 && (
-            <span className="text-xs font-medium text-indigo-600 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-full">
+            <span className="text-xs font-medium text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-full">
               第{generation}世代
             </span>
           )}
@@ -79,11 +79,11 @@ export default async function GardenPage() {
         </div>
       )}
       {milestone && !isFull && (
-        <div className="rounded-xl border-2 border-yellow-400 bg-yellow-50 p-4 flex items-center gap-3">
-          <Star className="h-7 w-7 text-yellow-500 shrink-0 fill-yellow-400" />
+        <div className="rounded-xl border-2 border-amber-400 bg-amber-50 p-4 flex items-center gap-3">
+          <Star className="h-7 w-7 text-amber-500 shrink-0 fill-amber-400" />
           <div>
-            <p className="font-bold text-yellow-800">{milestone}個達成おめでとう！</p>
-            <p className="text-sm text-yellow-700">
+            <p className="font-bold text-amber-800">{milestone}個達成おめでとう！</p>
+            <p className="text-sm text-amber-700">
               {milestone === 10 && "コツコツ続けた成果です。この調子で頑張ろう！"}
               {milestone === 25 && "森が大きく育ってきました。素晴らしい努力です！"}
               {milestone === 50 && "50個！もう森の半分が育ちました。ゴールまであと少し！"}
@@ -136,7 +136,7 @@ export default async function GardenPage() {
               <span><span className="font-medium">茂み</span>　— テストで60〜79% / 偏差値50〜59のときに育つ</span>
             </div>
             <div className="flex items-start gap-2">
-              <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-yellow-300 mt-1.5" />
+              <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-amber-300 mt-1.5" />
               <span><span className="font-medium">花</span>　— 宿題承認時 / テストで60%未満のときに育つ</span>
             </div>
             <div className="flex items-start gap-2">
