@@ -152,6 +152,7 @@
     @apply font-sans;
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
+    overscroll-behavior: none;
   }
   a, button, [role="button"], input, select, textarea, label {
     touch-action: manipulation;
