@@ -30,7 +30,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <>
-      <div className="flex h-dvh bg-muted overflow-hidden">
+      <div className="fixed inset-0 flex bg-muted overflow-hidden">
         <Sidebar role={session.user.role} />
         <div className="flex flex-col flex-1 min-w-0">
           <Header name={session.user.name ?? ""} notificationData={notificationData} />
