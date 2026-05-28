@@ -1,74 +1,57 @@
 # CLAUDE.md
 
-## プロジェクト概要
+家庭教師と生徒の間で宿題・成績・授業スケジュールを管理する Web アプリ。  
+マルチテナント構造（1先生 = 1テナント）。ロール: `teacher` / `student`。
 
-家庭教師と生徒の間で宿題・成績・授業スケジュールを管理する Web アプリ。
-複数の先生が利用できるマルチテナント構造。ロール: `teacher` / `student`。
-
-## 詳細ドキュメント
+## ドキュメント
 
 | ファイル | 内容 |
 | --- | --- |
-| [docs/architecture.md](docs/architecture.md) | ディレクトリ構成・ページ一覧・レイアウト・ナビゲーション・レスポンシブ設計 |
-| [docs/data-models.md](docs/data-models.md) | Prisma モデル全定義・Enum・データアクセス原則 |
-| [docs/requirements.md](docs/requirements.md) | 機能要件・ビジネスロジック（宿題/授業/成績/森/招待/Cron） |
-| [docs/api-spec.md](docs/api-spec.md) | Server Actions 一覧・Route Handlers・Zod パターン |
-| [docs/garden-spec.md](docs/garden-spec.md) | 学習の森の仕様（植物種別・枯れロジック・グリッド・SVG 描画） |
-| [docs/development.md](docs/development.md) | 開発環境セットアップ・デプロイ・トラブルシューティング |
-| [docs/line-notification-plan.md](docs/line-notification-plan.md) | LINE通知機能の実装計画（DB設計・フロー・フェーズ別タスク） |
-| [docs/meet-reminder-plan.md](docs/meet-reminder-plan.md) | Google Meet 授業前リマインダー実装計画（QStash・DB設計・Webhook） |
-| [todo.md](todo.md) | バックログ・完了済みタスク |
+| [docs/architecture.md](docs/architecture.md) | ディレクトリ構成・ページ一覧・レスポンシブ設計 |
+| [docs/data-models.md](docs/data-models.md) | Prisma スキーマ・Enum・クエリ原則 |
+| [docs/requirements.md](docs/requirements.md) | 機能要件・ビジネスロジック |
+| [docs/api-spec.md](docs/api-spec.md) | Server Actions・Route Handlers |
+| [docs/garden-spec.md](docs/garden-spec.md) | 学習の森（植物種別・枯れ・SVG） |
+| [docs/development.md](docs/development.md) | セットアップ・デプロイ・環境変数・ブランチ戦略 |
+| [docs/line-notification-plan.md](docs/line-notification-plan.md) | LINE 通知実装計画 |
+| [docs/meet-reminder-plan.md](docs/meet-reminder-plan.md) | Google Meet リマインダー実装計画 |
+| [todo.md](todo.md) | バックログ |
 
-## 技術スタック
-
-- **Next.js 16** (App Router) + TypeScript
-- **Prisma** ORM + **Supabase** (PostgreSQL + Storage)
-- **NextAuth.js v5** 認証
-- **shadcn/ui** + Tailwind CSS / **Recharts** グラフ / **Zod** バリデーション
-
-## 開発コマンド
+## 主要コマンド
 
 ```bash
-npm run dev                              # 開発サーバー
-npm run build && npm run lint            # ビルド＋lint
-npx tsc --noEmit                         # 型チェック
-npx prisma migrate dev --name <name>     # マイグレーション作成
-npx prisma generate                      # Prisma Client 再生成
-npx prisma studio                        # DB GUI
+npm run dev                            # 開発サーバー（Turbopack）
+npm run build                          # 本番ビルド（prisma generate 込み）
+npm run lint                           # ESLint（自動: PostToolUse フック）
+npx tsc --noEmit                       # 型チェック
+npx prisma migrate dev --name <name>   # スキーマ変更時 → /migrate 参照
 ```
 
-## 環境変数（`.env.local`）
+## 自動生成ファイル（直接編集禁止）
 
-```bash
-DATABASE_URL=          # Supabase 接続文字列
-DIRECT_URL=            # Supabase Direct URL（マイグレーション用）
-NEXTAUTH_SECRET=       # openssl rand -base64 32
-NEXTAUTH_URL=          # 開発時: http://localhost:3000
-SUPABASE_URL=          # Project Settings > API
-SUPABASE_SERVICE_ROLE_KEY=   # Service Role Key ※絶対に公開しない
-CRON_SECRET=           # openssl rand -base64 32
-QSTASH_TOKEN=                 # Upstash QStash API トークン
-QSTASH_CURRENT_SIGNING_KEY=   # QStash Webhook 署名検証キー（現在）
-QSTASH_NEXT_SIGNING_KEY=      # QStash Webhook 署名検証キー（ローテーション用）
-LINE_CHANNEL_ACCESS_TOKEN=    # LINE Messaging API チャネルアクセストークン
-LINE_CHANNEL_SECRET=          # LINE チャネルシークレット（Webhook署名検証用）
-LINE_RICH_MENU_TEACHER_ID=    # LINE リッチメニューID（先生用）
-LINE_RICH_MENU_STUDENT_ID=    # LINE リッチメニューID（生徒用）
-```
+| パス | 生成元 |
+| --- | --- |
+| `src/generated/prisma/` | `prisma generate` |
+| `.next/` | `next build` |
 
-Supabase Storage: バケット `homework-photos` を **Public** で作成する。
+## 用語集
 
-## コーディング規約
+| 用語 | 説明 |
+| --- | --- |
+| テナント | 先生1人 + その生徒群。データは `teacherId` で完全分離 |
+| teacherId | 全 DB クエリに必須の絞り込みキー。省略禁止 |
+| Garden（学習の森） | 宿題承認数で植物が育つゲーミフィケーション機能 |
+| BulkApprove | submitted 状態の宿題を一括承認する UI パターン |
+| GRADE_OPTIONS | `src/lib/grades.ts` の学年定数（フリーテキスト不可） |
+| TEST_TYPE_OPTIONS | `src/lib/test-types.ts` のテスト種別定数 |
 
-- Server Component をデフォルト。インタラクション必要時のみ `"use client"`
-- データフェッチは Server Component、ミューテーションは Server Actions
-- すべての Server Action で Zod バリデーションを使用する
-- 学年は `src/lib/grades.ts` の `GRADE_OPTIONS` を使用（フリーテキスト不可）
-- テスト種別は `src/lib/test-types.ts` の `TEST_TYPE_OPTIONS` を使用
+## コーディング原則
 
-## セキュリティ原則
+- Server Component をデフォルト。`"use client"` はインタラクション必要時のみ
+- Server Action は必ず: セッション確認 → Zod バリデーション → `teacherId` 絞り込み（→ `/server-action`）
+- `findFirst({ where: { id } })` のみ → 禁止（テナント漏洩防止）
+- カラーは CSS 変数トークン使用（`bg-card`, `text-muted-foreground` 等）。ハードコード禁止
 
-- 全 Server Action・Route Handler でセッション確認必須
-- Prisma クエリには必ず `teacherId` または `studentId` の絞り込みを含める
-- `findFirst({ where: { id } })` だけの取得は禁止（データ漏洩防止）
-- 権限チェックはサーバー側で行う。クライアント側はUI表示制御のみ
+## セッション管理
+
+タスクの切れ目で `/rename <task-name>` でセッション名を付けてから `/clear` でコンテキストをリセットする。

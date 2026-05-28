@@ -146,9 +146,45 @@ END $$;
 
 ```bash
 npm run dev            # 開発サーバー（Turbopack）
-npm run build          # 本番ビルド
+npm run build          # 本番ビルド（prisma generate 込み）
 npm run lint           # ESLint チェック
+npx tsc --noEmit       # 型チェック
 npx prisma studio      # DB GUI ブラウザで確認
-npx prisma migrate dev --name <name>  # マイグレーション作成
-npx prisma generate    # Prisma Client 再生成
+npx prisma migrate dev --name <name>  # マイグレーション作成（→ /migrate）
 ```
+
+---
+
+## 環境変数（`.env.local`）
+
+```bash
+DATABASE_URL=                   # Supabase 接続文字列（pooler）
+DIRECT_URL=                     # Supabase Direct URL（マイグレーション用）
+NEXTAUTH_SECRET=                 # openssl rand -base64 32
+NEXTAUTH_URL=                    # 開発時: http://localhost:3000
+SUPABASE_URL=                    # Project Settings > API
+SUPABASE_SERVICE_ROLE_KEY=       # Service Role Key ※絶対に公開しない
+CRON_SECRET=                     # openssl rand -base64 32
+QSTASH_TOKEN=                    # Upstash QStash API トークン
+QSTASH_CURRENT_SIGNING_KEY=      # QStash Webhook 署名検証キー（現在）
+QSTASH_NEXT_SIGNING_KEY=         # QStash Webhook 署名検証キー（ローテーション用）
+LINE_CHANNEL_ACCESS_TOKEN=       # LINE Messaging API チャネルアクセストークン
+LINE_CHANNEL_SECRET=             # LINE チャネルシークレット（Webhook署名検証用）
+LINE_RICH_MENU_TEACHER_ID=       # LINE リッチメニューID（先生用）
+LINE_RICH_MENU_STUDENT_ID=       # LINE リッチメニューID（生徒用）
+```
+
+Supabase Storage: バケット `homework-photos` を **Public** で作成する。
+
+---
+
+## AI セッション管理（Claude Code）
+
+コーディングセッションの切れ目ごとに以下を実行してコンテキストを整理する:
+
+1. **セッション名をつける**: `/rename <task-name>`  
+   例: `/rename add-line-notification`, `/rename homework-filter-layout`
+2. **コンテキストをリセット**: `/clear`  
+   次のタスクを新鮮なコンテキストで開始できる
+
+これを怠るとコンテキストが肥大化し、応答品質と速度が低下する。
