@@ -60,7 +60,7 @@ export default async function GardenPage() {
         <div className="text-right">
           <p className="text-sm tabular-nums text-muted-foreground">{total} / {max}</p>
           {witheredCount > 0 && (
-            <p className="text-xs text-amber-600 mt-0.5">
+            <p className="text-xs text-warning mt-0.5">
               {witheredCount}個枯れています
             </p>
           )}
@@ -68,22 +68,22 @@ export default async function GardenPage() {
       </div>
 
       {isFull && (
-        <div className="rounded-xl border-2 border-amber-400 bg-amber-50 p-4 flex items-center gap-3">
-          <Trophy className="h-8 w-8 text-amber-500 shrink-0" />
+        <div className="rounded-xl border-2 border-warning/60 bg-warning/10 p-4 flex items-center gap-3">
+          <Trophy className="h-8 w-8 text-warning shrink-0" />
           <div>
-            <p className="font-bold text-amber-800">満開の森 達成</p>
-            <p className="text-sm text-amber-600">
+            <p className="font-bold text-warning-foreground">満開の森 達成</p>
+            <p className="text-sm text-warning">
               64個がすべて育ちました。次の承認で第{generation + 1}世代の森が始まります。
             </p>
           </div>
         </div>
       )}
       {milestone && !isFull && (
-        <div className="rounded-xl border-2 border-amber-400 bg-amber-50 p-4 flex items-center gap-3">
-          <Star className="h-7 w-7 text-amber-500 shrink-0 fill-amber-400" />
+        <div className="rounded-xl border-2 border-warning/60 bg-warning/10 p-4 flex items-center gap-3">
+          <Star className="h-7 w-7 text-warning shrink-0 fill-warning/60" />
           <div>
-            <p className="font-bold text-amber-800">{milestone}個達成おめでとう！</p>
-            <p className="text-sm text-amber-700">
+            <p className="font-bold text-warning-foreground">{milestone}個達成おめでとう！</p>
+            <p className="text-sm text-warning">
               {milestone === 10 && "コツコツ続けた成果です。この調子で頑張ろう！"}
               {milestone === 25 && "森が大きく育ってきました。素晴らしい努力です！"}
               {milestone === 50 && "50個！もう森の半分が育ちました。ゴールまであと少し！"}
@@ -136,7 +136,7 @@ export default async function GardenPage() {
               <span><span className="font-medium">茂み</span>　— テストで60〜79% / 偏差値50〜59のときに育つ</span>
             </div>
             <div className="flex items-start gap-2">
-              <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-amber-300 mt-1.5" />
+              <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-warning/60 mt-1.5" />
               <span><span className="font-medium">花</span>　— 宿題承認時 / テストで60%未満のときに育つ</span>
             </div>
             <div className="flex items-start gap-2">
@@ -148,7 +148,7 @@ export default async function GardenPage() {
 
         <div className="space-y-1.5 text-xs text-muted-foreground border-t pt-3">
           {witheredCount > 0 ? (
-            <p className="text-amber-600 font-medium">
+            <p className="text-warning font-medium">
               期限切れ・差し戻しの宿題が{overdueCount}件あり、古い植物が{witheredCount}個枯れています。提出すると回復します。
             </p>
           ) : (

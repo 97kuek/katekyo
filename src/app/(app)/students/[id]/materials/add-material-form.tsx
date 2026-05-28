@@ -2,6 +2,7 @@
 
 import { useActionState } from "react"
 import { createMaterial } from "./actions"
+import { Button } from "@/components/ui/button"
 
 type Subject = { id: string; name: string }
 
@@ -37,13 +38,9 @@ export function AddMaterialForm({ studentId, subjects }: { studentId: string; su
           </div>
         </div>
       )}
-      <button
-        type="submit"
-        disabled={isPending}
-        className="h-9 rounded-md bg-primary text-primary-foreground px-4 text-sm font-medium hover:bg-primary/90 disabled:opacity-50"
-      >
+      <Button type="submit" disabled={isPending} size="sm">
         {isPending ? "追加中..." : "追加"}
-      </button>
+      </Button>
       {state.error && <p className="text-xs text-destructive">{state.error}</p>}
     </form>
   )

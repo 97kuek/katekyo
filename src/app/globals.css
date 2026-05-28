@@ -39,6 +39,8 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
   /* Meta design system radius scale */
   --radius-sm: 0.25rem;   /* 4px */
   --radius-md: 0.375rem;  /* 6px */
@@ -72,6 +74,8 @@
 
   /* Semantic */
   --destructive: oklch(0.537 0.238 21);        /* #e41e3f critical */
+  --warning: oklch(0.735 0.183 69);            /* amber-600 */
+  --warning-foreground: oklch(0.541 0.133 63); /* amber-800 */
 
   /* Borders & inputs */
   --border: oklch(0.893 0.010 245);            /* #dee3e9 hairline-soft */
@@ -117,6 +121,8 @@
   --accent: oklch(0.269 0 0);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
+  --warning: oklch(0.820 0.155 75);
+  --warning-foreground: oklch(0.920 0.08 78);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.556 0 0);

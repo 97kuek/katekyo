@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { db } from "@/lib/db"
 import { markAsPaid, markAsUnpaid } from "./actions"
+import { buttonVariants } from "@/components/ui/button"
 
 function pad(n: number) { return String(n).padStart(2, "0") }
 
@@ -77,14 +78,14 @@ export default async function BillingPage({
         <div className="flex items-center gap-3">
           <a
             href={`/billing?year=${prevYear}&month=${prevMonth}`}
-            className="px-3 py-1.5 rounded-md border text-sm hover:bg-muted transition-colors"
+            className={buttonVariants({ variant: "outline", size: "sm" })}
           >
             ← 前月
           </a>
           <span className="font-semibold text-sm">{year}年 {month + 1}月</span>
           <a
             href={`/billing?year=${nextYear}&month=${nextMonth}`}
-            className="px-3 py-1.5 rounded-md border text-sm hover:bg-muted transition-colors"
+            className={buttonVariants({ variant: "outline", size: "sm" })}
           >
             翌月 →
           </a>
@@ -102,11 +103,11 @@ export default async function BillingPage({
       </div>
 
       {unconfirmedCount > 0 && (
-        <div className="rounded-lg border border-orange-200 bg-orange-50 px-4 py-3 flex items-center justify-between gap-3">
-          <p className="text-sm text-orange-800">
+        <div className="rounded-lg border border-warning/30 bg-warning/10 px-4 py-3 flex items-center justify-between gap-3">
+          <p className="text-sm text-warning-foreground">
             <span className="font-semibold">{unconfirmedCount}件</span>の授業が未完了です。カレンダーで完了にすると請求に反映されます。
           </p>
-          <a href="/calendar" className="text-xs text-orange-700 underline hover:text-orange-900 shrink-0">カレンダーへ</a>
+          <a href="/calendar" className="text-xs text-warning underline hover:text-warning-foreground shrink-0">カレンダーへ</a>
         </div>
       )}
 
@@ -165,7 +166,7 @@ export default async function BillingPage({
                       <input type="hidden" name="month" value={month + 1} />
                       <button
                         type="submit"
-                        className={`text-xs rounded px-2 py-1 border transition-colors ${isPaid ? "border-primary/30 text-primary hover:bg-primary/10" : "border-border text-muted-foreground hover:bg-muted"}`}
+                        className={buttonVariants({ variant: isPaid ? "outline" : "ghost", size: "xs" }) + (isPaid ? " border-primary/30 text-primary" : "")}
                       >
                         {isPaid ? "✓ 入金済み" : "入金確認"}
                       </button>
@@ -190,7 +191,7 @@ export default async function BillingPage({
                             {l.travelExpense != null && l.travelExpense > 0 ? ` · 交通費¥${l.travelExpense.toLocaleString()}` : ""}
                           </p>
                           {l.lessonLog && (
-                            <p className="text-xs text-amber-700 mt-0.5 line-clamp-1">📝 {l.lessonLog}</p>
+                            <p className="text-xs text-warning mt-0.5 line-clamp-1">📝 {l.lessonLog}</p>
                           )}
                         </div>
                         {fee != null && (

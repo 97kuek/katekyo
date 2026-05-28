@@ -100,12 +100,12 @@ async function UncompletedLessonsSection({ teacherId }: { teacherId: string }) {
   if (count === 0) return null
 
   return (
-    <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 flex items-center justify-between gap-3">
+    <div className="rounded-lg border border-warning/30 bg-warning/10 px-4 py-3 flex items-center justify-between gap-3">
       <div className="flex items-center gap-3">
-        <div className="h-8 w-8 rounded-full bg-amber-100 flex items-center justify-center shrink-0 text-base">📋</div>
+        <div className="h-8 w-8 rounded-full bg-warning/15 flex items-center justify-center shrink-0 text-base">📋</div>
         <div>
-          <p className="text-sm font-semibold text-amber-900">{count}件の授業が完了確認待ちです</p>
-          <p className="text-xs text-amber-700 mt-0.5">カレンダーから授業を完了にしてください</p>
+          <p className="text-sm font-semibold text-warning-foreground">{count}件の授業が完了確認待ちです</p>
+          <p className="text-xs text-warning mt-0.5">カレンダーから授業を完了にしてください</p>
         </div>
       </div>
       <Link href="/calendar" className={buttonVariants({ variant: "outline", size: "sm" })}>
@@ -239,7 +239,7 @@ async function HomeworkStatusSection({ teacherId }: { teacherId: string }) {
 
   const colors: Record<StatusKey, string> = {
     assigned: "bg-muted text-foreground",
-    submitted: "bg-amber-100 text-amber-700",
+    submitted: "bg-warning/15 text-warning",
     approved: "bg-primary/15 text-primary",
     rejected: "bg-destructive/10 text-destructive",
   }
@@ -552,7 +552,7 @@ async function StudentUpcomingExams({ userId }: { userId: string }) {
                   {e.date.toLocaleDateString("ja-JP", { month: "short", day: "numeric", weekday: "short" })}
                 </p>
               </div>
-              <p className={`text-sm font-bold shrink-0 ${urgent ? "text-destructive" : soon ? "text-amber-600" : ""}`}>
+              <p className={`text-sm font-bold shrink-0 ${urgent ? "text-destructive" : soon ? "text-warning" : ""}`}>
                 {diffDays === 0 ? "今日" : diffDays === 1 ? "明日" : diffDays === 2 ? "明後日" : `${diffDays}日後`}
               </p>
             </div>
@@ -583,28 +583,28 @@ async function StudentGardenPreview({ userId }: { userId: string }) {
       </div>
       <Link
         href="/garden"
-        className={`block rounded-lg border p-4 hover:opacity-90 transition-opacity space-y-3 ${isFull ? "bg-amber-50 border-amber-300" : "bg-card"}`}
+        className={`block rounded-lg border p-4 hover:opacity-90 transition-opacity space-y-3 ${isFull ? "bg-warning/10 border-warning/40" : "bg-card"}`}
       >
         <div className="flex items-center gap-3">
           {isFull ? (
-            <Trophy className="h-9 w-9 text-amber-500 shrink-0" />
+            <Trophy className="h-9 w-9 text-warning shrink-0" />
           ) : (
             <TreePine className="h-9 w-9 text-green-500 shrink-0" />
           )}
           <div>
-            <p className={`text-2xl font-bold leading-none ${isFull ? "text-amber-700" : ""}`}>{count}</p>
+            <p className={`text-2xl font-bold leading-none ${isFull ? "text-warning" : ""}`}>{count}</p>
             <p className="text-xs text-muted-foreground mt-0.5">/ {max} アイテム</p>
           </div>
           {generation > 1 && !isFull && (
-            <span className="ml-auto text-xs font-medium text-indigo-600 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-full">第{generation}世代</span>
+            <span className="ml-auto text-xs font-medium text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-full">第{generation}世代</span>
           )}
           {isFull && (
-            <span className="ml-auto text-xs font-bold text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full">満開達成</span>
+            <span className="ml-auto text-xs font-bold text-warning bg-warning/15 px-2 py-0.5 rounded-full">満開達成</span>
           )}
         </div>
         <div className="h-2 bg-muted rounded-full overflow-hidden">
           <div
-            className={`h-full rounded-full transition-all ${isFull ? "bg-amber-400" : "bg-green-500"}`}
+            className={`h-full rounded-full transition-all ${isFull ? "bg-warning" : "bg-green-500"}`}
             style={{ width: `${count > 0 ? Math.max(pct, 3) : 0}%` }}
           />
         </div>

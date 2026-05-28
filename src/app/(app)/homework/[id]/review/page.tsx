@@ -52,7 +52,7 @@ export default async function ReviewHomeworkPage({ params }: { params: Promise<{
         {homework.difficultyRating && (
           <p className={`inline-flex items-center gap-1.5 text-xs font-medium rounded-full px-2.5 py-1 ${
             homework.difficultyRating === 1 ? "text-primary bg-primary/10" :
-            homework.difficultyRating === 2 ? "text-yellow-700 bg-yellow-50" :
+            homework.difficultyRating === 2 ? "text-warning bg-warning/10" :
             "text-destructive bg-destructive/10"
           }`}>
             {homework.difficultyRating === 1 ? "😊 かんたん" : homework.difficultyRating === 2 ? "😐 ふつう" : "😰 むずかしい"}

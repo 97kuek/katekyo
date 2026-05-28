@@ -6,7 +6,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react"
 import { LessonForm } from "./lesson-form"
 import { LessonEditForm } from "./lesson-edit-form"
 import { deleteLesson, createExamEvent, deleteExamEvent, completeLesson, uncompleteLesson, createHomeworkFromCalendar } from "./actions"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { TEST_TYPE_LABELS, TEST_TYPE_OPTIONS } from "@/lib/test-types"
@@ -29,7 +29,7 @@ function DeleteLessonButton({ lessonId }: { lessonId: string }) {
           disabled={isPending}
           className="text-xs font-medium text-destructive hover:text-destructive/80 disabled:opacity-50"
         >
-          {isPending ? "..." : "削除"}
+          {isPending ? "削除中..." : "削除"}
         </button>
         <button onClick={() => setConfirming(false)} className="text-xs text-muted-foreground hover:text-foreground">
           ✕
@@ -89,16 +89,16 @@ function CompleteLessonLogForm({ lessonId, onClose }: { lessonId: string; onClos
         className="w-full text-xs rounded border border-input bg-background px-2 py-1.5 resize-none focus:outline-none focus:ring-1 focus:ring-ring"
       />
       <div className="flex gap-2">
-        <button
+        <Button
           onClick={() => submit(true)}
           disabled={isPending}
-          className="text-xs font-medium text-primary-foreground bg-primary hover:bg-primary/90 rounded px-2.5 py-1 disabled:opacity-50"
+          size="xs"
         >
-          {isPending ? "..." : "完了にする"}
-        </button>
-        <button onClick={() => submit(false)} disabled={isPending} className="text-xs text-muted-foreground hover:text-foreground disabled:opacity-50">
+          {isPending ? "完了中..." : "完了にする"}
+        </Button>
+        <Button onClick={() => submit(false)} disabled={isPending} variant="ghost" size="xs">
           スキップ
-        </button>
+        </Button>
         <button onClick={onClose} className="text-xs text-muted-foreground hover:text-foreground ml-auto">
           キャンセル
         </button>
@@ -195,7 +195,7 @@ function DeleteExamEventButton({ examEventId }: { examEventId: string }) {
           disabled={isPending}
           className="text-xs font-medium text-destructive hover:text-destructive/80 disabled:opacity-50"
         >
-          {isPending ? "..." : "削除"}
+          {isPending ? "削除中..." : "削除"}
         </button>
         <button onClick={() => setConfirming(false)} className="text-xs text-muted-foreground hover:text-foreground">
           ✕
@@ -439,7 +439,7 @@ function DayDetail({
                         href={l.meetLink}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 mt-1.5 text-xs font-medium text-primary-foreground bg-primary hover:bg-primary/90 rounded px-2.5 py-1"
+                        className={buttonVariants({ size: "xs" }) + " mt-1.5"}
                       >
                         Meet に参加する →
                       </a>
@@ -465,12 +465,13 @@ function DayDetail({
                         completingLessonId === l.id ? (
                           <button onClick={() => setCompletingLessonId(null)} className="text-xs text-muted-foreground hover:text-foreground">キャンセル</button>
                         ) : (
-                          <button
+                          <Button
                             onClick={() => { setCompletingLessonId(l.id); setEditingLessonId(null) }}
-                            className="text-xs font-medium text-primary hover:text-primary/80 border border-primary/20 rounded px-1.5 py-0.5"
+                            variant="outline"
+                            size="xs"
                           >
                             完了
-                          </button>
+                          </Button>
                         )
                       )}
                       {l.completedAt && <UncompleteLessonButton lessonId={l.id} />}
@@ -503,7 +504,7 @@ function DayDetail({
             <Link
               key={d.id}
               href={`/homework/${d.id}`}
-              className="flex items-center justify-between rounded-md bg-amber-50 px-3 py-2 hover:bg-amber-100 transition-colors"
+              className="flex items-center justify-between rounded-md bg-warning/10 px-3 py-2 hover:bg-warning/15 transition-colors"
             >
               <div>
                 <p className="text-sm font-medium">{d.title}</p>
@@ -586,7 +587,7 @@ function NextLessonBanner({ lessons, isTeacher }: { lessons: Lesson[]; isTeacher
           href={next.meetLink}
           target="_blank"
           rel="noopener noreferrer"
-          className="shrink-0 text-xs font-medium text-primary-foreground bg-primary hover:bg-primary/90 rounded px-3 py-1.5"
+          className={buttonVariants({ size: "sm" }) + " shrink-0"}
         >
           参加する
         </a>
@@ -700,23 +701,20 @@ export default function CalendarView({ lessons, deadlines, examEvents, students,
         <>
           <div className="rounded-lg border bg-card overflow-hidden">
             <div className="flex items-center justify-between px-4 py-3 border-b">
-              <button onClick={prevMonth} className="p-1 hover:bg-muted rounded">
+              <Button onClick={prevMonth} variant="ghost" size="icon-sm">
                 <ChevronLeft className="h-4 w-4" />
-              </button>
+              </Button>
               <div className="flex items-center gap-2">
                 <span className="font-semibold text-sm">
                   {year}年 {month + 1}月
                 </span>
-                <button
-                  onClick={goToToday}
-                  className="text-xs text-muted-foreground hover:text-foreground border border-input rounded px-2 py-0.5 hover:bg-muted"
-                >
+                <Button onClick={goToToday} variant="outline" size="xs">
                   今月
-                </button>
+                </Button>
               </div>
-              <button onClick={nextMonth} className="p-1 hover:bg-muted rounded">
+              <Button onClick={nextMonth} variant="ghost" size="icon-sm">
                 <ChevronRight className="h-4 w-4" />
-              </button>
+              </Button>
             </div>
 
             <div className="grid grid-cols-7 text-center">
@@ -753,7 +751,7 @@ export default function CalendarView({ lessons, deadlines, examEvents, students,
                     </span>
                     <div className="flex gap-0.5">
                       {hasLesson && <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />}
-                      {hasNote && <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />}
+                      {hasNote && <span className="h-1.5 w-1.5 rounded-full bg-warning" />}
                       {hasDeadline && <span className="h-1.5 w-1.5 rounded-full bg-orange-400" />}
                       {hasExam && <span className="h-1.5 w-1.5 rounded-full bg-red-500" />}
                     </div>
@@ -764,7 +762,7 @@ export default function CalendarView({ lessons, deadlines, examEvents, students,
 
             <div className="px-3 pb-3 pt-1 flex items-center gap-4 text-xs text-muted-foreground border-t flex-wrap">
               <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-blue-400 inline-block" />授業</span>
-              <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-amber-400 inline-block" />ノートあり</span>
+              <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-warning inline-block" />ノートあり</span>
               <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-orange-400 inline-block" />宿題期限</span>
               <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-red-500 inline-block" />テスト</span>
             </div>
@@ -790,23 +788,20 @@ export default function CalendarView({ lessons, deadlines, examEvents, students,
         <>
           <div className="rounded-lg border bg-card overflow-hidden">
             <div className="flex items-center justify-between px-4 py-3 border-b">
-              <button onClick={() => setWeekOffset(w => w - 1)} className="p-1 hover:bg-muted rounded">
+              <Button onClick={() => setWeekOffset(w => w - 1)} variant="ghost" size="icon-sm">
                 <ChevronLeft className="h-4 w-4" />
-              </button>
+              </Button>
               <div className="flex items-center gap-2">
                 <span className="font-semibold text-sm">
                   {weekDays[0].toLocaleDateString("ja-JP", { month: "long", day: "numeric" })} 〜 {weekDays[6].toLocaleDateString("ja-JP", { month: "long", day: "numeric" })}
                 </span>
-                <button
-                  onClick={goToToday}
-                  className="text-xs text-muted-foreground hover:text-foreground border border-input rounded px-2 py-0.5 hover:bg-muted"
-                >
+                <Button onClick={goToToday} variant="outline" size="xs">
                   今週
-                </button>
+                </Button>
               </div>
-              <button onClick={() => setWeekOffset(w => w + 1)} className="p-1 hover:bg-muted rounded">
+              <Button onClick={() => setWeekOffset(w => w + 1)} variant="ghost" size="icon-sm">
                 <ChevronRight className="h-4 w-4" />
-              </button>
+              </Button>
             </div>
 
             <div className="grid grid-cols-7 divide-x text-center">

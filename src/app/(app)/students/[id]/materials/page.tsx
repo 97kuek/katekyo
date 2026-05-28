@@ -63,7 +63,7 @@ export default async function StudentMaterialsPage({ params }: { params: Promise
                   {m.subjectIds.map((sid) => {
                     const name = subjectMap.get(sid)
                     return name ? (
-                      <span key={sid} className="text-xs bg-indigo-50 text-indigo-600 rounded px-1.5 py-0.5">
+                      <span key={sid} className="text-xs bg-primary/10 text-primary rounded px-1.5 py-0.5">
                         {name}
                       </span>
                     ) : null

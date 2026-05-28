@@ -20,7 +20,7 @@ export function DeleteSubjectButton({ id }: { id: string }) {
           disabled={isPending}
           className="text-xs font-medium text-destructive hover:text-destructive/80 disabled:opacity-50"
         >
-          {isPending ? "..." : "削除"}
+          {isPending ? "削除中..." : "削除"}
         </button>
         <button
           onClick={() => setConfirming(false)}
