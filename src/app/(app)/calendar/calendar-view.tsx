@@ -407,7 +407,7 @@ function DayDetail({
             return (
               <div key={l.id} className="rounded-md px-3 py-2 bg-muted">
                 <div className="flex items-start justify-between gap-2">
-                  <div>
+                  <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-sm font-medium">{l.student.user.name}</span>
                       <span className="text-xs text-muted-foreground">

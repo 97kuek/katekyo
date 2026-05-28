@@ -409,6 +409,10 @@ function StudentDashboard({ userId }: { userId: string }) {
       </Suspense>
 
       <Suspense fallback={<Sk className="h-24 w-full rounded-lg" />}>
+        <StudentRecentLogs userId={userId} />
+      </Suspense>
+
+      <Suspense fallback={<Sk className="h-24 w-full rounded-lg" />}>
         <StudentGardenPreview userId={userId} />
       </Suspense>
     </div>
@@ -612,6 +616,56 @@ async function StudentGardenPreview({ userId }: { userId: string }) {
           <p className="text-xs text-muted-foreground">宿題が承認されると森にアイテムが育ちます</p>
         )}
       </Link>
+    </section>
+  )
+}
+
+async function StudentRecentLogs({ userId }: { userId: string }) {
+  const student = await getStudentByUserId(userId)
+  if (!student) return null
+
+  const lessons = await db.lesson.findMany({
+    where: {
+      studentId: student.id,
+      lessonLogPublic: true,
+      lessonLog: { not: null },
+    },
+    orderBy: { date: "desc" },
+    take: 5,
+    select: { id: true, date: true, lessonLog: true, subjectIds: true },
+  })
+  if (lessons.length === 0) return null
+
+  const subjects = await db.subject.findMany({
+    where: { teacherId: student.teacherId },
+    select: { id: true, name: true },
+  })
+  const subjectMap = new Map(subjects.map((s) => [s.id, s.name]))
+
+  return (
+    <section className="space-y-3">
+      <div className="flex items-center justify-between">
+        <h2 className="text-sm font-semibold">授業ログ</h2>
+        <Link href="/calendar" className="text-xs text-muted-foreground hover:underline">カレンダー</Link>
+      </div>
+      <div className="space-y-2">
+        {lessons.map((l) => {
+          const subjectNames = l.subjectIds.map((id) => subjectMap.get(id)).filter(Boolean) as string[]
+          return (
+            <div key={l.id} className="rounded-lg border bg-card p-3 space-y-1.5">
+              <div className="flex items-center gap-2 flex-wrap">
+                <p className="text-xs text-muted-foreground">
+                  {l.date.toLocaleDateString("ja-JP", { month: "short", day: "numeric", weekday: "short" })}
+                </p>
+                {subjectNames.map((n) => (
+                  <span key={n} className="text-xs bg-muted text-foreground rounded-full px-2 py-0.5">{n}</span>
+                ))}
+              </div>
+              <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed line-clamp-4">{l.lessonLog}</p>
+            </div>
+          )
+        })}
+      </div>
     </section>
   )
 }
