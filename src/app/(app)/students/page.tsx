@@ -3,12 +3,11 @@ import { redirect } from "next/navigation"
 import { db } from "@/lib/db"
 import Link from "next/link"
 import { buttonVariants } from "@/components/ui/button"
-import { DeleteStudentButton } from "./delete-student-button"
 import { UpdateGradeForm } from "./update-grade-form"
 import { UpdateStudentRatesForm } from "./update-student-rates-form"
 import { StudentSort } from "./student-sort"
-import { ResetPasswordButton } from "./reset-password-button"
 import { ViewAsButton } from "./view-as-button"
+import { StudentActionsMenu } from "./student-actions-menu"
 
 export default async function StudentsPage({
   searchParams,
@@ -152,28 +151,16 @@ export default async function StudentsPage({
                       </div>
                     </div>
                   )}
-                  <div className="flex items-center gap-3 pt-1 border-t flex-wrap">
+                  <div className="flex items-center gap-2 pt-1 border-t flex-wrap">
                     <ViewAsButton studentId={s.id} />
                     <Link href={`/students/${s.id}/grades`} className={buttonVariants({ variant: "ghost", size: "xs" })}>
                       成績を見る
                     </Link>
-                    <Link href={`/students/${s.id}/materials`} className={buttonVariants({ variant: "ghost", size: "xs" })}>
-                      教材管理
-                    </Link>
-                    <div className="flex items-center gap-1">
-                      <Link href={`/students/${s.id}/garden`} className={buttonVariants({ variant: "ghost", size: "xs" })}>
-                        森を見る
-                      </Link>
-                      {isFull ? (
-                        <span className="text-[10px] font-bold text-amber-600 bg-amber-100 px-1 rounded">満開</span>
-                      ) : isWithered ? (
-                        <span className="inline-block h-2 w-2 rounded-full bg-amber-400 shrink-0" />
-                      ) : gardenCount > 0 ? (
-                        <span className="inline-block h-2 w-2 rounded-full bg-green-400 shrink-0" />
-                      ) : null}
-                    </div>
-                    <ResetPasswordButton studentId={s.id} />
-                    <DeleteStudentButton studentId={s.id} studentName={s.user.name} />
+                    <StudentActionsMenu
+                      studentId={s.id}
+                      studentName={s.user.name ?? ""}
+                      gardenBadge={isFull ? "full" : isWithered ? "withered" : gardenCount > 0 ? "growing" : null}
+                    />
                   </div>
                 </div>
               )
@@ -234,29 +221,17 @@ export default async function StudentsPage({
                         )}
                       </td>
                       <td className="px-4 py-3 text-muted-foreground">{s.createdAt.toLocaleDateString("ja-JP")}</td>
-                      <td className="px-4 py-3 text-right">
-                        <div className="flex items-center justify-end gap-3 flex-wrap">
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <ViewAsButton studentId={s.id} />
                           <Link href={`/students/${s.id}/grades`} className={buttonVariants({ variant: "ghost", size: "xs" })}>
                             成績を見る
                           </Link>
-                          <Link href={`/students/${s.id}/materials`} className={buttonVariants({ variant: "ghost", size: "xs" })}>
-                            教材管理
-                          </Link>
-                          <div className="flex items-center gap-1">
-                            <Link href={`/students/${s.id}/garden`} className={buttonVariants({ variant: "ghost", size: "xs" })}>
-                              森を見る
-                            </Link>
-                            {isFull ? (
-                              <span className="text-[10px] font-bold text-amber-600 bg-amber-100 px-1 rounded">満開</span>
-                            ) : isWithered ? (
-                              <span className="inline-block h-2 w-2 rounded-full bg-amber-400 shrink-0" />
-                            ) : gardenCount > 0 ? (
-                              <span className="inline-block h-2 w-2 rounded-full bg-green-400 shrink-0" />
-                            ) : null}
-                          </div>
-                          <ResetPasswordButton studentId={s.id} />
-                          <DeleteStudentButton studentId={s.id} studentName={s.user.name} />
+                          <StudentActionsMenu
+                            studentId={s.id}
+                            studentName={s.user.name ?? ""}
+                            gardenBadge={isFull ? "full" : isWithered ? "withered" : gardenCount > 0 ? "growing" : null}
+                          />
                         </div>
                       </td>
                     </tr>
