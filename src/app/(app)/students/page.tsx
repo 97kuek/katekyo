@@ -155,14 +155,14 @@ export default async function StudentsPage({
                     </div>
                   )}
                   <div className="flex items-center gap-3 pt-1 border-t flex-wrap">
-                    <Link href={`/students/${s.id}/grades`} className="text-xs text-primary hover:underline">
+                    <Link href={`/students/${s.id}/grades`} className={buttonVariants({ variant: "ghost", size: "xs" })}>
                       成績を見る
                     </Link>
-                    <Link href={`/students/${s.id}/materials`} className="text-xs text-primary hover:underline">
+                    <Link href={`/students/${s.id}/materials`} className={buttonVariants({ variant: "ghost", size: "xs" })}>
                       教材管理
                     </Link>
                     <div className="flex items-center gap-1">
-                      <Link href={`/students/${s.id}/garden`} className="text-xs text-primary hover:underline">
+                      <Link href={`/students/${s.id}/garden`} className={buttonVariants({ variant: "ghost", size: "xs" })}>
                         森を見る
                       </Link>
                       {isFull ? (
@@ -237,14 +237,14 @@ export default async function StudentsPage({
                       <td className="px-4 py-3 text-muted-foreground">{s.createdAt.toLocaleDateString("ja-JP")}</td>
                       <td className="px-4 py-3 text-right">
                         <div className="flex items-center justify-end gap-3 flex-wrap">
-                          <Link href={`/students/${s.id}/grades`} className="text-xs text-primary hover:underline">
+                          <Link href={`/students/${s.id}/grades`} className={buttonVariants({ variant: "ghost", size: "xs" })}>
                             成績を見る
                           </Link>
-                          <Link href={`/students/${s.id}/materials`} className="text-xs text-primary hover:underline">
+                          <Link href={`/students/${s.id}/materials`} className={buttonVariants({ variant: "ghost", size: "xs" })}>
                             教材管理
                           </Link>
                           <div className="flex items-center gap-1">
-                            <Link href={`/students/${s.id}/garden`} className="text-xs text-primary hover:underline">
+                            <Link href={`/students/${s.id}/garden`} className={buttonVariants({ variant: "ghost", size: "xs" })}>
                               森を見る
                             </Link>
                             {isFull ? (

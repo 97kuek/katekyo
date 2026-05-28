@@ -35,12 +35,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <div className="flex flex-col flex-1 min-w-0">
           <Header name={session.user.name ?? ""} notificationData={notificationData} />
           <main className="flex-1 overflow-y-auto overflow-x-hidden overscroll-y-none p-4 md:p-6 pb-20 md:pb-6">
-            <div className="max-w-7xl mx-auto">
-              <Suspense>
-                <SearchParamsToast />
-              </Suspense>
-              {children}
-            </div>
+            <Suspense>
+              <SearchParamsToast />
+            </Suspense>
+            {children}
           </main>
         </div>
       </div>

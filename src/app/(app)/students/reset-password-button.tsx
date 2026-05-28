@@ -2,6 +2,7 @@
 
 import { useState, useActionState, useEffect } from "react"
 import { resetStudentPassword } from "./actions"
+import { Button } from "@/components/ui/button"
 
 export function ResetPasswordButton({ studentId }: { studentId: string }) {
   const [open, setOpen] = useState(false)
@@ -13,12 +14,9 @@ export function ResetPasswordButton({ studentId }: { studentId: string }) {
 
   if (!open) {
     return (
-      <button
-        onClick={() => setOpen(true)}
-        className="text-xs text-muted-foreground hover:text-foreground"
-      >
+      <Button variant="ghost" size="xs" onClick={() => setOpen(true)}>
         PW変更
-      </button>
+      </Button>
     )
   }
 

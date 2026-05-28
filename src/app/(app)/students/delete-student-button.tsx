@@ -2,6 +2,7 @@
 
 import { useTransition, useState } from "react"
 import { deleteStudent } from "./actions"
+import { Button } from "@/components/ui/button"
 
 export function DeleteStudentButton({ studentId, studentName }: { studentId: string; studentName: string }) {
   const [confirming, setConfirming] = useState(false)
@@ -30,11 +31,13 @@ export function DeleteStudentButton({ studentId, studentName }: { studentId: str
   }
 
   return (
-    <button
+    <Button
+      variant="ghost"
+      size="xs"
       onClick={() => setConfirming(true)}
-      className="text-xs text-destructive hover:text-destructive/80 hover:underline"
+      className="text-destructive hover:text-destructive hover:bg-destructive/10"
     >
       削除
-    </button>
+    </Button>
   )
 }
