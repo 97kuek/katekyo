@@ -66,7 +66,7 @@ prisma/
 
 | ファイル | 役割 | 備考 |
 | --- | --- | --- |
-| `src/app/(app)/layout.tsx` | 認証チェック + 全レイアウト配置 | `max-w-7xl mx-auto` でコンテンツ幅制限 |
+| `src/app/(app)/layout.tsx` | 認証チェック + 全レイアウト配置 | 外側コンテナ `fixed inset-0`（キーボード表示でレイアウト崩れ防止）。`max-w-7xl mx-auto` でコンテンツ幅制限 |
 | `src/components/layout/sidebar.tsx` | デスクトップ左サイドバー | `hidden md:flex`、md=w-16（アイコンのみ）、lg=w-60（ラベルあり） |
 | `src/components/layout/header.tsx` | ページタイトルヘッダー | `PAGE_TITLES` 配列でパスからタイトル解決。モバイルはタイトル or "katekyo" |
 | `src/components/layout/bottom-nav.tsx` | モバイル固定ボトムナビ | `md:hidden`、先生5項目・生徒5項目 |

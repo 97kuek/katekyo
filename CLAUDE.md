@@ -8,6 +8,7 @@
 | ファイル | 内容 |
 | --- | --- |
 | [docs/architecture.md](docs/architecture.md) | ディレクトリ構成・ページ一覧・レスポンシブ設計 |
+| [docs/DESIGN.md](docs/DESIGN.md) | カラートークン・ボタン・レイアウト規則 |
 | [docs/data-models.md](docs/data-models.md) | Prisma スキーマ・Enum・クエリ原則 |
 | [docs/requirements.md](docs/requirements.md) | 機能要件・ビジネスロジック |
 | [docs/api-spec.md](docs/api-spec.md) | Server Actions・Route Handlers |
