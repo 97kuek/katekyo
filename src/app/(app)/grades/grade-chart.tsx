@@ -60,12 +60,10 @@ export default function GradeChart({
   const hasScore = sorted.some((g) => computeValue(g, "score") != null)
   const hasDeviation = sorted.some((g) => g.deviation != null)
 
-  // 科目別複数ライン
   const usedSubjectIds = Array.from(new Set(sorted.flatMap((g) => g.subjectIds)))
   const subjectMap = new Map(subjects.map((s) => [s.id, s.name]))
   const hasSubjects = usedSubjectIds.length > 0
 
-  // データ構築
   const allDates = Array.from(new Set(sorted.map((g) => g.date)))
 
   const chartData = allDates.map((date) => {
@@ -99,16 +97,30 @@ export default function GradeChart({
   if (!hasScore && !hasDeviation) return null
 
   return (
-    <div className="rounded-lg border bg-card p-5 space-y-4">
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <p className="text-sm font-medium">成績推移</p>
-        <div className="flex gap-1.5 flex-wrap">
+    <div className="rounded-lg border bg-card p-4 space-y-3">
+      {/* コントロール1行 */}
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <div className="flex items-center gap-1 flex-wrap">
+          <span className="text-xs text-muted-foreground mr-1">種別</span>
+          {TEST_TYPE_OPTIONS.filter(([v]) => availableTypes.includes(v)).map(([value, label]) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => { setTypeFilter(value); setActiveSubject(null) }}
+              className={`px-2.5 py-1 rounded-md text-xs border transition-colors ${typeFilter === value ? "bg-primary text-primary-foreground border-primary" : "bg-card text-muted-foreground border-input hover:bg-muted"}`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <div className="flex gap-1">
           <Button
             type="button"
             size="sm"
             variant={mode === "score" ? "default" : "outline"}
             onClick={() => setMode("score")}
             disabled={!hasScore}
+            className="h-7 px-2.5 text-xs"
           >
             点数
           </Button>
@@ -118,34 +130,23 @@ export default function GradeChart({
             variant={mode === "deviation" ? "default" : "outline"}
             onClick={() => setMode("deviation")}
             disabled={!hasDeviation}
+            className="h-7 px-2.5 text-xs"
           >
             偏差値
           </Button>
         </div>
       </div>
 
-      <div className="flex gap-1.5 flex-wrap">
-        {TEST_TYPE_OPTIONS.filter(([v]) => availableTypes.includes(v)).map(([value, label]) => (
-          <button
-            key={value}
-            type="button"
-            onClick={() => { setTypeFilter(value); setActiveSubject(null) }}
-            className={`px-2.5 py-1 rounded-md text-xs border transition-colors ${typeFilter === value ? "bg-primary text-primary-foreground border-primary" : "bg-card text-muted-foreground border-input hover:bg-muted"}`}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
-
       {chartData.length === 0 ? (
         <p className="text-sm text-muted-foreground text-center py-6">該当するデータがありません</p>
       ) : (
-        <ResponsiveContainer width="100%" height={hasSubjects ? 260 : 220}>
-          <LineChart data={chartData} margin={{ top: 5, right: 10, left: -20, bottom: 30 }}>
+        <ResponsiveContainer width="100%" height={200}>
+          <LineChart data={chartData} margin={{ top: 4, right: 10, left: -20, bottom: 28 }}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="name" tick={{ fontSize: 11 }} angle={-25} textAnchor="end" interval={0} />
             <YAxis
-              domain={mode === "deviation" ? [30, 80] : ["auto", "auto"]}
+              domain={mode === "deviation" ? [30, 80] : [0, 100]}
+              ticks={mode === "deviation" ? [30, 40, 50, 60, 70, 80] : [0, 25, 50, 75, 100]}
               tick={{ fontSize: 11 }}
               unit={mode === "score" ? "%" : ""}
             />
@@ -174,7 +175,7 @@ export default function GradeChart({
                   const key = data.dataKey as string
                   setActiveSubject((prev) => (prev === key ? null : key))
                 }}
-                wrapperStyle={{ cursor: "pointer" }}
+                wrapperStyle={{ cursor: "pointer", fontSize: 11 }}
               />
             )}
 
@@ -206,7 +207,6 @@ export default function GradeChart({
                 />
               )}
 
-            {/* クラス平均ライン（点線） */}
             {hasSubjects
               ? usedSubjectIds.map((sid, i) => {
                   const dimmed = activeSubject !== null && activeSubject !== sid

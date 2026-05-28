@@ -131,17 +131,17 @@ async function TeacherGradesPage({
   })) : []
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-bold">成績管理</h1>
-
-      <div className="flex items-center gap-2 justify-between flex-wrap">
-        <div className="flex items-center gap-2 flex-wrap">
-          <GradeStudentFilter students={students} />
-          <GradeTypeFilter />
-        </div>
+    <div className="space-y-3">
+      <div className="flex items-center justify-between gap-2">
+        <h1 className="text-2xl font-bold">成績管理</h1>
         <Link href="/grades/new" className={buttonVariants({ size: "sm" })}>
           成績を記録
         </Link>
+      </div>
+
+      <div className="flex items-center gap-2 flex-wrap">
+        <GradeStudentFilter students={students} />
+        <GradeTypeFilter />
       </div>
 
       {studentIdFilter && chartGrades.length > 0 && (
@@ -287,7 +287,7 @@ async function StudentGradesPage({ userId }: { userId: string }) {
   })
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <h1 className="text-2xl font-bold">成績</h1>
 
       {grades.length === 0 ? (
