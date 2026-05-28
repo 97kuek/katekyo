@@ -39,7 +39,7 @@ export default function CreateHomeworkForm({
   return (
     <form action={action} className="space-y-4">
       {state.error && (
-        <p className="text-sm text-red-600 bg-red-50 p-3 rounded-md">{state.error}</p>
+        <p className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">{state.error}</p>
       )}
       <p className="text-xs text-muted-foreground"><span className="text-destructive font-medium">*</span> は必須項目です</p>
       <div className="space-y-2">
@@ -47,7 +47,7 @@ export default function CreateHomeworkForm({
         {singleStudent ? (
           <>
             <input type="hidden" name="studentId" value={singleStudent.id} />
-            <p className="text-sm py-2 px-3 rounded-md border bg-gray-50">{singleStudent.user.name}（{singleStudent.grade}）</p>
+            <p className="text-sm py-2 px-3 rounded-md border bg-muted">{singleStudent.user.name}（{singleStudent.grade}）</p>
           </>
         ) : (
           <select

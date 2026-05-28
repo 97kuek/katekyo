@@ -108,7 +108,7 @@ export default async function StudentsPage({
       <StudentSort />
 
       {students.length === 0 ? (
-        <div className="rounded-lg border bg-white p-12 text-center">
+        <div className="rounded-lg border bg-card p-12 text-center">
           <p className="text-muted-foreground">まだ生徒が登録されていません</p>
           <Link href="/students/invite" className={buttonVariants({ className: "mt-4 inline-flex" })}>
             最初の生徒を招待する
@@ -126,7 +126,7 @@ export default async function StudentsPage({
               const isFull = gardenCount >= 64
               const isWithered = problemCount > 0 && gardenCount > 0
               return (
-                <div key={s.id} className="rounded-lg border bg-white p-4 space-y-3">
+                <div key={s.id} className="rounded-lg border bg-card p-4 space-y-3">
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <p className="font-medium">{s.user.name}</p>
@@ -149,20 +149,20 @@ export default async function StudentsPage({
                         <span>宿題進捗</span>
                         <span>{prog!.approved}/{prog!.total}（{pct}%）</span>
                       </div>
-                      <div className="h-1.5 w-full rounded-full bg-gray-100 overflow-hidden">
+                      <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
                         <div className="h-full rounded-full bg-green-500 transition-all" style={{ width: `${pct}%` }} />
                       </div>
                     </div>
                   )}
                   <div className="flex items-center gap-3 pt-1 border-t flex-wrap">
-                    <Link href={`/students/${s.id}/grades`} className="text-xs text-blue-600 hover:underline">
+                    <Link href={`/students/${s.id}/grades`} className="text-xs text-primary hover:underline">
                       成績を見る
                     </Link>
-                    <Link href={`/students/${s.id}/materials`} className="text-xs text-blue-600 hover:underline">
+                    <Link href={`/students/${s.id}/materials`} className="text-xs text-primary hover:underline">
                       教材管理
                     </Link>
                     <div className="flex items-center gap-1">
-                      <Link href={`/students/${s.id}/garden`} className="text-xs text-green-700 hover:underline">
+                      <Link href={`/students/${s.id}/garden`} className="text-xs text-primary hover:underline">
                         森を見る
                       </Link>
                       {isFull ? (
@@ -181,9 +181,9 @@ export default async function StudentsPage({
             })}
           </div>
           {/* デスクトップ: テーブル表示 */}
-          <div className="hidden md:block rounded-lg border bg-white overflow-hidden overflow-x-auto">
+          <div className="hidden md:block rounded-lg border bg-card overflow-hidden overflow-x-auto">
             <table className="w-full text-sm min-w-[480px]">
-              <thead className="border-b bg-gray-50">
+              <thead className="border-b bg-muted">
                 <tr>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">名前</th>
                   <th className="hidden lg:table-cell px-4 py-3 text-left font-medium text-muted-foreground">メールアドレス</th>
@@ -202,7 +202,7 @@ export default async function StudentsPage({
                   const isFull = gardenCount >= 64
                   const isWithered = problemCount > 0 && gardenCount > 0
                   return (
-                    <tr key={s.id} className="hover:bg-gray-50">
+                    <tr key={s.id} className="hover:bg-muted">
                       <td className="px-4 py-3 font-medium">{s.user.name}</td>
                       <td className="hidden lg:table-cell px-4 py-3 text-muted-foreground">{s.user.email}</td>
                       <td className="px-4 py-3">
@@ -226,7 +226,7 @@ export default async function StudentsPage({
                               <span>{prog!.approved}/{prog!.total}</span>
                               <span>{pct}%</span>
                             </div>
-                            <div className="h-1.5 w-full rounded-full bg-gray-100 overflow-hidden">
+                            <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
                               <div className="h-full rounded-full bg-green-500 transition-all" style={{ width: `${pct}%` }} />
                             </div>
                           </div>
@@ -237,14 +237,14 @@ export default async function StudentsPage({
                       <td className="px-4 py-3 text-muted-foreground">{s.createdAt.toLocaleDateString("ja-JP")}</td>
                       <td className="px-4 py-3 text-right">
                         <div className="flex items-center justify-end gap-3 flex-wrap">
-                          <Link href={`/students/${s.id}/grades`} className="text-xs text-blue-600 hover:underline">
+                          <Link href={`/students/${s.id}/grades`} className="text-xs text-primary hover:underline">
                             成績を見る
                           </Link>
-                          <Link href={`/students/${s.id}/materials`} className="text-xs text-blue-600 hover:underline">
+                          <Link href={`/students/${s.id}/materials`} className="text-xs text-primary hover:underline">
                             教材管理
                           </Link>
                           <div className="flex items-center gap-1">
-                            <Link href={`/students/${s.id}/garden`} className="text-xs text-green-700 hover:underline">
+                            <Link href={`/students/${s.id}/garden`} className="text-xs text-primary hover:underline">
                               森を見る
                             </Link>
                             {isFull ? (

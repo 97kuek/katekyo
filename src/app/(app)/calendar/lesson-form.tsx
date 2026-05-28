@@ -78,11 +78,11 @@ export function LessonForm({ students, defaultDate, subjects }: { students: Stud
   }
 
   return (
-    <div className="rounded-lg border bg-white p-4 space-y-3 w-full">
+    <div className="rounded-lg border bg-card p-4 space-y-3 w-full">
       <h3 className="font-medium text-sm">授業を追加</h3>
       <form action={action} className="space-y-3">
         {state.error && (
-          <p className="text-xs text-red-600 bg-red-50 p-2 rounded">{state.error}</p>
+          <p className="text-xs text-destructive bg-destructive/10 p-2 rounded">{state.error}</p>
         )}
 
         <div className="space-y-1.5">
@@ -90,7 +90,7 @@ export function LessonForm({ students, defaultDate, subjects }: { students: Stud
           {students.length === 1 ? (
             <>
               <input type="hidden" name="studentId" value={students[0].id} />
-              <p className="text-sm py-2 px-3 rounded-md border bg-gray-50">{students[0].user.name}（{students[0].grade}）</p>
+              <p className="text-sm py-2 px-3 rounded-md border bg-muted">{students[0].user.name}（{students[0].grade}）</p>
             </>
           ) : (
             <select
@@ -190,7 +190,7 @@ export function LessonForm({ students, defaultDate, subjects }: { students: Stud
               disabled={lessonType === "online"}
               value={lessonType === "online" ? "" : travelExpense}
               onChange={(e) => setTravelExpense(e.target.value)}
-              className="h-9 text-sm disabled:bg-gray-50 disabled:text-muted-foreground"
+              className="h-9 text-sm disabled:bg-muted disabled:text-muted-foreground"
             />
           </div>
         </div>

@@ -46,7 +46,7 @@ export function LessonEditForm({ lesson, onClose, subjects }: { lesson: Lesson; 
     <form action={action} className="mt-3 space-y-3 border-t pt-3">
       <input type="hidden" name="lessonId" value={lesson.id} />
       {state.error && (
-        <p className="text-xs text-red-600 bg-red-50 p-2 rounded">{state.error}</p>
+        <p className="text-xs text-destructive bg-destructive/10 p-2 rounded">{state.error}</p>
       )}
 
       <div className="grid gap-3" style={{ gridTemplateColumns: "3fr 2fr" }}>
@@ -95,7 +95,7 @@ export function LessonEditForm({ lesson, onClose, subjects }: { lesson: Lesson; 
           min="0"
           defaultValue={lessonType === "online" ? 0 : (lesson.travelExpense ?? "")}
           disabled={lessonType === "online"}
-          className="h-9 text-sm disabled:bg-gray-50 disabled:text-muted-foreground"
+          className="h-9 text-sm disabled:bg-muted disabled:text-muted-foreground"
         />
       </div>
 

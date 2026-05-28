@@ -11,9 +11,9 @@ import { ExtendDeadlineButton } from "./extend-deadline"
 import { AlertCircle } from "lucide-react"
 
 const DIFFICULTY_LABELS: Record<number, { label: string; emoji: string; color: string }> = {
-  1: { label: "かんたん",    emoji: "😊", color: "text-gray-700 bg-gray-100" },
-  2: { label: "ふつう",      emoji: "😐", color: "text-gray-700 bg-gray-100" },
-  3: { label: "むずかしい",  emoji: "😰", color: "text-gray-700 bg-gray-100" },
+  1: { label: "かんたん",    emoji: "😊", color: "text-foreground bg-muted" },
+  2: { label: "ふつう",      emoji: "😐", color: "text-foreground bg-muted" },
+  3: { label: "むずかしい",  emoji: "😰", color: "text-foreground bg-muted" },
 }
 
 export default async function HomeworkDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -92,7 +92,7 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
         </div>
       )}
 
-      <div className="rounded-lg border bg-white p-5 space-y-4">
+      <div className="rounded-lg border bg-card p-5 space-y-4">
         <div className="space-y-2 sm:flex sm:items-start sm:justify-between sm:gap-4 sm:space-y-0">
           <div>
             <div className="flex items-center gap-2 flex-wrap">
@@ -115,12 +115,12 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
         {(subjects.length > 0 || material) && (
           <div className="flex flex-wrap gap-1">
             {material && (
-              <span className="text-xs bg-gray-100 text-gray-700 rounded-full px-2 py-0.5">
+              <span className="text-xs bg-muted text-foreground rounded-full px-2 py-0.5">
                 {material.name}
               </span>
             )}
             {subjects.map((s) => (
-              <span key={s.id} className="text-xs bg-gray-100 text-gray-700 rounded-full px-2 py-0.5">
+              <span key={s.id} className="text-xs bg-muted text-foreground rounded-full px-2 py-0.5">
                 {s.name}
               </span>
             ))}
@@ -136,7 +136,7 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
       </div>
 
       {(homework.studentNote || homework.submittedAt || homework.photoUrl || homework.difficultyRating) && (
-        <div className="rounded-lg border bg-white p-5 space-y-2">
+        <div className="rounded-lg border bg-card p-5 space-y-2">
           <h2 className="text-sm font-semibold">提出情報</h2>
           {homework.submittedAt && (
             <p className="text-xs text-muted-foreground">
@@ -158,12 +158,12 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
               <img
                 src={homework.photoUrl}
                 alt="提出写真"
-                className="w-full max-h-60 sm:max-h-80 object-contain rounded-md border bg-gray-50"
+                className="w-full max-h-60 sm:max-h-80 object-contain rounded-md border bg-muted"
               />
             </div>
           )}
           {homework.studentNote && (
-            <div className="bg-gray-50 rounded-md p-3">
+            <div className="bg-muted rounded-md p-3">
               <p className="text-xs font-medium text-muted-foreground mb-1">生徒のコメント</p>
               <p className="text-sm">{homework.studentNote}</p>
             </div>
@@ -172,7 +172,7 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
       )}
 
       {(homework.teacherFeedback || homework.reviewedAt) && (
-        <div className="rounded-lg border bg-white p-5 space-y-2">
+        <div className="rounded-lg border bg-card p-5 space-y-2">
           <h2 className="text-sm font-semibold">先生のフィードバック</h2>
           {homework.reviewedAt && (
             <p className="text-xs text-muted-foreground">
@@ -180,7 +180,7 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
             </p>
           )}
           {homework.teacherFeedback && (
-            <div className={`rounded-md p-3 ${homework.status === "rejected" ? "bg-red-50" : "bg-green-50"}`}>
+            <div className={`rounded-md p-3 ${homework.status === "rejected" ? "bg-destructive/10" : "bg-primary/10"}`}>
               <p className="text-sm">{homework.teacherFeedback}</p>
             </div>
           )}
@@ -188,20 +188,20 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
       )}
 
       {homework.events.length > 0 && (
-        <div className="rounded-lg border bg-white p-5 space-y-3">
+        <div className="rounded-lg border bg-card p-5 space-y-3">
           <h2 className="text-sm font-semibold">やり取り履歴</h2>
-          <ol className="relative border-l border-gray-200 ml-2 space-y-4">
+          <ol className="relative border-l border-border ml-2 space-y-4">
             {homework.events.map((ev) => {
               const config =
                 ev.eventType === "approved"
-                  ? { icon: "✅", label: "承認", color: "text-green-700" }
+                  ? { icon: "✅", label: "承認", color: "text-primary" }
                   : ev.eventType === "rejected"
-                  ? { icon: "🔁", label: "差し戻し", color: "text-red-700" }
-                  : { icon: "📬", label: "提出", color: "text-blue-700" }
+                  ? { icon: "🔁", label: "差し戻し", color: "text-destructive" }
+                  : { icon: "📬", label: "提出", color: "text-primary" }
               return (
                 <li key={ev.id} className="ml-4">
                   <span className="absolute -left-1.5 flex h-3 w-3 items-center justify-center">
-                    <span className="h-2 w-2 rounded-full bg-gray-300" />
+                    <span className="h-2 w-2 rounded-full bg-muted-foreground/30" />
                   </span>
                   <div className="flex items-baseline gap-2 flex-wrap">
                     <span className={`text-xs font-semibold ${config.color}`}>
@@ -213,7 +213,7 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
                     </span>
                   </div>
                   {ev.note && (
-                    <p className="mt-1 text-sm text-gray-600 leading-relaxed">{ev.note}</p>
+                    <p className="mt-1 text-sm text-muted-foreground leading-relaxed">{ev.note}</p>
                   )}
                 </li>
               )

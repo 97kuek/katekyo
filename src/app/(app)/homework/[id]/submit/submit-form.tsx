@@ -7,9 +7,9 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
 const DIFFICULTIES = [
-  { value: 1, label: "かんたん",   emoji: "😊", active: "bg-gray-900 border-gray-900 text-white", inactive: "border-input text-gray-600 hover:bg-gray-50" },
-  { value: 2, label: "ふつう",     emoji: "😐", active: "bg-gray-900 border-gray-900 text-white", inactive: "border-input text-gray-600 hover:bg-gray-50" },
-  { value: 3, label: "むずかしい", emoji: "😰", active: "bg-gray-900 border-gray-900 text-white", inactive: "border-input text-gray-600 hover:bg-gray-50" },
+  { value: 1, label: "かんたん",   emoji: "😊", active: "bg-foreground border-foreground text-background", inactive: "border-input text-muted-foreground hover:bg-muted" },
+  { value: 2, label: "ふつう",     emoji: "😐", active: "bg-foreground border-foreground text-background", inactive: "border-input text-muted-foreground hover:bg-muted" },
+  { value: 3, label: "むずかしい", emoji: "😰", active: "bg-foreground border-foreground text-background", inactive: "border-input text-muted-foreground hover:bg-muted" },
 ] as const
 
 const MAX_DIMENSION = 1200
@@ -91,7 +91,7 @@ export default function SubmitForm({ id, rejectedFeedback, requiresPhoto = false
           <input type="hidden" name="id" value={id} />
           <input type="hidden" name="difficultyRating" value={difficulty ?? ""} />
           {state.error && (
-            <p className="text-sm text-red-600 bg-red-50 p-3 rounded-md">{state.error}</p>
+            <p className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">{state.error}</p>
           )}
 
           {rejectedFeedback && (
@@ -135,7 +135,7 @@ export default function SubmitForm({ id, rejectedFeedback, requiresPhoto = false
                 <img
                   src={preview}
                   alt="提出写真プレビュー"
-                  className="w-full max-h-64 object-contain rounded-md border bg-gray-50"
+                  className="w-full max-h-64 object-contain rounded-md border bg-muted"
                 />
                 {isCompressing ? (
                   <p className="text-xs text-muted-foreground flex items-center gap-1.5">

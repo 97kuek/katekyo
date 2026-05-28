@@ -70,7 +70,7 @@ export function BulkApproveSection({
         </label>
 
         {submitted.map((h) => (
-          <div key={h.id} className="rounded-lg border bg-white p-4 flex items-start gap-3">
+          <div key={h.id} className="rounded-lg border bg-card p-4 flex items-start gap-3">
             <input
               type="checkbox"
               checked={selected.has(h.id)}
@@ -84,7 +84,7 @@ export function BulkApproveSection({
                   <p className="text-sm text-muted-foreground mt-0.5">{h.student.user.name}</p>
                   <SubjectTagsList ids={h.subjectIds} map={subjectMap} />
                   {h.studentNote && (
-                    <p className="text-sm text-gray-600 mt-2 border-l-2 pl-3">{h.studentNote}</p>
+                    <p className="text-sm text-muted-foreground mt-2 border-l-2 pl-3">{h.studentNote}</p>
                   )}
                 </div>
                 <Link

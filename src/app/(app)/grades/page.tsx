@@ -16,7 +16,7 @@ function SubjectTags({ ids, map }: { ids: string[]; map: Map<string, string> }) 
   return (
     <div className="flex flex-wrap gap-1 mt-1">
       {names.map((name) => (
-        <span key={name} className="text-xs bg-gray-100 text-gray-700 rounded-full px-2 py-0.5">
+        <span key={name} className="text-xs bg-muted text-foreground rounded-full px-2 py-0.5">
           {name}
         </span>
       ))}
@@ -25,10 +25,10 @@ function SubjectTags({ ids, map }: { ids: string[]; map: Map<string, string> }) 
 }
 
 const TEST_TYPE_BADGE: Record<string, string> = {
-  mock:  "bg-gray-100 text-gray-700",
-  exam:  "bg-gray-100 text-gray-700",
-  quiz:  "bg-gray-100 text-gray-700",
-  other: "bg-gray-100 text-gray-700",
+  mock:  "bg-muted text-foreground",
+  exam:  "bg-muted text-foreground",
+  quiz:  "bg-muted text-foreground",
+  other: "bg-muted text-foreground",
 }
 
 function DiffBadge({ diff }: { diff: number | null }) {
@@ -149,7 +149,7 @@ async function TeacherGradesPage({
       )}
 
       {grades.length === 0 ? (
-        <div className="rounded-lg border bg-white p-12 text-center">
+        <div className="rounded-lg border bg-card p-12 text-center">
           <p className="text-muted-foreground">成績記録がありません</p>
           {!typeFilter && (
             <Link href="/grades/new" className={buttonVariants({ className: "mt-4 inline-flex" })}>
@@ -162,7 +162,7 @@ async function TeacherGradesPage({
           {/* モバイル: カード表示 */}
           <div className="md:hidden space-y-2">
             {grades.map((g, i) => (
-              <div key={g.id} className="rounded-lg border bg-white p-4 space-y-2">
+              <div key={g.id} className="rounded-lg border bg-card p-4 space-y-2">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <p className="font-medium truncate">{g.testName}</p>
@@ -198,9 +198,9 @@ async function TeacherGradesPage({
             ))}
           </div>
           {/* デスクトップ: テーブル表示 */}
-          <div className="hidden md:block rounded-lg border bg-white overflow-hidden overflow-x-auto">
+          <div className="hidden md:block rounded-lg border bg-card overflow-hidden overflow-x-auto">
             <table className="w-full text-sm min-w-[780px]">
-              <thead className="border-b bg-gray-50">
+              <thead className="border-b bg-muted">
                 <tr>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">種別</th>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">テスト名</th>
@@ -216,7 +216,7 @@ async function TeacherGradesPage({
               </thead>
               <tbody className="divide-y">
                 {grades.map((g, i) => (
-                  <tr key={g.id} className="hover:bg-gray-50">
+                  <tr key={g.id} className="hover:bg-muted">
                     <td className="px-4 py-3">
                       <span className={`text-xs rounded-full px-2 py-0.5 ${TEST_TYPE_BADGE[g.testType] ?? TEST_TYPE_BADGE.other}`}>
                         {TEST_TYPE_LABELS[g.testType as keyof typeof TEST_TYPE_LABELS] ?? g.testType}
@@ -291,7 +291,7 @@ async function StudentGradesPage({ userId }: { userId: string }) {
       <h1 className="text-2xl font-bold">成績</h1>
 
       {grades.length === 0 ? (
-        <div className="rounded-lg border bg-white p-12 text-center">
+        <div className="rounded-lg border bg-card p-12 text-center">
           <p className="text-muted-foreground">まだ成績記録がありません</p>
         </div>
       ) : (
@@ -301,7 +301,7 @@ async function StudentGradesPage({ userId }: { userId: string }) {
           {/* モバイル: カード表示 */}
           <div className="md:hidden space-y-2">
             {grades.map((g, i) => (
-              <div key={g.id} className="rounded-lg border bg-white p-4 space-y-2">
+              <div key={g.id} className="rounded-lg border bg-card p-4 space-y-2">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <p className="font-medium truncate">{g.testName}</p>
@@ -333,9 +333,9 @@ async function StudentGradesPage({ userId }: { userId: string }) {
             ))}
           </div>
           {/* デスクトップ: テーブル表示 */}
-          <div className="hidden md:block rounded-lg border bg-white overflow-hidden overflow-x-auto">
+          <div className="hidden md:block rounded-lg border bg-card overflow-hidden overflow-x-auto">
             <table className="w-full text-sm min-w-[600px]">
-              <thead className="border-b bg-gray-50">
+              <thead className="border-b bg-muted">
                 <tr>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">テスト名</th>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">種別</th>
@@ -350,7 +350,7 @@ async function StudentGradesPage({ userId }: { userId: string }) {
               </thead>
               <tbody className="divide-y">
                 {grades.map((g, i) => (
-                  <tr key={g.id} className="hover:bg-gray-50">
+                  <tr key={g.id} className="hover:bg-muted">
                     <td className="px-4 py-3">
                       <p className="font-medium">{g.testName}</p>
                       <SubjectTags ids={g.subjectIds} map={subjectMap} />

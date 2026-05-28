@@ -27,7 +27,7 @@ export default async function NewGradePage() {
         <Link href="/grades" className="text-sm text-muted-foreground hover:underline">
           ← 成績一覧に戻る
         </Link>
-        <div className="rounded-lg border bg-white p-12 text-center">
+        <div className="rounded-lg border bg-card p-12 text-center">
           <p className="text-muted-foreground">生徒が登録されていません</p>
           <p className="text-sm text-muted-foreground mt-1">
             まず

@@ -101,7 +101,7 @@ export function HomeworkFilter({ students, subjects }: { students: Student[]; su
               <button
                 key={s.id}
                 onClick={() => toggleSubject(s.id)}
-                className={`px-2.5 py-1 rounded-full text-xs border transition-colors ${active ? "bg-blue-600 text-white border-blue-600" : "bg-white text-muted-foreground border-input hover:bg-gray-50"}`}
+                className={`px-2.5 py-1 rounded-full text-xs border transition-colors ${active ? "bg-primary text-primary-foreground border-primary" : "bg-card text-muted-foreground border-input hover:bg-muted"}`}
               >
                 {s.name}
               </button>

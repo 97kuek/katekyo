@@ -47,12 +47,12 @@ export default function ChangelogBell({ notificationData }: { notificationData: 
     <>
       <button
         onClick={handleOpen}
-        className="relative inline-flex items-center justify-center rounded-md p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900 transition-colors"
+        className="relative inline-flex items-center justify-center rounded-full p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
         aria-label="通知"
       >
         <Bell className="h-4 w-4" />
         {hasUnread && (
-          <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500" />
+          <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-destructive" />
         )}
       </button>
 
@@ -60,14 +60,14 @@ export default function ChangelogBell({ notificationData }: { notificationData: 
         <div className="fixed inset-0 z-50 bg-black/30">
           <div
             ref={panelRef}
-            className="absolute right-0 top-0 h-full w-full max-w-sm bg-white shadow-xl flex flex-col"
+            className="absolute right-0 top-0 h-full w-full max-w-sm bg-background shadow-xl flex flex-col border-l border-border"
           >
             {/* Header */}
-            <div className="flex items-center justify-between border-b px-5 py-4 shrink-0">
+            <div className="flex items-center justify-between border-b border-border px-5 py-4 shrink-0">
               <h2 className="font-semibold text-sm">通知</h2>
               <button
                 onClick={handleClose}
-                className="rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
+                className="rounded-full p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
                 aria-label="閉じる"
               >
                 <X className="h-4 w-4" />
@@ -79,7 +79,7 @@ export default function ChangelogBell({ notificationData }: { notificationData: 
               <div className="px-5 py-4 space-y-4">
                 {notificationData.role === "teacher" ? (
                   <>
-                    <Section icon={<BookOpen className="h-3.5 w-3.5 text-gray-400" />} label="提出待ちの宿題">
+                    <Section icon={<BookOpen className="h-3.5 w-3.5 text-muted-foreground" />} label="提出待ちの宿題">
                       {notificationData.pendingHomework.length === 0 ? (
                         <Empty>提出待ちはありません</Empty>
                       ) : (
@@ -87,10 +87,10 @@ export default function ChangelogBell({ notificationData }: { notificationData: 
                           <li key={h.id}>
                             <Link
                               href={`/homework/${h.id}/review`}
-                              className="text-sm text-gray-700 hover:text-primary hover:underline"
+                              className="text-sm text-foreground hover:text-primary hover:underline"
                               onClick={handleClose}
                             >
-                              <span className="text-xs text-gray-400 mr-1">{h.studentName}</span>
+                              <span className="text-xs text-muted-foreground mr-1">{h.studentName}</span>
                               {h.title}
                             </Link>
                           </li>
@@ -98,15 +98,15 @@ export default function ChangelogBell({ notificationData }: { notificationData: 
                       )}
                     </Section>
 
-                    <Section icon={<Calendar className="h-3.5 w-3.5 text-gray-400" />} label="今日の授業">
+                    <Section icon={<Calendar className="h-3.5 w-3.5 text-muted-foreground" />} label="今日の授業">
                       {notificationData.lessons.length === 0 ? (
                         <Empty>今日の授業はありません</Empty>
                       ) : (
                         notificationData.lessons.map((l) => (
-                          <li key={l.id} className="flex items-center gap-2 text-sm text-gray-700">
-                            <span className="text-xs text-gray-400 shrink-0">{formatTime(l.date)}</span>
+                          <li key={l.id} className="flex items-center gap-2 text-sm text-foreground">
+                            <span className="text-xs text-muted-foreground shrink-0">{formatTime(l.date)}</span>
                             {l.studentName}
-                            <span className="text-xs text-gray-400">（{l.type === "online" ? "オンライン" : "対面"}）</span>
+                            <span className="text-xs text-muted-foreground">（{l.type === "online" ? "オンライン" : "対面"}）</span>
                           </li>
                         ))
                       )}
@@ -114,7 +114,7 @@ export default function ChangelogBell({ notificationData }: { notificationData: 
                   </>
                 ) : (
                   <>
-                    <Section icon={<BookOpen className="h-3.5 w-3.5 text-gray-400" />} label="今日の宿題">
+                    <Section icon={<BookOpen className="h-3.5 w-3.5 text-muted-foreground" />} label="今日の宿題">
                       {notificationData.homework.length === 0 ? (
                         <Empty>本日の宿題はありません</Empty>
                       ) : (
@@ -122,26 +122,26 @@ export default function ChangelogBell({ notificationData }: { notificationData: 
                           <li key={h.id} className="flex items-center gap-2">
                             <Link
                               href={`/homework/${h.id}/submit`}
-                              className="text-sm text-gray-700 hover:text-primary hover:underline"
+                              className="text-sm text-foreground hover:text-primary hover:underline"
                               onClick={handleClose}
                             >
                               {h.title}
                             </Link>
                             {h.isOverdue && (
-                              <span className="text-xs text-red-500 shrink-0">期限切れ</span>
+                              <span className="text-xs text-destructive shrink-0">期限切れ</span>
                             )}
                           </li>
                         ))
                       )}
                     </Section>
 
-                    <Section icon={<Calendar className="h-3.5 w-3.5 text-gray-400" />} label="今日の授業">
+                    <Section icon={<Calendar className="h-3.5 w-3.5 text-muted-foreground" />} label="今日の授業">
                       {notificationData.lessons.length === 0 ? (
                         <Empty>今日の授業はありません</Empty>
                       ) : (
                         notificationData.lessons.map((l) => (
-                          <li key={l.id} className="flex items-center gap-2 text-sm text-gray-700">
-                            <span className="text-xs text-gray-400 shrink-0">{formatTime(l.date)}</span>
+                          <li key={l.id} className="flex items-center gap-2 text-sm text-foreground">
+                            <span className="text-xs text-muted-foreground shrink-0">{formatTime(l.date)}</span>
                             {l.type === "online" ? "オンライン" : "対面"}
                           </li>
                         ))
@@ -151,18 +151,18 @@ export default function ChangelogBell({ notificationData }: { notificationData: 
                 )}
               </div>
 
-              <div className="border-t mx-5" />
+              <div className="border-t border-border mx-5" />
 
               {/* Changelog */}
               <div className="px-5 py-4 space-y-6">
-                <p className="text-xs font-medium text-gray-500">アップデート情報</p>
+                <p className="text-xs font-medium text-muted-foreground">アップデート情報</p>
                 {CHANGELOG.map((entry) => (
                   <div key={entry.id}>
-                    <p className="text-xs text-gray-400 mb-1">{entry.date}</p>
+                    <p className="text-xs text-muted-foreground mb-1">{entry.date}</p>
                     <h3 className="text-sm font-medium mb-2">{entry.title}</h3>
                     <ul className="space-y-1.5">
                       {entry.items.map((item, i) => (
-                        <li key={i} className="flex gap-2 text-sm text-gray-600">
+                        <li key={i} className="flex gap-2 text-sm text-muted-foreground">
                           <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
                           {item}
                         </li>
@@ -192,7 +192,7 @@ function Section({
     <div>
       <div className="flex items-center gap-1.5 mb-2">
         {icon}
-        <span className="text-xs font-medium text-gray-500">{label}</span>
+        <span className="text-xs font-medium text-muted-foreground">{label}</span>
       </div>
       <ul className="space-y-1.5 pl-5">{children}</ul>
     </div>
@@ -200,5 +200,5 @@ function Section({
 }
 
 function Empty({ children }: { children: React.ReactNode }) {
-  return <p className="text-xs text-gray-400">{children}</p>
+  return <p className="text-xs text-muted-foreground">{children}</p>
 }

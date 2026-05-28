@@ -14,7 +14,7 @@ export function UpdateGradeForm({ studentId, currentGrade }: Props) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="text-xs text-gray-400 hover:text-gray-600 hover:underline"
+        className="text-xs text-muted-foreground hover:text-foreground hover:underline"
       >
         学年変更
       </button>
@@ -40,7 +40,7 @@ export function UpdateGradeForm({ studentId, currentGrade }: Props) {
         ))}
       </select>
       <button type="submit" className="text-xs text-primary hover:underline">保存</button>
-      <button type="button" onClick={() => setOpen(false)} className="text-xs text-gray-400 hover:underline">
+      <button type="button" onClick={() => setOpen(false)} className="text-xs text-muted-foreground hover:underline">
         キャンセル
       </button>
     </form>

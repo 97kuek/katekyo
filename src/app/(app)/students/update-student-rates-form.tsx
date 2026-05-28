@@ -32,7 +32,7 @@ export function UpdateStudentRatesForm({ studentId, defaultHourlyRate, defaultTr
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="text-xs text-gray-400 hover:text-gray-600 hover:underline"
+        className="text-xs text-muted-foreground hover:text-foreground hover:underline"
       >
         {summary ?? "時給・交通費を設定"}
       </button>
@@ -48,7 +48,7 @@ export function UpdateStudentRatesForm({ studentId, defaultHourlyRate, defaultTr
       className="flex flex-wrap items-center gap-1.5"
     >
       <input type="hidden" name="studentId" value={studentId} />
-      {state.error && <p className="w-full text-xs text-red-600">{state.error}</p>}
+      {state.error && <p className="w-full text-xs text-destructive">{state.error}</p>}
       <input
         name="defaultHourlyRate"
         type="number"
@@ -93,7 +93,7 @@ export function UpdateStudentRatesForm({ studentId, defaultHourlyRate, defaultTr
       <button type="submit" disabled={isPending} className="text-xs text-primary hover:underline disabled:opacity-50">
         保存
       </button>
-      <button type="button" onClick={() => setOpen(false)} className="text-xs text-gray-400 hover:underline">
+      <button type="button" onClick={() => setOpen(false)} className="text-xs text-muted-foreground hover:underline">
         キャンセル
       </button>
     </form>

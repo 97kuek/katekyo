@@ -35,22 +35,22 @@ export default async function InvitesPage() {
       </div>
 
       {invites.length === 0 && (
-        <div className="rounded-lg border bg-white p-12 text-center">
+        <div className="rounded-lg border bg-card p-12 text-center">
           <p className="text-muted-foreground">招待トークンがまだありません</p>
         </div>
       )}
 
       {pending.length > 0 && (
         <section className="space-y-3">
-          <h2 className="text-sm font-semibold text-blue-800 bg-blue-50 px-3 py-1.5 rounded-md inline-flex items-center gap-1.5">
-            <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-white text-xs">
+          <h2 className="text-sm font-semibold text-primary bg-primary/10 px-3 py-1.5 rounded-md inline-flex items-center gap-1.5">
+            <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs">
               {pending.length}
             </span>
             有効（未使用）
           </h2>
-          <div className="rounded-lg border bg-white overflow-hidden overflow-x-auto">
+          <div className="rounded-lg border bg-card overflow-hidden overflow-x-auto">
             <table className="w-full text-sm min-w-[480px]">
-              <thead className="border-b bg-gray-50">
+              <thead className="border-b bg-muted">
                 <tr>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">名前</th>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">学年</th>
@@ -61,7 +61,7 @@ export default async function InvitesPage() {
               </thead>
               <tbody className="divide-y">
                 {pending.map((i) => (
-                  <tr key={i.id} className="hover:bg-gray-50">
+                  <tr key={i.id} className="hover:bg-muted">
                     <td className="px-4 py-3 font-medium">{i.name}</td>
                     <td className="px-4 py-3 text-muted-foreground">{i.grade}</td>
                     <td className="px-4 py-3 text-muted-foreground">
@@ -77,7 +77,7 @@ export default async function InvitesPage() {
                           <input type="hidden" name="id" value={i.id} />
                           <button
                             type="submit"
-                            className="text-xs text-red-600 hover:text-red-800 hover:underline"
+                            className="text-xs text-destructive hover:text-destructive/80 hover:underline"
                           >
                             取り消す
                           </button>
@@ -95,9 +95,9 @@ export default async function InvitesPage() {
       {expired.length > 0 && (
         <section className="space-y-3">
           <h2 className="text-sm font-medium text-muted-foreground">期限切れ（未使用）</h2>
-          <div className="rounded-lg border bg-white overflow-hidden overflow-x-auto">
+          <div className="rounded-lg border bg-card overflow-hidden overflow-x-auto">
             <table className="w-full text-sm min-w-[480px]">
-              <thead className="border-b bg-gray-50">
+              <thead className="border-b bg-muted">
                 <tr>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">名前</th>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">学年</th>
@@ -107,10 +107,10 @@ export default async function InvitesPage() {
               </thead>
               <tbody className="divide-y">
                 {expired.map((i) => (
-                  <tr key={i.id} className="hover:bg-gray-50 opacity-60">
+                  <tr key={i.id} className="hover:bg-muted opacity-60">
                     <td className="px-4 py-3 font-medium">{i.name}</td>
                     <td className="px-4 py-3 text-muted-foreground">{i.grade}</td>
-                    <td className="px-4 py-3 text-red-500">
+                    <td className="px-4 py-3 text-destructive">
                       {i.expiresAt.toLocaleDateString("ja-JP")}
                     </td>
                     <td className="px-4 py-3 text-right">
@@ -118,7 +118,7 @@ export default async function InvitesPage() {
                         <input type="hidden" name="id" value={i.id} />
                         <button
                           type="submit"
-                          className="text-xs text-muted-foreground hover:text-red-600 hover:underline"
+                          className="text-xs text-muted-foreground hover:text-destructive hover:underline"
                         >
                           削除
                         </button>
@@ -135,9 +135,9 @@ export default async function InvitesPage() {
       {used.length > 0 && (
         <section className="space-y-3">
           <h2 className="text-sm font-medium text-muted-foreground">使用済み</h2>
-          <div className="rounded-lg border bg-white overflow-hidden overflow-x-auto">
+          <div className="rounded-lg border bg-card overflow-hidden overflow-x-auto">
             <table className="w-full text-sm min-w-[480px]">
-              <thead className="border-b bg-gray-50">
+              <thead className="border-b bg-muted">
                 <tr>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">名前</th>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">学年</th>
@@ -146,7 +146,7 @@ export default async function InvitesPage() {
               </thead>
               <tbody className="divide-y">
                 {used.map((i) => (
-                  <tr key={i.id} className="hover:bg-gray-50 opacity-60">
+                  <tr key={i.id} className="hover:bg-muted opacity-60">
                     <td className="px-4 py-3 font-medium">{i.name}</td>
                     <td className="px-4 py-3 text-muted-foreground">{i.grade}</td>
                     <td className="px-4 py-3 text-muted-foreground">

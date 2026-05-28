@@ -10,7 +10,7 @@ function SubjectTags({ ids, map }: { ids: string[]; map: Map<string, string> }) 
   return (
     <div className="flex flex-wrap gap-1 mt-1">
       {names.map((name) => (
-        <span key={name} className="text-xs bg-blue-50 text-blue-700 rounded-full px-2 py-0.5">
+        <span key={name} className="text-xs bg-primary/10 text-primary rounded-full px-2 py-0.5">
           {name}
         </span>
       ))}
@@ -22,7 +22,7 @@ function DiffBadge({ diff }: { diff: number | null }) {
   if (diff == null || Math.abs(diff) < 0.5) return null
   const up = diff > 0
   return (
-    <span className={`ml-1.5 text-xs font-medium ${up ? "text-green-600" : "text-red-500"}`}>
+    <span className={`ml-1.5 text-xs font-medium ${up ? "text-primary" : "text-destructive"}`}>
       {up ? "+" : ""}{Math.round(diff)}
     </span>
   )
@@ -33,7 +33,7 @@ function VsAvg({ score, avgScore }: { score: number | null; avgScore: number | n
   const diff = score - avgScore
   const up = diff >= 0
   return (
-    <span className={`text-sm font-medium ${up ? "text-green-600" : "text-red-500"}`}>
+    <span className={`text-sm font-medium ${up ? "text-primary" : "text-destructive"}`}>
       {up ? "+" : ""}{diff}点
     </span>
   )
@@ -100,7 +100,7 @@ export default async function StudentGradesPage({ params }: { params: Promise<{ 
       </div>
 
       {grades.length === 0 ? (
-        <div className="rounded-lg border bg-white p-12 text-center">
+        <div className="rounded-lg border bg-card p-12 text-center">
           <p className="text-muted-foreground">まだ成績記録がありません</p>
           <Link
             href="/grades/new"
@@ -116,7 +116,7 @@ export default async function StudentGradesPage({ params }: { params: Promise<{ 
           {/* モバイル: カード表示 */}
           <div className="md:hidden space-y-2">
             {grades.map((g, i) => (
-              <div key={g.id} className="rounded-lg border bg-white p-4 space-y-2">
+              <div key={g.id} className="rounded-lg border bg-card p-4 space-y-2">
                 <div className="min-w-0">
                   <p className="font-medium truncate">{g.testName}</p>
                   <SubjectTags ids={g.subjectIds} map={subjectMap} />
@@ -143,9 +143,9 @@ export default async function StudentGradesPage({ params }: { params: Promise<{ 
             ))}
           </div>
           {/* デスクトップ: テーブル表示 */}
-          <div className="hidden md:block rounded-lg border bg-white overflow-hidden overflow-x-auto">
+          <div className="hidden md:block rounded-lg border bg-card overflow-hidden overflow-x-auto">
             <table className="w-full text-sm min-w-[640px]">
-              <thead className="border-b bg-gray-50">
+              <thead className="border-b bg-muted">
                 <tr>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">テスト名</th>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">日付</th>
@@ -159,7 +159,7 @@ export default async function StudentGradesPage({ params }: { params: Promise<{ 
               </thead>
               <tbody className="divide-y">
                 {grades.map((g, i) => (
-                  <tr key={g.id} className="hover:bg-gray-50">
+                  <tr key={g.id} className="hover:bg-muted">
                     <td className="px-4 py-3">
                       <p className="font-medium">{g.testName}</p>
                       <SubjectTags ids={g.subjectIds} map={subjectMap} />

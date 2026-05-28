@@ -21,7 +21,7 @@ export default function SubjectForm() {
       <div className="flex-1 space-y-2">
         <Label htmlFor="name">新しい科目タグ</Label>
         {state.error && (
-          <p className="text-xs text-red-600">{state.error}</p>
+          <p className="text-xs text-destructive">{state.error}</p>
         )}
         <Input
           id="name"

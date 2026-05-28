@@ -1,5 +1,5 @@
 function Skeleton({ className }: { className?: string }) {
-  return <div className={`animate-pulse rounded bg-gray-200 ${className ?? ""}`} />
+  return <div className={`animate-pulse rounded bg-muted ${className ?? ""}`} />
 }
 
 export default function Loading() {
@@ -12,7 +12,7 @@ export default function Loading() {
           <Skeleton className="h-8 w-16" />
         </div>
       </div>
-      <div className="rounded-lg border bg-white p-5 space-y-4">
+      <div className="rounded-lg border bg-card p-5 space-y-4">
         <div className="space-y-2">
           <Skeleton className="h-7 w-64" />
           <Skeleton className="h-4 w-40" />

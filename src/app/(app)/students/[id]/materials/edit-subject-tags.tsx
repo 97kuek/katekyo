@@ -48,7 +48,7 @@ export function EditSubjectTags({
     return (
       <button
         onClick={() => setEditing(true)}
-        className="text-muted-foreground hover:text-blue-600 transition-colors"
+        className="text-muted-foreground hover:text-primary transition-colors"
         title="科目タグを編集"
       >
         <Pencil className="h-3.5 w-3.5" />
@@ -75,11 +75,11 @@ export function EditSubjectTags({
         <button
           onClick={save}
           disabled={isPending}
-          className="text-xs font-medium text-blue-600 hover:text-blue-800 disabled:opacity-50"
+          className="text-xs font-medium text-primary hover:text-primary/80 disabled:opacity-50"
         >
           {isPending ? "保存中..." : "保存"}
         </button>
-        <button onClick={cancel} className="text-xs text-muted-foreground hover:text-gray-600">
+        <button onClick={cancel} className="text-xs text-muted-foreground hover:text-foreground">
           キャンセル
         </button>
       </div>

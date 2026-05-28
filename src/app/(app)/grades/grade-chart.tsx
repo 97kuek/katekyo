@@ -99,7 +99,7 @@ export default function GradeChart({
   if (!hasScore && !hasDeviation) return null
 
   return (
-    <div className="rounded-lg border bg-white p-5 space-y-4">
+    <div className="rounded-lg border bg-card p-5 space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <p className="text-sm font-medium">成績推移</p>
         <div className="flex gap-1.5 flex-wrap">
@@ -130,7 +130,7 @@ export default function GradeChart({
             key={value}
             type="button"
             onClick={() => { setTypeFilter(value); setActiveSubject(null) }}
-            className={`px-2.5 py-1 rounded-md text-xs border transition-colors ${typeFilter === value ? "bg-primary text-primary-foreground border-primary" : "bg-white text-muted-foreground border-input hover:bg-gray-50"}`}
+            className={`px-2.5 py-1 rounded-md text-xs border transition-colors ${typeFilter === value ? "bg-primary text-primary-foreground border-primary" : "bg-card text-muted-foreground border-input hover:bg-muted"}`}
           >
             {label}
           </button>

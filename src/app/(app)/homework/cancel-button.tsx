@@ -22,7 +22,7 @@ export function CancelSubmissionButton({ homeworkId }: { homeworkId: string }) {
       type="button"
       onClick={handleClick}
       disabled={isPending}
-      className="text-xs text-muted-foreground hover:text-red-600 underline underline-offset-2 transition-colors disabled:opacity-50"
+      className="text-xs text-muted-foreground hover:text-destructive underline underline-offset-2 transition-colors disabled:opacity-50"
     >
       {isPending ? "取り消し中..." : "提出を取り消す"}
     </button>

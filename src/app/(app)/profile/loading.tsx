@@ -1,5 +1,5 @@
 function Skeleton({ className }: { className?: string }) {
-  return <div className={`animate-pulse rounded bg-gray-200 ${className ?? ""}`} />
+  return <div className={`animate-pulse rounded bg-muted ${className ?? ""}`} />
 }
 
 export default function Loading() {
@@ -10,7 +10,7 @@ export default function Loading() {
         <Skeleton className="h-4 w-48" />
       </div>
       {[...Array(2)].map((_, i) => (
-        <div key={i} className="rounded-lg border bg-white p-5 space-y-4">
+        <div key={i} className="rounded-lg border bg-card p-5 space-y-4">
           <Skeleton className="h-5 w-28" />
           <div className="space-y-3">
             <div className="space-y-1.5">

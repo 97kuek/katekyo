@@ -37,13 +37,13 @@ export function ResetPasswordButton({ studentId }: { studentId: string }) {
         <button
           type="submit"
           disabled={isPending}
-          className="text-xs font-medium text-blue-600 hover:text-blue-800 disabled:opacity-50"
+          className="text-xs font-medium text-primary hover:text-primary/80 disabled:opacity-50"
         >
           {isPending ? "..." : "設定"}
         </button>
       </form>
-      {state.error && <span className="text-xs text-red-600">{state.error}</span>}
-      <button onClick={() => setOpen(false)} className="text-xs text-gray-400 hover:text-gray-600">
+      {state.error && <span className="text-xs text-destructive">{state.error}</span>}
+      <button onClick={() => setOpen(false)} className="text-xs text-muted-foreground hover:text-foreground">
         ✕
       </button>
     </div>

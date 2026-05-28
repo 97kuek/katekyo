@@ -12,28 +12,28 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
       {/* ブランドパネル */}
-      <div className="bg-[#2e743a] text-white flex flex-col justify-center px-8 pt-6 pb-3 md:w-1/2 md:min-h-screen md:py-10">
+      <div className="bg-primary text-primary-foreground flex flex-col justify-center px-8 pt-6 pb-3 md:w-1/2 md:min-h-screen md:py-10">
         <div className="max-w-sm mx-auto w-full space-y-3 md:space-y-6">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shrink-0">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2e743a" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <div className="w-10 h-10 bg-primary-foreground rounded-xl flex items-center justify-center shrink-0">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-primary">
                 <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
                 <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 0 3-3h7z" />
               </svg>
             </div>
             <div>
               <p className="text-2xl font-bold tracking-tight leading-none">katekyo</p>
-              <p className="text-xs text-white/80 mt-0.5">家庭教師と生徒を繋ぐ学習管理アプリ</p>
+              <p className="text-xs text-primary-foreground/80 mt-0.5">家庭教師と生徒を繋ぐ学習管理アプリ</p>
             </div>
           </div>
 
           <ul className="space-y-2">
             {FEATURES.map(({ Icon, label, text }) => (
-              <li key={label} className="flex items-start gap-2.5 text-sm text-white/90">
+              <li key={label} className="flex items-start gap-2.5 text-sm text-primary-foreground/90">
                 <Icon className="h-4 w-4 mt-0.5 shrink-0" />
                 <div className="flex gap-2 min-w-0">
                   <span className="font-medium shrink-0">{label}</span>
-                  <span className="text-white/75">{text}</span>
+                  <span className="text-primary-foreground/75">{text}</span>
                 </div>
               </li>
             ))}
@@ -42,12 +42,12 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       </div>
 
       {/* フォームパネル */}
-      <div className="flex-1 flex flex-col items-center justify-center px-4 pt-3 pb-6 bg-gray-50 md:w-1/2 md:min-h-screen md:py-10">
+      <div className="flex-1 flex flex-col items-center justify-center px-4 pt-3 pb-6 bg-muted md:w-1/2 md:min-h-screen md:py-10">
         <div className="w-full max-w-md space-y-6">
           {children}
-          <footer className="flex justify-center gap-4 text-xs text-gray-400">
-            <Link href="/terms" className="hover:text-gray-600">利用規約</Link>
-            <Link href="/privacy" className="hover:text-gray-600">プライバシーポリシー</Link>
+          <footer className="flex justify-center gap-4 text-xs text-muted-foreground">
+            <Link href="/terms" className="hover:text-foreground">利用規約</Link>
+            <Link href="/privacy" className="hover:text-foreground">プライバシーポリシー</Link>
           </footer>
         </div>
       </div>

@@ -43,7 +43,7 @@ export default function InvitePage() {
         <CardContent>
           {state.token ? (
             <div className="space-y-4">
-              <p className="text-sm text-green-700 bg-green-50 p-3 rounded-md">招待リンクが生成されました。生徒に送付してください。</p>
+              <p className="text-sm text-primary bg-primary/10 p-3 rounded-md">招待リンクが生成されました。生徒に送付してください。</p>
               <div>
                 <Label>招待URL</Label>
                 <div className="flex gap-2 mt-1">
@@ -60,7 +60,7 @@ export default function InvitePage() {
           ) : (
             <form action={action} className="space-y-4">
               {state.error && (
-                <p className="text-sm text-red-600 bg-red-50 p-3 rounded-md">{state.error}</p>
+                <p className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">{state.error}</p>
               )}
               <div className="space-y-2">
                 <Label htmlFor="name">生徒の名前</Label>

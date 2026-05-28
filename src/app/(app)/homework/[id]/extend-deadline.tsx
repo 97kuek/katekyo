@@ -21,7 +21,7 @@ export function ExtendDeadlineButton({ homeworkId, currentDueDate }: { homeworkI
   }
 
   return (
-    <div className="rounded-lg border bg-white p-4 space-y-3">
+    <div className="rounded-lg border bg-card p-4 space-y-3">
       <p className="text-sm font-medium">期限を変更</p>
       <form action={action} className="flex items-center gap-2 flex-wrap">
         <input type="hidden" name="id" value={homeworkId} />

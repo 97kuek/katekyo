@@ -33,8 +33,8 @@ export function MeetLinkSettings({ currentMeetLink }: { currentMeetLink: string 
       <CardContent className="space-y-4">
         {displayedLink && !isEditing ? (
           <div className="space-y-3">
-            <div className="flex items-center gap-2 text-sm text-green-700 font-medium">
-              <span className="h-2 w-2 rounded-full bg-green-500 inline-block" />
+            <div className="flex items-center gap-2 text-sm text-primary font-medium">
+              <span className="h-2 w-2 rounded-full bg-primary inline-block" />
               登録済み
             </div>
             <div className="flex items-center gap-2 rounded-lg border bg-muted px-3 py-2">
@@ -113,8 +113,8 @@ export function LineSettings({ isLinked }: { isLinked: boolean }) {
           <CardDescription>LINEアカウントと連携中です</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
-          <div className="flex items-center gap-2 text-sm text-green-700 font-medium">
-            <span className="h-2 w-2 rounded-full bg-green-500 inline-block" />
+          <div className="flex items-center gap-2 text-sm text-primary font-medium">
+            <span className="h-2 w-2 rounded-full bg-primary inline-block" />
             連携済み
           </div>
           <p className="text-sm text-muted-foreground">

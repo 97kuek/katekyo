@@ -1,11 +1,11 @@
 function Skeleton({ className }: { className?: string }) {
-  return <div className={`animate-pulse rounded bg-gray-200 ${className ?? ""}`} />
+  return <div className={`animate-pulse rounded bg-muted ${className ?? ""}`} />
 }
 
 export default function Loading() {
   return (
     <div className="space-y-4">
-      <div className="rounded-lg border bg-white overflow-hidden">
+      <div className="rounded-lg border bg-card overflow-hidden">
         <div className="flex items-center justify-between px-4 py-3 border-b">
           <Skeleton className="h-8 w-8 rounded" />
           <Skeleton className="h-5 w-24" />
@@ -32,7 +32,7 @@ export default function Loading() {
         </div>
       </div>
 
-      <div className="rounded-lg border bg-white p-4 space-y-3">
+      <div className="rounded-lg border bg-card p-4 space-y-3">
         <Skeleton className="h-5 w-40" />
         <Skeleton className="h-16 w-full rounded-md" />
       </div>

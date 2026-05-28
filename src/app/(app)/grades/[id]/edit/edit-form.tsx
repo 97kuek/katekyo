@@ -40,14 +40,14 @@ export default function EditGradeForm({
     <form action={action} className="space-y-5">
       <input type="hidden" name="id" value={grade.id} />
       {state.error && (
-        <p className="text-sm text-red-600 bg-red-50 p-3 rounded-md">{state.error}</p>
+        <p className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">{state.error}</p>
       )}
       <p className="text-xs text-muted-foreground"><span className="text-destructive font-medium">*</span> は必須項目です</p>
 
       <div className="grid grid-cols-2 gap-4">
         <div className="col-span-2 space-y-2">
           <Label>生徒</Label>
-          <Input value={grade.student.user.name} disabled className="bg-gray-50" />
+          <Input value={grade.student.user.name} disabled className="bg-muted" />
         </div>
 
         <div className="col-span-2 space-y-2">

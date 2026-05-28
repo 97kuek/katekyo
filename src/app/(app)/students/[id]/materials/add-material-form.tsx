@@ -44,7 +44,7 @@ export function AddMaterialForm({ studentId, subjects }: { studentId: string; su
       >
         {isPending ? "追加中..." : "追加"}
       </button>
-      {state.error && <p className="text-xs text-red-600">{state.error}</p>}
+      {state.error && <p className="text-xs text-destructive">{state.error}</p>}
     </form>
   )
 }

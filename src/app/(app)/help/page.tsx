@@ -35,9 +35,9 @@ function SectionCard({
   children: React.ReactNode
 }) {
   return (
-    <div className="rounded-lg border bg-white p-5 space-y-3">
+    <div className="rounded-lg border bg-card p-5 space-y-3">
       <h2 className="font-semibold text-base">{title}</h2>
-      <div className="space-y-2.5 text-sm text-gray-700">{children}</div>
+      <div className="space-y-2.5 text-sm text-foreground">{children}</div>
     </div>
   )
 }
@@ -59,9 +59,9 @@ function Steps({ items }: { items: string[] }) {
 
 function Tip({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex gap-2 bg-gray-50 border border-gray-200 rounded-md p-3 mt-1">
-      <span className="shrink-0 text-gray-500">💡</span>
-      <p className="text-sm text-gray-700 leading-relaxed">{children}</p>
+    <div className="flex gap-2 bg-muted border border-border rounded-md p-3 mt-1">
+      <span className="shrink-0 text-muted-foreground">💡</span>
+      <p className="text-sm text-foreground leading-relaxed">{children}</p>
     </div>
   )
 }
@@ -87,7 +87,7 @@ function TeacherHelp() {
       <H1>使い方ガイド（先生）</H1>
 
       {/* クイックスタート */}
-      <div className="rounded-lg border bg-white p-5 space-y-3">
+      <div className="rounded-lg border bg-card p-5 space-y-3">
         <p className="font-semibold">はじめてのセットアップ（3ステップ）</p>
         <Steps items={[
           "「生徒一覧」→「生徒を招待」で生徒を登録する",
@@ -206,7 +206,7 @@ function StudentHelp() {
       <H1>使い方ガイド（生徒）</H1>
 
       {/* クイックスタート */}
-      <div className="rounded-lg border bg-white p-5 space-y-3">
+      <div className="rounded-lg border bg-card p-5 space-y-3">
         <p className="font-semibold">はじめてのセットアップ（3ステップ）</p>
         <Steps items={[
           "先生から送られた招待URLを開いてアカウントを作成する",
@@ -260,7 +260,7 @@ function StudentHelp() {
       {/* 学習の森 */}
       <SectionCard title="学習の森">
         <p className="mb-2">宿題が承認されたりテストで好成績を取ると、森にアイテムが育ちます。</p>
-        <div className="bg-gray-50 rounded-md p-3 space-y-1 text-xs">
+        <div className="bg-muted rounded-md p-3 space-y-1 text-xs">
           <p><span className="font-semibold">🎋 竹</span>　満点 / 偏差値70以上（超レア）</p>
           <p><span className="font-semibold">🌸 桜</span>　90%以上 / 偏差値65以上（レア）</p>
           <p><span className="font-semibold">🌳 大木</span>　80〜89% / 偏差値60〜64</p>
@@ -291,11 +291,11 @@ function StudentHelp() {
 
 function HomeScreenSection() {
   return (
-    <div className="rounded-lg border bg-white p-5 space-y-4">
+    <div className="rounded-lg border bg-card p-5 space-y-4">
       <h2 className="font-semibold text-base">ホーム画面に追加する</h2>
-      <p className="text-sm text-gray-600">アプリのようにホーム画面から直接起動できます。</p>
+      <p className="text-sm text-muted-foreground">アプリのようにホーム画面から直接起動できます。</p>
 
-      <div className="space-y-3 text-sm text-gray-700">
+      <div className="space-y-3 text-sm text-foreground">
         <p className="font-medium text-xs text-muted-foreground uppercase tracking-wide">iPhone / iPad（Safari）</p>
         <Steps items={[
           "Safari でこのサイトを開く",
@@ -303,13 +303,13 @@ function HomeScreenSection() {
           "「ホーム画面に追加」をタップ",
           "「追加」をタップして完了",
         ]} />
-        <div className="flex gap-2 bg-gray-50 border border-gray-200 rounded-md p-3">
-          <span className="shrink-0 text-gray-500">ℹ</span>
-          <p className="text-sm text-gray-700 leading-relaxed">Safari 以外のブラウザ（Chrome など）では追加できません。</p>
+        <div className="flex gap-2 bg-muted border border-border rounded-md p-3">
+          <span className="shrink-0 text-muted-foreground">ℹ</span>
+          <p className="text-sm text-foreground leading-relaxed">Safari 以外のブラウザ（Chrome など）では追加できません。</p>
         </div>
       </div>
 
-      <div className="space-y-3 text-sm text-gray-700 pt-1">
+      <div className="space-y-3 text-sm text-foreground pt-1">
         <p className="font-medium text-xs text-muted-foreground uppercase tracking-wide">Android（Chrome）</p>
         <Steps items={[
           "Chrome でこのサイトを開く",
@@ -324,8 +324,8 @@ function HomeScreenSection() {
 
 function AboutSection() {
   return (
-    <div className="rounded-lg border bg-white p-5 space-y-2 text-sm text-gray-600">
-      <p className="font-semibold text-gray-800">katekyo について</p>
+    <div className="rounded-lg border bg-card p-5 space-y-2 text-sm text-muted-foreground">
+      <p className="font-semibold text-foreground">katekyo について</p>
       <p>家庭教師と生徒の学習をサポートするWebアプリです。宿題・成績・授業スケジュールを一元管理し、学習の継続を「学習の森」として可視化します。</p>
       <div className="pt-2 space-y-0.5 text-xs text-muted-foreground border-t">
         <p>開発者：植木敬太郎　/ 　連絡先：ueki.keitaro@gmail.com</p>

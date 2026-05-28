@@ -88,7 +88,7 @@ export default async function StudentGardenPage({
       )}
 
       {total === 0 ? (
-        <div className="rounded-xl border bg-white p-12 flex flex-col items-center gap-3 text-center">
+        <div className="rounded-xl border bg-card p-12 flex flex-col items-center gap-3 text-center">
           <TreePine className="h-10 w-10 text-green-300" />
           <p className="font-medium text-muted-foreground">まだ何も育っていません</p>
           <p className="text-sm text-muted-foreground">
@@ -96,7 +96,7 @@ export default async function StudentGardenPage({
           </p>
         </div>
       ) : (
-        <div className="rounded-xl border bg-white p-4 overflow-hidden">
+        <div className="rounded-xl border bg-card p-4 overflow-hidden">
           <GardenCanvas items={items} />
         </div>
       )}

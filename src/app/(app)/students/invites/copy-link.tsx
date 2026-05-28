@@ -15,7 +15,7 @@ export function CopyInviteLink({ token }: { token: string }) {
   return (
     <button
       onClick={copy}
-      className="text-xs text-blue-600 hover:text-blue-800 hover:underline whitespace-nowrap"
+      className="text-xs text-primary hover:text-primary/80 hover:underline whitespace-nowrap"
     >
       {copied ? "コピー済み ✓" : "URLをコピー"}
     </button>

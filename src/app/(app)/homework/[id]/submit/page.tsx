@@ -26,7 +26,7 @@ export default async function SubmitHomeworkPage({ params }: { params: Promise<{
         ← 宿題一覧に戻る
       </Link>
 
-      <div className="rounded-lg border bg-white p-5 space-y-3">
+      <div className="rounded-lg border bg-card p-5 space-y-3">
         <div className="flex items-start justify-between gap-2">
           <h2 className="font-semibold text-lg">{homework.title}</h2>
           <StatusBadge status={homework.status} />
@@ -35,12 +35,12 @@ export default async function SubmitHomeworkPage({ params }: { params: Promise<{
           期限: {homework.dueDate.toLocaleDateString("ja-JP")}
         </p>
         {homework.description && (
-          <p className="text-sm text-gray-600">{homework.description}</p>
+          <p className="text-sm text-muted-foreground">{homework.description}</p>
         )}
         {homework.status === "rejected" && homework.teacherFeedback && (
-          <div className="bg-red-50 rounded-md p-3">
-            <p className="text-xs font-medium text-red-700 mb-1">先生のコメント</p>
-            <p className="text-sm text-red-800">{homework.teacherFeedback}</p>
+          <div className="bg-destructive/10 rounded-md p-3">
+            <p className="text-xs font-medium text-destructive mb-1">先生のコメント</p>
+            <p className="text-sm text-destructive">{homework.teacherFeedback}</p>
           </div>
         )}
       </div>

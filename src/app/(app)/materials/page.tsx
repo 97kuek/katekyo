@@ -31,12 +31,12 @@ export default async function StudentMaterialsPage() {
       </div>
 
       {materials.length === 0 ? (
-        <div className="rounded-lg border bg-white p-10 text-center space-y-2">
+        <div className="rounded-lg border bg-card p-10 text-center space-y-2">
           <BookOpen className="h-8 w-8 text-muted-foreground mx-auto" />
           <p className="text-sm text-muted-foreground">教材が登録されていません</p>
         </div>
       ) : (
-        <div className="rounded-lg border bg-white divide-y">
+        <div className="rounded-lg border bg-card divide-y">
           {materials.map((m) => (
             <div key={m.id} className="flex items-center gap-3 px-5 py-4">
               <BookOpen className="h-4 w-4 text-amber-500 shrink-0" />
@@ -48,7 +48,7 @@ export default async function StudentMaterialsPage() {
                     {m.subjectIds.map((sid) => {
                       const name = subjectMap.get(sid)
                       return name ? (
-                        <span key={sid} className="text-xs bg-gray-100 text-gray-700 rounded px-1.5 py-0.5">
+                        <span key={sid} className="text-xs bg-muted text-foreground rounded px-1.5 py-0.5">
                           {name}
                         </span>
                       ) : null

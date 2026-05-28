@@ -18,7 +18,7 @@ export default function ReviewForm({ id }: { id: string }) {
         <form action={action} className="space-y-4">
           <input type="hidden" name="id" value={id} />
           {state.error && (
-            <p className="text-sm text-red-600 bg-red-50 p-3 rounded-md">{state.error}</p>
+            <p className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">{state.error}</p>
           )}
           <div className="space-y-2">
             <Label htmlFor="feedback">コメント（任意）</Label>

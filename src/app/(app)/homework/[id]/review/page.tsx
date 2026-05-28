@@ -23,7 +23,7 @@ export default async function ReviewHomeworkPage({ params }: { params: Promise<{
         ← 宿題一覧に戻る
       </Link>
 
-      <div className="rounded-lg border bg-white p-5 space-y-3">
+      <div className="rounded-lg border bg-card p-5 space-y-3">
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-xs text-muted-foreground">{homework.student.user.name}</p>
@@ -35,7 +35,7 @@ export default async function ReviewHomeworkPage({ params }: { params: Promise<{
         </div>
 
         {homework.description && (
-          <p className="text-sm text-gray-600">{homework.description}</p>
+          <p className="text-sm text-muted-foreground">{homework.description}</p>
         )}
 
         {homework.photoUrl && (
@@ -45,21 +45,21 @@ export default async function ReviewHomeworkPage({ params }: { params: Promise<{
             <img
               src={homework.photoUrl}
               alt="提出写真"
-              className="w-full max-h-60 sm:max-h-80 object-contain rounded-md border bg-gray-50"
+              className="w-full max-h-60 sm:max-h-80 object-contain rounded-md border bg-muted"
             />
           </div>
         )}
         {homework.difficultyRating && (
           <p className={`inline-flex items-center gap-1.5 text-xs font-medium rounded-full px-2.5 py-1 ${
-            homework.difficultyRating === 1 ? "text-green-700 bg-green-50" :
+            homework.difficultyRating === 1 ? "text-primary bg-primary/10" :
             homework.difficultyRating === 2 ? "text-yellow-700 bg-yellow-50" :
-            "text-red-700 bg-red-50"
+            "text-destructive bg-destructive/10"
           }`}>
             {homework.difficultyRating === 1 ? "😊 かんたん" : homework.difficultyRating === 2 ? "😐 ふつう" : "😰 むずかしい"}
           </p>
         )}
         {homework.studentNote && (
-          <div className="bg-gray-50 rounded-md p-3">
+          <div className="bg-muted rounded-md p-3">
             <p className="text-xs font-medium text-muted-foreground mb-1">生徒のコメント</p>
             <p className="text-sm">{homework.studentNote}</p>
           </div>

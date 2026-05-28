@@ -19,7 +19,7 @@ function DeleteLessonButton({ lessonId }: { lessonId: string }) {
   if (confirming) {
     return (
       <div className="flex items-center gap-1.5 shrink-0">
-        <span className="text-xs text-gray-600">削除?</span>
+        <span className="text-xs text-muted-foreground">削除?</span>
         <button
           onClick={() => startTransition(async () => {
             const fd = new FormData()
@@ -96,10 +96,10 @@ function CompleteLessonLogForm({ lessonId, onClose }: { lessonId: string; onClos
         >
           {isPending ? "..." : "完了にする"}
         </button>
-        <button onClick={() => submit(false)} disabled={isPending} className="text-xs text-gray-500 hover:text-gray-700 disabled:opacity-50">
+        <button onClick={() => submit(false)} disabled={isPending} className="text-xs text-muted-foreground hover:text-foreground disabled:opacity-50">
           スキップ
         </button>
-        <button onClick={onClose} className="text-xs text-gray-400 hover:text-gray-600 ml-auto">
+        <button onClick={onClose} className="text-xs text-muted-foreground hover:text-foreground ml-auto">
           キャンセル
         </button>
       </div>
@@ -114,7 +114,7 @@ function UncompleteLessonButton({ lessonId }: { lessonId: string }) {
   if (confirming) {
     return (
       <div className="flex items-center gap-1.5 shrink-0">
-        <span className="text-xs text-gray-600">取り消し?</span>
+        <span className="text-xs text-muted-foreground">取り消し?</span>
         <button
           onClick={() => startTransition(async () => {
             const fd = new FormData()
@@ -126,7 +126,7 @@ function UncompleteLessonButton({ lessonId }: { lessonId: string }) {
         >
           {isPending ? "..." : "はい"}
         </button>
-        <button onClick={() => setConfirming(false)} className="text-xs text-gray-400 hover:text-gray-600">
+        <button onClick={() => setConfirming(false)} className="text-xs text-muted-foreground hover:text-foreground">
           ✕
         </button>
       </div>
@@ -185,7 +185,7 @@ function DeleteExamEventButton({ examEventId }: { examEventId: string }) {
   if (confirming) {
     return (
       <div className="flex items-center gap-1.5 shrink-0">
-        <span className="text-xs text-gray-600">削除?</span>
+        <span className="text-xs text-muted-foreground">削除?</span>
         <button
           onClick={() => startTransition(async () => {
             const fd = new FormData()
@@ -229,17 +229,17 @@ function HomeworkForm({ students, defaultDate }: { students: Student[]; defaultD
   }
 
   return (
-    <div className="rounded-lg border bg-white p-3 space-y-3 w-full">
+    <div className="rounded-lg border bg-card p-3 space-y-3 w-full">
       <h3 className="font-medium text-sm">宿題を追加</h3>
       <form action={action} className="space-y-3">
-        {state.error && <p className="text-xs text-red-600 bg-red-50 p-2 rounded">{state.error}</p>}
+        {state.error && <p className="text-xs text-destructive bg-destructive/10 p-2 rounded">{state.error}</p>}
         <div className="space-y-2">
           <div className="space-y-1">
             <Label className="text-xs">生徒</Label>
             {students.length === 1 ? (
               <>
                 <input type="hidden" name="studentId" value={students[0].id} />
-                <p className="text-sm py-1.5 px-3 rounded-md border bg-gray-50">{students[0].user.name}（{students[0].grade}）</p>
+                <p className="text-sm py-1.5 px-3 rounded-md border bg-muted">{students[0].user.name}（{students[0].grade}）</p>
               </>
             ) : (
               <select
@@ -295,11 +295,11 @@ function ExamEventForm({ students, defaultDate }: { students: Student[]; default
   }
 
   return (
-    <div className="rounded-lg border bg-white p-3 space-y-3 w-full">
+    <div className="rounded-lg border bg-card p-3 space-y-3 w-full">
       <h3 className="font-medium text-sm">テストを追加</h3>
       <form action={action} className="space-y-3">
         {state.error && (
-          <p className="text-xs text-red-600 bg-red-50 p-2 rounded">{state.error}</p>
+          <p className="text-xs text-destructive bg-destructive/10 p-2 rounded">{state.error}</p>
         )}
         <div className="space-y-2">
           <div className="space-y-1">
@@ -307,7 +307,7 @@ function ExamEventForm({ students, defaultDate }: { students: Student[]; default
             {students.length === 1 ? (
               <>
                 <input type="hidden" name="studentId" value={students[0].id} />
-                <p className="text-sm py-1.5 px-3 rounded-md border bg-gray-50">{students[0].user.name}（{students[0].grade}）</p>
+                <p className="text-sm py-1.5 px-3 rounded-md border bg-muted">{students[0].user.name}（{students[0].grade}）</p>
               </>
             ) : (
               <select
@@ -388,7 +388,7 @@ function DayDetail({
   const [completingLessonId, setCompletingLessonId] = useState<string | null>(null)
 
   return (
-    <div className="rounded-lg border bg-white p-4 space-y-3">
+    <div className="rounded-lg border bg-card p-4 space-y-3">
       <h2 className="font-semibold text-sm">{dateStr}</h2>
       {isTeacher && (
         <div className="flex gap-2 flex-wrap">
@@ -405,7 +405,7 @@ function DayDetail({
             const now = new Date()
             const isPast = l.date < now
             return (
-              <div key={l.id} className="rounded-md px-3 py-2 bg-gray-50">
+              <div key={l.id} className="rounded-md px-3 py-2 bg-muted">
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
@@ -428,12 +428,12 @@ function DayDetail({
                         {l.subjectIds.map((sid) => {
                           const sub = subjects.find((s) => s.id === sid)
                           return sub ? (
-                            <span key={sid} className="text-xs bg-gray-100 text-gray-700 rounded px-1.5 py-0.5">{sub.name}</span>
+                            <span key={sid} className="text-xs bg-muted text-foreground rounded px-1.5 py-0.5">{sub.name}</span>
                           ) : null
                         })}
                       </div>
                     )}
-                    {l.notes && <p className="text-xs text-gray-500 mt-1">📝 {l.notes}</p>}
+                    {l.notes && <p className="text-xs text-muted-foreground mt-1">📝 {l.notes}</p>}
                     {l.type === "online" && l.meetLink && (
                       <a
                         href={l.meetLink}
@@ -445,11 +445,11 @@ function DayDetail({
                       </a>
                     )}
                     {(isTeacher ? l.lessonLog : (l.lessonLogPublic ? l.lessonLog : null)) && (
-                      <div className="mt-2 bg-gray-50 rounded-md p-3">
+                      <div className="mt-2 bg-muted rounded-md p-3">
                         <p className="text-xs font-medium text-muted-foreground mb-1">
                           授業ログ{isTeacher && l.lessonLogPublic && <span className="ml-1 text-primary">（生徒に公開中）</span>}
                         </p>
-                        <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{l.lessonLog}</p>
+                        <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">{l.lessonLog}</p>
                       </div>
                     )}
                     {isTeacher && (l.hourlyRate || l.travelExpense != null) && (
@@ -463,7 +463,7 @@ function DayDetail({
                     <div className="flex items-center gap-2 shrink-0">
                       {isPast && !l.completedAt && (
                         completingLessonId === l.id ? (
-                          <button onClick={() => setCompletingLessonId(null)} className="text-xs text-gray-400 hover:text-gray-600">キャンセル</button>
+                          <button onClick={() => setCompletingLessonId(null)} className="text-xs text-muted-foreground hover:text-foreground">キャンセル</button>
                         ) : (
                           <button
                             onClick={() => { setCompletingLessonId(l.id); setEditingLessonId(null) }}
@@ -521,12 +521,12 @@ function DayDetail({
         <div className="space-y-2">
           <p className="text-xs font-medium text-muted-foreground">テスト</p>
           {examEvents.map((e) => (
-            <div key={e.id} className="rounded-md bg-slate-50 px-3 py-2">
+            <div key={e.id} className="rounded-md bg-muted px-3 py-2">
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-sm font-medium">{e.name}</span>
-                    <span className="text-xs rounded-full px-2 py-0.5 bg-slate-200 text-slate-700">
+                    <span className="text-xs rounded-full px-2 py-0.5 bg-border text-foreground">
                       {TEST_TYPE_LABELS[e.testType as keyof typeof TEST_TYPE_LABELS] ?? e.testType}
                     </span>
                   </div>
@@ -566,8 +566,8 @@ function NextLessonBanner({ lessons, isTeacher }: { lessons: Lesson[]; isTeacher
   const when = diffDays === 0 ? "今日" : diffDays === 1 ? "明日" : diffDays === 2 ? "明後日" : `${diffDays}日後`
 
   return (
-    <div className="rounded-lg bg-gray-50 border px-4 py-3 flex items-center gap-3">
-      <div className="h-9 w-9 rounded-full bg-gray-200 flex items-center justify-center shrink-0 text-lg">📅</div>
+    <div className="rounded-lg bg-muted border px-4 py-3 flex items-center gap-3">
+      <div className="h-9 w-9 rounded-full bg-border flex items-center justify-center shrink-0 text-lg">📅</div>
       <div className="min-w-0 flex-1">
         <p className="text-sm font-semibold">
           次の授業: <span className="text-primary">{when}</span>
@@ -698,9 +698,9 @@ export default function CalendarView({ lessons, deadlines, examEvents, students,
 
       {viewMode === "month" ? (
         <>
-          <div className="rounded-lg border bg-white overflow-hidden">
+          <div className="rounded-lg border bg-card overflow-hidden">
             <div className="flex items-center justify-between px-4 py-3 border-b">
-              <button onClick={prevMonth} className="p-1 hover:bg-gray-100 rounded">
+              <button onClick={prevMonth} className="p-1 hover:bg-muted rounded">
                 <ChevronLeft className="h-4 w-4" />
               </button>
               <div className="flex items-center gap-2">
@@ -709,12 +709,12 @@ export default function CalendarView({ lessons, deadlines, examEvents, students,
                 </span>
                 <button
                   onClick={goToToday}
-                  className="text-xs text-muted-foreground hover:text-foreground border border-input rounded px-2 py-0.5 hover:bg-gray-50"
+                  className="text-xs text-muted-foreground hover:text-foreground border border-input rounded px-2 py-0.5 hover:bg-muted"
                 >
                   今月
                 </button>
               </div>
-              <button onClick={nextMonth} className="p-1 hover:bg-gray-100 rounded">
+              <button onClick={nextMonth} className="p-1 hover:bg-muted rounded">
                 <ChevronRight className="h-4 w-4" />
               </button>
             </div>
@@ -742,7 +742,7 @@ export default function CalendarView({ lessons, deadlines, examEvents, students,
                     key={key}
                     onClick={() => setSelectedDay(key)}
                     className={`aspect-square flex flex-col items-center justify-start pt-1.5 gap-0.5 text-xs transition-colors
-                      ${isSelected ? "bg-primary/10" : "hover:bg-gray-50"}
+                      ${isSelected ? "bg-primary/10" : "hover:bg-muted"}
                       ${dow === 0 ? "text-red-500" : dow === 6 ? "text-blue-500" : ""}
                     `}
                   >
@@ -788,9 +788,9 @@ export default function CalendarView({ lessons, deadlines, examEvents, students,
       ) : (
         /* 週表示 */
         <>
-          <div className="rounded-lg border bg-white overflow-hidden">
+          <div className="rounded-lg border bg-card overflow-hidden">
             <div className="flex items-center justify-between px-4 py-3 border-b">
-              <button onClick={() => setWeekOffset(w => w - 1)} className="p-1 hover:bg-gray-100 rounded">
+              <button onClick={() => setWeekOffset(w => w - 1)} className="p-1 hover:bg-muted rounded">
                 <ChevronLeft className="h-4 w-4" />
               </button>
               <div className="flex items-center gap-2">
@@ -799,12 +799,12 @@ export default function CalendarView({ lessons, deadlines, examEvents, students,
                 </span>
                 <button
                   onClick={goToToday}
-                  className="text-xs text-muted-foreground hover:text-foreground border border-input rounded px-2 py-0.5 hover:bg-gray-50"
+                  className="text-xs text-muted-foreground hover:text-foreground border border-input rounded px-2 py-0.5 hover:bg-muted"
                 >
                   今週
                 </button>
               </div>
-              <button onClick={() => setWeekOffset(w => w + 1)} className="p-1 hover:bg-gray-100 rounded">
+              <button onClick={() => setWeekOffset(w => w + 1)} className="p-1 hover:bg-muted rounded">
                 <ChevronRight className="h-4 w-4" />
               </button>
             </div>
@@ -821,7 +821,7 @@ export default function CalendarView({ lessons, deadlines, examEvents, students,
                   <button
                     key={key}
                     onClick={() => setSelectedDay(key)}
-                    className={`flex flex-col items-center gap-1 py-3 transition-colors ${isSelected ? "bg-primary/10" : "hover:bg-gray-50"} ${i === 0 ? "text-red-500" : i === 6 ? "text-blue-500" : ""}`}
+                    className={`flex flex-col items-center gap-1 py-3 transition-colors ${isSelected ? "bg-primary/10" : "hover:bg-muted"} ${i === 0 ? "text-red-500" : i === 6 ? "text-blue-500" : ""}`}
                   >
                     <span className="text-xs text-muted-foreground">{DOW_LABELS[i]}</span>
                     <span className={`h-7 w-7 flex items-center justify-center rounded-full text-sm font-medium ${isToday ? "bg-primary text-primary-foreground" : ""}`}>

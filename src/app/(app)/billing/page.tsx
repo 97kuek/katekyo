@@ -77,14 +77,14 @@ export default async function BillingPage({
         <div className="flex items-center gap-3">
           <a
             href={`/billing?year=${prevYear}&month=${prevMonth}`}
-            className="px-3 py-1.5 rounded-md border text-sm hover:bg-gray-50 transition-colors"
+            className="px-3 py-1.5 rounded-md border text-sm hover:bg-muted transition-colors"
           >
             ← 前月
           </a>
           <span className="font-semibold text-sm">{year}年 {month + 1}月</span>
           <a
             href={`/billing?year=${nextYear}&month=${nextMonth}`}
-            className="px-3 py-1.5 rounded-md border text-sm hover:bg-gray-50 transition-colors"
+            className="px-3 py-1.5 rounded-md border text-sm hover:bg-muted transition-colors"
           >
             翌月 →
           </a>
@@ -111,18 +111,18 @@ export default async function BillingPage({
       )}
 
       {completedLessons.length === 0 ? (
-        <div className="rounded-lg border bg-white p-12 text-center text-muted-foreground text-sm">
+        <div className="rounded-lg border bg-card p-12 text-center text-muted-foreground text-sm">
           {lessons.length > 0 ? "完了済みの授業がありません" : "この月の授業記録はありません"}
         </div>
       ) : (
         <>
           {/* Summary */}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            <div className="rounded-lg border bg-white p-4">
+            <div className="rounded-lg border bg-card p-4">
               <p className="text-xs text-muted-foreground">完了授業</p>
               <p className="text-2xl font-bold mt-1">{completedLessons.length}<span className="text-sm font-normal text-muted-foreground ml-1">回</span></p>
             </div>
-            <div className="rounded-lg border bg-white p-4">
+            <div className="rounded-lg border bg-card p-4">
               <p className="text-xs text-muted-foreground">合計時間</p>
               <p className="text-2xl font-bold mt-1">
                 {Math.floor(totalMinutes / 60)}<span className="text-sm font-normal text-muted-foreground ml-0.5">h</span>
@@ -130,7 +130,7 @@ export default async function BillingPage({
               </p>
             </div>
             {hasFeeData && (
-              <div className="rounded-lg border bg-white p-4 col-span-2 sm:col-span-1">
+              <div className="rounded-lg border bg-card p-4 col-span-2 sm:col-span-1">
                 <p className="text-xs text-muted-foreground">合計金額（目安）</p>
                 <p className="text-2xl font-bold mt-1">¥{grandTotal.toLocaleString()}</p>
               </div>
@@ -148,12 +148,12 @@ export default async function BillingPage({
             const isPaid = paidStudentIds.has(sid)
 
             return (
-              <div key={name} className="rounded-lg border bg-white overflow-hidden">
-                <div className="flex items-center justify-between px-5 py-3 border-b bg-gray-50">
+              <div key={name} className="rounded-lg border bg-card overflow-hidden">
+                <div className="flex items-center justify-between px-5 py-3 border-b bg-muted">
                   <div className="flex items-center gap-2">
                     <p className="font-medium text-sm">{name}</p>
                     {isPaid && (
-                      <span className="text-xs bg-green-100 text-green-700 font-medium rounded-full px-2 py-0.5">入金済み</span>
+                      <span className="text-xs bg-primary/15 text-primary font-medium rounded-full px-2 py-0.5">入金済み</span>
                     )}
                   </div>
                   <div className="flex items-center gap-3 text-sm text-right">
@@ -165,7 +165,7 @@ export default async function BillingPage({
                       <input type="hidden" name="month" value={month + 1} />
                       <button
                         type="submit"
-                        className={`text-xs rounded px-2 py-1 border transition-colors ${isPaid ? "border-green-300 text-green-700 hover:bg-green-50" : "border-gray-300 text-gray-500 hover:bg-gray-50"}`}
+                        className={`text-xs rounded px-2 py-1 border transition-colors ${isPaid ? "border-primary/30 text-primary hover:bg-primary/10" : "border-border text-muted-foreground hover:bg-muted"}`}
                       >
                         {isPaid ? "✓ 入金済み" : "入金確認"}
                       </button>

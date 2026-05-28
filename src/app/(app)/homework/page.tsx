@@ -17,7 +17,7 @@ function SubjectTags({ ids, map }: { ids: string[]; map: Map<string, string> }) 
   return (
     <div className="flex flex-wrap gap-1 mt-1.5">
       {names.map((name) => (
-        <span key={name} className="text-xs bg-gray-100 text-gray-700 rounded-full px-2 py-0.5">
+        <span key={name} className="text-xs bg-muted text-foreground rounded-full px-2 py-0.5">
           {name}
         </span>
       ))}
@@ -130,7 +130,7 @@ async function TeacherHomeworkPage({
                 <Link
                   key={h.id}
                   href={`/homework/${h.id}`}
-                  className={`block rounded-lg border bg-white p-4 hover:bg-gray-50 transition-colors ${overdue ? "border-red-200 bg-red-50/40" : ""}`}
+                  className={`block rounded-lg border bg-card p-4 hover:bg-muted transition-colors ${overdue ? "border-red-200 bg-destructive/5" : ""}`}
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
@@ -149,9 +149,9 @@ async function TeacherHomeworkPage({
             })}
           </div>
           {/* デスクトップ: テーブル表示 */}
-          <div className="hidden md:block rounded-lg border bg-white overflow-hidden overflow-x-auto">
+          <div className="hidden md:block rounded-lg border bg-card overflow-hidden overflow-x-auto">
             <table className="w-full text-sm min-w-[480px]">
-              <thead className="border-b bg-gray-50">
+              <thead className="border-b bg-muted">
                 <tr>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">タイトル</th>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">生徒</th>
@@ -165,7 +165,7 @@ async function TeacherHomeworkPage({
                   const relLabel = relativeDeadline(h.dueDate)
                   const relColor = deadlineColorClass(h.dueDate)
                   return (
-                    <tr key={h.id} className={`hover:bg-gray-50 ${overdue ? "bg-red-50/40" : ""}`}>
+                    <tr key={h.id} className={`hover:bg-muted ${overdue ? "bg-destructive/5" : ""}`}>
                       <td className="px-4 py-3">
                         <Link href={`/homework/${h.id}`} className="font-medium hover:underline">{h.title}</Link>
                         <SubjectTags ids={h.subjectIds} map={subjectMap} />
@@ -190,7 +190,7 @@ async function TeacherHomeworkPage({
       )}
 
       {homeworks.length === 0 && (
-        <div className="rounded-lg border bg-white p-12 text-center">
+        <div className="rounded-lg border bg-card p-12 text-center">
           <p className="text-muted-foreground">
             {studentIdFilter ? "この生徒の宿題はありません" : "まだ宿題が登録されていません"}
           </p>
@@ -237,7 +237,7 @@ async function StudentHomeworkPage({ userId }: { userId: string }) {
               return (
                 <div
                   key={h.id}
-                  className={`rounded-lg border bg-white p-4 flex items-start justify-between gap-4 ${overdue ? "border-red-200" : ""}`}
+                  className={`rounded-lg border bg-card p-4 flex items-start justify-between gap-4 ${overdue ? "border-red-200" : ""}`}
                 >
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
@@ -250,7 +250,7 @@ async function StudentHomeworkPage({ userId }: { userId: string }) {
                     </p>
                     <SubjectTags ids={h.subjectIds} map={subjectMap} />
                     {h.description && (
-                      <p className="text-sm text-gray-600 mt-1">{h.description}</p>
+                      <p className="text-sm text-muted-foreground mt-1">{h.description}</p>
                     )}
                     {h.status === "rejected" && h.teacherFeedback && (
                       <p className="text-sm text-destructive mt-2 border-l-2 border-destructive/30 pl-3">
@@ -276,7 +276,7 @@ async function StudentHomeworkPage({ userId }: { userId: string }) {
           <h2 className="text-sm font-semibold">承認待ち（{submitted.length}件）</h2>
           <div className="space-y-2">
             {submitted.map((h) => (
-              <div key={h.id} className="rounded-lg border bg-white p-4 flex items-start justify-between gap-4">
+              <div key={h.id} className="rounded-lg border bg-card p-4 flex items-start justify-between gap-4">
                 <div className="min-w-0">
                   <p className="font-medium truncate">{h.title}</p>
                   <p className="text-xs text-muted-foreground mt-0.5">
@@ -299,7 +299,7 @@ async function StudentHomeworkPage({ userId }: { userId: string }) {
               <Link
                 key={h.id}
                 href={`/homework/${h.id}`}
-                className="block rounded-lg border bg-white p-4 hover:bg-gray-50 transition-colors opacity-75"
+                className="block rounded-lg border bg-card p-4 hover:bg-muted transition-colors opacity-75"
               >
                 <div className="flex items-center justify-between gap-2">
                   <div className="min-w-0">
@@ -327,7 +327,7 @@ async function StudentHomeworkPage({ userId }: { userId: string }) {
       )}
 
       {homeworks.length === 0 && (
-        <div className="rounded-lg border bg-white p-12 text-center">
+        <div className="rounded-lg border bg-card p-12 text-center">
           <p className="text-muted-foreground">宿題はまだありません</p>
         </div>
       )}

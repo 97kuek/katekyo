@@ -29,11 +29,11 @@ export default function EditHomeworkForm({
     <form action={action} className="space-y-4">
       <input type="hidden" name="id" value={homework.id} />
       {state.error && (
-        <p className="text-sm text-red-600 bg-red-50 p-3 rounded-md">{state.error}</p>
+        <p className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">{state.error}</p>
       )}
       <div className="space-y-2">
         <Label>生徒</Label>
-        <Input value={homework.student.user.name} disabled className="bg-gray-50" />
+        <Input value={homework.student.user.name} disabled className="bg-muted" />
       </div>
       <div className="space-y-2">
         <Label htmlFor="title">タイトル</Label>

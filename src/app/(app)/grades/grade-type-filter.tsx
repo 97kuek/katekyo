@@ -21,7 +21,7 @@ export function GradeTypeFilter() {
   const base =
     "px-3 py-1.5 rounded-md text-sm border transition-colors"
   const active = "bg-primary text-primary-foreground border-primary"
-  const inactive = "bg-white text-muted-foreground border-input hover:bg-gray-50"
+  const inactive = "bg-card text-muted-foreground border-input hover:bg-muted"
 
   return (
     <div className="flex gap-1.5 flex-wrap">
