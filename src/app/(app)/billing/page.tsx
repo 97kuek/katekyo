@@ -70,7 +70,7 @@ export default async function BillingPage({
   const hasFeeData = completedLessons.some((l) => l.hourlyRate != null)
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="space-y-6">
       <h1 className="text-2xl font-bold">請求管理</h1>
 
       {/* Month navigator */}
