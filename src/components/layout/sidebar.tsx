@@ -25,10 +25,10 @@ const studentNav = [
 
 const navLinkClass = (active: boolean) =>
   cn(
-    "flex items-center justify-center lg:justify-start gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+    "flex items-center justify-center lg:justify-start gap-3 px-3 py-2 rounded-full text-sm font-medium transition-colors",
     active
-      ? "bg-green-700/50 text-white"
-      : "text-green-300 hover:bg-green-800/40 hover:text-green-100"
+      ? "bg-primary text-primary-foreground"
+      : "text-muted-foreground hover:bg-muted hover:text-foreground"
   )
 
 export default function Sidebar({ role }: { role: string }) {
@@ -36,10 +36,10 @@ export default function Sidebar({ role }: { role: string }) {
   const navItems = role === "teacher" ? teacherNav : studentNav
 
   return (
-    <aside className="w-16 lg:w-60 shrink-0 bg-green-900 hidden md:flex flex-col">
-      <div className="h-14 flex items-center justify-center lg:justify-start gap-2.5 px-3 lg:px-5 border-b border-green-800/60">
-        <BookOpen className="h-5 w-5 text-green-400 shrink-0" />
-        <span className="font-bold text-lg tracking-tight hidden lg:block text-white">katekyo</span>
+    <aside className="w-16 lg:w-60 shrink-0 bg-background border-r border-border hidden md:flex flex-col">
+      <div className="h-14 flex items-center justify-center lg:justify-start gap-2.5 px-3 lg:px-5 border-b border-border">
+        <BookOpen className="h-5 w-5 text-primary shrink-0" />
+        <span className="font-bold text-lg tracking-tight hidden lg:block text-foreground">katekyo</span>
       </div>
 
       <nav className="flex-1 p-2 lg:p-3 space-y-0.5">
@@ -54,7 +54,7 @@ export default function Sidebar({ role }: { role: string }) {
         })}
       </nav>
 
-      <div className="p-2 lg:p-3 border-t border-green-800/60 space-y-0.5">
+      <div className="p-2 lg:p-3 border-t border-border space-y-0.5">
         {[
           { href: "/settings", label: "設定", icon: Settings },
           { href: "/help", label: "使い方ガイド", icon: HelpCircle },

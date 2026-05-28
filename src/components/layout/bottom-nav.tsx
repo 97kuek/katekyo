@@ -27,7 +27,7 @@ export default function BottomNav({ role }: { role: string }) {
   const navItems = role === "teacher" ? teacherNav : studentNav
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 border-t bg-white md:hidden z-50">
+    <nav className="fixed bottom-0 left-0 right-0 border-t border-border bg-background md:hidden z-50">
       <div className="flex px-3">
         {navItems.map(({ href, label, icon: Icon }) => {
           const active = pathname === href || pathname.startsWith(href + "/")
@@ -38,7 +38,7 @@ export default function BottomNav({ role }: { role: string }) {
               className={cn(
                 "flex flex-1 flex-col items-center justify-center py-3 gap-1 font-medium transition-colors",
                 "text-[11px]",
-                active ? "text-primary" : "text-gray-400 hover:text-gray-600"
+                active ? "text-primary" : "text-muted-foreground hover:text-foreground"
               )}
             >
               <Icon className="h-6 w-6" />
