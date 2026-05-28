@@ -60,8 +60,8 @@
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.183 0.007 261);
 
-  /* Primary — cobalt blue #0064E0 */
-  --primary: oklch(0.487 0.241 261);
+  /* Primary — forest green */
+  --primary: oklch(0.50 0.115 147);
   --primary-foreground: oklch(1 0 0);
 
   /* Secondary / muted — surface-soft #f1f4f7 */
@@ -81,8 +81,8 @@
   --border: oklch(0.893 0.010 245);            /* #dee3e9 hairline-soft */
   --input: oklch(0.840 0.007 259);             /* #ced0d4 hairline */
 
-  /* Focus ring — fb-blue #1876f2 */
-  --ring: oklch(0.571 0.195 257);
+  /* Focus ring */
+  --ring: oklch(0.50 0.115 147);
 
   /* Charts */
   --chart-1: oklch(0.585 0.233 264);
@@ -94,15 +94,15 @@
   /* Base radius (for components that reference --radius directly) */
   --radius: 0.5rem;
 
-  /* Sidebar — white canvas, cobalt accent */
+  /* Sidebar — white canvas, green accent */
   --sidebar: oklch(1 0 0);
   --sidebar-foreground: oklch(0.183 0.007 261);
-  --sidebar-primary: oklch(0.487 0.241 261);
+  --sidebar-primary: oklch(0.50 0.115 147);
   --sidebar-primary-foreground: oklch(1 0 0);
   --sidebar-accent: oklch(0.963 0.006 255);
   --sidebar-accent-foreground: oklch(0.183 0.007 261);
   --sidebar-border: oklch(0.893 0.010 245);
-  --sidebar-ring: oklch(0.487 0.241 261);
+  --sidebar-ring: oklch(0.50 0.115 147);
 }
 
 .dark {
@@ -112,7 +112,7 @@
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.571 0.241 261);
+  --primary: oklch(0.65 0.12 147);
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
@@ -133,7 +133,7 @@
   --chart-5: oklch(0.269 0 0);
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.571 0.241 261);
+  --sidebar-primary: oklch(0.65 0.12 147);
   --sidebar-primary-foreground: oklch(0.985 0 0);
   --sidebar-accent: oklch(0.269 0 0);
   --sidebar-accent-foreground: oklch(0.985 0 0);
