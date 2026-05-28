@@ -102,16 +102,15 @@ async function TeacherHomeworkPage({
   const others = homeworks.filter((h) => h.status !== "submitted")
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-start justify-between gap-3 flex-wrap">
-        <h1 className="text-2xl font-bold">宿題管理</h1>
-        <Link href="/homework/new" className={buttonVariants({ size: "sm", className: "gap-1.5" })}>
+    <div className="space-y-4">
+      <h1 className="text-2xl font-bold">宿題管理</h1>
+
+      <HomeworkFilter students={students} subjects={subjects}>
+        <Link href="/homework/new" className={buttonVariants({ size: "sm", className: "gap-1.5 shrink-0" })}>
           <Plus className="h-4 w-4 shrink-0" />
           宿題を作成
         </Link>
-      </div>
-
-      <HomeworkFilter students={students} subjects={subjects} />
+      </HomeworkFilter>
 
       {submitted.length > 0 && (
         <BulkApproveSection submitted={submitted} subjectMap={subjectMap} />

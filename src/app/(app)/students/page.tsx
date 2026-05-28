@@ -89,23 +89,23 @@ export default async function StudentsPage({
     : students
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-start justify-between gap-3 flex-wrap">
-        <div>
-          <h1 className="text-2xl font-bold">生徒一覧</h1>
-          <p className="text-sm text-muted-foreground mt-1">{students.length}名の生徒が登録されています</p>
-        </div>
-        <div className="flex gap-2">
-          <Link href="/students/invites" className={buttonVariants({ variant: "outline" })}>
+    <div className="space-y-4">
+      <div>
+        <h1 className="text-2xl font-bold">生徒一覧</h1>
+        <p className="text-sm text-muted-foreground mt-1">{students.length}名の生徒が登録されています</p>
+      </div>
+
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <StudentSort />
+        <div className="flex items-center gap-2">
+          <Link href="/students/invites" className={buttonVariants({ variant: "outline", size: "sm" })}>
             招待管理
           </Link>
-          <Link href="/students/invite" className={buttonVariants()}>
+          <Link href="/students/invite" className={buttonVariants({ size: "sm" })}>
             招待リンクを作成
           </Link>
         </div>
       </div>
-
-      <StudentSort />
 
       {students.length === 0 ? (
         <div className="rounded-lg border bg-card p-12 text-center">

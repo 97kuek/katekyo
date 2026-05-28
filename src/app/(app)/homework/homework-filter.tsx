@@ -6,7 +6,7 @@ import { useTransition } from "react"
 type Student = { id: string; user: { name: string } }
 type Subject = { id: string; name: string }
 
-export function HomeworkFilter({ students, subjects }: { students: Student[]; subjects: Subject[] }) {
+export function HomeworkFilter({ students, subjects, children }: { students: Student[]; subjects: Subject[]; children?: React.ReactNode }) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [isPending, startTransition] = useTransition()
@@ -45,56 +45,47 @@ export function HomeworkFilter({ students, subjects }: { students: Student[]; su
 
   return (
     <div className={`space-y-2 transition-opacity duration-150 ${isPending ? "opacity-50 pointer-events-none" : ""}`}>
-      <div className="flex items-center gap-3 flex-wrap">
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground">生徒:</span>
-          <select
-            value={currentStudent}
-            onChange={(e) => update("studentId", e.target.value)}
-            className="h-8 rounded-md border border-input bg-background px-2 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            <option value="">すべて</option>
-            {students.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.user.name}
-              </option>
-            ))}
-          </select>
-        </div>
+      <div className="flex items-center gap-2 flex-wrap">
+        <input
+          type="search"
+          placeholder="タイトルで検索..."
+          value={currentQ}
+          onChange={(e) => update("q", e.target.value)}
+          className="h-9 flex-1 min-w-[160px] rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        />
 
-        <div className="flex items-center gap-2 flex-1 min-w-[180px] max-w-xs">
-          <input
-            type="search"
-            placeholder="タイトルで検索..."
-            value={currentQ}
-            onChange={(e) => update("q", e.target.value)}
-            className="h-8 w-full rounded-md border border-input bg-background px-3 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          />
-        </div>
+        <select
+          value={currentStudent}
+          onChange={(e) => update("studentId", e.target.value)}
+          className="h-9 rounded-md border border-input bg-background px-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <option value="">生徒: すべて</option>
+          {students.map((s) => (
+            <option key={s.id} value={s.id}>{s.user.name}</option>
+          ))}
+        </select>
 
-        <div className="flex items-center gap-1 rounded-md border border-input bg-background p-0.5">
+        <div className="flex items-center gap-0.5 rounded-md border border-input bg-background p-0.5 shrink-0">
           <button
             onClick={() => update("sort", "created")}
-            className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${currentSort === "created" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
+            className={`px-2.5 py-1.5 rounded text-xs font-medium transition-colors ${currentSort === "created" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
           >
-            作成日順
+            作成日
           </button>
           <button
             onClick={() => update("sort", "due")}
-            className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${currentSort === "due" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
+            className={`px-2.5 py-1.5 rounded text-xs font-medium transition-colors ${currentSort === "due" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
           >
-            期限順
+            期限
           </button>
         </div>
 
-        {isPending && (
-          <span className="text-xs text-muted-foreground animate-pulse">読み込み中...</span>
-        )}
+        {children}
       </div>
 
       {subjects.length > 0 && (
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-xs text-muted-foreground">科目:</span>
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span className="text-xs text-muted-foreground shrink-0">科目:</span>
           {subjects.map((s) => {
             const active = currentSubjects.includes(s.id)
             return (
@@ -110,7 +101,7 @@ export function HomeworkFilter({ students, subjects }: { students: Student[]; su
           {currentSubjects.length > 0 && (
             <button
               onClick={() => update("subjects", "")}
-              className="text-xs text-muted-foreground hover:text-foreground"
+              className="text-xs text-muted-foreground hover:text-foreground ml-1"
             >
               クリア
             </button>
