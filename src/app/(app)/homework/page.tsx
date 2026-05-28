@@ -103,8 +103,6 @@ async function TeacherHomeworkPage({
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold">宿題管理</h1>
-
       <HomeworkFilter students={students} subjects={subjects}>
         <Link href="/homework/new" className={buttonVariants({ size: "sm", className: "gap-1.5 shrink-0" })}>
           <Plus className="h-4 w-4 shrink-0" />
@@ -222,9 +220,7 @@ async function StudentHomeworkPage({ userId }: { userId: string }) {
   const approvedRemainder = approvedAll.length - approved.length
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold">宿題</h1>
-
+    <div className="space-y-4">
       {active.length > 0 && (
         <section className="space-y-3">
           <h2 className="text-sm font-medium text-muted-foreground">やること</h2>

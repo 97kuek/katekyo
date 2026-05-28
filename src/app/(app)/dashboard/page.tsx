@@ -604,7 +604,7 @@ async function StudentGardenPreview({ userId }: { userId: string }) {
         </div>
         <div className="h-2 bg-muted rounded-full overflow-hidden">
           <div
-            className={`h-full rounded-full transition-all ${isFull ? "bg-warning" : "bg-green-500"}`}
+            className={`h-full rounded-full transition-all ${isFull ? "bg-warning" : "bg-primary"}`}
             style={{ width: `${count > 0 ? Math.max(pct, 3) : 0}%` }}
           />
         </div>

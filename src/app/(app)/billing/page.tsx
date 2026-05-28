@@ -71,8 +71,6 @@ export default async function BillingPage({
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">請求管理</h1>
-
       {/* Month navigator */}
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-3">

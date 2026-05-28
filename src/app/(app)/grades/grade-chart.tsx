@@ -45,16 +45,21 @@ function formatDate(dateStr: string): string {
 export default function GradeChart({
   grades,
   subjects,
+  typeFilter: externalTypeFilter,
 }: {
   grades: Grade[]
   subjects: Subject[]
+  typeFilter?: string
 }) {
   const availableTypes = Array.from(new Set(grades.map((g) => g.testType)))
   const [mode, setMode] = useState<"score" | "deviation">("score")
-  const [typeFilter, setTypeFilter] = useState<string>(availableTypes[0] ?? "")
+  const [internalTypeFilter, setInternalTypeFilter] = useState<string>(availableTypes[0] ?? "")
   const [activeSubject, setActiveSubject] = useState<string | null>(null)
 
-  const filtered = grades.filter((g) => g.testType === typeFilter)
+  const typeFilter = externalTypeFilter !== undefined ? externalTypeFilter : internalTypeFilter
+  const isExternalFilter = externalTypeFilter !== undefined
+
+  const filtered = grades.filter((g) => !typeFilter || g.testType === typeFilter)
   const sorted = [...filtered].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
 
   const hasScore = sorted.some((g) => computeValue(g, "score") != null)
@@ -100,20 +105,22 @@ export default function GradeChart({
     <div className="rounded-lg border bg-card p-4 space-y-3">
       {/* コントロール1行 */}
       <div className="flex items-center justify-between gap-2 flex-wrap">
-        <div className="flex items-center gap-1 flex-wrap">
-          <span className="text-xs text-muted-foreground mr-1">種別</span>
-          {TEST_TYPE_OPTIONS.filter(([v]) => availableTypes.includes(v)).map(([value, label]) => (
-            <button
-              key={value}
-              type="button"
-              onClick={() => { setTypeFilter(value); setActiveSubject(null) }}
-              className={`px-2.5 py-1 rounded-md text-xs border transition-colors ${typeFilter === value ? "bg-primary text-primary-foreground border-primary" : "bg-card text-muted-foreground border-input hover:bg-muted"}`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-        <div className="flex gap-1">
+        {!isExternalFilter && (
+          <div className="flex items-center gap-1 flex-wrap">
+            <span className="text-xs text-muted-foreground mr-1">種別</span>
+            {TEST_TYPE_OPTIONS.filter(([v]) => availableTypes.includes(v)).map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => { setInternalTypeFilter(value); setActiveSubject(null) }}
+                className={`px-2.5 py-1 rounded-md text-xs border transition-colors ${typeFilter === value ? "bg-primary text-primary-foreground border-primary" : "bg-card text-muted-foreground border-input hover:bg-muted"}`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
+        <div className={`flex gap-1 ${isExternalFilter ? "ml-auto" : ""}`}>
           <Button
             type="button"
             size="sm"

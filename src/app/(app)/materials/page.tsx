@@ -25,10 +25,7 @@ export default async function StudentMaterialsPage() {
 
   return (
     <div className="max-w-2xl space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">教材</h1>
-        <p className="text-sm text-muted-foreground mt-1">先生に登録してもらった教材の一覧です</p>
-      </div>
+      <p className="text-sm text-muted-foreground">先生に登録してもらった教材の一覧です</p>
 
       {materials.length === 0 ? (
         <div className="rounded-lg border bg-card p-10 text-center space-y-2">

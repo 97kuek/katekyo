@@ -24,8 +24,6 @@ export default async function SettingsPage() {
 
   return (
     <div className="max-w-lg space-y-8">
-      <h1 className="text-xl font-bold">設定</h1>
-
       <section className="space-y-4">
         <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">アカウント</h2>
         <p className="text-sm text-muted-foreground -mt-2">{session.user.email}</p>

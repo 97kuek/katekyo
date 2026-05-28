@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState } from "react"
+import { useActionState, useState } from "react"
 import { createGradeRecord } from "./actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -9,6 +9,7 @@ import { TEST_TYPE_OPTIONS } from "@/lib/test-types"
 
 type Student = { id: string; grade: string; user: { name: string } }
 type Subject = { id: string; name: string }
+type ExamEvent = { id: string; name: string; testType: string; date: string; studentId: string; studentName: string }
 
 const ratings = [1, 2, 3, 4, 5]
 
@@ -17,21 +18,58 @@ const todayISO = () => {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
 }
 
+const selectClass = "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+
 export default function CreateGradeForm({
   students,
   subjects,
+  examEvents = [],
 }: {
   students: Student[]
   subjects: Subject[]
+  examEvents?: ExamEvent[]
 }) {
   const [state, action, isPending] = useActionState(createGradeRecord, { error: "" })
   const singleStudent = students.length === 1 ? students[0] : null
+
+  const [testName, setTestName] = useState("")
+  const [date, setDate] = useState(todayISO())
+  const [testType, setTestType] = useState<string>(TEST_TYPE_OPTIONS[0][0])
+  const [studentId, setStudentId] = useState(singleStudent?.id ?? "")
+
+  function applyExamEvent(eventId: string) {
+    const ev = examEvents.find((e) => e.id === eventId)
+    if (!ev) return
+    setTestName(ev.name)
+    setDate(ev.date)
+    setTestType(ev.testType)
+    setStudentId(ev.studentId)
+  }
 
   return (
     <form action={action} className="space-y-5">
       {state.error && (
         <p className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">{state.error}</p>
       )}
+
+      {examEvents.length > 0 && (
+        <div className="space-y-2">
+          <Label>試験予定から入力</Label>
+          <select
+            className={selectClass}
+            defaultValue=""
+            onChange={(e) => applyExamEvent(e.target.value)}
+          >
+            <option value="">選択すると自動入力されます</option>
+            {examEvents.map((e) => (
+              <option key={e.id} value={e.id}>
+                {e.date} — {e.name}（{e.studentName}）
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
       <p className="text-xs text-muted-foreground"><span className="text-destructive font-medium">*</span> は必須項目です</p>
 
       <div className="grid grid-cols-2 gap-4">
@@ -47,7 +85,9 @@ export default function CreateGradeForm({
               id="studentId"
               name="studentId"
               required
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              value={studentId}
+              onChange={(e) => setStudentId(e.target.value)}
+              className={selectClass}
             >
               <option value="">生徒を選択してください</option>
               {students.map((s) => (
@@ -63,7 +103,9 @@ export default function CreateGradeForm({
             id="testType"
             name="testType"
             required
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            value={testType}
+            onChange={(e) => setTestType(e.target.value)}
+            className={selectClass}
           >
             {TEST_TYPE_OPTIONS.map(([value, label]) => (
               <option key={value} value={value}>{label}</option>
@@ -73,12 +115,27 @@ export default function CreateGradeForm({
 
         <div className="col-span-2 space-y-2">
           <Label htmlFor="testName">テスト名 <span className="text-destructive">*</span></Label>
-          <Input id="testName" name="testName" required placeholder="例: 2024年 第1回 英語模試" autoFocus />
+          <Input
+            id="testName"
+            name="testName"
+            required
+            placeholder="例: 2024年 第1回 英語模試"
+            autoFocus
+            value={testName}
+            onChange={(e) => setTestName(e.target.value)}
+          />
         </div>
 
         <div className="col-span-2 space-y-2">
           <Label htmlFor="date">実施日 <span className="text-destructive">*</span></Label>
-          <Input id="date" name="date" type="date" required defaultValue={todayISO()} />
+          <Input
+            id="date"
+            name="date"
+            type="date"
+            required
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+          />
         </div>
 
         <div className="space-y-2">

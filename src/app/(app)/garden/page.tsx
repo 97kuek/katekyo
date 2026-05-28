@@ -50,7 +50,6 @@ export default async function GardenPage() {
     <div className="space-y-5 max-w-2xl">
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-bold">学習の森</h1>
           {generation > 1 && (
             <span className="text-xs font-medium text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-full">
               第{generation}世代

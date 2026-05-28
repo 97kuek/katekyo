@@ -8,6 +8,7 @@ import GradeChart from "./grade-chart"
 import { GradeActionsCell } from "./grade-actions-cell"
 import { GradeTypeFilter } from "./grade-type-filter"
 import { GradeStudentFilter } from "./grade-student-filter"
+import { GradeSubjectFilter } from "./grade-subject-filter"
 import { TEST_TYPE_LABELS } from "@/lib/test-types"
 
 function SubjectTags({ ids, map }: { ids: string[]; map: Map<string, string> }) {
@@ -55,15 +56,15 @@ function VsAvg({ score, avgScore }: { score: number | null; avgScore: number | n
 export default async function GradesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ type?: string; studentId?: string }>
+  searchParams: Promise<{ type?: string; studentId?: string; subjectId?: string }>
 }) {
   const ctx = await getViewingContext()
   if (!ctx) redirect("/login")
 
-  const { type, studentId } = await searchParams
+  const { type, studentId, subjectId } = await searchParams
 
   if (ctx.effectiveRole === "teacher") {
-    return <TeacherGradesPage teacherId={ctx.effectiveUserId} typeFilter={type} studentIdFilter={studentId} />
+    return <TeacherGradesPage teacherId={ctx.effectiveUserId} typeFilter={type} studentIdFilter={studentId} subjectIdFilter={subjectId} />
   }
   return <StudentGradesPage userId={ctx.effectiveUserId} />
 }
@@ -72,10 +73,12 @@ async function TeacherGradesPage({
   teacherId,
   typeFilter,
   studentIdFilter,
+  subjectIdFilter,
 }: {
   teacherId: string
   typeFilter?: string
   studentIdFilter?: string
+  subjectIdFilter?: string
 }) {
   const validTypes = ["mock", "exam", "quiz", "other"] as const
   type ValidType = (typeof validTypes)[number]
@@ -88,6 +91,7 @@ async function TeacherGradesPage({
         teacherId,
         ...(isValidType(typeFilter) ? { testType: typeFilter } : {}),
         ...(studentIdFilter ? { studentId: studentIdFilter } : {}),
+        ...(subjectIdFilter ? { subjectIds: { has: subjectIdFilter } } : {}),
       },
       include: { student: { include: { user: { select: { name: true } } } } },
       orderBy: { date: "desc" },
@@ -132,20 +136,19 @@ async function TeacherGradesPage({
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between gap-2">
-        <h1 className="text-2xl font-bold">成績管理</h1>
+      <div className="flex items-center gap-2 flex-wrap justify-between">
+        <div className="flex items-center gap-2 flex-wrap">
+          <GradeStudentFilter students={students} />
+          <GradeTypeFilter />
+          <GradeSubjectFilter subjects={subjects} />
+        </div>
         <Link href="/grades/new" className={buttonVariants({ size: "sm" })}>
           成績を記録
         </Link>
       </div>
 
-      <div className="flex items-center gap-2 flex-wrap">
-        <GradeStudentFilter students={students} />
-        <GradeTypeFilter />
-      </div>
-
       {studentIdFilter && chartGrades.length > 0 && (
-        <GradeChart grades={chartGrades} subjects={subjects} />
+        <GradeChart grades={chartGrades} subjects={subjects} typeFilter={typeFilter} />
       )}
 
       {grades.length === 0 ? (
@@ -288,7 +291,6 @@ async function StudentGradesPage({ userId }: { userId: string }) {
 
   return (
     <div className="space-y-3">
-      <h1 className="text-2xl font-bold">成績</h1>
 
       {grades.length === 0 ? (
         <div className="rounded-lg border bg-card p-12 text-center">

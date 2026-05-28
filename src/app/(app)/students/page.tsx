@@ -91,10 +91,7 @@ export default async function StudentsPage({
 
   return (
     <div className="space-y-4">
-      <div>
-        <h1 className="text-2xl font-bold">生徒一覧</h1>
-        <p className="text-sm text-muted-foreground mt-1">{students.length}名の生徒が登録されています</p>
-      </div>
+      <p className="text-sm text-muted-foreground">{students.length}名の生徒が登録されています</p>
 
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <StudentSort />
@@ -151,7 +148,7 @@ export default async function StudentsPage({
                         <span>{prog!.approved}/{prog!.total}（{pct}%）</span>
                       </div>
                       <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
-                        <div className="h-full rounded-full bg-green-500 transition-all" style={{ width: `${pct}%` }} />
+                        <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${pct}%` }} />
                       </div>
                     </div>
                   )}
@@ -229,7 +226,7 @@ export default async function StudentsPage({
                               <span>{pct}%</span>
                             </div>
                             <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
-                              <div className="h-full rounded-full bg-green-500 transition-all" style={{ width: `${pct}%` }} />
+                              <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${pct}%` }} />
                             </div>
                           </div>
                         ) : (

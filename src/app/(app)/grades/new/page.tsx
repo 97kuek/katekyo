@@ -9,7 +9,10 @@ export default async function NewGradePage() {
   const session = await auth()
   if (!session || session.user.role !== "teacher") redirect("/dashboard")
 
-  const [students, subjects] = await Promise.all([
+  const now = new Date()
+  const pastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+
+  const [students, subjects, examEvents] = await Promise.all([
     db.student.findMany({
       where: { teacherId: session.user.id },
       include: { user: { select: { name: true } } },
@@ -18,6 +21,11 @@ export default async function NewGradePage() {
     db.subject.findMany({
       where: { teacherId: session.user.id },
       orderBy: { name: "asc" },
+    }),
+    db.examEvent.findMany({
+      where: { teacherId: session.user.id, date: { gte: pastMonth } },
+      include: { student: { include: { user: { select: { name: true } } } } },
+      orderBy: { date: "desc" },
     }),
   ])
 
@@ -50,7 +58,14 @@ export default async function NewGradePage() {
           <CardDescription>テスト結果を入力してください（得点・偏差値はすべて任意）</CardDescription>
         </CardHeader>
         <CardContent>
-          <CreateGradeForm students={students} subjects={subjects} />
+          <CreateGradeForm students={students} subjects={subjects} examEvents={examEvents.map((e) => ({
+            id: e.id,
+            name: e.name,
+            testType: e.testType,
+            date: e.date.toISOString().slice(0, 10),
+            studentId: e.studentId,
+            studentName: e.student.user.name ?? "",
+          }))} />
         </CardContent>
       </Card>
     </div>
