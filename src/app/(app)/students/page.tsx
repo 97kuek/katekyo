@@ -8,6 +8,7 @@ import { UpdateGradeForm } from "./update-grade-form"
 import { UpdateStudentRatesForm } from "./update-student-rates-form"
 import { StudentSort } from "./student-sort"
 import { ResetPasswordButton } from "./reset-password-button"
+import { ViewAsButton } from "./view-as-button"
 
 export default async function StudentsPage({
   searchParams,
@@ -155,6 +156,7 @@ export default async function StudentsPage({
                     </div>
                   )}
                   <div className="flex items-center gap-3 pt-1 border-t flex-wrap">
+                    <ViewAsButton studentId={s.id} />
                     <Link href={`/students/${s.id}/grades`} className={buttonVariants({ variant: "ghost", size: "xs" })}>
                       成績を見る
                     </Link>
@@ -237,6 +239,7 @@ export default async function StudentsPage({
                       <td className="px-4 py-3 text-muted-foreground">{s.createdAt.toLocaleDateString("ja-JP")}</td>
                       <td className="px-4 py-3 text-right">
                         <div className="flex items-center justify-end gap-3 flex-wrap">
+                          <ViewAsButton studentId={s.id} />
                           <Link href={`/students/${s.id}/grades`} className={buttonVariants({ variant: "ghost", size: "xs" })}>
                             成績を見る
                           </Link>

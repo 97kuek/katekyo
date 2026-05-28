@@ -1,5 +1,5 @@
-import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
+import { getViewingContext } from "@/lib/view-as"
 import { db } from "@/lib/db"
 import { getStudentByUserId } from "@/lib/queries"
 import Link from "next/link"
@@ -30,15 +30,15 @@ export default async function HomeworkPage({
 }: {
   searchParams: Promise<{ studentId?: string; sort?: string; q?: string; subjects?: string }>
 }) {
-  const session = await auth()
-  if (!session) redirect("/login")
+  const ctx = await getViewingContext()
+  if (!ctx) redirect("/login")
 
   const { studentId, sort, q, subjects } = await searchParams
 
-  if (session.user.role === "teacher") {
-    return <TeacherHomeworkPage teacherId={session.user.id} studentIdFilter={studentId} sort={sort} q={q} subjectFilter={subjects} />
+  if (ctx.effectiveRole === "teacher") {
+    return <TeacherHomeworkPage teacherId={ctx.effectiveUserId} studentIdFilter={studentId} sort={sort} q={q} subjectFilter={subjects} />
   }
-  return <StudentHomeworkPage userId={session.user.id} />
+  return <StudentHomeworkPage userId={ctx.effectiveUserId} />
 }
 
 async function TeacherHomeworkPage({

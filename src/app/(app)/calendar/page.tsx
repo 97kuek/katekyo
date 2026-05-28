@@ -1,14 +1,14 @@
-import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
+import { getViewingContext } from "@/lib/view-as"
 import { db } from "@/lib/db"
 import { getStudentByUserId } from "@/lib/queries"
 import CalendarView from "./calendar-view"
 
 export default async function CalendarPage() {
-  const session = await auth()
-  if (!session) redirect("/login")
+  const ctx = await getViewingContext()
+  if (!ctx) redirect("/login")
 
-  const isTeacher = session.user.role === "teacher"
+  const isTeacher = ctx.effectiveRole === "teacher"
   const now = new Date()
   const monthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1)
   const monthEnd = new Date(now.getFullYear(), now.getMonth() + 2, 0)
@@ -16,7 +16,7 @@ export default async function CalendarPage() {
   if (isTeacher) {
     const [lessons, homeworks, students, examEvents, subjects] = await Promise.all([
       db.lesson.findMany({
-        where: { teacherId: session.user.id, date: { gte: monthStart, lte: monthEnd } },
+        where: { teacherId: ctx.effectiveUserId, date: { gte: monthStart, lte: monthEnd } },
         include: {
           student: { include: { user: { select: { name: true } } } },
           teacher: { select: { meetLink: true } },
@@ -24,22 +24,22 @@ export default async function CalendarPage() {
         orderBy: { date: "asc" },
       }),
       db.homework.findMany({
-        where: { teacherId: session.user.id, status: { in: ["assigned", "rejected", "submitted"] }, dueDate: { gte: monthStart, lte: monthEnd } },
+        where: { teacherId: ctx.effectiveUserId, status: { in: ["assigned", "rejected", "submitted"] }, dueDate: { gte: monthStart, lte: monthEnd } },
         include: { student: { include: { user: { select: { name: true } } } } },
         orderBy: { dueDate: "asc" },
       }),
       db.student.findMany({
-        where: { teacherId: session.user.id },
+        where: { teacherId: ctx.effectiveUserId },
         include: { user: { select: { name: true } } },
         orderBy: { createdAt: "desc" },
       }),
       db.examEvent.findMany({
-        where: { teacherId: session.user.id, date: { gte: monthStart, lte: monthEnd } },
+        where: { teacherId: ctx.effectiveUserId, date: { gte: monthStart, lte: monthEnd } },
         include: { student: { include: { user: { select: { name: true } } } } },
         orderBy: { date: "asc" },
       }),
       db.subject.findMany({
-        where: { teacherId: session.user.id },
+        where: { teacherId: ctx.effectiveUserId },
         orderBy: { name: "asc" },
       }),
     ])
@@ -79,7 +79,7 @@ export default async function CalendarPage() {
     )
   }
 
-  const student = await getStudentByUserId(session.user.id)
+  const student = await getStudentByUserId(ctx.effectiveUserId)
   if (!student) redirect("/dashboard")
 
   const [lessons, homeworks, examEvents] = await Promise.all([

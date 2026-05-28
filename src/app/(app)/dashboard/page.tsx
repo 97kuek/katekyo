@@ -1,5 +1,5 @@
-import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
+import { getViewingContext } from "@/lib/view-as"
 import { db } from "@/lib/db"
 import { getStudentByUserId } from "@/lib/queries"
 import Link from "next/link"
@@ -13,13 +13,13 @@ function Sk({ className }: { className?: string }) {
 }
 
 export default async function DashboardPage() {
-  const session = await auth()
-  if (!session) redirect("/login")
+  const ctx = await getViewingContext()
+  if (!ctx) redirect("/login")
 
-  return session.user.role === "teacher" ? (
-    <TeacherDashboard teacherId={session.user.id} />
+  return ctx.effectiveRole === "teacher" ? (
+    <TeacherDashboard teacherId={ctx.effectiveUserId} />
   ) : (
-    <StudentDashboard userId={session.user.id} />
+    <StudentDashboard userId={ctx.effectiveUserId} />
   )
 }
 

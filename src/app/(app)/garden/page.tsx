@@ -1,5 +1,5 @@
-import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
+import { getViewingContext } from "@/lib/view-as"
 import { db } from "@/lib/db"
 import { getStudentByUserId } from "@/lib/queries"
 import GardenCanvas from "./garden-canvas"
@@ -7,11 +7,11 @@ import { TreePine, Trophy, Star } from "lucide-react"
 import type { GardenItemType } from "@/lib/garden-utils"
 
 export default async function GardenPage() {
-  const session = await auth()
-  if (!session) redirect("/login")
-  if (session.user.role !== "student") redirect("/dashboard")
+  const ctx = await getViewingContext()
+  if (!ctx) redirect("/login")
+  if (ctx.effectiveRole !== "student") redirect("/dashboard")
 
-  const student = await getStudentByUserId(session.user.id)
+  const student = await getStudentByUserId(ctx.effectiveUserId)
   if (!student) redirect("/dashboard")
 
   const now = new Date()

@@ -1,5 +1,5 @@
-import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
+import { getViewingContext } from "@/lib/view-as"
 import { db } from "@/lib/db"
 import { getStudentByUserId } from "@/lib/queries"
 import Link from "next/link"
@@ -57,15 +57,15 @@ export default async function GradesPage({
 }: {
   searchParams: Promise<{ type?: string; studentId?: string }>
 }) {
-  const session = await auth()
-  if (!session) redirect("/login")
+  const ctx = await getViewingContext()
+  if (!ctx) redirect("/login")
 
   const { type, studentId } = await searchParams
 
-  if (session.user.role === "teacher") {
-    return <TeacherGradesPage teacherId={session.user.id} typeFilter={type} studentIdFilter={studentId} />
+  if (ctx.effectiveRole === "teacher") {
+    return <TeacherGradesPage teacherId={ctx.effectiveUserId} typeFilter={type} studentIdFilter={studentId} />
   }
-  return <StudentGradesPage userId={session.user.id} />
+  return <StudentGradesPage userId={ctx.effectiveUserId} />
 }
 
 async function TeacherGradesPage({

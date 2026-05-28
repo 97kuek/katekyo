@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation"
 import { auth } from "@/lib/auth"
+import { getViewingContext } from "@/lib/view-as"
 import { Suspense } from "react"
 import { Toaster } from "sonner"
 import Sidebar from "@/components/layout/sidebar"
@@ -7,12 +8,17 @@ import Header from "@/components/layout/header"
 import BottomNav from "@/components/layout/bottom-nav"
 import { SearchParamsToast } from "@/components/success-toast"
 import { TermsAgreementModal } from "@/components/terms-agreement-modal"
+import { ViewAsBanner } from "@/components/view-as-banner"
 import { db } from "@/lib/db"
 import type { NotificationData } from "@/lib/changelog"
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const session = await auth()
   if (!session) redirect("/login")
+
+  const ctx = await getViewingContext()
+  const effectiveRole = ctx?.effectiveRole ?? session.user.role
+  const effectiveUserId = ctx?.effectiveUserId ?? session.user.id
 
   const jstNow = new Date(Date.now() + 9 * 60 * 60 * 1000)
   const todayStr = jstNow.toISOString().slice(0, 10)
@@ -24,25 +30,28 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       where: { id: session.user.id },
       select: { agreedToTermsAt: true },
     }),
-    fetchNotifications(session.user.id, session.user.role, todayStart, todayEnd),
+    fetchNotifications(effectiveUserId, effectiveRole, todayStart, todayEnd),
   ])
   const needsAgreement = !user?.agreedToTermsAt
 
   return (
     <>
-      <div className="fixed inset-0 flex bg-muted overflow-hidden">
-        <Sidebar role={session.user.role} />
-        <div className="flex flex-col flex-1 min-w-0">
-          <Header name={session.user.name ?? ""} notificationData={notificationData} />
-          <main className="flex-1 overflow-y-auto overflow-x-hidden overscroll-y-none p-4 md:p-6 pb-20 md:pb-6">
-            <Suspense>
-              <SearchParamsToast />
-            </Suspense>
-            {children}
-          </main>
+      <div className="fixed inset-0 flex flex-col bg-muted overflow-hidden">
+        {ctx?.viewingAs && <ViewAsBanner studentName={ctx.viewingAs.studentName} />}
+        <div className="flex flex-1 min-h-0">
+          <Sidebar role={effectiveRole} />
+          <div className="flex flex-col flex-1 min-w-0">
+            <Header name={session.user.name ?? ""} notificationData={notificationData} />
+            <main className="flex-1 overflow-y-auto overflow-x-hidden overscroll-y-none p-4 md:p-6 pb-20 md:pb-6">
+              <Suspense>
+                <SearchParamsToast />
+              </Suspense>
+              {children}
+            </main>
+          </div>
         </div>
       </div>
-      <BottomNav role={session.user.role} />
+      <BottomNav role={effectiveRole} />
       <Toaster richColors position="top-center" />
       <TermsAgreementModal show={needsAgreement} />
     </>

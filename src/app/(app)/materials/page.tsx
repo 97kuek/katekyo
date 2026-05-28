@@ -1,13 +1,13 @@
-import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
+import { getViewingContext } from "@/lib/view-as"
 import { db } from "@/lib/db"
 import { BookOpen } from "lucide-react"
 
 export default async function StudentMaterialsPage() {
-  const session = await auth()
-  if (!session || session.user.role !== "student") redirect("/dashboard")
+  const ctx = await getViewingContext()
+  if (!ctx || ctx.effectiveRole !== "student") redirect("/dashboard")
 
-  const student = await db.student.findUnique({ where: { userId: session.user.id } })
+  const student = await db.student.findUnique({ where: { userId: ctx.effectiveUserId } })
   if (!student) redirect("/dashboard")
 
   const [materials, subjects] = await Promise.all([
