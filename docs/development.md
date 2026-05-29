@@ -110,12 +110,18 @@ npm install
 cp .env.example .env.local
 # .env.local を編集して各値を入力
 
-# DBマイグレーション
+# DBスキーマ同期（migration history が存在しない/ドリフトがある場合）
+npx prisma db push            # スキーマをDBに直接適用（migration history を更新しない）
+npx prisma generate           # Prisma クライアントを再生成（db push 後は手動実行が必要）
+
+# DBマイグレーション（新規環境の場合）
 npx prisma migrate dev
 
 # 開発サーバー起動
 npm run dev
 ```
+
+> **注意**: `db push` はマイグレーション履歴（`prisma/migrations/`）を更新しない。本番環境では `migrate deploy` の代わりに `db push` を使う場合は Vercel の Build Command に `prisma db push --accept-data-loss` を追加すること。
 
 ## 年次データクリーンアップ（手動実行）
 

@@ -5,9 +5,11 @@ export default async function HelpPage() {
   const session = await auth()
   if (!session) redirect("/login")
 
+  const role = session.user.role
+
   return (
     <div className="max-w-2xl space-y-8">
-      {session.user.role === "teacher" ? <TeacherHelp /> : <StudentHelp />}
+      {role === "teacher" ? <TeacherHelp /> : role === "parent" ? <ParentHelp /> : <StudentHelp />}
       <HomeScreenSection />
       <AboutSection />
     </div>
@@ -284,6 +286,54 @@ function StudentHelp() {
       {/* アカウント設定 */}
       <SectionCard title="アカウント設定">
         <p>「設定」メニューから名前・パスワードの変更ができます。ログアウトはヘッダー右上のボタンから行えます。</p>
+      </SectionCard>
+    </div>
+  )
+}
+
+// ---- 保護者用ガイド ----
+
+function ParentHelp() {
+  return (
+    <div className="space-y-6">
+      <H1>使い方ガイド（保護者）</H1>
+
+      <div className="rounded-lg border bg-card p-5 space-y-3">
+        <p className="font-semibold">保護者アカウントでできること</p>
+        <BulletList items={[
+          { label: "宿題の確認", desc: "お子様の宿題一覧・詳細・提出状況を閲覧できます。" },
+          { label: "成績の確認", desc: "テスト結果の履歴とグラフを閲覧できます。" },
+          { label: "授業スケジュール", desc: "授業の日程・形式・授業ログを確認できます。" },
+          { label: "請求の確認", desc: "月ごとの授業回数・時間・料金と入金ステータスを確認できます。" },
+          { label: "学習の森", desc: "お子様の学習の森（ゲーミフィケーション）を閲覧できます。" },
+        ]} />
+        <p className="text-xs text-muted-foreground mt-1">※ 保護者アカウントは閲覧専用です。宿題の提出・成績の入力などの操作は行えません。</p>
+      </div>
+
+      <SectionCard title="アカウントを作成する">
+        <Steps items={[
+          "先生またはお子様から送られた招待URLを開きます。",
+          "メールアドレスとパスワード（8文字以上）を入力して「アカウントを作成」します。",
+          "ログイン後、お子様の情報が自動で連携されます。",
+        ]} />
+        <Tip>招待リンクは7日間有効です。期限切れの場合は先生かお子様に再発行を依頼してください。すでに保護者アカウントをお持ちの場合は、ログイン後に招待リンクを開くと連携のみ行われます。</Tip>
+      </SectionCard>
+
+      <SectionCard title="複数のお子様を確認する">
+        <p>複数のお子様のアカウントと連携している場合、宿題・成績・請求・学習の森の各ページの上部にお子様の切り替えタブが表示されます。タブをタップすると表示を切り替えられます。</p>
+      </SectionCard>
+
+      <SectionCard title="宿題を確認する">
+        <p>「宿題」メニューからお子様の宿題一覧が表示されます。未提出・提出待ち・承認済みなどのステータスが確認でき、宿題名をタップすると詳細や提出写真も確認できます。</p>
+      </SectionCard>
+
+      <SectionCard title="請求・入金状況を確認する">
+        <p>「請求」メニューで月ごとの授業内容と料金を確認できます。先生が入金確認を行った月には「入金済み」のバッジが表示されます。</p>
+        <Tip>月の切り替えは画面上部の矢印ボタンで行えます。</Tip>
+      </SectionCard>
+
+      <SectionCard title="アカウントを削除する">
+        <p>「設定」→「アカウントの削除」から保護者アカウントを削除できます。削除してもお子様のアカウントや学習データには影響しません。</p>
       </SectionCard>
     </div>
   )

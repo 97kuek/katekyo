@@ -244,16 +244,32 @@ async function ParentBillingPage({
   }
 
   const studentIds = links.map((l) => l.studentId)
-  const lessons = await db.lesson.findMany({
-    where: { studentId: { in: studentIds }, date: { gte: monthStart, lte: monthEnd }, completedAt: { not: null } },
-    include: { student: { include: { user: { select: { name: true } } } } },
-    orderBy: { date: "asc" },
-  })
+  const [lessons, payments] = await Promise.all([
+    db.lesson.findMany({
+      where: { studentId: { in: studentIds }, date: { gte: monthStart, lte: monthEnd }, completedAt: { not: null } },
+      include: { student: { include: { user: { select: { name: true } } } } },
+      orderBy: { date: "asc" },
+    }),
+    db.monthlyPayment.findMany({
+      where: { studentId: { in: studentIds }, year, month: month + 1 },
+    }),
+  ])
+
+  const paidStudentIds = new Set(payments.map((p) => p.studentId))
 
   const prevYear = month === 0 ? year - 1 : year
   const prevMonth = month === 0 ? 12 : month
   const nextYear = month === 11 ? year + 1 : year
   const nextMonth = month === 11 ? 1 : month + 2
+
+  // Group by student
+  const studentMap = new Map<string, { name: string; lessons: typeof lessons }>()
+  for (const l of lessons) {
+    if (!studentMap.has(l.studentId)) {
+      studentMap.set(l.studentId, { name: l.student.user.name, lessons: [] })
+    }
+    studentMap.get(l.studentId)!.lessons.push(l)
+  }
 
   return (
     <div className="space-y-6">
@@ -267,20 +283,45 @@ async function ParentBillingPage({
         <div className="rounded-lg border bg-card p-12 text-center text-muted-foreground text-sm">この月の授業記録はありません</div>
       ) : (
         <div className="space-y-4">
-          {lessons.map((l) => {
-            const fee = calcFee(l.durationMin, l.hourlyRate, l.travelExpense)
-            const dateLabel = l.date.toLocaleDateString("ja-JP", { timeZone: "Asia/Tokyo", month: "numeric", day: "numeric", weekday: "short" })
-            const timeStr = l.date.toLocaleTimeString("ja-JP", { timeZone: "Asia/Tokyo", hour: "2-digit", minute: "2-digit" })
+          {Array.from(studentMap.entries()).map(([sid, { name, lessons: sLessons }]) => {
+            const isPaid = paidStudentIds.has(sid)
+            const studentTotal = sLessons.reduce((sum, l) => {
+              const fee = calcFee(l.durationMin, l.hourlyRate, l.travelExpense)
+              return fee != null ? sum + fee : sum
+            }, 0)
+            const hasFee = sLessons.some((l) => l.hourlyRate != null)
             return (
-              <div key={l.id} className="rounded-lg border bg-card px-5 py-4 flex items-start justify-between gap-3 text-sm">
-                <div>
-                  <p className="font-medium">{dateLabel} {timeStr}〜</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    {l.student.user.name} · {l.type === "online" ? "オンライン" : "対面"}
-                    {l.durationMin ? ` · ${l.durationMin}分` : ""}
-                  </p>
+              <div key={sid} className="rounded-lg border bg-card overflow-hidden">
+                <div className="flex items-center justify-between px-5 py-3 border-b bg-muted">
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium text-sm">{name}</p>
+                    {isPaid && (
+                      <span className="text-xs bg-primary/15 text-primary font-medium rounded-full px-2 py-0.5">入金済み</span>
+                    )}
+                  </div>
+                  {hasFee && (
+                    <span className="text-sm font-semibold">¥{studentTotal.toLocaleString()}</span>
+                  )}
                 </div>
-                {fee != null && <p className="font-medium shrink-0">¥{fee.toLocaleString()}</p>}
+                <div className="divide-y">
+                  {sLessons.map((l) => {
+                    const fee = calcFee(l.durationMin, l.hourlyRate, l.travelExpense)
+                    const dateLabel = l.date.toLocaleDateString("ja-JP", { timeZone: "Asia/Tokyo", month: "numeric", day: "numeric", weekday: "short" })
+                    const timeStr = l.date.toLocaleTimeString("ja-JP", { timeZone: "Asia/Tokyo", hour: "2-digit", minute: "2-digit" })
+                    return (
+                      <div key={l.id} className="px-5 py-3 flex items-start justify-between gap-3 text-sm">
+                        <div>
+                          <p className="font-medium">{dateLabel} {timeStr}〜</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            {l.type === "online" ? "オンライン" : "対面"}
+                            {l.durationMin ? ` · ${l.durationMin}分` : ""}
+                          </p>
+                        </div>
+                        {fee != null && <p className="font-medium shrink-0">¥{fee.toLocaleString()}</p>}
+                      </div>
+                    )
+                  })}
+                </div>
               </div>
             )
           })}

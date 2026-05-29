@@ -5,7 +5,7 @@ import { NextResponse } from "next/server"
 const { auth } = NextAuth(authConfig)
 
 // 保護者が閲覧できるパスのプレフィックス
-const PARENT_ALLOWED = ["/dashboard", "/grades", "/calendar", "/billing", "/settings", "/help", "/parent-invite"]
+const PARENT_ALLOWED = ["/dashboard", "/grades", "/calendar", "/billing", "/settings", "/help", "/parent-invite", "/homework", "/garden"]
 
 // 生徒がアクセス不可のパスのプレフィックス
 const STUDENT_BLOCKED = ["/students", "/billing", "/grades/new"]

@@ -6,9 +6,19 @@ import GardenCanvas from "./garden-canvas"
 import { TreePine, Trophy, Star } from "lucide-react"
 import type { GardenItemType } from "@/lib/garden-utils"
 
-export default async function GardenPage() {
+export default async function GardenPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ studentId?: string }>
+}) {
   const ctx = await getViewingContext()
   if (!ctx) redirect("/login")
+
+  if (ctx.effectiveRole === "parent") {
+    const { studentId } = await searchParams
+    return <ParentGardenPage parentId={ctx.effectiveUserId} studentIdParam={studentId} />
+  }
+
   if (ctx.effectiveRole !== "student") redirect("/dashboard")
 
   const student = await getStudentByUserId(ctx.effectiveUserId)
@@ -155,6 +165,144 @@ export default async function GardenPage() {
           )}
         </div>
       </div>
+    </div>
+  )
+}
+
+async function ParentGardenPage({
+  parentId,
+  studentIdParam,
+}: {
+  parentId: string
+  studentIdParam?: string
+}) {
+  const links = await db.parentStudent.findMany({
+    where: { parentId },
+    include: { student: { include: { user: { select: { name: true } } } } },
+  })
+  if (links.length === 0) {
+    return (
+      <div className="rounded-xl border bg-card p-12 text-center text-sm text-muted-foreground">
+        まだお子様の情報が登録されていません
+      </div>
+    )
+  }
+
+  const allowedStudentIds = links.map((l) => l.studentId)
+  const effectiveStudentId =
+    studentIdParam && allowedStudentIds.includes(studentIdParam)
+      ? studentIdParam
+      : allowedStudentIds[0]
+
+  const student = links.find((l) => l.studentId === effectiveStudentId)!.student
+
+  const now = new Date()
+  const [rawItems, overdueCount] = await Promise.all([
+    db.gardenItem.findMany({
+      where: { studentId: effectiveStudentId },
+      select: { x: true, y: true, itemType: true, createdAt: true },
+      orderBy: { createdAt: "asc" },
+    }),
+    db.homework.count({
+      where: {
+        studentId: effectiveStudentId,
+        OR: [
+          { status: "assigned", dueDate: { lt: now } },
+          { status: "rejected" },
+        ],
+      },
+    }),
+  ])
+
+  const witheredCount = Math.min(overdueCount, rawItems.length)
+  const items = rawItems.map((item, i) => ({
+    x: item.x,
+    y: item.y,
+    itemType: item.itemType as GardenItemType,
+    withered: i < witheredCount,
+  }))
+
+  const total = items.length
+  const max = 64
+  const isFull = total >= max
+  const milestone = [10, 25, 50].includes(total) ? total : undefined
+  const generation = student.gardenGeneration
+
+  return (
+    <div className="space-y-5 max-w-2xl">
+      {links.length > 1 && (
+        <div className="flex items-center gap-2 flex-wrap">
+          {links.map(({ student: s }) => (
+            <a
+              key={s.id}
+              href={`/garden?studentId=${s.id}`}
+              className={`text-sm px-3 py-1.5 rounded-full border transition-colors ${
+                s.id === effectiveStudentId
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-card text-foreground border-border hover:bg-muted"
+              }`}
+            >
+              {s.user.name}
+            </a>
+          ))}
+        </div>
+      )}
+
+      <div className="flex items-start justify-between">
+        <div className="flex items-center gap-2">
+          {generation > 1 && (
+            <span className="text-xs font-medium text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-full">
+              第{generation}世代
+            </span>
+          )}
+          <span className="text-sm text-muted-foreground">{student.user.name}の森</span>
+        </div>
+        <div className="text-right">
+          <p className="text-sm tabular-nums text-muted-foreground">{total} / {max}</p>
+          {witheredCount > 0 && (
+            <p className="text-xs text-warning mt-0.5">{witheredCount}個枯れています</p>
+          )}
+        </div>
+      </div>
+
+      {isFull && (
+        <div className="rounded-xl border-2 border-warning/60 bg-warning/10 p-4 flex items-center gap-3">
+          <Trophy className="h-8 w-8 text-warning shrink-0" />
+          <div>
+            <p className="font-bold text-warning-foreground">満開の森 達成</p>
+            <p className="text-sm text-warning">
+              64個がすべて育ちました。次の承認で第{generation + 1}世代の森が始まります。
+            </p>
+          </div>
+        </div>
+      )}
+      {milestone && !isFull && (
+        <div className="rounded-xl border-2 border-warning/60 bg-warning/10 p-4 flex items-center gap-3">
+          <Star className="h-7 w-7 text-warning shrink-0 fill-warning/60" />
+          <div>
+            <p className="font-bold text-warning-foreground">{milestone}個達成！</p>
+            <p className="text-sm text-warning">
+              {milestone === 10 && "コツコツ続けた成果です。この調子で頑張ろう！"}
+              {milestone === 25 && "森が大きく育ってきました。素晴らしい努力です！"}
+              {milestone === 50 && "50個！もう森の半分が育ちました。ゴールまであと少し！"}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {total === 0 ? (
+        <div className="rounded-xl border bg-card p-12 flex flex-col items-center gap-3 text-center">
+          <TreePine className="h-10 w-10 text-green-300" />
+          <p className="font-medium text-muted-foreground">まだ何も育っていません</p>
+          <p className="text-sm text-muted-foreground">
+            宿題が承認されたり高いテスト点数を取ると、<br />森にアイテムが育ちます
+          </p>
+        </div>
+      ) : (
+        <div className="rounded-xl border bg-card p-4 overflow-hidden">
+          <GardenCanvas items={items} milestone={milestone} />
+        </div>
+      )}
     </div>
   )
 }

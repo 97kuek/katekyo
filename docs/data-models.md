@@ -12,23 +12,31 @@ User {
   name          String
   email         String   @unique
   password      String   # bcrypt ハッシュ
-  role          Role     # "teacher" | "student"
+  role          Role     # "teacher" | "student" | "parent"
   lineUserId    String?  @unique  # LINE 連携後に設定
   meetLink      String?           # Google Meet 固定 URL（先生のみ使用）
   agreedToTermsAt DateTime?
   createdAt     DateTime
 
-  # Relations
+  # teacher relations
+  students            Student[]         # role=teacher のみ（担当生徒）
+  inviteTokens        InviteToken[]
+  subjects            Subject[]
+  homeworksGiven      Homework[]
+  gradesGiven         GradeRecord[]
+  lessonsGiven        Lesson[]
+  materialsGiven      StudentMaterial[]
+  examEventsGiven     ExamEvent[]
+  monthlyPayments     MonthlyPayment[]
+
+  # student relation
   studentProfile Student?          # role=student のみ
-  students       Student[]         # role=teacher のみ（担当生徒）
-  subjects       Subject[]
-  homeworks      Homework[]
-  gradeRecords   GradeRecord[]
-  lessons        Lesson[]
-  materials      StudentMaterial[]
-  examEvents     ExamEvent[]
-  monthlyPayments MonthlyPayment[]
-  inviteTokens   InviteToken[]
+
+  # parent relations
+  parentLinks        ParentStudent[]   # role=parent のみ（紐づけた生徒一覧）
+  teacherParentLinks ParentStudent[]   # role=teacher のみ（自テナントの保護者リンク）
+  parentInviteTokens ParentInviteToken[]
+
   lineLinkToken  LineLinkToken?
 }
 ```
@@ -58,6 +66,8 @@ Student {
   gardenItems GardenItem[]
   examEvents  ExamEvent[]
   monthlyPayments MonthlyPayment[]
+  parentLinks          ParentStudent[]     # この生徒に紐づく保護者リンク
+  parentInviteTokens   ParentInviteToken[] # この生徒向けに発行された招待トークン
 }
 ```
 
@@ -158,7 +168,7 @@ GradeRecord {
 GardenItem {
   id        String
   studentId String
-  type      GardenItemType  # 下記 enum 参照
+  itemType  GardenItemType  # 下記 enum 参照
   x         Int             # 0–7（グリッド座標）
   y         Int             # 0–7
   createdAt DateTime
@@ -196,6 +206,49 @@ InviteToken {
   grade     String
   expiresAt DateTime  # 7日後
   usedAt    DateTime? # 使用済みの場合に記録
+  createdAt DateTime
+}
+```
+
+### LineLinkToken（LINE 連携トークン）
+
+```prisma
+LineLinkToken {
+  id        String
+  userId    String   @unique
+  token     String   @unique  # 6桁数字（10分有効）
+  expiresAt DateTime
+  createdAt DateTime
+}
+```
+
+### ParentStudent（保護者–生徒 中間テーブル）
+
+```prisma
+ParentStudent {
+  id        String
+  parentId  String
+  studentId String
+  teacherId String           # テナント分離用
+  createdAt DateTime
+
+  @@unique([parentId, studentId])
+}
+```
+
+### ParentInviteToken（保護者招待トークン）
+
+生徒招待の `InviteToken` とは構造が異なる（`studentId` を持つ）ため別テーブル。
+
+```prisma
+ParentInviteToken {
+  id        String
+  token     String    @unique @default(uuid())
+  teacherId String
+  studentId String
+  email     String?   # 任意。特定メアドに招待したい場合のメモ
+  usedAt    DateTime? # 使用済みの場合に記録
+  expiresAt DateTime  # 7日後
   createdAt DateTime
 }
 ```
@@ -250,6 +303,7 @@ MonthlyPayment {
 enum Role {
   teacher
   student
+  parent
 }
 
 enum HomeworkStatus {

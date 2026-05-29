@@ -1,7 +1,6 @@
-# 学習の森 — 機能設計書
+# 学習の森 — 機能設計書（アーカイブ）
 
-> ブランチ: `feature/garden`  
-> ステータス: 設計中
+> ステータス: **実装完了**（このドキュメントは実装前の設計書。最新仕様は [requirements.md](../requirements.md) と [data-models.md](../data-models.md) を参照）
 
 ---
 

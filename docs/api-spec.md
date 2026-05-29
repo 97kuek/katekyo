@@ -71,6 +71,16 @@ if (session.user.role !== "teacher") return { error: "権限がありません" 
 | `students/actions.ts` | `updateStudentRates` | 授業デフォルト値（時給・交通費・時間・科目）の更新 |
 | `students/actions.ts` | `deleteStudent` | 生徒削除。Supabase Storage の宿題写真を先に削除してから `db.user.delete`（DB は cascade） |
 
+### 保護者（Parent）
+
+| ファイル | Action | 概要 |
+| --- | --- | --- |
+| `students/[id]/invite-parent/actions.ts` | `createParentInvite` | 先生が保護者招待トークンを生成（teacherId + studentId で作成、7日有効） |
+| `students/[id]/parents/actions.ts` | `unlinkParent` | 保護者と生徒のリンクを解除（teacherId 所有確認後に ParentStudent を削除） |
+| `(auth)/parent-invite/[token]/actions.ts` | `acceptParentInvite` | トークン検証 → User(role: parent)作成 + ParentStudent作成 をトランザクションで実行 → `/dashboard` へ |
+| `(auth)/parent-invite/[token]/actions.ts` | `linkExistingParent` | ログイン済み保護者がトークンを踏んだ場合: ParentStudent レコードを追加するだけ |
+| `(app)/parent-invite/create/actions.ts` | `createParentInviteAsStudent` | 生徒が保護者招待リンクを生成（studentProfile から teacherId を取得して ParentInviteToken を作成） |
+
 ### 教材（StudentMaterial）
 
 | ファイル | Action | 概要 |

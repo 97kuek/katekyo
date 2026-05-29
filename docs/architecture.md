@@ -5,15 +5,17 @@
 ```text
 src/
 ├── app/
-│   ├── (auth)/           # login, register, invite/[token]
+│   ├── (auth)/           # login, register, invite/[token], parent-invite/[token]
 │   ├── (legal)/          # privacy, terms
 │   └── (app)/            # 認証済みページ全般
 │       ├── layout.tsx        # Sidebar/Header/BottomNav/Toaster
 │       ├── dashboard/
+│       ├── parent-invite/
+│       │   └── create/       # 生徒が保護者招待リンクを生成
 │       ├── students/
 │       │   ├── invite/       # 招待トークン生成
 │       │   ├── invites/      # 招待トークン管理
-│       │   └── [id]/         # grades/, materials/, garden/
+│       │   └── [id]/         # grades/, materials/, garden/, invite-parent/, parents/
 │       ├── homework/
 │       │   ├── new/
 │       │   └── [id]/         # submit/, review/, edit/
@@ -71,6 +73,21 @@ prisma/
 | `src/components/layout/header.tsx` | ページタイトルヘッダー | `PAGE_TITLES` 配列でパスからタイトル解決。モバイルはタイトル or "katekyo" |
 | `src/components/layout/bottom-nav.tsx` | モバイル固定ボトムナビ | `md:hidden`、先生5項目・生徒5項目 |
 
+## ページ一覧（保護者）
+
+| ページ | パス | 主要コンポーネント・特記事項 |
+| --- | --- | --- |
+| ダッシュボード | `/dashboard` | ParentStudentList: 担当生徒カード（宿題進捗・次回授業・直近成績）。1人の場合は直接サマリー |
+| 成績 | `/grades` | ParentGradesPage: 生徒セレクタ付き、グラフ・一覧（閲覧のみ） |
+| カレンダー | `/calendar` | 担当生徒全員の授業・宿題・テスト予定（閲覧のみ） |
+| 請求 | `/billing` | ParentBillingPage: 担当生徒の完了授業・費用・入金ステータス一覧（閲覧のみ） |
+| 宿題 | `/homework` | ParentHomeworkPage: 生徒セレクタ付き、宿題一覧（閲覧のみ） |
+| 宿題詳細 | `/homework/[id]` | 詳細・提出写真・フィードバック閲覧。操作ボタンは非表示 |
+| 学習の森 | `/garden` | ParentGardenPage: 生徒セレクタ付き、GardenCanvas（閲覧のみ） |
+| 設定 | `/settings` | 名前・パスワード変更・アカウント削除（削除は保護者のみ表示） |
+| 使い方ガイド | `/help` | ParentHelp: 保護者向け操作説明 |
+| 保護者招待 | `/parent-invite/create` | 生徒から保護者を招待するリンク生成 |
+
 ## ページ一覧（先生）
 
 | ページ | パス | 主要コンポーネント・特記事項 |
@@ -82,6 +99,8 @@ prisma/
 | 請求管理 | `/billing` | 月別ナビ（year/month searchParams）。calcFee() で金額計算。生徒別内訳 |
 | カレンダー | `/calendar` | CalendarView クライアントコンポーネント。授業（Lesson）+ テスト日（ExamEvent） |
 | 成績管理 | `/grades` | `?type=mock` 等サーバーサイドフィルタ |
+| 保護者管理 | `/students/[id]/parents` | 紐づけ済み保護者一覧・リンク解除。未使用の招待トークン表示 |
+| 保護者招待 | `/students/[id]/invite-parent` | 保護者招待リンク生成（7日有効）・コピー |
 | プロフィール | `/profile` | 表示名・パスワード変更（両ロール共通） |
 | 設定 | `/settings` | LINE連携 / Meet URL / 科目タグ管理 |
 | 使い方ガイド | `/help` | 操作説明・ホーム画面追加手順 |
@@ -100,6 +119,7 @@ prisma/
 | プロフィール | `/profile` | 表示名・パスワード変更（両ロール共通） |
 | 設定 | `/settings` | LINE連携 |
 | 使い方ガイド | `/help` | 操作説明・ホーム画面追加手順 |
+| 保護者招待 | `/parent-invite/create` | 保護者招待リンクを生成（ダッシュボードからも誘導） |
 
 ## ナビゲーション構成
 
@@ -107,11 +127,15 @@ prisma/
 
 **生徒サイドバー:** ダッシュボード / 宿題 / 成績 / カレンダー / 教材 / 学習の森
 
+**保護者サイドバー:** ダッシュボード / 成績 / カレンダー / 請求
+
 **先生ボトムナビ(5):** ホーム / 生徒 / 宿題 / 成績 / 予定
 
 **生徒ボトムナビ(5):** ホーム / 宿題 / 成績 / 予定 / 森
 
-**設定（サイドバー下部・両ロール共通）:** 設定 / 使い方ガイド
+**保護者ボトムナビ(4):** ホーム / 成績 / 予定 / 請求
+
+**設定（サイドバー下部・全ロール共通）:** 設定 / 使い方ガイド
 
 ## レスポンシブ設計
 

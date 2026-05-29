@@ -5,8 +5,39 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { generateLinkToken, unlinkLine, saveMeetLink } from "./actions"
+import { generateLinkToken, unlinkLine, saveMeetLink, deleteParentAccount } from "./actions"
 import { toast } from "sonner"
+
+export function DeleteParentAccountButton() {
+  const [confirming, setConfirming] = useState(false)
+  const [isPending, startTransition] = useTransition()
+
+  function handleDelete() {
+    startTransition(async () => {
+      await deleteParentAccount()
+    })
+  }
+
+  if (!confirming) {
+    return (
+      <Button variant="destructive" size="sm" onClick={() => setConfirming(true)}>
+        アカウントを削除する
+      </Button>
+    )
+  }
+
+  return (
+    <div className="space-y-3 rounded-lg border border-destructive/30 bg-destructive/5 p-3">
+      <p className="text-sm font-medium text-destructive">本当に削除しますか？この操作は取り消せません。</p>
+      <div className="flex gap-2">
+        <Button variant="destructive" size="sm" disabled={isPending} onClick={handleDelete}>
+          {isPending ? "削除中..." : "削除する"}
+        </Button>
+        <Button variant="outline" size="sm" onClick={() => setConfirming(false)}>キャンセル</Button>
+      </div>
+    </div>
+  )
+}
 
 export function MeetLinkSettings({ currentMeetLink }: { currentMeetLink: string | null }) {
   const [state, action, isPending] = useActionState(saveMeetLink, {})

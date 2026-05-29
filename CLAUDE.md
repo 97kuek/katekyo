@@ -1,7 +1,7 @@
 # CLAUDE.md
 
 家庭教師と生徒の間で宿題・成績・授業スケジュールを管理する Web アプリ。  
-マルチテナント構造（1先生 = 1テナント）。ロール: `teacher` / `student`。
+マルチテナント構造（1先生 = 1テナント）。ロール: `teacher` / `student` / `parent`（閲覧専用）。
 
 ## ドキュメント
 
@@ -12,7 +12,7 @@
 | [docs/data-models.md](docs/data-models.md) | Prisma スキーマ・Enum・クエリ原則 |
 | [docs/requirements.md](docs/requirements.md) | 機能要件・ビジネスロジック |
 | [docs/api-spec.md](docs/api-spec.md) | Server Actions・Route Handlers |
-| [docs/garden-spec.md](docs/garden-spec.md) | 学習の森（植物種別・枯れ・SVG） |
+| [docs/parent-account-spec.md](docs/parent-account-spec.md) | 保護者アカウント（招待フロー・ページ構成・セキュリティ設計） |
 | [docs/development.md](docs/development.md) | セットアップ・デプロイ・環境変数・ブランチ戦略 |
 | [docs/line-notification-plan.md](docs/line-notification-plan.md) | LINE 通知実装計画 |
 | [docs/meet-reminder-plan.md](docs/meet-reminder-plan.md) | Google Meet リマインダー実装計画 |

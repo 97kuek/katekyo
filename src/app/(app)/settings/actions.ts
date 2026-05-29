@@ -1,6 +1,6 @@
 "use server"
 
-import { auth } from "@/lib/auth"
+import { auth, signOut } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { z } from "zod"
 import { unlinkRichMenuFromUser } from "@/lib/line"
@@ -44,6 +44,15 @@ export async function unlinkLine(): Promise<{ error?: string }> {
 const meetLinkSchema = z.object({
   meetLink: z.string().url("有効なURLを入力してください").includes("meet.google.com", { message: "Google Meet のURLを入力してください" }).or(z.literal("")),
 })
+
+export async function deleteParentAccount(): Promise<{ error: string }> {
+  const session = await auth()
+  if (!session || session.user.role !== "parent") return { error: "権限がありません" }
+
+  await db.user.delete({ where: { id: session.user.id } })
+  await signOut({ redirectTo: "/login" })
+  return { error: "" }
+}
 
 export async function saveMeetLink(
   _prevState: { error?: string; success?: boolean },

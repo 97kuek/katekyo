@@ -3,9 +3,10 @@
 ## 認証・認可
 
 - NextAuth.js v5 でセッション管理
-- ロール: `teacher`（先生）/ `student`（生徒）
+- ロール: `teacher`（先生）/ `student`（生徒）/ `parent`（保護者・閲覧専用）
 - 全 Server Action・Route Handler でセッションを確認する
 - 権限チェックは必ずサーバー側で行う。クライアント側のロール判定は UI 表示制御のみ
+- 保護者ロールのアクセス制御: `proxy.ts` の `PARENT_ALLOWED` ホワイトリストで `/dashboard`, `/grades`, `/calendar`, `/billing`, `/settings`, `/help`, `/parent-invite`, `/homework`, `/garden` のみ許可
 
 ## 招待フロー
 

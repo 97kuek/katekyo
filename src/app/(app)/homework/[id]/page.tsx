@@ -22,26 +22,40 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
   if (!session) redirect("/login")
 
   const isTeacher = session.user.role === "teacher"
+  const isParent = session.user.role === "parent"
 
-  const homework = isTeacher
-    ? await db.homework.findFirst({
-        where: { id, teacherId: session.user.id },
+  let homework = null
+
+  if (isTeacher) {
+    homework = await db.homework.findFirst({
+      where: { id, teacherId: session.user.id },
+      include: {
+        student: { include: { user: { select: { name: true } } } },
+        events: { orderBy: { createdAt: "asc" } },
+      },
+    })
+  } else if (isParent) {
+    const links = await db.parentStudent.findMany({ where: { parentId: session.user.id }, select: { studentId: true } })
+    const studentIds = links.map((l) => l.studentId)
+    homework = await db.homework.findFirst({
+      where: { id, studentId: { in: studentIds } },
+      include: {
+        student: { include: { user: { select: { name: true } } } },
+        events: { orderBy: { createdAt: "asc" } },
+      },
+    })
+  } else {
+    const student = await db.student.findUnique({ where: { userId: session.user.id } })
+    if (student) {
+      homework = await db.homework.findFirst({
+        where: { id, studentId: student.id },
         include: {
           student: { include: { user: { select: { name: true } } } },
           events: { orderBy: { createdAt: "asc" } },
         },
       })
-    : await (async () => {
-        const student = await db.student.findUnique({ where: { userId: session.user.id } })
-        if (!student) return null
-        return db.homework.findFirst({
-          where: { id, studentId: student.id },
-          include: {
-            student: { include: { user: { select: { name: true } } } },
-            events: { orderBy: { createdAt: "asc" } },
-          },
-        })
-      })()
+    }
+  }
 
   if (!homework) notFound()
 
@@ -77,7 +91,7 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
       </div>
 
       {/* 差し戻しフィードバック — 生徒向け目立つバナー */}
-      {!isTeacher && homework.status === "rejected" && (
+      {!isTeacher && !isParent && homework.status === "rejected" && (
         <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-4 space-y-3">
           <div className="flex items-center gap-2">
             <AlertCircle className="h-5 w-5 text-destructive shrink-0" />
@@ -99,7 +113,7 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
               <h1 className="text-xl font-bold">{homework.title}</h1>
               <StatusBadge status={homework.status} />
             </div>
-            {isTeacher && (
+            {(isTeacher || isParent) && (
               <p className="text-sm text-muted-foreground mt-1">生徒: {homework.student.user.name}</p>
             )}
           </div>
@@ -222,27 +236,29 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
         </div>
       )}
 
-      <div className="flex flex-col sm:flex-row gap-3">
-        {!isTeacher && ["assigned", "rejected"].includes(homework.status) && (
-          <Link href={`/homework/${id}/submit`} className={buttonVariants({ className: "justify-center" })}>
-            提出する
-          </Link>
-        )}
-        {!isTeacher && homework.status === "submitted" && (
-          <CancelSubmissionButton homeworkId={id} />
-        )}
-        {isTeacher && homework.status === "submitted" && (
-          <Link href={`/homework/${id}/review`} className={buttonVariants({ className: "justify-center" })}>
-            確認・承認する
-          </Link>
-        )}
-        {isTeacher && (
-          <ExtendDeadlineButton
-            homeworkId={id}
-            currentDueDate={homework.dueDate.toISOString().slice(0, 10)}
-          />
-        )}
-      </div>
+      {!isParent && (
+        <div className="flex flex-col sm:flex-row gap-3">
+          {!isTeacher && ["assigned", "rejected"].includes(homework.status) && (
+            <Link href={`/homework/${id}/submit`} className={buttonVariants({ className: "justify-center" })}>
+              提出する
+            </Link>
+          )}
+          {!isTeacher && homework.status === "submitted" && (
+            <CancelSubmissionButton homeworkId={id} />
+          )}
+          {isTeacher && homework.status === "submitted" && (
+            <Link href={`/homework/${id}/review`} className={buttonVariants({ className: "justify-center" })}>
+              確認・承認する
+            </Link>
+          )}
+          {isTeacher && (
+            <ExtendDeadlineButton
+              homeworkId={id}
+              currentDueDate={homework.dueDate.toISOString().slice(0, 10)}
+            />
+          )}
+        </div>
+      )}
     </div>
   )
 }

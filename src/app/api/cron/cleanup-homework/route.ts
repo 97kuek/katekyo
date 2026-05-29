@@ -35,8 +35,18 @@ export async function GET(req: NextRequest) {
     },
   })
 
+  const parentTokens = await db.parentInviteToken.deleteMany({
+    where: {
+      OR: [
+        { usedAt: null,    expiresAt: { lt: expiredCutoff } },
+        { usedAt: { lt: usedCutoff } },
+      ],
+    },
+  })
+
   return NextResponse.json({
     deletedHomework: homework.count,
     deletedTokens: tokens.count,
+    deletedParentTokens: parentTokens.count,
   })
 }

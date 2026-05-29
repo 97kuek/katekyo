@@ -1,7 +1,7 @@
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { redirect } from "next/navigation"
-import { LineSettings, MeetLinkSettings } from "./settings-client"
+import { LineSettings, MeetLinkSettings, DeleteParentAccountButton } from "./settings-client"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { NameForm } from "../profile/name-form"
 import { PasswordForm } from "../profile/password-form"
@@ -11,6 +11,8 @@ import { DeleteSubjectButton } from "../subjects/delete-button"
 export default async function SettingsPage() {
   const session = await auth()
   if (!session) redirect("/login")
+
+  const isParent = session.user.role === "parent"
 
   const [user, subjects] = await Promise.all([
     db.user.findUnique({
@@ -45,13 +47,15 @@ export default async function SettingsPage() {
         </Card>
       </section>
 
-      <section className="space-y-4">
-        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">通知</h2>
-        <LineSettings isLinked={!!user?.lineUserId} />
-        {session.user.role === "teacher" && (
-          <MeetLinkSettings currentMeetLink={user?.meetLink ?? null} />
-        )}
-      </section>
+      {!isParent && (
+        <section className="space-y-4">
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">通知</h2>
+          <LineSettings isLinked={!!user?.lineUserId} />
+          {session.user.role === "teacher" && (
+            <MeetLinkSettings currentMeetLink={user?.meetLink ?? null} />
+          )}
+        </section>
+      )}
 
       {session.user.role === "teacher" && (
         <section className="space-y-4">
@@ -76,6 +80,23 @@ export default async function SettingsPage() {
                   まだ科目タグがありません
                 </p>
               )}
+            </CardContent>
+          </Card>
+        </section>
+      )}
+
+      {isParent && (
+        <section className="space-y-4">
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">アカウントの削除</h2>
+          <Card className="border-destructive/30">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base text-destructive">アカウントを削除する</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                アカウントを削除すると、すべての閲覧権限が失われます。削除後は元に戻せません。
+              </p>
+              <DeleteParentAccountButton />
             </CardContent>
           </Card>
         </section>

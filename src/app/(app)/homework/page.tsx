@@ -38,6 +38,9 @@ export default async function HomeworkPage({
   if (ctx.effectiveRole === "teacher") {
     return <TeacherHomeworkPage teacherId={ctx.effectiveUserId} studentIdFilter={studentId} sort={sort} q={q} subjectFilter={subjects} />
   }
+  if (ctx.effectiveRole === "parent") {
+    return <ParentHomeworkPage parentId={ctx.effectiveUserId} studentIdFilter={studentId} />
+  }
   return <StudentHomeworkPage userId={ctx.effectiveUserId} />
 }
 
@@ -196,6 +199,92 @@ async function TeacherHomeworkPage({
               最初の宿題を作成する
             </Link>
           )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+async function ParentHomeworkPage({ parentId, studentIdFilter }: { parentId: string; studentIdFilter?: string }) {
+  const links = await db.parentStudent.findMany({
+    where: { parentId },
+    include: { student: { include: { user: { select: { name: true } } } } },
+  })
+  if (links.length === 0) {
+    return (
+      <div className="rounded-lg border bg-card p-12 text-center text-sm text-muted-foreground">
+        まだお子様の情報が登録されていません
+      </div>
+    )
+  }
+
+  const allowedStudentIds = links.map((l) => l.studentId)
+  const effectiveStudentId = studentIdFilter && allowedStudentIds.includes(studentIdFilter)
+    ? studentIdFilter
+    : allowedStudentIds[0]
+
+  const homeworks = await db.homework.findMany({
+    where: { studentId: effectiveStudentId },
+    orderBy: { dueDate: "asc" },
+  })
+
+  const teacherId = links.find((l) => l.studentId === effectiveStudentId)?.teacherId
+  const subjects = teacherId
+    ? await db.subject.findMany({ where: { teacherId }, select: { id: true, name: true } })
+    : []
+  const subjectMap = new Map(subjects.map((s) => [s.id, s.name]))
+  const now = new Date()
+
+  return (
+    <div className="space-y-4">
+      {links.length > 1 && (
+        <div className="flex items-center gap-2 flex-wrap">
+          {links.map(({ student }) => (
+            <a
+              key={student.id}
+              href={`/homework?studentId=${student.id}`}
+              className={`text-sm px-3 py-1.5 rounded-full border transition-colors ${
+                student.id === effectiveStudentId
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-card text-foreground border-border hover:bg-muted"
+              }`}
+            >
+              {student.user.name}
+            </a>
+          ))}
+        </div>
+      )}
+
+      {homeworks.length === 0 ? (
+        <div className="rounded-lg border bg-card p-12 text-center text-muted-foreground text-sm">
+          宿題はまだありません
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {homeworks.map((h) => {
+            const overdue = h.dueDate < now && h.status === "assigned"
+            const relLabel = relativeDeadline(h.dueDate)
+            const relColor = deadlineColorClass(h.dueDate)
+            return (
+              <Link
+                key={h.id}
+                href={`/homework/${h.id}`}
+                className={`block rounded-lg border bg-card p-4 hover:bg-muted transition-colors ${overdue ? "border-destructive/30 bg-destructive/5" : ""}`}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="font-medium truncate">{h.title}</p>
+                    <SubjectTags ids={h.subjectIds} map={subjectMap} />
+                  </div>
+                  <StatusBadge status={h.status} />
+                </div>
+                <p className={`text-xs mt-1.5 ${h.status === "assigned" ? relColor : "text-muted-foreground"}`}>
+                  期限: {h.dueDate.toLocaleDateString("ja-JP")}
+                  {h.status === "assigned" && <span className="ml-1.5">（{relLabel}）</span>}
+                </p>
+              </Link>
+            )
+          })}
         </div>
       )}
     </div>
