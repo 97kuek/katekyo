@@ -61,7 +61,9 @@
       "PowerShell(Get-ChildItem -Path \"$pwd/src/app\" -Directory)",
       "PowerShell(Get-ChildItem -Path \"$pwd/src/app/\\(app\\)\" -Directory)",
       "PowerShell(Get-ChildItem -Path \"$pwd/src/app/\\(app\\)\" -Directory | Select-Object -ExpandProperty Name)",
-      "PowerShell(Get-ChildItem \"$pwd/src\" -Recurse -Directory | Where-Object { $_.FullName -notmatch 'node_modules|\\\\.next' } | Select-Object -ExpandProperty FullName | Sort-Object)"
+      "PowerShell(Get-ChildItem \"$pwd/src\" -Recurse -Directory | Where-Object { $_.FullName -notmatch 'node_modules|\\\\.next' } | Select-Object -ExpandProperty FullName | Sort-Object)",
+      "PowerShell(New-Item -ItemType Directory -Force \"c:\\\\Users\\\\yamashita\\\\Documents\\\\katekyo\\\\docs\\\\archived\")",
+      "PowerShell(Move-Item \"c:\\\\Users\\\\yamashita\\\\Documents\\\\katekyo\\\\docs\\\\garden-spec.md\" \"c:\\\\Users\\\\yamashita\\\\Documents\\\\katekyo\\\\docs\\\\archived\\\\garden-spec.md\")"
     ],
     "additionalDirectories": [
       "c:\\Users\\yamashita\\Documents\\katekyo\\.claude"
