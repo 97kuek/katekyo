@@ -41,7 +41,30 @@
       "Bash(node scripts/generate-rich-menu.mjs)",
       "Bash(node -e ' *)",
       "Bash(node scripts/upload-rich-menu-images.mjs)",
-      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\yamashita\\\\Documents\\\\katekyo\\\\src\\\\app\\\\\\(app\\)\" -Recurse -Filter \"*.tsx\")"
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\yamashita\\\\Documents\\\\katekyo\\\\src\\\\app\\\\\\(app\\)\" -Recurse -Filter \"*.tsx\")",
+      "PowerShell(npx tsc --noEmit 2>&1)",
+      "Bash(cat .claude/settings.local.json)",
+      "Bash(ls .claude/)",
+      "Bash(ls \"C:\\\\Users\\\\yamashita\\\\.claude\\\\\" 2>/dev/null; ls \"C:\\\\Users\\\\yamashita\\\\.claude\\\\skills\\\\\" 2>/dev/null || echo \"no skills dir\")",
+      "Read(//c/Users/yamashita/.claude\" 2>/dev/**)",
+      "Bash(python3 -c \"import sys,json;d=json.load\\(sys.stdin\\);[print\\(k,':',v\\) for k,v in d.get\\('scripts',{}\\).items\\(\\)]\")",
+      "Bash(node -e \"const d=require\\('./package.json'\\);Object.entries\\(d.scripts||{}\\).forEach\\(\\([k,v]\\)=>console.log\\(k+': '+v\\)\\)\")",
+      "Bash(dir \"c:\\\\Users\\\\yamashita\\\\Documents\\\\katekyo\\\\.claude\")",
+      "Bash(mkdir -p \"c:\\\\Users\\\\yamashita\\\\Documents\\\\katekyo\\\\.claude\\\\commands\")",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\yamashita\\\\Documents\\\\katekyo\\\\src\\\\app\" -Recurse -Name)",
+      "PowerShell(git add src/app/globals.css \"src/app/\\(app\\)/billing/page.tsx\" \"src/app/\\(app\\)/calendar/calendar-view.tsx\" \"src/app/\\(app\\)/dashboard/page.tsx\" \"src/app/\\(app\\)/garden/page.tsx\" \"src/app/\\(app\\)/homework/[id]/review/page.tsx\" \"src/app/\\(app\\)/students/[id]/materials/add-material-form.tsx\" \"src/app/\\(app\\)/students/[id]/materials/page.tsx\" \"src/app/\\(app\\)/subjects/delete-button.tsx\")",
+      "PowerShell(git push origin main)",
+      "PowerShell(git add \"src/app/\\(app\\)/layout.tsx\" \"src/app/globals.css\")",
+      "PowerShell(Get-ChildItem -Path $pwd\\\\src\\\\app\\\\\\(app\\) -Recurse | Where-Object {$_.PSIsContainer} | Select-Object FullName | head -40)",
+      "PowerShell(Get-ChildItem -Path \"$pwd/src/app/\\(app\\)\" -Recurse | Where-Object {$_.PSIsContainer} | Select-Object FullName | head -50)",
+      "PowerShell(Get-ChildItem -Path \"$pwd/src/app/\\(app\\)\" -Recurse | Where-Object {$_.PSIsContainer} | Select-Object FullName | Select-Object -First 50)",
+      "PowerShell(Get-ChildItem -Path \"$pwd/src/app\" -Directory)",
+      "PowerShell(Get-ChildItem -Path \"$pwd/src/app/\\(app\\)\" -Directory)",
+      "PowerShell(Get-ChildItem -Path \"$pwd/src/app/\\(app\\)\" -Directory | Select-Object -ExpandProperty Name)",
+      "PowerShell(Get-ChildItem \"$pwd/src\" -Recurse -Directory | Where-Object { $_.FullName -notmatch 'node_modules|\\\\.next' } | Select-Object -ExpandProperty FullName | Sort-Object)"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\yamashita\\Documents\\katekyo\\.claude"
     ]
   }
 }

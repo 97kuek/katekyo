@@ -78,6 +78,52 @@ export default async function CalendarPage() {
     )
   }
 
+  if (ctx.effectiveRole === "parent") {
+    const links = await db.parentStudent.findMany({
+      where: { parentId: ctx.effectiveUserId },
+      include: { student: { include: { user: { select: { name: true } } } } },
+    })
+    if (links.length === 0) redirect("/dashboard")
+
+    const studentIds = links.map((l) => l.studentId)
+    const [lessons, homeworks, examEvents] = await Promise.all([
+      db.lesson.findMany({
+        where: { studentId: { in: studentIds }, date: { gte: monthStart, lte: monthEnd } },
+        include: {
+          student: { include: { user: { select: { name: true } } } },
+          teacher: { select: { meetLink: true } },
+        },
+        orderBy: { date: "asc" },
+      }),
+      db.homework.findMany({
+        where: { studentId: { in: studentIds }, status: { in: ["assigned", "rejected"] }, dueDate: { gte: monthStart, lte: monthEnd } },
+        include: { student: { include: { user: { select: { name: true } } } } },
+        orderBy: { dueDate: "asc" },
+      }),
+      db.examEvent.findMany({
+        where: { studentId: { in: studentIds }, date: { gte: monthStart, lte: monthEnd } },
+        include: { student: { include: { user: { select: { name: true } } } } },
+        orderBy: { date: "asc" },
+      }),
+    ])
+
+    return (
+      <div className="space-y-4">
+        <CalendarView
+          lessons={lessons.map((l) => ({ ...l, type: l.type as "online" | "offline", meetLink: l.teacher.meetLink }))}
+          deadlines={homeworks.map((h) => ({ id: h.id, title: h.title, dueDate: h.dueDate, studentName: h.student.user.name }))}
+          examEvents={examEvents.map((e) => ({
+            id: e.id, date: e.date, endDate: e.endDate, name: e.name, testType: e.testType,
+            studentName: (e as { student?: { user: { name: string } } }).student?.user.name,
+          }))}
+          students={[]}
+          subjects={[]}
+          isTeacher={false}
+        />
+      </div>
+    )
+  }
+
   const student = await getStudentByUserId(ctx.effectiveUserId)
   if (!student) redirect("/dashboard")
 

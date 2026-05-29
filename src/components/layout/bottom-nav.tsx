@@ -22,9 +22,16 @@ const studentNav = [
   { href: "/garden", label: "森", icon: TreePine },
 ]
 
+const parentNav = [
+  { href: "/dashboard", label: "ホーム", icon: LayoutDashboard },
+  { href: "/grades", label: "成績", icon: BarChart2 },
+  { href: "/calendar", label: "予定", icon: CalendarDays },
+  { href: "/billing", label: "請求", icon: Receipt },
+]
+
 export default function BottomNav({ role }: { role: string }) {
   const pathname = usePathname()
-  const navItems = role === "teacher" ? teacherNav : studentNav
+  const navItems = role === "teacher" ? teacherNav : role === "parent" ? parentNav : studentNav
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 border-t border-border bg-background md:hidden z-50">

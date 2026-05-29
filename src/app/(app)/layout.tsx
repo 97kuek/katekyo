@@ -102,6 +102,10 @@ async function fetchNotifications(
     }
   }
 
+  if (role === "parent") {
+    return { role: "student", homework: [], lessons: [] }
+  }
+
   const student = await db.student.findFirst({
     where: { userId },
     select: { id: true },

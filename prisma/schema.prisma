@@ -10,6 +10,7 @@ datasource db {
 enum Role {
   teacher
   student
+  parent
 }
 
 enum HomeworkStatus {
@@ -72,6 +73,11 @@ model User {
   // student relation
   studentProfile Student?  @relation("StudentUser")
 
+  // parent relations
+  parentLinks        ParentStudent[]    @relation("ParentLinks")
+  teacherParentLinks ParentStudent[]    @relation("TeacherParentLinks")
+  parentInviteTokens ParentInviteToken[]
+
   lineLinkToken  LineLinkToken?
 }
 
@@ -106,8 +112,10 @@ model Student {
   lessons         Lesson[]
   materials       StudentMaterial[]
   examEvents      ExamEvent[]
-  gardenItems     GardenItem[]
-  monthlyPayments MonthlyPayment[]
+  gardenItems          GardenItem[]
+  monthlyPayments      MonthlyPayment[]
+  parentLinks          ParentStudent[]
+  parentInviteTokens   ParentInviteToken[]
 
   @@index([teacherId])
 }
@@ -127,6 +135,41 @@ model InviteToken {
 
   @@index([teacherId])
   @@index([expiresAt])
+}
+
+model ParentStudent {
+  id        String   @id @default(uuid())
+  parentId  String
+  studentId String
+  teacherId String
+  createdAt DateTime @default(now())
+
+  parent  User    @relation("ParentLinks", fields: [parentId], references: [id], onDelete: Cascade)
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  teacher User    @relation("TeacherParentLinks", fields: [teacherId], references: [id])
+
+  @@unique([parentId, studentId])
+  @@index([parentId])
+  @@index([studentId])
+  @@index([teacherId])
+}
+
+model ParentInviteToken {
+  id        String    @id @default(uuid())
+  token     String    @unique @default(uuid())
+  teacherId String
+  studentId String
+  email     String?
+  usedAt    DateTime?
+  expiresAt DateTime
+  createdAt DateTime  @default(now())
+
+  teacher User    @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([studentId])
+  @@index([teacherId])
 }
 
 model Subject {

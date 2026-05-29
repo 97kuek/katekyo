@@ -16,11 +16,9 @@ export default async function DashboardPage() {
   const ctx = await getViewingContext()
   if (!ctx) redirect("/login")
 
-  return ctx.effectiveRole === "teacher" ? (
-    <TeacherDashboard teacherId={ctx.effectiveUserId} />
-  ) : (
-    <StudentDashboard userId={ctx.effectiveUserId} />
-  )
+  if (ctx.effectiveRole === "teacher") return <TeacherDashboard teacherId={ctx.effectiveUserId} />
+  if (ctx.effectiveRole === "parent") return <ParentDashboard parentId={ctx.effectiveUserId} />
+  return <StudentDashboard userId={ctx.effectiveUserId} />
 }
 
 // ─── Teacher ────────────────────────────────────────────────────────────────
@@ -667,6 +665,120 @@ async function StudentRecentLogs({ userId }: { userId: string }) {
         })}
       </div>
     </section>
+  )
+}
+
+// ─── Parent ──────────────────────────────────────────────────────────────────
+
+function ParentDashboard({ parentId }: { parentId: string }) {
+  return (
+    <div className="space-y-6">
+      <Suspense fallback={<Sk className="h-48 w-full rounded-lg" />}>
+        <ParentStudentList parentId={parentId} />
+      </Suspense>
+    </div>
+  )
+}
+
+async function ParentStudentList({ parentId }: { parentId: string }) {
+  const links = await db.parentStudent.findMany({
+    where: { parentId },
+    include: {
+      student: {
+        include: {
+          user: { select: { name: true } },
+          homeworks: { select: { status: true } },
+          lessons: {
+            where: { date: { gte: new Date() } },
+            orderBy: { date: "asc" },
+            take: 1,
+            select: { date: true, type: true },
+          },
+          grades: {
+            orderBy: { date: "desc" },
+            take: 1,
+            select: { testName: true, score: true, maxScore: true, date: true },
+          },
+        },
+      },
+    },
+  })
+
+  if (links.length === 0) {
+    return (
+      <div className="rounded-lg border bg-card p-12 text-center text-sm text-muted-foreground">
+        まだお子様の情報が登録されていません。先生から招待リンクを受け取ってください。
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-4">
+      {links.map(({ student }) => {
+        const totalHw = student.homeworks.length
+        const approvedHw = student.homeworks.filter((h) => h.status === "approved").length
+        const pendingHw = student.homeworks.filter((h) => h.status === "assigned").length
+        const pct = totalHw > 0 ? Math.round((approvedHw / totalHw) * 100) : null
+        const nextLesson = student.lessons[0]
+        const latestGrade = student.grades[0]
+
+        return (
+          <div key={student.id} className="rounded-lg border bg-card p-5 space-y-4">
+            <div>
+              <p className="font-semibold text-base">{student.user.name}</p>
+              <p className="text-xs text-muted-foreground">{student.grade}</p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              <div className="rounded-md bg-muted p-3">
+                <p className="text-xs text-muted-foreground">宿題（未完了）</p>
+                <p className="text-xl font-bold mt-0.5">{pendingHw}<span className="text-sm font-normal text-muted-foreground ml-1">件</span></p>
+              </div>
+              <div className="rounded-md bg-muted p-3">
+                <p className="text-xs text-muted-foreground">次の授業</p>
+                <p className="text-sm font-medium mt-0.5">
+                  {nextLesson
+                    ? nextLesson.date.toLocaleDateString("ja-JP", { timeZone: "Asia/Tokyo", month: "short", day: "numeric", weekday: "short" })
+                    : <span className="text-muted-foreground">-</span>
+                  }
+                </p>
+              </div>
+              <div className="rounded-md bg-muted p-3 col-span-2 sm:col-span-1">
+                <p className="text-xs text-muted-foreground">直近の成績</p>
+                <p className="text-sm font-medium mt-0.5">
+                  {latestGrade
+                    ? latestGrade.score != null && latestGrade.maxScore != null
+                      ? `${latestGrade.score}/${latestGrade.maxScore}点`
+                      : latestGrade.testName
+                    : <span className="text-muted-foreground">-</span>
+                  }
+                </p>
+              </div>
+            </div>
+
+            {pct != null && (
+              <div className="space-y-1">
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span>宿題進捗</span>
+                  <span>{approvedHw}/{totalHw}（{pct}%）</span>
+                </div>
+                <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+                  <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${pct}%` }} />
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-center gap-2 pt-1 border-t flex-wrap text-xs">
+              <Link href={`/grades?studentId=${student.id}`} className="text-primary underline-offset-4 hover:underline">成績を見る</Link>
+              <span className="text-muted-foreground">·</span>
+              <Link href={`/calendar`} className="text-primary underline-offset-4 hover:underline">カレンダー</Link>
+              <span className="text-muted-foreground">·</span>
+              <Link href={`/billing`} className="text-primary underline-offset-4 hover:underline">請求</Link>
+            </div>
+          </div>
+        )
+      })}
+    </div>
   )
 }
 

@@ -41,7 +41,9 @@ export default function LoginForm() {
       setError("メールアドレスまたはパスワードが正しくありません")
       setIsPending(false)
     } else {
-      router.push("/dashboard")
+      const next = searchParams.get("next")
+      const dest = next && next.startsWith("/") ? next : "/dashboard"
+      router.push(dest)
       router.refresh()
     }
   }

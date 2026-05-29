@@ -23,6 +23,13 @@ const studentNav = [
   { href: "/garden", label: "学習の森", icon: TreePine },
 ]
 
+const parentNav = [
+  { href: "/dashboard", label: "ダッシュボード", icon: LayoutDashboard },
+  { href: "/grades", label: "成績", icon: BarChart2 },
+  { href: "/calendar", label: "カレンダー", icon: CalendarDays },
+  { href: "/billing", label: "請求", icon: Receipt },
+]
+
 const navLinkClass = (active: boolean) =>
   cn(
     "flex items-center justify-center lg:justify-start gap-3 px-3 py-2 rounded-full text-sm font-medium transition-colors",
@@ -33,7 +40,7 @@ const navLinkClass = (active: boolean) =>
 
 export default function Sidebar({ role }: { role: string }) {
   const pathname = usePathname()
-  const navItems = role === "teacher" ? teacherNav : studentNav
+  const navItems = role === "teacher" ? teacherNav : role === "parent" ? parentNav : studentNav
 
   return (
     <aside className="w-16 lg:w-60 shrink-0 bg-background border-r border-border hidden md:flex flex-col">

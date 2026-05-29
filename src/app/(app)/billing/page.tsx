@@ -18,7 +18,13 @@ export default async function BillingPage({
   searchParams: Promise<{ year?: string; month?: string }>
 }) {
   const session = await auth()
-  if (!session || session.user.role !== "teacher") redirect("/dashboard")
+  if (!session) redirect("/login")
+
+  if (session.user.role === "parent") {
+    return <ParentBillingPage parentId={session.user.id} searchParams={searchParams} />
+  }
+
+  if (session.user.role !== "teacher") redirect("/dashboard")
 
   const { year: yearStr, month: monthStr } = await searchParams
   const now = new Date()
@@ -209,6 +215,76 @@ export default async function BillingPage({
             </p>
           )}
         </>
+      )}
+    </div>
+  )
+}
+
+async function ParentBillingPage({
+  parentId,
+  searchParams,
+}: {
+  parentId: string
+  searchParams: Promise<{ year?: string; month?: string }>
+}) {
+  const { year: yearStr, month: monthStr } = await searchParams
+  const now = new Date()
+  const year = yearStr ? parseInt(yearStr) : now.getFullYear()
+  const month = monthStr ? parseInt(monthStr) - 1 : now.getMonth()
+  const monthStart = new Date(year, month, 1)
+  const monthEnd = new Date(year, month + 1, 0, 23, 59, 59)
+
+  const links = await db.parentStudent.findMany({ where: { parentId } })
+  if (links.length === 0) {
+    return (
+      <div className="rounded-lg border bg-card p-12 text-center text-sm text-muted-foreground">
+        まだお子様の情報が登録されていません
+      </div>
+    )
+  }
+
+  const studentIds = links.map((l) => l.studentId)
+  const lessons = await db.lesson.findMany({
+    where: { studentId: { in: studentIds }, date: { gte: monthStart, lte: monthEnd }, completedAt: { not: null } },
+    include: { student: { include: { user: { select: { name: true } } } } },
+    orderBy: { date: "asc" },
+  })
+
+  const prevYear = month === 0 ? year - 1 : year
+  const prevMonth = month === 0 ? 12 : month
+  const nextYear = month === 11 ? year + 1 : year
+  const nextMonth = month === 11 ? 1 : month + 2
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center gap-3">
+        <a href={`/billing?year=${prevYear}&month=${prevMonth}`} className={buttonVariants({ variant: "outline", size: "sm" })}>← 前月</a>
+        <span className="font-semibold text-sm">{year}年 {month + 1}月</span>
+        <a href={`/billing?year=${nextYear}&month=${nextMonth}`} className={buttonVariants({ variant: "outline", size: "sm" })}>翌月 →</a>
+      </div>
+
+      {lessons.length === 0 ? (
+        <div className="rounded-lg border bg-card p-12 text-center text-muted-foreground text-sm">この月の授業記録はありません</div>
+      ) : (
+        <div className="space-y-4">
+          {lessons.map((l) => {
+            const fee = calcFee(l.durationMin, l.hourlyRate, l.travelExpense)
+            const dateLabel = l.date.toLocaleDateString("ja-JP", { timeZone: "Asia/Tokyo", month: "numeric", day: "numeric", weekday: "short" })
+            const timeStr = l.date.toLocaleTimeString("ja-JP", { timeZone: "Asia/Tokyo", hour: "2-digit", minute: "2-digit" })
+            return (
+              <div key={l.id} className="rounded-lg border bg-card px-5 py-4 flex items-start justify-between gap-3 text-sm">
+                <div>
+                  <p className="font-medium">{dateLabel} {timeStr}〜</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {l.student.user.name} · {l.type === "online" ? "オンライン" : "対面"}
+                    {l.durationMin ? ` · ${l.durationMin}分` : ""}
+                  </p>
+                </div>
+                {fee != null && <p className="font-medium shrink-0">¥{fee.toLocaleString()}</p>}
+              </div>
+            )
+          })}
+        </div>
       )}
     </div>
   )

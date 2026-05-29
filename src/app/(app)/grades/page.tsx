@@ -66,6 +66,9 @@ export default async function GradesPage({
   if (ctx.effectiveRole === "teacher") {
     return <TeacherGradesPage teacherId={ctx.effectiveUserId} typeFilter={type} studentIdFilter={studentId} subjectIdFilter={subjectId} />
   }
+  if (ctx.effectiveRole === "parent") {
+    return <ParentGradesPage parentId={ctx.effectiveUserId} studentIdFilter={studentId} typeFilter={type} />
+  }
   return <StudentGradesPage userId={ctx.effectiveUserId} />
 }
 
@@ -373,6 +376,165 @@ async function StudentGradesPage({ userId }: { userId: string }) {
                     </td>
                     <td className="px-4 py-3">{g.deviation ?? "-"}</td>
                     <td className="px-4 py-3">{g.teacherRating != null ? "★".repeat(g.teacherRating) : "-"}</td>
+                    <td className="px-4 py-3 text-muted-foreground max-w-xs truncate">{g.comment ?? "-"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
+async function ParentGradesPage({
+  parentId,
+  studentIdFilter,
+  typeFilter,
+}: {
+  parentId: string
+  studentIdFilter?: string
+  typeFilter?: string
+}) {
+  const links = await db.parentStudent.findMany({
+    where: { parentId },
+    include: { student: { include: { user: { select: { name: true } } } } },
+  })
+  if (links.length === 0) {
+    return (
+      <div className="rounded-lg border bg-card p-12 text-center text-sm text-muted-foreground">
+        まだお子様の情報が登録されていません
+      </div>
+    )
+  }
+
+  const allowedStudentIds = links.map((l) => l.studentId)
+  const effectiveStudentId = studentIdFilter && allowedStudentIds.includes(studentIdFilter)
+    ? studentIdFilter
+    : allowedStudentIds[0]
+
+  const validTypes = ["mock", "exam", "quiz", "other"] as const
+  const isValidType = (v: string | undefined): v is (typeof validTypes)[number] =>
+    validTypes.includes(v as (typeof validTypes)[number])
+
+  const grades = await db.gradeRecord.findMany({
+    where: {
+      studentId: effectiveStudentId,
+      ...(isValidType(typeFilter) ? { testType: typeFilter } : {}),
+    },
+    orderBy: { date: "desc" },
+  })
+
+  const teacherId = links.find((l) => l.studentId === effectiveStudentId)?.teacherId
+  const subjects = teacherId
+    ? await db.subject.findMany({ where: { teacherId }, select: { id: true, name: true } })
+    : []
+  const subjectMap = new Map(subjects.map((s) => [s.id, s.name]))
+
+  const chartGrades = grades.map((g) => ({
+    id: g.id,
+    testName: g.testName,
+    testType: g.testType,
+    date: g.date.toISOString(),
+    score: g.score,
+    maxScore: g.maxScore,
+    avgScore: g.avgScore,
+    deviation: g.deviation,
+    subjectIds: g.subjectIds,
+  }))
+
+  const prevDiff = grades.map((g, i) => {
+    const prev = grades[i + 1]
+    if (!prev) return null
+    const cur = g.score != null && g.maxScore != null ? (g.score / g.maxScore) * 100 : g.deviation
+    const pre = prev.score != null && prev.maxScore != null ? (prev.score / prev.maxScore) * 100 : prev.deviation
+    return cur != null && pre != null ? cur - pre : null
+  })
+
+  return (
+    <div className="space-y-3">
+      {links.length > 1 && (
+        <div className="flex items-center gap-2 flex-wrap">
+          {links.map(({ student }) => (
+            <a
+              key={student.id}
+              href={`/grades?studentId=${student.id}`}
+              className={`text-sm px-3 py-1.5 rounded-full border transition-colors ${
+                student.id === effectiveStudentId
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-card text-foreground border-border hover:bg-muted"
+              }`}
+            >
+              {student.user.name}
+            </a>
+          ))}
+        </div>
+      )}
+
+      {grades.length === 0 ? (
+        <div className="rounded-lg border bg-card p-12 text-center text-muted-foreground text-sm">
+          まだ成績記録がありません
+        </div>
+      ) : (
+        <>
+          <GradeChart grades={chartGrades} subjects={subjects} />
+          <div className="md:hidden space-y-2">
+            {grades.map((g, i) => (
+              <div key={g.id} className="rounded-lg border bg-card p-4 space-y-2">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="font-medium truncate">{g.testName}</p>
+                    <SubjectTags ids={g.subjectIds} map={subjectMap} />
+                    <p className="text-xs text-muted-foreground mt-1">{g.date.toLocaleDateString("ja-JP")}</p>
+                  </div>
+                  <span className={`text-xs rounded-full px-2 py-0.5 shrink-0 ${TEST_TYPE_BADGE[g.testType] ?? TEST_TYPE_BADGE.other}`}>
+                    {TEST_TYPE_LABELS[g.testType as keyof typeof TEST_TYPE_LABELS] ?? g.testType}
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+                  {g.score != null && (
+                    <span>得点: {g.maxScore != null ? `${g.score}/${g.maxScore}` : g.score}<DiffBadge diff={prevDiff[i]} /></span>
+                  )}
+                  {g.deviation != null && <span>偏差値: {g.deviation}</span>}
+                  {g.rank != null && <span>順位: {g.rank}{g.totalStudents != null ? `/${g.totalStudents}` : ""}</span>}
+                </div>
+                {g.comment && <p className="text-xs text-muted-foreground border-l-2 pl-2">{g.comment}</p>}
+              </div>
+            ))}
+          </div>
+          <div className="hidden md:block rounded-lg border bg-card overflow-hidden overflow-x-auto">
+            <table className="w-full text-sm min-w-[500px]">
+              <thead className="border-b bg-muted">
+                <tr>
+                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">テスト名</th>
+                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">種別</th>
+                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">日付</th>
+                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">得点</th>
+                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">偏差値</th>
+                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">順位</th>
+                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">コメント</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y">
+                {grades.map((g, i) => (
+                  <tr key={g.id} className="hover:bg-muted">
+                    <td className="px-4 py-3">
+                      <p className="font-medium">{g.testName}</p>
+                      <SubjectTags ids={g.subjectIds} map={subjectMap} />
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className={`text-xs rounded-full px-2 py-0.5 ${TEST_TYPE_BADGE[g.testType] ?? TEST_TYPE_BADGE.other}`}>
+                        {TEST_TYPE_LABELS[g.testType as keyof typeof TEST_TYPE_LABELS] ?? g.testType}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">{g.date.toLocaleDateString("ja-JP")}</td>
+                    <td className="px-4 py-3">
+                      {g.score != null ? (g.maxScore != null ? `${g.score}/${g.maxScore}` : g.score) : "-"}
+                      <DiffBadge diff={prevDiff[i]} />
+                    </td>
+                    <td className="px-4 py-3">{g.deviation ?? "-"}</td>
+                    <td className="px-4 py-3">{g.rank != null ? (g.totalStudents != null ? `${g.rank}/${g.totalStudents}` : g.rank) : "-"}</td>
                     <td className="px-4 py-3 text-muted-foreground max-w-xs truncate">{g.comment ?? "-"}</td>
                   </tr>
                 ))}
