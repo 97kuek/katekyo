@@ -32,8 +32,8 @@ export function StudentActionsMenu({
 
       {open && (
         <div className="flex items-center gap-2 flex-wrap border-l pl-2 ml-1">
-          <Link href={`/students/${studentId}/invite-parent`} className={buttonVariants({ variant: "ghost", size: "xs" })}>
-            保護者招待
+          <Link href={`/students/${studentId}/parents`} className={buttonVariants({ variant: "ghost", size: "xs" })}>
+            保護者管理
           </Link>
           <Link href={`/students/${studentId}/materials`} className={buttonVariants({ variant: "ghost", size: "xs" })}>
             教材

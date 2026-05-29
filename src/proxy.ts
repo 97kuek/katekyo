@@ -4,14 +4,22 @@ import { NextResponse } from "next/server"
 
 const { auth } = NextAuth(authConfig)
 
+// 保護者が閲覧できるパスのプレフィックス
+const PARENT_ALLOWED = ["/dashboard", "/grades", "/calendar", "/billing", "/settings", "/help", "/parent-invite"]
+
+// 生徒がアクセス不可のパスのプレフィックス
+const STUDENT_BLOCKED = ["/students", "/billing", "/grades/new"]
+
 export default auth((req) => {
   const isLoggedIn = !!req.auth
   const { pathname } = req.nextUrl
+  const role = req.auth?.user?.role as string | undefined
 
   const isPublicPath =
     pathname.startsWith("/login") ||
     pathname.startsWith("/register") ||
     pathname.startsWith("/invite") ||
+    pathname.startsWith("/parent-invite") ||
     pathname.startsWith("/terms") ||
     pathname.startsWith("/privacy")
 
@@ -21,6 +29,20 @@ export default auth((req) => {
 
   if (isLoggedIn && (pathname === "/login" || pathname === "/register")) {
     return NextResponse.redirect(new URL("/dashboard", req.url))
+  }
+
+  if (role === "parent" && isLoggedIn) {
+    const allowed = PARENT_ALLOWED.some((p) => pathname.startsWith(p))
+    if (!allowed && !isPublicPath) {
+      return NextResponse.redirect(new URL("/dashboard", req.url))
+    }
+  }
+
+  if (role === "student" && isLoggedIn) {
+    const blocked = STUDENT_BLOCKED.some((p) => pathname.startsWith(p))
+    if (blocked) {
+      return NextResponse.redirect(new URL("/dashboard", req.url))
+    }
   }
 })
 

@@ -413,6 +413,10 @@ function StudentDashboard({ userId }: { userId: string }) {
       <Suspense fallback={<Sk className="h-24 w-full rounded-lg" />}>
         <StudentGardenPreview userId={userId} />
       </Suspense>
+
+      <Suspense fallback={null}>
+        <StudentParentInvitePrompt userId={userId} />
+      </Suspense>
     </div>
   )
 }
@@ -665,6 +669,23 @@ async function StudentRecentLogs({ userId }: { userId: string }) {
         })}
       </div>
     </section>
+  )
+}
+
+async function StudentParentInvitePrompt({ userId }: { userId: string }) {
+  const student = await getStudentByUserId(userId)
+  if (!student) return null
+
+  const hasParent = await db.parentStudent.findFirst({ where: { studentId: student.id } })
+  if (hasParent) return null
+
+  return (
+    <div className="rounded-lg border border-dashed bg-card p-4 flex items-center justify-between gap-3">
+      <p className="text-sm text-muted-foreground">保護者に学習状況を共有できます</p>
+      <Link href="/parent-invite/create" className={buttonVariants({ variant: "outline", size: "sm" })}>
+        保護者を招待
+      </Link>
+    </div>
   )
 }
 
