@@ -311,33 +311,35 @@ async function HomeworkStatusSection({ teacherId }: { teacherId: string }) {
 }
 
 async function GradeTrendsSection({ teacherId }: { teacherId: string }) {
-  const recentGrades = await db.gradeRecord.findMany({
+  const students = await db.student.findMany({
     where: { teacherId },
-    include: { student: { include: { user: { select: { name: true } } } } },
-    orderBy: { date: "desc" },
-    take: 60,
+    include: {
+      user: { select: { name: true } },
+      grades: {
+        orderBy: { date: "desc" },
+        take: 2,
+      },
+    },
   })
 
-  const gradesByStudent = new Map<string, typeof recentGrades>()
-  for (const g of recentGrades) {
-    const list = gradesByStudent.get(g.studentId) ?? []
-    if (list.length < 2) { list.push(g); gradesByStudent.set(g.studentId, list) }
-  }
+  type Grade = typeof students[0]["grades"][0]
+  const val = (g: Grade) =>
+    g.score != null && g.maxScore != null ? (g.score / g.maxScore) * 100 : g.deviation
 
-  const gradeTrends = Array.from(gradesByStudent.values())
-    .map((gs) => {
-      if (gs.length < 2) return null
-      const [latest, prev] = gs
-      const val = (g: typeof gs[0]) => g.score != null && g.maxScore != null ? (g.score / g.maxScore) * 100 : g.deviation
-      const latestVal = val(latest); const prevVal = val(prev)
+  const gradeTrends = students
+    .filter((s) => s.grades.length >= 2)
+    .map((s) => {
+      const [latest, prev] = s.grades
+      const latestVal = val(latest)
+      const prevVal = val(prev)
       if (latestVal == null || prevVal == null) return null
       const diff = latestVal - prevVal
       if (Math.abs(diff) < 1) return null
-      return { studentId: latest.studentId, name: latest.student.user.name, diff, latest }
+      return { studentId: s.id, name: s.user.name, diff, latest }
     })
     .filter(Boolean)
     .sort((a, b) => Math.abs(b!.diff) - Math.abs(a!.diff))
-    .slice(0, 5) as NonNullable<{ studentId: string; name: string; diff: number; latest: typeof recentGrades[0] }>[]
+    .slice(0, 5) as NonNullable<{ studentId: string; name: string; diff: number; latest: Grade }>[]
 
   if (gradeTrends.length === 0) return null
 

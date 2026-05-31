@@ -3,15 +3,14 @@
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { revalidatePath } from "next/cache"
-import { plantGardenItem } from "@/lib/garden"
+import { plantForHomeworkApproval } from "@/lib/garden"
 import { sendLineMessage } from "@/lib/line"
-import type { GardenItemType } from "@/lib/garden-utils"
 
-export async function bulkApproveHomework(ids: string[]): Promise<{ error: string }> {
+export async function bulkApproveHomework(ids: string[]): Promise<{ error: string; approved: number }> {
   const session = await auth()
-  if (!session || session.user.role !== "teacher") return { error: "権限がありません" }
+  if (!session || session.user.role !== "teacher") return { error: "権限がありません", approved: 0 }
 
-  if (!ids.length) return { error: "" }
+  if (!ids.length) return { error: "", approved: 0 }
 
   const homeworks = await db.homework.findMany({
     where: {
@@ -24,13 +23,20 @@ export async function bulkApproveHomework(ids: string[]): Promise<{ error: strin
     },
   })
 
-  if (!homeworks.length) return { error: "" }
+  if (!homeworks.length) return { error: "", approved: 0 }
 
   const now = new Date()
   await db.homework.updateMany({
     where: { id: { in: homeworks.map((h) => h.id) } },
     data: { status: "approved", reviewedAt: now },
   })
+
+  // 差し戻し履歴を一括取得してN+1を回避
+  const rejectedEvents = await db.homeworkEvent.findMany({
+    where: { homeworkId: { in: homeworks.map((h) => h.id) }, eventType: "rejected" },
+    select: { homeworkId: true },
+  })
+  const rejectedHomeworkIds = new Set(rejectedEvents.map((e) => e.homeworkId))
 
   const baseUrl = process.env.NEXTAUTH_URL ?? ""
 
@@ -43,23 +49,10 @@ export async function bulkApproveHomework(ids: string[]): Promise<{ error: strin
           `✅ 宿題が承認されました\n\n「${homework.title}」が承認されました！\n森に植物が1つ育ちました 🌱\n${baseUrl}/homework/${homework.id}`
         )
       }
-
-      const wasRejected = homework.reviewedAt !== null
-      const wasLate = homework.submittedAt != null && homework.submittedAt > homework.dueDate
-      if (!wasRejected && !wasLate) {
-        try {
-          const approvedCount = await db.homework.count({
-            where: { studentId: homework.studentId, status: "approved" },
-          })
-          const forcedType: GardenItemType | undefined = approvedCount % 5 === 0 ? "big_tree" : undefined
-          await plantGardenItem(homework.studentId, forcedType)
-        } catch (err) {
-          console.error("[garden] plantGardenItem failed:", err)
-        }
-      }
+      await plantForHomeworkApproval(homework, rejectedHomeworkIds.has(homework.id))
     })
   )
 
   revalidatePath("/homework")
-  return { error: "" }
+  return { error: "", approved: homeworks.length }
 }

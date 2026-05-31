@@ -158,7 +158,10 @@ export default function SubmitForm({ id, rejectedFeedback, requiresPhoto = false
                 )}
               </div>
             )}
-            <label className={`flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-input rounded-md cursor-pointer hover:bg-muted/50 transition-colors${preview ? " hidden" : ""}`}>
+            {requiresPhoto && !preview && (
+              <p className="text-xs text-destructive">写真を添付してください（提出に必須です）</p>
+            )}
+            <label className={`flex flex-col items-center justify-center w-full h-28 border-2 border-dashed ${requiresPhoto && !preview ? "border-destructive/50" : "border-input"} rounded-md cursor-pointer hover:bg-muted/50 transition-colors${preview ? " hidden" : ""}`}>
               <span className="text-sm text-muted-foreground">タップして写真を選択</span>
               <span className="text-xs text-muted-foreground mt-1">カメラで撮影も可能です</span>
               <input

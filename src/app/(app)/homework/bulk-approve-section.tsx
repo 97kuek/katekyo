@@ -23,6 +23,7 @@ export function BulkApproveSection({
 }) {
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [isPending, startTransition] = useTransition()
+  const [lastApproved, setLastApproved] = useState<number | null>(null)
 
   function toggleAll() {
     setSelected((prev) =>
@@ -40,8 +41,9 @@ export function BulkApproveSection({
 
   function approve() {
     startTransition(async () => {
-      await bulkApproveHomework(Array.from(selected))
+      const result = await bulkApproveHomework(Array.from(selected))
       setSelected(new Set())
+      if (result.approved > 0) setLastApproved(result.approved)
     })
   }
 
@@ -55,6 +57,9 @@ export function BulkApproveSection({
           <Button size="sm" onClick={approve} disabled={isPending}>
             {isPending ? "処理中..." : `${selected.size}件を一括承認`}
           </Button>
+        )}
+        {lastApproved !== null && selected.size === 0 && (
+          <span className="text-xs text-primary font-medium">{lastApproved}件を承認しました</span>
         )}
       </div>
 

@@ -5,8 +5,7 @@ import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { z } from "zod"
 import { uploadHomeworkPhoto } from "@/lib/supabase-storage"
-import { plantGardenItem } from "@/lib/garden"
-import type { GardenItemType } from "@/lib/garden-utils"
+import { plantForHomeworkApproval } from "@/lib/garden"
 import { sendLineMessage } from "@/lib/line"
 
 const MAX_PHOTO_BYTES = 5 * 1024 * 1024
@@ -156,20 +155,11 @@ export async function reviewHomework(
   }
 
   if (action === "approved") {
-    try {
-      // 差し戻し後の再提出、または期限切れ後の遅延提出は枯れ回復のみで新規植物は生やさない
-      const wasRejected = homework.reviewedAt !== null
-      const wasLate = homework.submittedAt != null && homework.submittedAt > homework.dueDate
-      if (!wasRejected && !wasLate) {
-        const approvedCount = await db.homework.count({
-          where: { studentId: homework.studentId, status: "approved" },
-        })
-        const forcedType: GardenItemType | undefined = approvedCount % 5 === 0 ? "big_tree" : undefined
-        await plantGardenItem(homework.studentId, forcedType)
-      }
-    } catch (err) {
-      console.error("[garden] plantGardenItem failed:", err)
-    }
+    const wasRejectedEvent = await db.homeworkEvent.findFirst({
+      where: { homeworkId: id, eventType: "rejected" },
+      select: { id: true },
+    })
+    await plantForHomeworkApproval(homework, wasRejectedEvent !== null)
   }
 
   redirect("/homework?toast=reviewed")

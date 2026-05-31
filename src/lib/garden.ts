@@ -3,6 +3,23 @@
 import { db } from "./db"
 import type { GardenItemType } from "./garden-utils"
 
+export async function plantForHomeworkApproval(
+  homework: { id: string; studentId: string; dueDate: Date; submittedAt: Date | null },
+  wasRejected: boolean
+): Promise<void> {
+  const wasLate = homework.submittedAt != null && homework.submittedAt > homework.dueDate
+  if (wasRejected || wasLate) return
+  try {
+    const approvedCount = await db.homework.count({
+      where: { studentId: homework.studentId, status: "approved" },
+    })
+    const forcedType: GardenItemType | undefined = approvedCount % 5 === 0 ? "big_tree" : undefined
+    await plantGardenItem(homework.studentId, forcedType)
+  } catch (err) {
+    console.error("[garden] plantGardenItem failed:", err)
+  }
+}
+
 const GRID_SIZE = 8
 const ITEM_WEIGHTS: GardenItemType[] = [
   "tree", "tree", "tree", "tree", "tree", "tree", "tree", "tree",

@@ -6,14 +6,22 @@ async function pushLineMessages(lineUserId: string, messages: LineMessage[]): Pr
   const token = process.env.LINE_CHANNEL_ACCESS_TOKEN
   if (!token) return
 
-  await fetch("https://api.line.me/v2/bot/message/push", {
+  const res = await fetch("https://api.line.me/v2/bot/message/push", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({ to: lineUserId, messages }),
-  }).catch(() => {})
+  }).catch((err: unknown) => {
+    console.error("[LINE] fetch failed:", err)
+    return null
+  })
+
+  if (res && !res.ok) {
+    const body = await res.text().catch(() => "")
+    console.error(`[LINE] API error ${res.status}:`, body)
+  }
 }
 
 export async function sendLineMessage(lineUserId: string, text: string): Promise<void> {

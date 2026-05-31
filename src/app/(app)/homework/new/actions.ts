@@ -45,6 +45,15 @@ export async function createHomework(
     return { error: "指定された生徒が見つかりません" }
   }
 
+  if (materialId) {
+    const material = await db.studentMaterial.findFirst({
+      where: { id: materialId, teacherId: session.user.id },
+    })
+    if (!material) {
+      return { error: "指定された教材が見つかりません" }
+    }
+  }
+
   await db.homework.create({
     data: {
       teacherId: session.user.id,
