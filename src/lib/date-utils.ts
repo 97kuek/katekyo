@@ -1,7 +1,12 @@
-export function relativeDeadline(dueDate: Date): string {
+function diffInDays(dueDate: Date): number {
   const now = new Date()
-  const diffMs = dueDate.getTime() - now.getTime()
-  const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24))
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const due = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate())
+  return Math.round((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+}
+
+export function relativeDeadline(dueDate: Date): string {
+  const diffDays = diffInDays(dueDate)
 
   if (diffDays < 0) return `${Math.abs(diffDays)}日超過`
   if (diffDays === 0) return "今日まで"
@@ -10,9 +15,7 @@ export function relativeDeadline(dueDate: Date): string {
 }
 
 export function deadlineColorClass(dueDate: Date): string {
-  const now = new Date()
-  const diffMs = dueDate.getTime() - now.getTime()
-  const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24))
+  const diffDays = diffInDays(dueDate)
 
   if (diffDays < 0) return "text-red-600 font-semibold"
   if (diffDays <= 1) return "text-red-500 font-semibold"
