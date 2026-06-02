@@ -40,7 +40,7 @@
 
 #### 成績管理
 
-![grade](./assets/grade.jpg)
+![grade](./assets/grade.png)
 - テスト・模試の点数と偏差値を生徒ごとに記録
 - 推移グラフで学習の伸びを可視化
 
