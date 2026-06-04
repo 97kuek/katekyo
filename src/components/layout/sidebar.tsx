@@ -32,10 +32,10 @@ const parentNav = [
 
 const navLinkClass = (active: boolean) =>
   cn(
-    "flex items-center justify-center lg:justify-start gap-3 px-3 py-2 rounded-full text-sm font-medium transition-colors",
+    "flex items-center justify-center lg:justify-start gap-3 px-3 py-2 rounded-full text-sm font-medium transition-all duration-150",
     active
       ? "bg-primary text-primary-foreground"
-      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+      : "text-muted-foreground hover:bg-muted hover:text-foreground active:scale-[0.97] active:opacity-80"
   )
 
 export default function Sidebar({ role }: { role: string }) {

@@ -9,6 +9,7 @@ import BottomNav from "@/components/layout/bottom-nav"
 import { SearchParamsToast } from "@/components/success-toast"
 import { TermsAgreementModal } from "@/components/terms-agreement-modal"
 import { ViewAsBanner } from "@/components/view-as-banner"
+import { PageContent } from "@/components/layout/page-content"
 import { db } from "@/lib/db"
 import type { NotificationData } from "@/lib/changelog"
 
@@ -46,7 +47,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
               <Suspense>
                 <SearchParamsToast />
               </Suspense>
-              {children}
+              <PageContent>
+                {children}
+              </PageContent>
             </main>
           </div>
         </div>

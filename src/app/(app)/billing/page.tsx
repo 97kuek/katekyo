@@ -1,15 +1,24 @@
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { db } from "@/lib/db"
-import { markAsPaid, markAsUnpaid } from "./actions"
+import { markAsPaid, markAsUnpaid, setPaymentDueDate } from "./actions"
 import { buttonVariants } from "@/components/ui/button"
-
-function pad(n: number) { return String(n).padStart(2, "0") }
 
 function calcFee(durationMin: number | null, hourlyRate: number | null, travelExpense: number | null): number | null {
   if (!hourlyRate && !travelExpense) return null
   const lessonFee = durationMin && hourlyRate ? Math.round((durationMin / 60) * hourlyRate) : 0
   return lessonFee + (travelExpense ?? 0)
+}
+
+function dueDateLabel(dueDate: Date | null, isPaid: boolean): { text: string; className: string } | null {
+  if (!dueDate) return null
+  const now = new Date()
+  const isOverdue = !isPaid && dueDate < now
+  const dateStr = dueDate.toLocaleDateString("ja-JP", { timeZone: "Asia/Tokyo", month: "numeric", day: "numeric" })
+  return {
+    text: `期限: ${dateStr}`,
+    className: isOverdue ? "text-destructive font-medium" : "text-muted-foreground",
+  }
 }
 
 export default async function BillingPage({
@@ -50,7 +59,8 @@ export default async function BillingPage({
   const completedLessons = lessons.filter((l) => l.completedAt != null)
   const unconfirmedCount = lessons.filter((l) => l.completedAt == null && l.date < now).length
 
-  const paidStudentIds = new Set(payments.map((p) => p.studentId))
+  // paidAt が null でないレコードを「入金済み」とみなす
+  const paidMap = new Map(payments.map((p) => [p.studentId, p]))
 
   // Group by student (completed only)
   const studentMap = new Map<string, { name: string; lessons: typeof lessons }>()
@@ -74,6 +84,9 @@ export default async function BillingPage({
 
   const totalMinutes = completedLessons.reduce((sum, l) => sum + (l.durationMin ?? 0), 0)
   const hasFeeData = completedLessons.some((l) => l.hourlyRate != null)
+
+  // 月の最終日（デフォルト期限表示用）
+  const defaultDueDateStr = new Date(year, month + 1, 0).toLocaleDateString("ja-JP", { month: "numeric", day: "numeric" })
 
   return (
     <div className="space-y-6">
@@ -150,20 +163,50 @@ export default async function BillingPage({
             }, 0)
             const studentMin = sLessons.reduce((sum, l) => sum + (l.durationMin ?? 0), 0)
             const hasStudentFee = sLessons.some((l) => l.hourlyRate != null)
-            const isPaid = paidStudentIds.has(sid)
+            const paymentRecord = paidMap.get(sid)
+            const isPaid = paymentRecord?.paidAt != null
+            const dueDateInfo = dueDateLabel(paymentRecord?.dueDate ?? null, isPaid)
+            const currentDueDateValue = paymentRecord?.dueDate
+              ? new Date(paymentRecord.dueDate).toLocaleDateString("ja-JP", { timeZone: "Asia/Tokyo", year: "numeric", month: "2-digit", day: "2-digit" }).replace(/\//g, "-")
+              : ""
 
             return (
               <div key={name} className="rounded-lg border bg-card overflow-hidden">
-                <div className="flex items-center justify-between px-5 py-3 border-b bg-muted">
-                  <div className="flex items-center gap-2">
+                <div className="flex items-center justify-between px-5 py-3 border-b bg-muted gap-3 flex-wrap">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <p className="font-medium text-sm">{name}</p>
                     {isPaid && (
                       <span className="text-xs bg-primary/15 text-primary font-medium rounded-full px-2 py-0.5">入金済み</span>
                     )}
+                    {dueDateInfo && (
+                      <span className={`text-xs ${dueDateInfo.className}`}>{dueDateInfo.text}</span>
+                    )}
+                    {!dueDateInfo && !isPaid && (
+                      <span className="text-xs text-muted-foreground">期限: {defaultDueDateStr}（月末）</span>
+                    )}
                   </div>
-                  <div className="flex items-center gap-3 text-sm text-right">
-                    <span className="text-muted-foreground">{sLessons.length}回 · {Math.floor(studentMin / 60)}h{studentMin % 60 > 0 ? `${studentMin % 60}m` : ""}</span>
-                    {hasStudentFee && <span className="font-semibold">¥{studentTotal.toLocaleString()}</span>}
+                  <div className="flex items-center gap-2 text-sm text-right flex-wrap justify-end">
+                    <span className="text-muted-foreground text-xs">{sLessons.length}回 · {Math.floor(studentMin / 60)}h{studentMin % 60 > 0 ? `${studentMin % 60}m` : ""}</span>
+                    {hasStudentFee && <span className="font-semibold text-sm">¥{studentTotal.toLocaleString()}</span>}
+                    {/* 支払い期限設定 */}
+                    <form action={setPaymentDueDate} className="flex items-center gap-1">
+                      <input type="hidden" name="studentId" value={sid} />
+                      <input type="hidden" name="year" value={year} />
+                      <input type="hidden" name="month" value={month + 1} />
+                      <input
+                        type="date"
+                        name="dueDate"
+                        defaultValue={currentDueDateValue}
+                        className="text-xs border rounded px-1.5 py-0.5 bg-background text-foreground h-7 w-32"
+                      />
+                      <button
+                        type="submit"
+                        className={buttonVariants({ variant: "ghost", size: "xs" }) + " text-xs"}
+                      >
+                        期限設定
+                      </button>
+                    </form>
+                    {/* 入金確認 */}
                     <form action={isPaid ? markAsUnpaid : markAsPaid}>
                       <input type="hidden" name="studentId" value={sid} />
                       <input type="hidden" name="year" value={year} />
@@ -255,7 +298,7 @@ async function ParentBillingPage({
     }),
   ])
 
-  const paidStudentIds = new Set(payments.map((p) => p.studentId))
+  const paidMap = new Map(payments.map((p) => [p.studentId, p]))
 
   const prevYear = month === 0 ? year - 1 : year
   const prevMonth = month === 0 ? 12 : month
@@ -284,19 +327,24 @@ async function ParentBillingPage({
       ) : (
         <div className="space-y-4">
           {Array.from(studentMap.entries()).map(([sid, { name, lessons: sLessons }]) => {
-            const isPaid = paidStudentIds.has(sid)
+            const paymentRecord = paidMap.get(sid)
+            const isPaid = paymentRecord?.paidAt != null
             const studentTotal = sLessons.reduce((sum, l) => {
               const fee = calcFee(l.durationMin, l.hourlyRate, l.travelExpense)
               return fee != null ? sum + fee : sum
             }, 0)
             const hasFee = sLessons.some((l) => l.hourlyRate != null)
+            const dueDateInfo = dueDateLabel(paymentRecord?.dueDate ?? null, isPaid)
             return (
               <div key={sid} className="rounded-lg border bg-card overflow-hidden">
-                <div className="flex items-center justify-between px-5 py-3 border-b bg-muted">
-                  <div className="flex items-center gap-2">
+                <div className="flex items-center justify-between px-5 py-3 border-b bg-muted gap-3 flex-wrap">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <p className="font-medium text-sm">{name}</p>
                     {isPaid && (
                       <span className="text-xs bg-primary/15 text-primary font-medium rounded-full px-2 py-0.5">入金済み</span>
+                    )}
+                    {dueDateInfo && (
+                      <span className={`text-xs ${dueDateInfo.className}`}>{dueDateInfo.text}</span>
                     )}
                   </div>
                   {hasFee && (

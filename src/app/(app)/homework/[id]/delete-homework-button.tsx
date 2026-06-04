@@ -38,7 +38,7 @@ export function DeleteHomeworkButton({ homeworkId }: { homeworkId: string }) {
       variant="outline"
       size="sm"
       onClick={() => setConfirming(true)}
-      className="border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
+      className="text-destructive border-input hover:bg-destructive/10 hover:text-destructive hover:border-destructive/50"
     >
       削除
     </Button>

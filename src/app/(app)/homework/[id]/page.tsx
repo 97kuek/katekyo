@@ -70,7 +70,7 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
   ])
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="max-w-2xl mx-auto space-y-6">
       <div className="flex flex-col gap-2">
         <Link href="/homework" className="text-sm text-muted-foreground hover:underline self-start">
           ← 宿題一覧に戻る

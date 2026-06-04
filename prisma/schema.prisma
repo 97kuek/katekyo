@@ -329,13 +329,14 @@ model StudentMaterial {
 }
 
 model MonthlyPayment {
-  id        String   @id @default(uuid())
+  id        String    @id @default(uuid())
   teacherId String
   studentId String
   year      Int
   month     Int
-  paidAt    DateTime @default(now())
-  createdAt DateTime @default(now())
+  dueDate   DateTime?
+  paidAt    DateTime?
+  createdAt DateTime  @default(now())
 
   teacher User    @relation("TeacherPayments", fields: [teacherId], references: [id], onDelete: Cascade)
   student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
