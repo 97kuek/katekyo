@@ -68,10 +68,11 @@ prisma/
 
 | ファイル | 役割 | 備考 |
 | --- | --- | --- |
-| `src/app/(app)/layout.tsx` | 認証チェック + 全レイアウト配置 | 外側コンテナ `fixed inset-0`（キーボード表示でレイアウト崩れ防止）。`max-w-7xl mx-auto` でコンテンツ幅制限 |
+| `src/app/(app)/layout.tsx` | 認証チェック + 全レイアウト配置 | 外側コンテナ `fixed inset-0`（キーボード表示でレイアウト崩れ防止） |
+| `src/components/layout/page-content.tsx` | ページ遷移アニメーション | Client Component。`usePathname()` を `key` にして `animate-page-in` を再生 |
 | `src/components/layout/sidebar.tsx` | デスクトップ左サイドバー | `hidden md:flex`、md=w-16（アイコンのみ）、lg=w-60（ラベルあり） |
 | `src/components/layout/header.tsx` | ページタイトルヘッダー | `PAGE_TITLES` 配列でパスからタイトル解決。モバイルはタイトル or "katekyo" |
-| `src/components/layout/bottom-nav.tsx` | モバイル固定ボトムナビ | `md:hidden`、先生5項目・生徒5項目 |
+| `src/components/layout/bottom-nav.tsx` | モバイル固定ボトムナビ | `md:hidden`、先生6項目・生徒5項目・保護者4項目。アクティブアイコンは scale(1.1) |
 
 ## ページ一覧（保護者）
 
@@ -96,7 +97,7 @@ prisma/
 | 生徒一覧 | `/students` | モバイル=カード、デスクトップ=テーブル。progressMap/gardenMap/problemMap |
 | 宿題管理 | `/homework` | BulkApproveSection（submitted を一括承認）。モバイル=カード、デスクトップ=テーブル |
 | 宿題作成 | `/homework/new` | CreateHomeworkForm。写真提出必須オプション（requiresPhoto） |
-| 請求管理 | `/billing` | 月別ナビ（year/month searchParams）。calcFee() で金額計算。生徒別内訳 |
+| 請求管理 | `/billing` | 月別ナビ（year/month searchParams）。calcFee() で金額計算。生徒別内訳。支払い期限設定・入金確認 UI。loading.tsx でスケルトン表示 |
 | カレンダー | `/calendar` | CalendarView クライアントコンポーネント。授業（Lesson）+ テスト日（ExamEvent） |
 | 成績管理 | `/grades` | `?type=mock` 等サーバーサイドフィルタ |
 | 保護者管理 | `/students/[id]/parents` | 紐づけ済み保護者一覧・リンク解除。未使用の招待トークン表示 |
@@ -129,7 +130,7 @@ prisma/
 
 **保護者サイドバー:** ダッシュボード / 成績 / カレンダー / 請求
 
-**先生ボトムナビ(5):** ホーム / 生徒 / 宿題 / 成績 / 予定
+**先生ボトムナビ(6):** ホーム / 生徒 / 宿題 / 予定 / 請求 / 成績
 
 **生徒ボトムナビ(5):** ホーム / 宿題 / 成績 / 予定 / 森
 

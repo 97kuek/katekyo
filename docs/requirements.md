@@ -107,6 +107,16 @@ function calcFee(durationMin, hourlyRate, travelExpense) {
 - 生徒別に授業一覧と費用内訳を表示
 - 未完了授業がある月はオレンジ色の警告バナーを表示
 
+### 支払い期限・入金状況管理
+
+- 先生は生徒ごと・月ごとに**支払い期限**を任意設定できる（`MonthlyPayment.dueDate`）
+  - デフォルトは月末（UI上の表示のみ）
+  - 別日指定したい場合はカレンダー入力で設定
+- 入金状態は `paidAt != null` で判定
+  - 「入金確認」ボタン → `markAsPaid`（`paidAt` をセット）
+  - チェック済みバッジ再クリック → `markAsUnpaid`（`paidAt: null`、`dueDate` があればレコード保持）
+- 期限超過かつ未払いの場合は期限日を赤字で警告表示
+
 ## 科目タグ（Subject）管理
 
 - 先生が `/settings` の「タグ管理」セクションで科目タグを追加・削除

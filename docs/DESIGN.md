@@ -115,3 +115,42 @@ import { Button, buttonVariants } from "@/components/ui/button"
 - `pb-20 md:pb-6`: モバイルのボトムナビ（`md:hidden`, 高さ ≈80px）分の余白
 
 **html/body** (`globals.css`): `overscroll-behavior: none` — iOS の elastic bounce を無効化
+
+## UXアニメーション
+
+### ページ遷移
+
+`src/components/layout/page-content.tsx`（Client Component）が `usePathname()` を `key` に使い、ルート変更のたびにコンテンツをアンマウント→マウントして CSS アニメーションを再生する。
+
+```css
+/* globals.css */
+@keyframes page-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-page-in {
+  animation: page-in 0.22s ease-out both;
+}
+```
+
+### ボタンのプレスフィードバック
+
+`button.tsx` のベースクラス:
+
+| 状態 | 効果 |
+| --- | --- |
+| `:active` | `translateY(+1px)` + `scale(0.97)`（`active:translate-y-px active:scale-[0.97]`） |
+| `:hover` | 背景色・テキスト色を `transition-all` でフェード |
+| `:focus-visible` | 3px リング（`focus-visible:ring-3`） |
+| `:disabled` | opacity 50% + `pointer-events-none` |
+
+`active:not-aria-[haspopup]` 限定のため、ドロップダウントリガーにはプレスアニメーションが付かない。
+
+### ナビゲーション
+
+- **Sidebar**: `transition-all duration-150` でアクティブ背景が滑らかに切り替わる。非アクティブ項目はクリック時に `scale(0.97)` で沈む
+- **BottomNav**: アクティブアイコンは `scale(1.10)` に拡大、タップ時は `opacity: 0.6` でフィードバック
+
+### ローディング（Skeleton）
+
+ページは `loading.tsx` で `animate-pulse` スケルトンを表示し、コンテンツロード後に `animate-page-in` でフェードイン。これにより「ちらつき」なしに遷移できる。

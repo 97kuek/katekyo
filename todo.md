@@ -21,6 +21,14 @@
 
 ## 完了済み（直近）
 
+- [x] UX改善：ページ遷移フェードインアニメーション（PageContent + `animate-page-in` CSS）
+- [x] UX改善：ボタン `active:scale-[0.97]` プレスフィードバック強化
+- [x] UX改善：BottomNav アクティブアイコン scale(1.1) + タップ時 opacity フィードバック
+- [x] 請求管理に支払い期限機能追加（`MonthlyPayment.dueDate`・`setPaymentDueDate` Server Action・期限超過赤字表示）
+- [x] `MonthlyPayment.paidAt` を nullable 化（期限設定のみ・未払い状態を区別できるように）
+- [x] 宿題詳細ページ：編集・削除ボタンのスタイル統一（両方 `variant="outline"`）
+- [x] 宿題詳細ページ：PC での max-w-2xl 中央寄せ修正（`mx-auto` 追加）
+- [x] billing/loading.tsx 追加（スケルトン UI）
 - [x] プライマリカラーをMeta cobalt blue から渋い緑（`oklch(0.50 0.115 147)`）に変更
 - [x] タブレット・モバイルでキーボード表示時に余白が出る問題を修正（`h-dvh` → `fixed inset-0`）
 - [x] warning / primary CSS トークン統一（amber / indigo ハードコードカラー廃止）

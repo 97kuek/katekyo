@@ -100,8 +100,9 @@ if (session.user.role !== "teacher") return { error: "権限がありません" 
 
 | ファイル | Action | 概要 |
 | --- | --- | --- |
-| `billing/actions.ts` | `markAsPaid` | 月次支払いを入金済みに設定（先生のみ） |
-| `billing/actions.ts` | `markAsUnpaid` | 月次支払いを未払いに戻す（先生のみ） |
+| `billing/actions.ts` | `markAsPaid` | 月次支払いを入金済みに設定（先生のみ）。`paidAt: new Date()` をセット |
+| `billing/actions.ts` | `markAsUnpaid` | 月次支払いを未払いに戻す（先生のみ）。`dueDate` が設定されている場合は `paidAt: null` のみ変更、ない場合はレコード削除 |
+| `billing/actions.ts` | `setPaymentDueDate` | 支払い期限を設定・更新・クリア（先生のみ）。`dueDate` フォームフィールドが空の場合は期限をクリア（未払い時はレコード削除） |
 
 ### 利用規約（Terms）
 

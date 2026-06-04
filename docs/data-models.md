@@ -290,12 +290,17 @@ MonthlyPayment {
   studentId String
   year      Int
   month     Int
-  paidAt    DateTime
+  dueDate   DateTime?  # 支払い期限（任意）。先生が任意の日付を設定できる
+  paidAt    DateTime?  # 入金日。null = 未払い。markAsPaid で設定、markAsUnpaid で null に戻す
   createdAt DateTime
 
   @@unique([teacherId, studentId, year, month])
 }
 ```
+
+- レコードは「支払い期限設定」または「入金確認」どちらのタイミングでも作成される
+- `paidAt != null` が入金済みの判定条件（レコード存在だけでは入金済みにならない）
+- `dueDate` が設定されているレコードは `markAsUnpaid` 時に削除せず `paidAt: null` にリセットする
 
 ## Enum
 
