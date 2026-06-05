@@ -35,7 +35,7 @@ export default async function ReviewHomeworkPage({ params }: { params: Promise<{
         </div>
 
         {homework.description && (
-          <p className="text-sm text-muted-foreground">{homework.description}</p>
+          <p className="text-sm text-muted-foreground whitespace-pre-wrap">{homework.description}</p>
         )}
 
         {homework.photoUrl && (

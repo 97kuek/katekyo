@@ -40,7 +40,8 @@ export function SwipeableHomeworkCard({
 
   return (
     <SwipeableRow
-      className={isOverdue ? "border-destructive/30 bg-destructive/5" : ""}
+      className={isOverdue ? "border-destructive/40" : ""}
+      onFullSwipe={handleDelete}
       actions={
         <>
           {canEdit && (

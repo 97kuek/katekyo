@@ -407,56 +407,16 @@ function DayDetail({
             return (
               <div key={l.id} className="rounded-md px-3 py-2 bg-muted">
                 <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-sm font-medium">{l.student.user.name}</span>
-                      <span className="text-xs text-muted-foreground">
-                        {l.type === "online" ? "オンライン" : "対面"}
-                      </span>
-                      {l.durationMin && (
-                        <span className="text-xs text-muted-foreground">{l.durationMin}分</span>
-                      )}
-                      {l.completedAt && (
-                        <span className="text-xs text-primary font-medium">✓ 完了</span>
-                      )}
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      {l.date.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })}〜
-                    </p>
-                    {l.subjectIds.length > 0 && (
-                      <div className="flex gap-1 flex-wrap mt-1">
-                        {l.subjectIds.map((sid) => {
-                          const sub = subjects.find((s) => s.id === sid)
-                          return sub ? (
-                            <span key={sid} className="text-xs bg-muted text-foreground rounded px-1.5 py-0.5">{sub.name}</span>
-                          ) : null
-                        })}
-                      </div>
+                  <div className="min-w-0 flex items-center gap-x-2 gap-y-0.5 flex-wrap">
+                    <span className="text-sm font-medium">{l.student.user.name}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {l.type === "online" ? "オンライン" : "対面"}
+                    </span>
+                    {l.durationMin && (
+                      <span className="text-xs text-muted-foreground">{l.durationMin}分</span>
                     )}
-                    {l.notes && <p className="text-xs text-muted-foreground mt-1">📝 {l.notes}</p>}
-                    {l.type === "online" && l.meetLink && (
-                      <a
-                        href={l.meetLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={buttonVariants({ size: "xs" }) + " mt-1.5"}
-                      >
-                        Meet に参加する →
-                      </a>
-                    )}
-                    {(isTeacher ? l.lessonLog : (l.lessonLogPublic ? l.lessonLog : null)) && (
-                      <div className="mt-2 bg-muted rounded-md p-3">
-                        <p className="text-xs font-medium text-muted-foreground mb-1">
-                          授業ログ{isTeacher && l.lessonLogPublic && <span className="ml-1 text-primary">（生徒に公開中）</span>}
-                        </p>
-                        <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">{l.lessonLog}</p>
-                      </div>
-                    )}
-                    {isTeacher && (l.hourlyRate || l.travelExpense != null) && (
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {l.hourlyRate && l.durationMin ? `¥${Math.round((l.durationMin / 60) * l.hourlyRate).toLocaleString()}` : l.hourlyRate ? `時給¥${l.hourlyRate.toLocaleString()}` : ""}
-                        {l.travelExpense != null && l.travelExpense > 0 ? ` + 交通費¥${l.travelExpense.toLocaleString()}` : ""}
-                      </p>
+                    {l.completedAt && (
+                      <span className="text-xs text-primary font-medium">✓ 完了</span>
                     )}
                   </div>
                   {isTeacher && (
@@ -485,6 +445,44 @@ function DayDetail({
                     </div>
                   )}
                 </div>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {l.date.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })}〜
+                </p>
+                {l.subjectIds.length > 0 && (
+                  <div className="flex gap-1 flex-wrap mt-1">
+                    {l.subjectIds.map((sid) => {
+                      const sub = subjects.find((s) => s.id === sid)
+                      return sub ? (
+                        <span key={sid} className="text-xs bg-muted text-foreground rounded px-1.5 py-0.5">{sub.name}</span>
+                      ) : null
+                    })}
+                  </div>
+                )}
+                {l.notes && <p className="text-xs text-muted-foreground mt-1">📝 {l.notes}</p>}
+                {l.type === "online" && l.meetLink && (
+                  <a
+                    href={l.meetLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={buttonVariants({ size: "xs" }) + " mt-1.5"}
+                  >
+                    Meet に参加する →
+                  </a>
+                )}
+                {(isTeacher ? l.lessonLog : (l.lessonLogPublic ? l.lessonLog : null)) && (
+                  <div className="mt-2 bg-card border border-border rounded-md p-3">
+                    <p className="text-xs font-medium text-muted-foreground mb-1">
+                      授業ログ{isTeacher && l.lessonLogPublic && <span className="ml-1 text-primary">（生徒に公開中）</span>}
+                    </p>
+                    <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">{l.lessonLog}</p>
+                  </div>
+                )}
+                {isTeacher && (l.hourlyRate || l.travelExpense != null) && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {l.hourlyRate && l.durationMin ? `¥${Math.round((l.durationMin / 60) * l.hourlyRate).toLocaleString()}` : l.hourlyRate ? `時給¥${l.hourlyRate.toLocaleString()}` : ""}
+                    {l.travelExpense != null && l.travelExpense > 0 ? ` + 交通費¥${l.travelExpense.toLocaleString()}` : ""}
+                  </p>
+                )}
                 {isTeacher && completingLessonId === l.id && (
                   <CompleteLessonLogForm lessonId={l.id} onClose={() => setCompletingLessonId(null)} />
                 )}

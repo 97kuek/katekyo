@@ -110,12 +110,12 @@ export function LessonForm({ students, defaultDate, subjects }: { students: Stud
           )}
         </div>
 
-        <div className="grid gap-3" style={{ gridTemplateColumns: "3fr 2fr" }}>
-          <div className="space-y-1.5">
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1.5 min-w-0">
             <Label htmlFor="date" className="text-xs font-medium">日付</Label>
             <Input id="date" name="date" type="date" required defaultValue={defaultDate} className="h-9 text-sm" />
           </div>
-          <div className="space-y-1.5">
+          <div className="space-y-1.5 min-w-0">
             <Label htmlFor="time" className="text-xs font-medium">時刻</Label>
             <Input id="time" name="time" type="time" required defaultValue="16:00" className="h-9 text-sm" />
           </div>

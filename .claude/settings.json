@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(xargs grep -l \"framer-motion\\\\|motion\\\\|@react-spring\\\\|animate-css\")",
-      "PowerShell(cd \"c:\\\\Users\\\\yamashita\\\\Documents\\\\katekyo\"; git add src/app/globals.css src/components/layout/page-content.tsx src/app/\\(app\\)/layout.tsx src/components/ui/button.tsx src/components/layout/bottom-nav.tsx src/components/layout/sidebar.tsx src/app/\\(app\\)/billing/loading.tsx prisma/schema.prisma src/app/\\(app\\)/billing/actions.ts src/app/\\(app\\)/billing/page.tsx \"src/app/\\(app\\)/homework/[id]/delete-homework-button.tsx\" \"src/app/\\(app\\)/homework/[id]/page.tsx\")"
+      "PowerShell(cd \"c:\\\\Users\\\\yamashita\\\\Documents\\\\katekyo\"; git add src/app/globals.css src/components/layout/page-content.tsx src/app/\\(app\\)/layout.tsx src/components/ui/button.tsx src/components/layout/bottom-nav.tsx src/components/layout/sidebar.tsx src/app/\\(app\\)/billing/loading.tsx prisma/schema.prisma src/app/\\(app\\)/billing/actions.ts src/app/\\(app\\)/billing/page.tsx \"src/app/\\(app\\)/homework/[id]/delete-homework-button.tsx\" \"src/app/\\(app\\)/homework/[id]/page.tsx\")",
+      "Bash(git mv *)"
     ]
   },
   "hooks": {

@@ -326,10 +326,10 @@ async function StudentHomeworkPage({ userId }: { userId: string }) {
                     </p>
                     <SubjectTags ids={h.subjectIds} map={subjectMap} />
                     {h.description && (
-                      <p className="text-sm text-muted-foreground mt-1">{h.description}</p>
+                      <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap line-clamp-2">{h.description}</p>
                     )}
                     {h.status === "rejected" && h.teacherFeedback && (
-                      <p className="text-sm text-destructive mt-2 border-l-2 border-destructive/30 pl-3">
+                      <p className="text-sm text-destructive mt-2 border-l-2 border-destructive/30 pl-3 whitespace-pre-wrap">
                         先生のコメント: {h.teacherFeedback}
                       </p>
                     )}

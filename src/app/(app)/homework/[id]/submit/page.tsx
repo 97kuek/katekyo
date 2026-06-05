@@ -35,12 +35,12 @@ export default async function SubmitHomeworkPage({ params }: { params: Promise<{
           期限: {homework.dueDate.toLocaleDateString("ja-JP")}
         </p>
         {homework.description && (
-          <p className="text-sm text-muted-foreground">{homework.description}</p>
+          <p className="text-sm text-muted-foreground whitespace-pre-wrap">{homework.description}</p>
         )}
         {homework.status === "rejected" && homework.teacherFeedback && (
           <div className="bg-destructive/10 rounded-md p-3">
             <p className="text-xs font-medium text-destructive mb-1">先生のコメント</p>
-            <p className="text-sm text-destructive">{homework.teacherFeedback}</p>
+            <p className="text-sm text-destructive whitespace-pre-wrap">{homework.teacherFeedback}</p>
           </div>
         )}
       </div>

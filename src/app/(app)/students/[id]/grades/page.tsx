@@ -140,7 +140,7 @@ export default async function StudentGradesPage({ params }: { params: Promise<{ 
                     <span>順位: {g.rank}{g.totalStudents != null ? `/${g.totalStudents}` : ""}</span>
                   )}
                 </div>
-                {g.comment && <p className="text-xs text-muted-foreground border-l-2 pl-2">{g.comment}</p>}
+                {g.comment && <p className="text-xs text-muted-foreground border-l-2 pl-2 whitespace-pre-wrap">{g.comment}</p>}
               </div>
             ))}
           </div>

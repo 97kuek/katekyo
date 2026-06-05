@@ -50,12 +50,12 @@ export function LessonEditForm({ lesson, onClose, subjects }: { lesson: Lesson; 
         <p className="text-xs text-destructive bg-destructive/10 p-2 rounded">{state.error}</p>
       )}
 
-      <div className="grid gap-3" style={{ gridTemplateColumns: "3fr 2fr" }}>
-        <div className="space-y-1.5">
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1.5 min-w-0">
           <Label className="text-xs font-medium">日付</Label>
           <Input name="date" type="date" required defaultValue={toDateStr(lesson.date)} className="h-9 text-sm" />
         </div>
-        <div className="space-y-1.5">
+        <div className="space-y-1.5 min-w-0">
           <Label className="text-xs font-medium">時刻</Label>
           <Input name="time" type="time" required defaultValue={toTimeStr(lesson.date)} className="h-9 text-sm" />
         </div>

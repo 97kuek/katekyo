@@ -98,7 +98,7 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
             <p className="font-semibold">先生から差し戻しがあります</p>
           </div>
           {homework.teacherFeedback && (
-            <p className="text-sm text-foreground/80 leading-relaxed">{homework.teacherFeedback}</p>
+            <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-wrap">{homework.teacherFeedback}</p>
           )}
           <Link href={`/homework/${homework.id}/submit`} className={buttonVariants({ size: "sm" })}>
             修正して再提出する →
@@ -195,7 +195,7 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
           )}
           {homework.teacherFeedback && (
             <div className={`rounded-md p-3 ${homework.status === "rejected" ? "bg-destructive/10" : "bg-primary/10"}`}>
-              <p className="text-sm">{homework.teacherFeedback}</p>
+              <p className="text-sm whitespace-pre-wrap">{homework.teacherFeedback}</p>
             </div>
           )}
         </div>

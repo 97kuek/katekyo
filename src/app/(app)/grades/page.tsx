@@ -7,8 +7,7 @@ import { buttonVariants } from "@/components/ui/button"
 import GradeChart from "./grade-chart"
 import GradeRadar from "./grade-radar"
 import { GradeActionsCell } from "./grade-actions-cell"
-import { GradeSwipeActions } from "./grade-swipe-actions"
-import { SwipeableRow } from "@/components/ui/swipeable-row"
+import { GradeSwipeRow } from "./grade-swipe-row"
 import { GradeTypeFilter } from "./grade-type-filter"
 import { GradeStudentFilter } from "./grade-student-filter"
 import { GradeSubjectFilter } from "./grade-subject-filter"
@@ -174,7 +173,7 @@ async function TeacherGradesPage({
           {/* モバイル: カード表示 */}
           <div className="md:hidden space-y-2">
             {grades.map((g, i) => (
-              <SwipeableRow key={g.id} actions={<GradeSwipeActions gradeId={g.id} />}>
+              <GradeSwipeRow key={g.id} gradeId={g.id}>
                 <div className="space-y-2">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
@@ -204,7 +203,7 @@ async function TeacherGradesPage({
                     )}
                     </div>
                 </div>
-              </SwipeableRow>
+              </GradeSwipeRow>
             ))}
           </div>
           {/* デスクトップ: テーブル表示 */}
@@ -335,7 +334,7 @@ async function StudentGradesPage({ userId }: { userId: string }) {
                     <span>順位: {g.rank}{g.totalStudents != null ? `/${g.totalStudents}` : ""}</span>
                   )}
                 </div>
-                {g.comment && <p className="text-xs text-muted-foreground border-l-2 pl-2">{g.comment}</p>}
+                {g.comment && <p className="text-xs text-muted-foreground border-l-2 pl-2 whitespace-pre-wrap">{g.comment}</p>}
               </div>
             ))}
           </div>
@@ -500,7 +499,7 @@ async function ParentGradesPage({
                   {g.deviation != null && <span>偏差値: {g.deviation}</span>}
                   {g.rank != null && <span>順位: {g.rank}{g.totalStudents != null ? `/${g.totalStudents}` : ""}</span>}
                 </div>
-                {g.comment && <p className="text-xs text-muted-foreground border-l-2 pl-2">{g.comment}</p>}
+                {g.comment && <p className="text-xs text-muted-foreground border-l-2 pl-2 whitespace-pre-wrap">{g.comment}</p>}
               </div>
             ))}
           </div>
