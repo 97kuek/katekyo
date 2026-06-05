@@ -5,6 +5,7 @@ import Link from "next/link"
 import { deleteHomework } from "@/app/(app)/homework/[id]/edit-actions"
 import { StatusBadge } from "@/components/homework/status-badge"
 import { deadlineColorClass, relativeDeadline } from "@/lib/date-utils"
+import { haptic } from "@/lib/haptic"
 
 type Status = "assigned" | "submitted" | "approved" | "rejected"
 
@@ -16,15 +17,17 @@ type Props = {
   dueDateStr: string
   subjectNames: string[]
   isOverdue: boolean
+  showHint?: boolean
 }
 
 const ACTION_WIDTH = 130
 
 export function SwipeableHomeworkCard({
-  id, title, studentName, status, dueDateStr, subjectNames, isOverdue,
+  id, title, studentName, status, dueDateStr, subjectNames, isOverdue, showHint = false,
 }: Props) {
   const [offset, setOffset] = useState(0)
   const [isOpen, setIsOpen] = useState(false)
+  const [hintDone, setHintDone] = useState(!showHint)
   const [isPending, startTransition] = useTransition()
 
   const startX = useRef(0)
@@ -38,6 +41,7 @@ export function SwipeableHomeworkCard({
   const relColor = deadlineColorClass(dueDate)
 
   function handlePointerDown(e: React.PointerEvent<HTMLDivElement>) {
+    setHintDone(true)
     isDragging.current = true
     didSwipe.current = false
     startX.current = e.clientX
@@ -57,6 +61,8 @@ export function SwipeableHomeworkCard({
     if (!isDragging.current) return
     isDragging.current = false
     const snapOpen = offset < -(ACTION_WIDTH / 2)
+    const snapped = snapOpen !== isOpen
+    if (snapped) haptic.snap()
     setOffset(snapOpen ? -ACTION_WIDTH : 0)
     setIsOpen(snapOpen)
   }
@@ -75,10 +81,21 @@ export function SwipeableHomeworkCard({
   }
 
   function handleDelete() {
+    haptic.error()
     const fd = new FormData()
     fd.append("homeworkId", id)
     startTransition(async () => { await deleteHomework(fd) })
   }
+
+  const isAnimating = showHint && !hintDone
+  const cardStyle = isAnimating
+    ? { touchAction: "pan-y" as const, willChange: "transform" }
+    : {
+        transform: `translateX(${offset}px)`,
+        transition: isDragging.current ? "none" : "transform 0.2s ease-out",
+        touchAction: "pan-y" as const,
+        willChange: "transform",
+      }
 
   return (
     <div className="relative rounded-lg overflow-hidden">
@@ -88,6 +105,7 @@ export function SwipeableHomeworkCard({
           <Link
             href={`/homework/${id}/edit`}
             className="flex-1 flex items-center justify-center bg-primary/90 text-primary-foreground text-sm font-medium hover:bg-primary transition-colors"
+            onClick={() => haptic.tap()}
           >
             編集
           </Link>
@@ -103,17 +121,13 @@ export function SwipeableHomeworkCard({
 
       {/* カード本体 */}
       <div
-        className={`rounded-lg border bg-card p-4 select-none ${isOverdue ? "border-red-200 bg-destructive/5" : ""}`}
-        style={{
-          transform: `translateX(${offset}px)`,
-          transition: isDragging.current ? "none" : "transform 0.2s ease-out",
-          touchAction: "pan-y",
-          willChange: "transform",
-        }}
+        className={`rounded-lg border bg-card p-4 select-none ${isOverdue ? "border-red-200 bg-destructive/5" : ""} ${isAnimating ? "animate-swipe-hint" : ""}`}
+        style={cardStyle}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
+        onAnimationEnd={() => setHintDone(true)}
       >
         <Link href={`/homework/${id}`} onClick={handleCardClick} className="block">
           <div className="flex items-start justify-between gap-2">

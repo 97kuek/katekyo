@@ -1,14 +1,16 @@
 "use client"
 
 import { useTransition } from "react"
+import { Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import { cancelSubmission } from "./[id]/cancel-actions"
+import { haptic } from "@/lib/haptic"
 
 export function CancelSubmissionButton({ homeworkId }: { homeworkId: string }) {
   const [isPending, startTransition] = useTransition()
 
   function handleClick() {
-    if (!confirm("提出を取り消しますか？やり直しが必要な場合は取り消してください。")) return
+    haptic.tap()
     startTransition(async () => {
       const fd = new FormData()
       fd.append("homeworkId", homeworkId)
@@ -22,9 +24,12 @@ export function CancelSubmissionButton({ homeworkId }: { homeworkId: string }) {
       type="button"
       onClick={handleClick}
       disabled={isPending}
-      className="text-xs text-muted-foreground hover:text-destructive underline underline-offset-2 transition-colors disabled:opacity-50"
+      className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive underline underline-offset-2 transition-colors disabled:opacity-50"
     >
-      {isPending ? "取り消し中..." : "提出を取り消す"}
+      {isPending
+        ? <><Loader2 className="h-3 w-3 animate-spin" />取り消し中...</>
+        : "提出を取り消す"
+      }
     </button>
   )
 }

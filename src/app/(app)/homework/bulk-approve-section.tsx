@@ -2,9 +2,12 @@
 
 import { useState, useTransition } from "react"
 import Link from "next/link"
+import { Loader2 } from "lucide-react"
+import { toast } from "sonner"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { SubjectTagsList } from "./subject-tags"
 import { bulkApproveHomework } from "./bulk-actions"
+import { haptic } from "@/lib/haptic"
 
 type Homework = {
   id: string
@@ -23,15 +26,16 @@ export function BulkApproveSection({
 }) {
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [isPending, startTransition] = useTransition()
-  const [lastApproved, setLastApproved] = useState<number | null>(null)
 
   function toggleAll() {
+    haptic.tap()
     setSelected((prev) =>
       prev.size === submitted.length ? new Set() : new Set(submitted.map((h) => h.id))
     )
   }
 
   function toggle(id: string) {
+    haptic.tap()
     setSelected((prev) => {
       const next = new Set(prev)
       next.has(id) ? next.delete(id) : next.add(id)
@@ -43,7 +47,10 @@ export function BulkApproveSection({
     startTransition(async () => {
       const result = await bulkApproveHomework(Array.from(selected))
       setSelected(new Set())
-      if (result.approved > 0) setLastApproved(result.approved)
+      if (result.approved > 0) {
+        haptic.success()
+        toast.success(`${result.approved}件を承認しました`)
+      }
     })
   }
 
@@ -55,11 +62,11 @@ export function BulkApproveSection({
         <h2 className="text-sm font-semibold">承認待ち（{submitted.length}件）</h2>
         {selected.size > 0 && (
           <Button size="sm" onClick={approve} disabled={isPending}>
-            {isPending ? "処理中..." : `${selected.size}件を一括承認`}
+            {isPending
+              ? <><Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />処理中...</>
+              : `${selected.size}件を一括承認`
+            }
           </Button>
-        )}
-        {lastApproved !== null && selected.size === 0 && (
-          <span className="text-xs text-primary font-medium">{lastApproved}件を承認しました</span>
         )}
       </div>
 

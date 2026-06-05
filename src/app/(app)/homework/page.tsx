@@ -123,7 +123,7 @@ async function TeacherHomeworkPage({
           <h2 className="text-sm font-medium text-muted-foreground">すべての宿題</h2>
           {/* モバイル: スワイプカード */}
           <div className="md:hidden space-y-2">
-            {others.map((h) => {
+            {others.map((h, i) => {
               const overdue = h.dueDate < now && h.status === "assigned"
               const subjectNames = h.subjectIds.map((sid) => subjectMap.get(sid)).filter(Boolean) as string[]
               return (
@@ -136,6 +136,7 @@ async function TeacherHomeworkPage({
                   dueDateStr={h.dueDate.toISOString()}
                   subjectNames={subjectNames}
                   isOverdue={overdue}
+                  showHint={i === 0}
                 />
               )
             })}

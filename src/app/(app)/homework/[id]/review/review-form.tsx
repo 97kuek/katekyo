@@ -1,13 +1,16 @@
 "use client"
 
-import { useActionState } from "react"
+import { useActionState, useState } from "react"
+import { Loader2 } from "lucide-react"
 import { reviewHomework } from "../actions"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { haptic } from "@/lib/haptic"
 
 export default function ReviewForm({ id }: { id: string }) {
   const [state, action, isPending] = useActionState(reviewHomework, { error: "" })
+  const [pendingAction, setPendingAction] = useState<"approved" | "rejected" | null>(null)
 
   return (
     <Card>
@@ -18,7 +21,9 @@ export default function ReviewForm({ id }: { id: string }) {
         <form action={action} className="space-y-4">
           <input type="hidden" name="id" value={id} />
           {state.error && (
-            <p className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">{state.error}</p>
+            <p className="text-sm text-destructive bg-destructive/10 p-3 rounded-md animate-shake">
+              {state.error}
+            </p>
           )}
           <div className="space-y-2">
             <Label htmlFor="feedback">コメント（任意）</Label>
@@ -37,8 +42,12 @@ export default function ReviewForm({ id }: { id: string }) {
               value="approved"
               className="flex-1"
               disabled={isPending}
+              onClick={() => { setPendingAction("approved"); haptic.success() }}
             >
-              承認する
+              {isPending && pendingAction === "approved"
+                ? <><Loader2 className="h-4 w-4 animate-spin mr-1.5" />処理中...</>
+                : "承認する"
+              }
             </Button>
             <Button
               type="submit"
@@ -47,8 +56,12 @@ export default function ReviewForm({ id }: { id: string }) {
               variant="outline"
               className="flex-1 border-destructive/40 text-destructive hover:bg-destructive/5"
               disabled={isPending}
+              onClick={() => { setPendingAction("rejected"); haptic.error() }}
             >
-              差し戻す
+              {isPending && pendingAction === "rejected"
+                ? <><Loader2 className="h-4 w-4 animate-spin mr-1.5" />処理中...</>
+                : "差し戻す"
+              }
             </Button>
           </div>
         </form>
