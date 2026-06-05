@@ -9,8 +9,6 @@ type Props = {
   actions: React.ReactNode
   /** アクション領域の幅(px) */
   actionWidth?: number
-  /** 最初の1枚にスワイプ可能ヒントアニメを再生 */
-  showHint?: boolean
   /** カード本体に付ける追加クラス */
   className?: string
   children: React.ReactNode
@@ -23,13 +21,11 @@ type Props = {
 export function SwipeableRow({
   actions,
   actionWidth = 130,
-  showHint = false,
   className,
   children,
 }: Props) {
   const [offset, setOffset] = useState(0)
   const [isOpen, setIsOpen] = useState(false)
-  const [hintDone, setHintDone] = useState(!showHint)
 
   const startX = useRef(0)
   const baseOffset = useRef(0)
@@ -37,7 +33,6 @@ export function SwipeableRow({
   const didSwipe = useRef(false)
 
   function handlePointerDown(e: React.PointerEvent<HTMLDivElement>) {
-    setHintDone(true)
     isDragging.current = true
     didSwipe.current = false
     startX.current = e.clientX
@@ -78,16 +73,13 @@ export function SwipeableRow({
     }
   }
 
-  const isAnimating = showHint && !hintDone
   const closed = offset === 0 && !isOpen
-  const cardStyle = isAnimating
-    ? { touchAction: "pan-y" as const, willChange: "transform" }
-    : {
-        transform: `translateX(${offset}px)`,
-        transition: isDragging.current ? "none" : "transform 0.2s ease-out",
-        touchAction: "pan-y" as const,
-        willChange: "transform",
-      }
+  const cardStyle = {
+    transform: `translateX(${offset}px)`,
+    transition: isDragging.current ? "none" : "transform 0.2s ease-out",
+    touchAction: "pan-y" as const,
+    willChange: "transform",
+  }
 
   return (
     <div className="relative rounded-lg overflow-hidden">
@@ -95,14 +87,13 @@ export function SwipeableRow({
         {actions}
       </div>
       <div
-        className={`relative rounded-lg border bg-card p-4 select-none ${className ?? ""} ${isAnimating ? "animate-swipe-hint" : ""}`}
+        className={`relative rounded-lg border bg-card p-4 select-none ${className ?? ""}`}
         style={cardStyle}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
         onClickCapture={handleClickCapture}
-        onAnimationEnd={() => setHintDone(true)}
       >
         {/* スワイプ可能を示す控えめなグリップ（md以上では非表示） */}
         <GripVertical

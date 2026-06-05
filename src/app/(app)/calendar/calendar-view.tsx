@@ -679,44 +679,51 @@ export default function CalendarView({ lessons, deadlines, examEvents, students,
     <div className="space-y-4">
       <NextLessonBanner lessons={lessons} isTeacher={isTeacher} />
 
-      {/* View mode toggle */}
-      <div className="flex items-center gap-2">
-        <div className="flex items-center gap-1 rounded-md border border-input bg-background p-0.5">
+      {/* ナビゲーションバー: ビュー切替 + 期間移動 */}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-1 rounded-lg border border-input bg-background p-0.5 shrink-0">
           <button
             onClick={() => setViewMode("month")}
-            className={`px-3 py-1 rounded text-xs font-medium transition-colors ${viewMode === "month" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
+            className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${viewMode === "month" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
           >
             月
           </button>
           <button
             onClick={() => setViewMode("week")}
-            className={`px-3 py-1 rounded text-xs font-medium transition-colors ${viewMode === "week" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
+            className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${viewMode === "week" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
           >
             週
           </button>
+        </div>
+        <div className="flex items-center gap-0.5 min-w-0">
+          <Button
+            onClick={viewMode === "month" ? prevMonth : () => setWeekOffset((w) => w - 1)}
+            variant="ghost"
+            size="icon-sm"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <span className="font-semibold text-sm whitespace-nowrap tabular-nums">
+            {viewMode === "month"
+              ? `${year}年${month + 1}月`
+              : `${weekDays[0].getMonth() + 1}/${weekDays[0].getDate()} 〜 ${weekDays[6].getMonth() + 1}/${weekDays[6].getDate()}`}
+          </span>
+          <Button
+            onClick={viewMode === "month" ? nextMonth : () => setWeekOffset((w) => w + 1)}
+            variant="ghost"
+            size="icon-sm"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+          <Button onClick={goToToday} variant="outline" size="xs" className="ml-1 shrink-0">
+            {viewMode === "month" ? "今月" : "今週"}
+          </Button>
         </div>
       </div>
 
       {viewMode === "month" ? (
         <>
           <div className="rounded-lg border bg-card overflow-hidden">
-            <div className="flex items-center justify-between px-4 py-3 border-b">
-              <Button onClick={prevMonth} variant="ghost" size="icon-sm">
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <div className="flex items-center gap-2">
-                <span className="font-semibold text-sm">
-                  {year}年 {month + 1}月
-                </span>
-                <Button onClick={goToToday} variant="outline" size="xs">
-                  今月
-                </Button>
-              </div>
-              <Button onClick={nextMonth} variant="ghost" size="icon-sm">
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-
             <div className="grid grid-cols-7 text-center">
               {DOW_LABELS.map((d, i) => (
                 <div key={d} className={`py-2 text-xs font-medium ${i === 0 ? "text-calendar-sun" : i === 6 ? "text-calendar-sat" : "text-muted-foreground"}`}>
@@ -787,23 +794,6 @@ export default function CalendarView({ lessons, deadlines, examEvents, students,
         /* 週表示 */
         <>
           <div className="rounded-lg border bg-card overflow-hidden">
-            <div className="flex items-center justify-between px-4 py-3 border-b">
-              <Button onClick={() => setWeekOffset(w => w - 1)} variant="ghost" size="icon-sm">
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <div className="flex items-center gap-2">
-                <span className="font-semibold text-sm">
-                  {weekDays[0].toLocaleDateString("ja-JP", { month: "long", day: "numeric" })} 〜 {weekDays[6].toLocaleDateString("ja-JP", { month: "long", day: "numeric" })}
-                </span>
-                <Button onClick={goToToday} variant="outline" size="xs">
-                  今週
-                </Button>
-              </div>
-              <Button onClick={() => setWeekOffset(w => w + 1)} variant="ghost" size="icon-sm">
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-
             <div className="grid grid-cols-7 divide-x text-center">
               {weekDays.map((d, i) => {
                 const key = toDateKey(d)

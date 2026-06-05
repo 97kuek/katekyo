@@ -197,14 +197,6 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* スワイプ可能であることを示すヒントアニメーション */
-@keyframes swipe-hint {
-  0%   { transform: translateX(0); }
-  35%  { transform: translateX(-36px); }
-  65%  { transform: translateX(-10px); }
-  100% { transform: translateX(0); }
-}
-
 /* フォームエラー時のシェイク */
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
@@ -217,9 +209,6 @@
 @layer utilities {
   .animate-page-in {
     animation: page-in 0.22s ease-out both;
-  }
-  .animate-swipe-hint {
-    animation: swipe-hint 0.65s ease-in-out 0.8s both;
   }
   .animate-shake {
     animation: shake 0.4s ease-in-out;

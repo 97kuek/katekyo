@@ -14,7 +14,6 @@ type Student = { id: string; grade: string; user: { name: string } }
 type Subject = { id: string; name: string }
 type ExamEvent = { id: string; name: string; testType: string; date: string; studentId: string; studentName: string }
 
-const ratings = [1, 2, 3, 4, 5]
 
 const todayISO = () => {
   const d = new Date()
@@ -165,17 +164,6 @@ export default function CreateGradeForm({
           <Input id="avgScore" name="avgScore" type="number" inputMode="numeric" min="0" placeholder="65" />
         </div>
 
-        <div className="space-y-2">
-          <Label>主観評価 <span className="text-xs text-muted-foreground font-normal">（任意）</span></Label>
-          <div className="flex gap-3 pt-1">
-            {ratings.map((r) => (
-              <label key={r} className="flex items-center gap-1 cursor-pointer">
-                <input type="radio" name="teacherRating" value={r} className="accent-primary" />
-                <span className="text-sm">{"★".repeat(r)}</span>
-              </label>
-            ))}
-          </div>
-        </div>
       </div>
 
       {subjects.length > 0 && (

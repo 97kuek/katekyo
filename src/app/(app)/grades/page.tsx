@@ -198,8 +198,7 @@ async function TeacherGradesPage({
                     {g.rank != null && (
                       <span>順位: {g.rank}{g.totalStudents != null ? `/${g.totalStudents}` : ""}</span>
                     )}
-                    {g.teacherRating != null && <span>{"★".repeat(g.teacherRating)}</span>}
-                  </div>
+                    </div>
                 </div>
               </SwipeableRow>
             ))}
@@ -217,7 +216,6 @@ async function TeacherGradesPage({
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">対平均</th>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">順位</th>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">偏差値</th>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">評価</th>
                   <th className="px-4 py-3"></th>
                 </tr>
               </thead>
@@ -244,7 +242,6 @@ async function TeacherGradesPage({
                       {g.rank != null ? (g.totalStudents != null ? `${g.rank}/${g.totalStudents}` : g.rank) : "-"}
                     </td>
                     <td className="px-4 py-3">{g.deviation ?? "-"}</td>
-                    <td className="px-4 py-3">{g.teacherRating != null ? "★".repeat(g.teacherRating) : "-"}</td>
                     <td className="px-4 py-3"><GradeActionsCell gradeId={g.id} /></td>
                   </tr>
                 ))}
@@ -332,7 +329,6 @@ async function StudentGradesPage({ userId }: { userId: string }) {
                   {g.rank != null && (
                     <span>順位: {g.rank}{g.totalStudents != null ? `/${g.totalStudents}` : ""}</span>
                   )}
-                  {g.teacherRating != null && <span>{"★".repeat(g.teacherRating)}</span>}
                 </div>
                 {g.comment && <p className="text-xs text-muted-foreground border-l-2 pl-2">{g.comment}</p>}
               </div>
@@ -350,7 +346,6 @@ async function StudentGradesPage({ userId }: { userId: string }) {
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">対平均</th>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">順位</th>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">偏差値</th>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">評価</th>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">コメント</th>
                 </tr>
               </thead>
@@ -376,7 +371,6 @@ async function StudentGradesPage({ userId }: { userId: string }) {
                       {g.rank != null ? (g.totalStudents != null ? `${g.rank}/${g.totalStudents}` : g.rank) : "-"}
                     </td>
                     <td className="px-4 py-3">{g.deviation ?? "-"}</td>
-                    <td className="px-4 py-3">{g.teacherRating != null ? "★".repeat(g.teacherRating) : "-"}</td>
                     <td className="px-4 py-3 text-muted-foreground max-w-xs truncate">{g.comment ?? "-"}</td>
                   </tr>
                 ))}

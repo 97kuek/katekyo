@@ -28,7 +28,14 @@ type Grade = {
 
 type Subject = { id: string; name: string }
 
-const LINE_COLORS = ["#2563eb", "#16a34a", "#dc2626", "#d97706", "#7c3aed", "#0891b2"]
+const LINE_COLORS = [
+  "var(--primary)",
+  "var(--chart-1)",
+  "var(--chart-3)",
+  "var(--chart-4)",
+  "var(--chart-5)",
+  "var(--chart-2)",
+]
 
 function computeValue(g: Grade, mode: "score" | "deviation"): number | null {
   if (mode === "score") {
@@ -207,7 +214,7 @@ export default function GradeChart({
                 <Line
                   type="monotone"
                   dataKey="value"
-                  stroke="#2563eb"
+                  stroke="var(--primary)"
                   strokeWidth={2}
                   dot={{ r: 4 }}
                   activeDot={{ r: 6 }}
@@ -236,7 +243,7 @@ export default function GradeChart({
                 <Line
                   type="monotone"
                   dataKey="avg"
-                  stroke="#94a3b8"
+                  stroke="var(--muted-foreground)"
                   strokeWidth={1}
                   strokeDasharray="4 4"
                   dot={false}

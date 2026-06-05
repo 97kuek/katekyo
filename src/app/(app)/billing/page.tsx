@@ -172,23 +172,28 @@ export default async function BillingPage({
 
             return (
               <div key={name} className="rounded-lg border bg-card overflow-hidden">
-                <div className="flex items-center justify-between px-5 py-3 border-b bg-muted gap-3 flex-wrap">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <p className="font-medium text-sm">{name}</p>
-                    {isPaid && (
-                      <span className="text-xs bg-primary/15 text-primary font-medium rounded-full px-2 py-0.5">入金済み</span>
-                    )}
-                    {dueDateInfo && (
-                      <span className={`text-xs ${dueDateInfo.className}`}>{dueDateInfo.text}</span>
-                    )}
-                    {!dueDateInfo && !isPaid && (
-                      <span className="text-xs text-muted-foreground">期限: {defaultDueDateStr}（月末）</span>
-                    )}
+                <div className="px-4 py-3 border-b bg-muted space-y-2">
+                  {/* 1行目: 名前・ステータス / 金額 */}
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2 flex-wrap min-w-0">
+                      <p className="font-medium text-sm">{name}</p>
+                      {isPaid && (
+                        <span className="text-xs bg-primary/15 text-primary font-medium rounded-full px-2 py-0.5">入金済み</span>
+                      )}
+                      {dueDateInfo && (
+                        <span className={`text-xs ${dueDateInfo.className}`}>{dueDateInfo.text}</span>
+                      )}
+                      {!dueDateInfo && !isPaid && (
+                        <span className="text-xs text-muted-foreground">期限: {defaultDueDateStr}（月末）</span>
+                      )}
+                    </div>
+                    <div className="text-right shrink-0">
+                      {hasStudentFee && <p className="font-semibold text-sm">¥{studentTotal.toLocaleString()}</p>}
+                      <p className="text-muted-foreground text-xs">{sLessons.length}回 · {Math.floor(studentMin / 60)}h{studentMin % 60 > 0 ? `${studentMin % 60}m` : ""}</p>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-right flex-wrap justify-end">
-                    <span className="text-muted-foreground text-xs">{sLessons.length}回 · {Math.floor(studentMin / 60)}h{studentMin % 60 > 0 ? `${studentMin % 60}m` : ""}</span>
-                    {hasStudentFee && <span className="font-semibold text-sm">¥{studentTotal.toLocaleString()}</span>}
-                    {/* 支払い期限設定 */}
+                  {/* 2行目: 期限設定 / 入金確認 */}
+                  <div className="flex items-center gap-2">
                     <form action={setPaymentDueDate} className="flex items-center gap-1">
                       <input type="hidden" name="studentId" value={sid} />
                       <input type="hidden" name="year" value={year} />
@@ -197,23 +202,19 @@ export default async function BillingPage({
                         type="date"
                         name="dueDate"
                         defaultValue={currentDueDateValue}
-                        className="text-xs border rounded px-1.5 py-0.5 bg-background text-foreground h-7 w-32"
+                        className="text-xs border border-input rounded-lg px-2 bg-background text-foreground h-7 w-32"
                       />
-                      <button
-                        type="submit"
-                        className={buttonVariants({ variant: "ghost", size: "xs" }) + " text-xs"}
-                      >
+                      <button type="submit" className={buttonVariants({ variant: "ghost", size: "xs" })}>
                         期限設定
                       </button>
                     </form>
-                    {/* 入金確認 */}
-                    <form action={isPaid ? markAsUnpaid : markAsPaid}>
+                    <form action={isPaid ? markAsUnpaid : markAsPaid} className="ml-auto shrink-0">
                       <input type="hidden" name="studentId" value={sid} />
                       <input type="hidden" name="year" value={year} />
                       <input type="hidden" name="month" value={month + 1} />
                       <button
                         type="submit"
-                        className={buttonVariants({ variant: isPaid ? "outline" : "ghost", size: "xs" }) + (isPaid ? " border-primary/30 text-primary" : "")}
+                        className={buttonVariants({ variant: isPaid ? "outline" : "default", size: "xs" }) + (isPaid ? " border-primary/30 text-primary bg-transparent" : "")}
                       >
                         {isPaid ? "✓ 入金済み" : "入金確認"}
                       </button>
@@ -226,7 +227,7 @@ export default async function BillingPage({
                     const dateLabel = l.date.toLocaleDateString("ja-JP", { timeZone: "Asia/Tokyo", month: "numeric", day: "numeric", weekday: "short" })
                     const timeStr = l.date.toLocaleTimeString("ja-JP", { timeZone: "Asia/Tokyo", hour: "2-digit", minute: "2-digit" })
                     return (
-                      <div key={l.id} className="px-5 py-3 flex items-start justify-between gap-3 text-sm">
+                      <div key={l.id} className="px-4 py-2.5 flex items-start justify-between gap-3 text-sm">
                         <div>
                           <p className="font-medium">
                             {dateLabel} {timeStr}〜
@@ -357,7 +358,7 @@ async function ParentBillingPage({
                     const dateLabel = l.date.toLocaleDateString("ja-JP", { timeZone: "Asia/Tokyo", month: "numeric", day: "numeric", weekday: "short" })
                     const timeStr = l.date.toLocaleTimeString("ja-JP", { timeZone: "Asia/Tokyo", hour: "2-digit", minute: "2-digit" })
                     return (
-                      <div key={l.id} className="px-5 py-3 flex items-start justify-between gap-3 text-sm">
+                      <div key={l.id} className="px-4 py-2.5 flex items-start justify-between gap-3 text-sm">
                         <div>
                           <p className="font-medium">{dateLabel} {timeStr}〜</p>
                           <p className="text-xs text-muted-foreground mt-0.5">

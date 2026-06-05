@@ -28,7 +28,6 @@ type Grade = {
 }
 type Subject = { id: string; name: string }
 
-const ratings = [1, 2, 3, 4, 5]
 
 export default function EditGradeForm({
   grade,
@@ -124,23 +123,6 @@ export default function EditGradeForm({
           />
         </div>
 
-        <div className="space-y-2">
-          <Label>主観評価 <span className="text-xs text-muted-foreground font-normal">（任意）</span></Label>
-          <div className="flex gap-2 pt-1">
-            {ratings.map((r) => (
-              <label key={r} className="flex items-center gap-1 cursor-pointer">
-                <input
-                  type="radio"
-                  name="teacherRating"
-                  value={r}
-                  defaultChecked={grade.teacherRating === r}
-                  className="accent-primary"
-                />
-                <span className="text-sm">{r}</span>
-              </label>
-            ))}
-          </div>
-        </div>
       </div>
 
       {subjects.length > 0 && (
