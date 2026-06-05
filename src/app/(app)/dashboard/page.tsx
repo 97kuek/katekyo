@@ -813,7 +813,7 @@ function SummaryCard({ title, value, accent, danger, sub, href }: {
   const inner = (
     <div className={`rounded-lg border bg-card p-3 shadow-sm transition-colors
       ${danger ? "border-destructive/40" : accent ? "border-warning/50" : ""}
-      ${href ? "hover:bg-muted" : ""}`}>
+      ${href ? "hover:bg-muted active:bg-muted" : ""}`}>
       <p className="text-xs text-muted-foreground">{title}</p>
       <p className={`mt-1 text-2xl font-bold ${danger ? "text-destructive" : accent ? "text-warning-foreground" : ""}`}>{value}</p>
       {sub && <p className="text-xs text-muted-foreground mt-0.5 truncate">{sub}</p>}

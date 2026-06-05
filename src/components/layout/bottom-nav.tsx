@@ -34,7 +34,7 @@ export default function BottomNav({ role }: { role: string }) {
   const navItems = role === "teacher" ? teacherNav : role === "parent" ? parentNav : studentNav
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 border-t border-border bg-background md:hidden z-50">
+    <nav className="fixed bottom-0 left-0 right-0 border-t border-border bg-background md:hidden z-50 pb-[env(safe-area-inset-bottom)]">
       <div className="flex px-3">
         {navItems.map(({ href, label, icon: Icon }) => {
           const active = pathname === href || pathname.startsWith(href + "/")
@@ -43,11 +43,17 @@ export default function BottomNav({ role }: { role: string }) {
               key={href}
               href={href}
               className={cn(
-                "flex flex-1 flex-col items-center justify-center py-3 gap-1 font-medium transition-all duration-200 active:opacity-60",
+                "relative flex flex-1 flex-col items-center justify-center py-3 gap-1 font-medium transition-all duration-200 active:opacity-60",
                 "text-[11px]",
                 active ? "text-primary" : "text-muted-foreground hover:text-foreground"
               )}
             >
+              <span
+                className={cn(
+                  "absolute top-0 h-0.5 rounded-full bg-primary transition-all duration-200",
+                  active ? "w-8 opacity-100" : "w-0 opacity-0"
+                )}
+              />
               <Icon
                 className={cn(
                   "h-6 w-6 transition-transform duration-200",

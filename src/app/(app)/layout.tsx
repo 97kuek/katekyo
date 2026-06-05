@@ -43,7 +43,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           <Sidebar role={effectiveRole} />
           <div className="flex flex-col flex-1 min-w-0">
             <Header name={session.user.name ?? ""} notificationData={notificationData} />
-            <main className="flex-1 overflow-y-auto overflow-x-hidden overscroll-y-none p-4 md:p-6 pb-20 md:pb-6">
+            <main className="flex-1 overflow-y-auto overflow-x-hidden overscroll-y-none p-4 md:p-6 pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-6">
               <Suspense>
                 <SearchParamsToast />
               </Suspense>
