@@ -77,7 +77,7 @@ export default async function GardenPage({
       </div>
 
       {isFull && (
-        <div className="rounded-xl border-2 border-warning/60 bg-warning/10 p-4 flex items-center gap-3">
+        <div className="rounded-lg border-2 border-warning/60 bg-warning/10 p-4 flex items-center gap-3">
           <Trophy className="h-8 w-8 text-warning shrink-0" />
           <div>
             <p className="font-bold text-warning-foreground">満開の森 達成</p>
@@ -88,7 +88,7 @@ export default async function GardenPage({
         </div>
       )}
       {milestone && !isFull && (
-        <div className="rounded-xl border-2 border-warning/60 bg-warning/10 p-4 flex items-center gap-3">
+        <div className="rounded-lg border-2 border-warning/60 bg-warning/10 p-4 flex items-center gap-3">
           <Star className="h-7 w-7 text-warning shrink-0 fill-warning/60" />
           <div>
             <p className="font-bold text-warning-foreground">{milestone}個達成おめでとう！</p>
@@ -102,7 +102,7 @@ export default async function GardenPage({
       )}
 
       {total === 0 ? (
-        <div className="rounded-xl border bg-card p-12 flex flex-col items-center gap-3 text-center">
+        <div className="rounded-lg border bg-card p-12 flex flex-col items-center gap-3 text-center">
           <TreePine className="h-10 w-10 text-primary/30" />
           <p className="font-medium text-muted-foreground">まだ何も育っていません</p>
           <p className="text-sm text-muted-foreground">
@@ -110,12 +110,12 @@ export default async function GardenPage({
           </p>
         </div>
       ) : (
-        <div className="rounded-xl border bg-card p-4 overflow-hidden">
+        <div className="rounded-lg border bg-card p-4 overflow-hidden">
           <GardenCanvas items={items} milestone={milestone} />
         </div>
       )}
 
-      <div className="rounded-xl border bg-card p-4 space-y-4 text-sm">
+      <div className="rounded-lg border bg-card p-4 space-y-4 text-sm">
         <p className="font-medium">学習の森とは？</p>
         <p className="text-muted-foreground text-xs leading-relaxed">
           勉強の頑張りが森として育っていきます。宿題を提出して承認されたり、テストで好成績を取ると植物が1つ増えます。最大64個まで育てられます。
@@ -182,7 +182,7 @@ async function ParentGardenPage({
   })
   if (links.length === 0) {
     return (
-      <div className="rounded-xl border bg-card p-12 text-center text-sm text-muted-foreground">
+      <div className="rounded-lg border bg-card p-12 text-center text-sm text-muted-foreground">
         まだお子様の情報が登録されていません
       </div>
     )
@@ -266,7 +266,7 @@ async function ParentGardenPage({
       </div>
 
       {isFull && (
-        <div className="rounded-xl border-2 border-warning/60 bg-warning/10 p-4 flex items-center gap-3">
+        <div className="rounded-lg border-2 border-warning/60 bg-warning/10 p-4 flex items-center gap-3">
           <Trophy className="h-8 w-8 text-warning shrink-0" />
           <div>
             <p className="font-bold text-warning-foreground">満開の森 達成</p>
@@ -277,7 +277,7 @@ async function ParentGardenPage({
         </div>
       )}
       {milestone && !isFull && (
-        <div className="rounded-xl border-2 border-warning/60 bg-warning/10 p-4 flex items-center gap-3">
+        <div className="rounded-lg border-2 border-warning/60 bg-warning/10 p-4 flex items-center gap-3">
           <Star className="h-7 w-7 text-warning shrink-0 fill-warning/60" />
           <div>
             <p className="font-bold text-warning-foreground">{milestone}個達成！</p>
@@ -291,7 +291,7 @@ async function ParentGardenPage({
       )}
 
       {total === 0 ? (
-        <div className="rounded-xl border bg-card p-12 flex flex-col items-center gap-3 text-center">
+        <div className="rounded-lg border bg-card p-12 flex flex-col items-center gap-3 text-center">
           <TreePine className="h-10 w-10 text-primary/30" />
           <p className="font-medium text-muted-foreground">まだ何も育っていません</p>
           <p className="text-sm text-muted-foreground">
@@ -299,7 +299,7 @@ async function ParentGardenPage({
           </p>
         </div>
       ) : (
-        <div className="rounded-xl border bg-card p-4 overflow-hidden">
+        <div className="rounded-lg border bg-card p-4 overflow-hidden">
           <GardenCanvas items={items} milestone={milestone} />
         </div>
       )}

@@ -6,6 +6,7 @@ import { updateLesson } from "./actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 
 type Subject = { id: string; name: string }
 
@@ -126,12 +127,12 @@ export function LessonEditForm({ lesson, onClose, subjects }: { lesson: Lesson; 
 
       <div className="space-y-1.5">
         <Label className="text-xs font-medium">授業ログ（実施内容・次回目標）</Label>
-        <textarea
+        <Textarea
           name="lessonLog"
           rows={3}
           defaultValue={lesson.lessonLog ?? ""}
           placeholder="今日の内容、宿題、次回の目標など"
-          className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
+          className="resize-none"
         />
         <label className="flex items-center gap-1.5 text-sm cursor-pointer text-muted-foreground">
           <input

@@ -21,7 +21,7 @@ export function TermsAgreementModal({ show }: { show: boolean }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 px-4 pb-4 sm:pb-0">
-      <div className="bg-card rounded-2xl w-full max-w-md p-6 space-y-5 shadow-xl border border-border">
+      <div className="bg-card rounded-lg w-full max-w-md p-6 space-y-5 shadow-xl border border-border">
         <div>
           <h2 className="text-lg font-bold text-foreground">利用規約への同意</h2>
           <p className="text-sm text-muted-foreground mt-1">

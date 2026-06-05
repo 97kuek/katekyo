@@ -5,6 +5,8 @@ import { createGradeRecord } from "./actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Select } from "@/components/ui/select"
 import { TEST_TYPE_OPTIONS } from "@/lib/test-types"
 
 type Student = { id: string; grade: string; user: { name: string } }
@@ -18,7 +20,6 @@ const todayISO = () => {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
 }
 
-const selectClass = "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
 
 export default function CreateGradeForm({
   students,
@@ -55,8 +56,7 @@ export default function CreateGradeForm({
       {examEvents.length > 0 && (
         <div className="space-y-2">
           <Label>試験予定から入力</Label>
-          <select
-            className={selectClass}
+          <Select
             defaultValue=""
             onChange={(e) => applyExamEvent(e.target.value)}
           >
@@ -66,7 +66,7 @@ export default function CreateGradeForm({
                 {e.date} — {e.name}（{e.studentName}）
               </option>
             ))}
-          </select>
+          </Select>
         </div>
       )}
 
@@ -81,36 +81,34 @@ export default function CreateGradeForm({
               <p className="text-sm py-2 px-3 rounded-md border bg-muted">{singleStudent.user.name}（{singleStudent.grade}）</p>
             </>
           ) : (
-            <select
+            <Select
               id="studentId"
               name="studentId"
               required
               value={studentId}
               onChange={(e) => setStudentId(e.target.value)}
-              className={selectClass}
             >
               <option value="">生徒を選択してください</option>
               {students.map((s) => (
                 <option key={s.id} value={s.id}>{s.user.name}（{s.grade}）</option>
               ))}
-            </select>
+            </Select>
           )}
         </div>
 
         <div className="col-span-2 space-y-2">
           <Label htmlFor="testType">テスト種別 <span className="text-destructive">*</span></Label>
-          <select
+          <Select
             id="testType"
             name="testType"
             required
             value={testType}
             onChange={(e) => setTestType(e.target.value)}
-            className={selectClass}
           >
             {TEST_TYPE_OPTIONS.map(([value, label]) => (
               <option key={value} value={value}>{label}</option>
             ))}
-          </select>
+          </Select>
         </div>
 
         <div className="col-span-2 space-y-2">
@@ -195,11 +193,11 @@ export default function CreateGradeForm({
 
       <div className="space-y-2">
         <Label htmlFor="comment">コメント <span className="text-xs text-muted-foreground font-normal">（任意）</span></Label>
-        <textarea
+        <Textarea
           id="comment"
           name="comment"
           rows={3}
-          className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
+          className="resize-none"
           placeholder="生徒へのフィードバックを入力してください"
         />
       </div>

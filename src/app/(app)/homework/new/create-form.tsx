@@ -5,6 +5,8 @@ import { createHomework } from "./actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Select } from "@/components/ui/select"
 import Link from "next/link"
 
 type Student = {
@@ -50,13 +52,12 @@ export default function CreateHomeworkForm({
             <p className="text-sm py-2 px-3 rounded-md border bg-muted">{singleStudent.user.name}（{singleStudent.grade}）</p>
           </>
         ) : (
-          <select
+          <Select
             id="studentId"
             name="studentId"
             required
             value={selectedStudentId}
             onChange={(e) => setSelectedStudentId(e.target.value)}
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <option value="">生徒を選択してください</option>
             {students.map((s) => (
@@ -64,7 +65,7 @@ export default function CreateHomeworkForm({
                 {s.user.name}（{s.grade}）
               </option>
             ))}
-          </select>
+          </Select>
         )}
       </div>
       <div className="space-y-2">
@@ -74,11 +75,11 @@ export default function CreateHomeworkForm({
       </div>
       <div className="space-y-2">
         <Label htmlFor="description">内容（任意）</Label>
-        <textarea
+        <Textarea
           id="description"
           name="description"
           rows={3}
-          className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
+          className="resize-none"
           placeholder="詳細な指示があれば入力してください"
           value={description} onChange={(e) => setDescription(e.target.value)}
         />
@@ -98,18 +99,14 @@ export default function CreateHomeworkForm({
               </a>
             </p>
           ) : (
-            <select
-              id="materialId"
-              name="materialId"
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
+            <Select id="materialId" name="materialId">
               <option value="">指定しない</option>
               {materials.map((m) => (
                 <option key={m.id} value={m.id}>
                   {m.name}
                 </option>
               ))}
-            </select>
+            </Select>
           )}
         </div>
       )}

@@ -5,6 +5,7 @@ import { Loader2 } from "lucide-react"
 import { reviewHomework } from "../actions"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { haptic } from "@/lib/haptic"
 
@@ -27,11 +28,11 @@ export default function ReviewForm({ id }: { id: string }) {
           )}
           <div className="space-y-2">
             <Label htmlFor="feedback">コメント（任意）</Label>
-            <textarea
+            <Textarea
               id="feedback"
               name="feedback"
               rows={3}
-              className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
+              className="resize-none"
               placeholder="生徒へのコメントを入力してください"
             />
           </div>

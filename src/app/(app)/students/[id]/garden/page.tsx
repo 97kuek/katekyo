@@ -62,7 +62,7 @@ export default async function StudentGardenPage({
         <div className="flex items-center gap-2">
           <h1 className="text-2xl font-bold">{student.user.name}の森</h1>
           {generation > 1 && (
-            <span className="text-xs font-medium text-indigo-600 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-full">
+            <span className="text-xs font-medium text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-full">
               第{generation}世代
             </span>
           )}
@@ -70,17 +70,17 @@ export default async function StudentGardenPage({
         <div className="text-right">
           <p className="text-sm tabular-nums text-muted-foreground">{total} / {max}</p>
           {witheredCount > 0 && (
-            <p className="text-xs text-amber-600 mt-0.5">{witheredCount}個枯れています</p>
+            <p className="text-xs text-warning mt-0.5">{witheredCount}個枯れています</p>
           )}
         </div>
       </div>
 
       {isFull && (
-        <div className="rounded-xl border-2 border-amber-400 bg-amber-50 p-4 flex items-center gap-3">
-          <Trophy className="h-8 w-8 text-amber-500 shrink-0" />
+        <div className="rounded-lg border-2 border-warning/60 bg-warning/10 p-4 flex items-center gap-3">
+          <Trophy className="h-8 w-8 text-warning shrink-0" />
           <div>
-            <p className="font-bold text-amber-800">満開の森 達成</p>
-            <p className="text-sm text-amber-600">
+            <p className="font-bold text-warning-foreground">満開の森 達成</p>
+            <p className="text-sm text-warning">
               64個がすべて育ちました。次の承認で第{generation + 1}世代の森が始まります。
             </p>
           </div>
@@ -88,21 +88,21 @@ export default async function StudentGardenPage({
       )}
 
       {total === 0 ? (
-        <div className="rounded-xl border bg-card p-12 flex flex-col items-center gap-3 text-center">
-          <TreePine className="h-10 w-10 text-green-300" />
+        <div className="rounded-lg border bg-card p-12 flex flex-col items-center gap-3 text-center">
+          <TreePine className="h-10 w-10 text-primary/30" />
           <p className="font-medium text-muted-foreground">まだ何も育っていません</p>
           <p className="text-sm text-muted-foreground">
             宿題が承認されるたびにアイテムが1つ育ちます
           </p>
         </div>
       ) : (
-        <div className="rounded-xl border bg-card p-4 overflow-hidden">
+        <div className="rounded-lg border bg-card p-4 overflow-hidden">
           <GardenCanvas items={items} />
         </div>
       )}
 
       {witheredCount > 0 && (
-        <p className="text-xs text-amber-600 text-center">
+        <p className="text-xs text-warning text-center">
           期限切れ・差し戻しの宿題が{overdueCount}件あります。提出されると回復します。
         </p>
       )}

@@ -35,7 +35,7 @@ katekyo アプリのデザイントークン・コンポーネント規則。`sr
 <p className="text-destructive">
 
 // 標準カード
-<div className="rounded-xl border bg-card p-4">
+<div className="rounded-lg border bg-card p-4">
 ```
 
 ## ボーダー半径スケール
@@ -45,11 +45,10 @@ katekyo アプリのデザイントークン・コンポーネント規則。`sr
 | クラス | 値 | 主な用途 |
 |---|---|---|
 | `rounded-sm` | 4px | マイクロ UI |
-| `rounded-lg` | 8px | フォーム入力 |
-| `rounded-xl` | 16px | 標準カード |
-| `rounded-2xl` | 24px | フィーチャーカード |
-| `rounded-3xl` | 32px | 大型カード |
+| `rounded-lg` | 8px | **標準カード・モーダル・フォーム入力（全カード面で統一）** |
 | `rounded-full` | 9999px | ボタン（全て）・バッジ・チップ |
+
+> カード面（`bg-card` のコンテナ・`<Card>` コンポーネント・モーダル・空状態）は **すべて `rounded-lg`** に統一。`rounded-xl` / `rounded-2xl` / `rounded-3xl` はコンテンツカードには使わない（装飾ロゴアイコンの箱のみ例外）。
 
 ## ボタンコンポーネント
 

@@ -5,6 +5,7 @@ import { updateHomework } from "../edit-actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 
 type Homework = {
   id: string
@@ -41,12 +42,12 @@ export default function EditHomeworkForm({
       </div>
       <div className="space-y-2">
         <Label htmlFor="description">内容（任意）</Label>
-        <textarea
+        <Textarea
           id="description"
           name="description"
           rows={3}
           defaultValue={homework.description ?? ""}
-          className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
+          className="resize-none"
         />
       </div>
       <div className="space-y-2">

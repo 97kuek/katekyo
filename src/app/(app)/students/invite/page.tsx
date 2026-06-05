@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Select } from "@/components/ui/select"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { GRADE_OPTIONS } from "@/lib/grades"
 import Link from "next/link"
@@ -68,17 +69,12 @@ export default function InvitePage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="grade">学年</Label>
-                <select
-                  id="grade"
-                  name="grade"
-                  required
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                >
+                <Select id="grade" name="grade" required>
                   <option value="">学年を選択してください</option>
                   {GRADE_OPTIONS.map((g) => (
                     <option key={g} value={g}>{g}</option>
                   ))}
-                </select>
+                </Select>
               </div>
               <Button type="submit" className="w-full" disabled={isPending}>
                 {isPending ? "生成中..." : "招待リンクを生成"}

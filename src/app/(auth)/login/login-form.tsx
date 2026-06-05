@@ -56,18 +56,18 @@ export default function LoginForm() {
       </CardHeader>
       <CardContent>
         {registered && (
-          <p className="mb-4 text-sm text-primary bg-primary/10 p-3 rounded-xl">
+          <p className="mb-4 text-sm text-primary bg-primary/10 p-3 rounded-lg">
             登録が完了しました。ログインしてください。
           </p>
         )}
         {invited && (
-          <p className="mb-4 text-sm text-primary bg-primary/10 p-3 rounded-xl">
+          <p className="mb-4 text-sm text-primary bg-primary/10 p-3 rounded-lg">
             アカウントが作成されました。ログインしてください。
           </p>
         )}
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
-            <p className="text-sm text-destructive bg-destructive/10 p-3 rounded-xl">
+            <p className="text-sm text-destructive bg-destructive/10 p-3 rounded-lg">
               {error}
             </p>
           )}

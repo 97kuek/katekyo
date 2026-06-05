@@ -1,6 +1,6 @@
 const statusConfig = {
   assigned:  { label: "未提出",   dot: "bg-muted-foreground/50" },
-  submitted: { label: "提出済み", dot: "bg-amber-500" },
+  submitted: { label: "提出済み", dot: "bg-warning" },
   approved:  { label: "承認済み", dot: "bg-primary" },
   rejected:  { label: "差し戻し", dot: "bg-destructive" },
 }

@@ -4,6 +4,7 @@ import { useActionState, useState, useRef } from "react"
 import { submitHomework } from "../actions"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
 const DIFFICULTIES = [
@@ -178,11 +179,11 @@ export default function SubmitForm({ id, rejectedFeedback, requiresPhoto = false
 
           <div className="space-y-2">
             <Label htmlFor="note">先生へのコメント（任意）</Label>
-            <textarea
+            <Textarea
               id="note"
               name="note"
               rows={4}
-              className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
+              className="resize-none"
               placeholder="質問や報告があれば入力してください"
             />
           </div>
