@@ -128,8 +128,10 @@ function calcFee(durationMin, hourlyRate, travelExpense) {
 - `testType`: mock / exam / quiz / other の4択
 - 先生の成績一覧: URL `?type=mock` 等でサーバーサイドフィルタリング
 - 生徒の成績グラフ: 複数種別が存在する場合のみ種別フィルタを表示（クライアントサイド）
-- 点数と偏差値の切り替え表示（Recharts グラフ）
+- **推移グラフ（折れ線）**: 点数（%）と偏差値の切り替え表示（Recharts `LineChart`）。線色はデザイントークン（`--primary` / `--chart-*`）
+- **科目別レーダーチャート**（`grades/grade-radar.tsx`）: 同じテスト名でグループ化し、科目を軸に得点%（無ければ偏差値）を表示。科目が3つ以上揃ったテストのみ対象、複数あればセレクタで切替
 - 成績登録時に数値データがある場合、スコアに応じた植物が森に育つ
+- **主観評価（`teacherRating`）の入力・表示は廃止**（DB 列は残存するが UI 非使用）
 
 ## 学習の森（Garden）
 

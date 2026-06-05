@@ -156,7 +156,7 @@ GradeRecord {
   totalStudents Int?
   deviation     Float?
   avgScore      Int?
-  teacherRating Int?
+  teacherRating Int?      # 主観評価（1–5）。現在 UI 非使用・廃止予定（列は残存）
   comment       String?
   createdAt     DateTime
 }

@@ -30,10 +30,13 @@ src/
 │       ├── settings/
 │       └── help/
 ├── components/
-│   ├── ui/               # shadcn/ui 基本コンポーネント
+│   ├── ui/               # 基本コンポーネント（button, card, input, label,
+│   │                     #   textarea, select, swipeable-row, sticky-form-actions 等）
 │   ├── homework/         # StatusBadge 等
-│   └── layout/           # header.tsx, sidebar.tsx, bottom-nav.tsx
+│   └── layout/           # header.tsx, sidebar.tsx, bottom-nav.tsx,
+│                         #   page-content.tsx, pull-to-refresh.tsx
 ├── lib/
+│   ├── haptic.ts             # navigator.vibrate() ラッパー（タップ/成功/エラー/スナップ）
 │   ├── auth.ts               # NextAuth 設定
 │   ├── db.ts                 # Prisma クライアント（シングルトン）
 │   ├── garden.ts             # plantGardenItem ヘルパー
@@ -69,7 +72,8 @@ prisma/
 | ファイル | 役割 | 備考 |
 | --- | --- | --- |
 | `src/app/(app)/layout.tsx` | 認証チェック + 全レイアウト配置 | 外側コンテナ `fixed inset-0`（キーボード表示でレイアウト崩れ防止） |
-| `src/components/layout/page-content.tsx` | ページ遷移アニメーション | Client Component。`usePathname()` を `key` にして `animate-page-in` を再生 |
+| `src/components/layout/page-content.tsx` | ページ遷移アニメーション + スクロール復帰 | Client Component。`usePathname()` を `key` にして `animate-page-in` を再生。遷移時に `<main>` を先頭へスクロール |
+| `src/components/layout/pull-to-refresh.tsx` | プルダウン更新 | Client Component。`<main>` 最上部から下に引くと `router.refresh()`。デスクトップでは無効 |
 | `src/components/layout/sidebar.tsx` | デスクトップ左サイドバー | `hidden md:flex`、md=w-16（アイコンのみ）、lg=w-60（ラベルあり） |
 | `src/components/layout/header.tsx` | ページタイトルヘッダー | `PAGE_TITLES` 配列でパスからタイトル解決。モバイルはタイトル or "katekyo" |
 | `src/components/layout/bottom-nav.tsx` | モバイル固定ボトムナビ | `md:hidden`、先生6項目・生徒5項目・保護者4項目。アクティブアイコンは scale(1.1) |
@@ -102,8 +106,8 @@ prisma/
 | 成績管理 | `/grades` | `?type=mock` 等サーバーサイドフィルタ |
 | 保護者管理 | `/students/[id]/parents` | 紐づけ済み保護者一覧・リンク解除。未使用の招待トークン表示 |
 | 保護者招待 | `/students/[id]/invite-parent` | 保護者招待リンク生成（7日有効）・コピー |
-| プロフィール | `/profile` | 表示名・パスワード変更（両ロール共通） |
-| 設定 | `/settings` | LINE連携 / Meet URL / 科目タグ管理 |
+| プロフィール | `/profile` | `/settings` へリダイレクト（表示名・パスワード変更は設定ページに統合） |
+| 設定 | `/settings` | 名前・パスワード変更 / LINE連携 / Meet URL / 科目タグ管理（`/subjects` はここへリダイレクト） |
 | 使い方ガイド | `/help` | 操作説明・ホーム画面追加手順 |
 
 ## ページ一覧（生徒）
@@ -117,8 +121,8 @@ prisma/
 | 学習の森 | `/garden` | garden-canvas.tsx がアイソメトリック SVG 描画。植物7種+枯れ版 |
 | 教材 | `/materials` | 担当先生に登録してもらった教材一覧（科目タグ表示・参照のみ） |
 | カレンダー | `/calendar` | 授業・テスト予定閲覧。オンライン授業から Meet 参加 |
-| プロフィール | `/profile` | 表示名・パスワード変更（両ロール共通） |
-| 設定 | `/settings` | LINE連携 |
+| プロフィール | `/profile` | `/settings` へリダイレクト（表示名・パスワード変更は設定ページに統合） |
+| 設定 | `/settings` | 名前・パスワード変更 / LINE連携 |
 | 使い方ガイド | `/help` | 操作説明・ホーム画面追加手順 |
 | 保護者招待 | `/parent-invite/create` | 保護者招待リンクを生成（ダッシュボードからも誘導） |
 
@@ -148,4 +152,12 @@ prisma/
 | `1024px+` (lg) | サイドバーにラベル表示（w-60） |
 
 - テーブルは `overflow-hidden overflow-x-auto` + `min-w-[Xpx]` でモバイル対応
-- main の padding: `p-4 md:p-6 pb-20 md:pb-6`（ボトムナビ分の余白）
+- main の padding: `p-4 md:p-6 pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-6`（ボトムナビ + iOS ホームインジケーター分の余白）
+
+## モバイル操作・safe-area
+
+- **safe-area 対応**: `viewport` に `viewportFit: "cover"` を設定。ボトムナビは `pb-[env(safe-area-inset-bottom)]`、main の下余白も safe-area を加味（iPhone のホームインジケーターに被らない）
+- **スワイプ操作**（`components/ui/swipeable-row.tsx`）: 宿題一覧・成績一覧のモバイルカードを左スワイプで編集/削除を露出。左端まで振り切ると `onFullSwipe`（削除）を実行。Pointer Events + `touch-action: pan-y`、`haptic` で触覚フィードバック。閉じている間は右端に控えめなシェブロンでスワイプ可能を示唆
+- **スティッキー送信ボタン**（`components/ui/sticky-form-actions.tsx`）: 長いフォームの送信ボタンをモバイルで画面下部（ボトムナビの上）に固定。同じ高さのスペーサーで最後の入力欄が隠れないようにする。デスクトップでは通常フロー
+- **プルダウン更新**（`components/layout/pull-to-refresh.tsx`）: `<main>` 最上部から引くと `router.refresh()`
+- **ボトムナビ**: アクティブ項目は上部にインジケーターバー + アイコン拡大。タップで `active:opacity-60`

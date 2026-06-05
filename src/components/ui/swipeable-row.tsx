@@ -1,7 +1,7 @@
 "use client"
 
 import { useRef, useState } from "react"
-import { GripVertical, Trash2 } from "lucide-react"
+import { ChevronLeft, Trash2 } from "lucide-react"
 import { haptic } from "@/lib/haptic"
 
 type Props = {
@@ -140,10 +140,10 @@ export function SwipeableRow({
         onPointerCancel={handlePointerUp}
         onClickCapture={handleClickCapture}
       >
-        {/* スワイプ可能を示す控えめなグリップ（md以上では非表示） */}
-        <GripVertical
+        {/* 左スワイプ可能を示す控えめなシェブロン（md以上では非表示） */}
+        <ChevronLeft
           aria-hidden
-          className={`md:hidden pointer-events-none absolute right-1 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/25 transition-opacity duration-200 ${closed ? "opacity-100" : "opacity-0"}`}
+          className={`md:hidden pointer-events-none absolute right-0.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/30 transition-opacity duration-200 ${closed ? "opacity-100" : "opacity-0"}`}
         />
         {children}
       </div>

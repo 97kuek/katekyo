@@ -101,17 +101,30 @@ import { Button, buttonVariants } from "@/components/ui/button"
 
 生 `<button>` タグが許可される場面: テーブル行内などのインライン保存/キャンセルリンクのみ。それ以外は `<Button>` を使う。
 
+## フォーム入力部品
+
+標準フォームの入力欄は共通コンポーネントを使う。**生の `<input>` / `<textarea>` / `<select>` を独自スタイルで使わない**（高さ・角丸・フォントのばらつき・iOS のフォーカス時ズームを防ぐため）。
+
+| コンポーネント | ファイル | 仕様 |
+|---|---|---|
+| `Input` | `ui/input.tsx` | `h-11 rounded-lg border-input`、`text-base md:text-sm`（モバイル 16px で iOS 自動ズーム回避） |
+| `Textarea` | `ui/textarea.tsx` | Input と同じ枠線・フォーカス。`field-sizing: content` で自動拡張 |
+| `Select` | `ui/select.tsx` | ネイティブ `<select>` を Input と同じ見た目でラップ。右端に `ChevronDown` |
+
+- フィルターバー等の**コンパクトな操作系**（`h-8`/`h-9`）は別系統。フォーム入力には使わない
+- 送信ボタンは長いフォームではモバイルで `StickyFormActions` により画面下部に固定（[architecture.md](architecture.md#モバイル操作safe-area) 参照）
+
 ## レイアウト・ビューポート
 
-**外側コンテナ** (`src/app/(app)/layout.tsx`): `fixed inset-0 flex bg-muted overflow-hidden`
+**外側コンテナ** (`src/app/(app)/layout.tsx`): `fixed inset-0 flex flex-col bg-muted overflow-hidden`
 
 - `fixed inset-0`: iOS/Android でソフトウェアキーボード表示時にビューポートが縮小しない
 - `overflow-hidden`: コンテンツがコンテナ外にはみ出さない
 - スクロールは内側の `<main>`（`overflow-y-auto`）が担当
 
-**main**: `flex-1 overflow-y-auto overflow-x-hidden overscroll-y-none p-4 md:p-6 pb-20 md:pb-6`
+**main**: `flex-1 overflow-y-auto overflow-x-hidden overscroll-y-none p-4 md:p-6 pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-6`
 
-- `pb-20 md:pb-6`: モバイルのボトムナビ（`md:hidden`, 高さ ≈80px）分の余白
+- 下余白はモバイルのボトムナビ（`md:hidden`, 高さ ≈80px）+ iOS の safe-area 分
 
 **html/body** (`globals.css`): `overscroll-behavior: none` — iOS の elastic bounce を無効化
 
