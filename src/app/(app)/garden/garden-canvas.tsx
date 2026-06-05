@@ -15,6 +15,80 @@ function iso(col: number, row: number) {
   }
 }
 
+// ---- Gradients & shared defs ----------------------------------------------
+// 立体感は SVG グラデーションで表現。接地影はぼかしフィルタの代わりに
+// 放射グラデーション（中心濃→外側透明）で軽量に柔らかく見せる。
+
+function GardenDefs() {
+  return (
+    <defs>
+      {/* 接地影（やわらかい） */}
+      <radialGradient id="gShadow" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stopColor="rgba(0,0,0,0.30)" />
+        <stop offset="65%" stopColor="rgba(0,0,0,0.16)" />
+        <stop offset="100%" stopColor="rgba(0,0,0,0)" />
+      </radialGradient>
+      {/* 葉（光源は左上） */}
+      <radialGradient id="gLeafA" cx="36%" cy="28%" r="80%">
+        <stop offset="0%" stopColor="#74d182" />
+        <stop offset="50%" stopColor="#43a052" />
+        <stop offset="100%" stopColor="#236430" />
+      </radialGradient>
+      <radialGradient id="gLeafB" cx="36%" cy="26%" r="82%">
+        <stop offset="0%" stopColor="#5fc06f" />
+        <stop offset="50%" stopColor="#318240" />
+        <stop offset="100%" stopColor="#184f1f" />
+      </radialGradient>
+      <radialGradient id="gBush" cx="36%" cy="30%" r="80%">
+        <stop offset="0%" stopColor="#5fce72" />
+        <stop offset="55%" stopColor="#37a44e" />
+        <stop offset="100%" stopColor="#1f7233" />
+      </radialGradient>
+      {/* 幹（円柱風: 端が暗く中央が明るい） */}
+      <linearGradient id="gTrunk" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stopColor="#583512" />
+        <stop offset="38%" stopColor="#a0682e" />
+        <stop offset="64%" stopColor="#7c4a1e" />
+        <stop offset="100%" stopColor="#4c2c10" />
+      </linearGradient>
+      {/* 桜・花の花びら */}
+      <radialGradient id="gBlossom" cx="38%" cy="30%" r="78%">
+        <stop offset="0%" stopColor="#ffe1ee" />
+        <stop offset="55%" stopColor="#f9a8c9" />
+        <stop offset="100%" stopColor="#e87bab" />
+      </radialGradient>
+      <radialGradient id="gPetal" cx="40%" cy="32%" r="75%">
+        <stop offset="0%" stopColor="#fde3ec" />
+        <stop offset="60%" stopColor="#fbb6ce" />
+        <stop offset="100%" stopColor="#f386af" />
+      </radialGradient>
+      {/* 竹（円柱風） */}
+      <linearGradient id="gBamboo" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stopColor="#3f7016" />
+        <stop offset="40%" stopColor="#79bd3a" />
+        <stop offset="70%" stopColor="#5a9a2a" />
+        <stop offset="100%" stopColor="#3a6014" />
+      </linearGradient>
+      {/* きのこの傘 */}
+      <radialGradient id="gCap" cx="38%" cy="26%" r="80%">
+        <stop offset="0%" stopColor="#ff8585" />
+        <stop offset="55%" stopColor="#e53e3e" />
+        <stop offset="100%" stopColor="#a82828" />
+      </radialGradient>
+      {/* タイル（上方向に明るい芝） */}
+      <linearGradient id="gTile" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stopColor="#84db72" />
+        <stop offset="100%" stopColor="#5fb653" />
+      </linearGradient>
+    </defs>
+  )
+}
+
+// 共通の接地影
+function GroundShadow({ cx, cy, rx, ry }: { cx: number; cy: number; rx: number; ry: number }) {
+  return <ellipse cx={cx} cy={cy} rx={rx} ry={ry} fill="url(#gShadow)" />
+}
+
 // ---- Platform --------------------------------------------------------------
 
 function Platform() {
@@ -39,26 +113,33 @@ function Platform() {
 
 // ---- Tiles -----------------------------------------------------------------
 
-const TILE_COLORS = ["#78d068", "#82d870", "#70c862", "#7dd474", "#76cc66"]
-
 function Tile({ col, row }: { col: number; row: number }) {
   const { cx, cy } = iso(col, row)
   const seed = col * 7 + row * 13
-  const fill = TILE_COLORS[seed % TILE_COLORS.length]
+  // 市松状に明暗を付けて立体感（色は gTile グラデーションをベースにわずかに変化）
+  const tint = (col + row) % 2 === 0 ? 0.06 : 0
   const top    = `${cx},${cy}`
   const right  = `${cx + TILE_W / 2},${cy + TILE_H / 2}`
   const bottom = `${cx},${cy + TILE_H}`
   const left   = `${cx - TILE_W / 2},${cy + TILE_H / 2}`
-  const hx1 = cx + ((seed % 5) - 2) * 7
-  const hy1 = cy + TILE_H / 2 + ((seed % 3) - 1) * 4
-  const hx2 = cx + ((seed % 4) - 2) * 9
-  const hy2 = cy + TILE_H / 2 + ((seed % 6) - 3) * 3
+  // 芝の小さな束（一部のタイルのみ・軽量）
+  const tuft = seed % 3 === 0
+  const tx = cx + ((seed % 5) - 2) * 6
+  const ty = cy + TILE_H / 2 + ((seed % 3) - 1) * 3
   return (
     <g>
-      <polygon points={`${top} ${right} ${bottom} ${left}`} fill={fill} />
-      <line x1={cx} y1={cy} x2={cx - TILE_W / 2} y2={cy + TILE_H / 2} stroke="rgba(255,255,255,0.18)" strokeWidth={1} />
-      <circle cx={hx1} cy={hy1} r={3.5} fill="rgba(255,255,255,0.11)" />
-      <circle cx={hx2} cy={hy2} r={2.5} fill="rgba(255,255,255,0.07)" />
+      <polygon points={`${top} ${right} ${bottom} ${left}`} fill="url(#gTile)" />
+      {tint > 0 && <polygon points={`${top} ${right} ${bottom} ${left}`} fill="rgba(20,80,30,0.07)" />}
+      {/* 左上辺のハイライトで稜線を強調 */}
+      <line x1={cx} y1={cy} x2={cx - TILE_W / 2} y2={cy + TILE_H / 2} stroke="rgba(255,255,255,0.20)" strokeWidth={1} />
+      <line x1={cx} y1={cy} x2={cx + TILE_W / 2} y2={cy + TILE_H / 2} stroke="rgba(255,255,255,0.10)" strokeWidth={1} />
+      {tuft && (
+        <g stroke="#3f9a4c" strokeWidth={1.1} strokeLinecap="round" opacity={0.55}>
+          <line x1={tx} y1={ty} x2={tx - 2} y2={ty - 4} />
+          <line x1={tx} y1={ty} x2={tx} y2={ty - 5} />
+          <line x1={tx} y1={ty} x2={tx + 2} y2={ty - 4} />
+        </g>
+      )}
     </g>
   )
 }
@@ -69,16 +150,16 @@ function Tree({ cx, cy, delay = "0s" }: { cx: number; cy: number; delay?: string
   const ax = cx, ay = cy + TILE_H / 2
   return (
     <g style={{ animation: `treeSway 4s ease-in-out ${delay} infinite`, transformOrigin: `${ax}px ${ay}px` }}>
-      <ellipse cx={ax + 6} cy={ay - 1} rx={17} ry={5.5} fill="rgba(0,0,0,0.13)" />
-      <rect x={ax - 3.5} y={ay - 22} width={7} height={22} rx={2} fill="#7c4a1e" />
-      <rect x={ax - 3.5} y={ay - 22} width={3} height={22} rx={1.5} fill="#a0622a" />
-      <polygon points={`${ax},${ay - 50} ${ax - 22},${ay - 22} ${ax + 22},${ay - 22}`} fill="#2d6e38" />
-      <polygon points={`${ax},${ay - 50} ${ax - 22},${ay - 22} ${ax},${ay - 22}`}       fill="#3d9048" />
-      <polygon points={`${ax},${ay - 66} ${ax - 16},${ay - 46} ${ax + 16},${ay - 46}`} fill="#358040" />
-      <polygon points={`${ax},${ay - 66} ${ax - 16},${ay - 46} ${ax},${ay - 46}`}       fill="#46a854" />
-      <polygon points={`${ax},${ay - 78} ${ax - 11},${ay - 63} ${ax + 11},${ay - 63}`} fill="#3a9248" />
-      <polygon points={`${ax},${ay - 78} ${ax - 11},${ay - 63} ${ax},${ay - 63}`}       fill="#50b862" />
-      <circle cx={ax} cy={ay - 79} r={2.5} fill="#4daa5e" />
+      <GroundShadow cx={ax + 4} cy={ay} rx={18} ry={6} />
+      <rect x={ax - 3} y={ay - 22} width={6} height={23} rx={3} fill="url(#gTrunk)" />
+      {/* 丸みのある葉の塊（重ねて立体的に） */}
+      <ellipse cx={ax - 10} cy={ay - 32} rx={13} ry={12} fill="url(#gLeafA)" />
+      <ellipse cx={ax + 10} cy={ay - 32} rx={13} ry={12} fill="url(#gLeafA)" />
+      <ellipse cx={ax}      cy={ay - 30} rx={15} ry={13} fill="url(#gLeafA)" />
+      <ellipse cx={ax}      cy={ay - 46} rx={14} ry={13} fill="url(#gLeafA)" />
+      {/* ハイライト（左上） */}
+      <ellipse cx={ax - 6}  cy={ay - 47} rx={6}   ry={5}   fill="rgba(255,255,255,0.26)" />
+      <ellipse cx={ax - 12} cy={ay - 34} rx={4}   ry={3.5} fill="rgba(255,255,255,0.16)" />
     </g>
   )
 }
@@ -87,12 +168,12 @@ function Bush({ cx, cy, delay = "0s" }: { cx: number; cy: number; delay?: string
   const ax = cx, ay = cy + TILE_H / 2
   return (
     <g style={{ animation: `bushSway 5s ease-in-out ${delay} infinite`, transformOrigin: `${ax}px ${ay}px` }}>
-      <ellipse cx={ax + 5} cy={ay - 1} rx={18} ry={5} fill="rgba(0,0,0,0.11)" />
-      <ellipse cx={ax - 9}  cy={ay - 11} rx={12} ry={10} fill="#2a7a3a" />
-      <ellipse cx={ax + 9}  cy={ay - 11} rx={12} ry={10} fill="#2a7a3a" />
-      <ellipse cx={ax}      cy={ay - 18} rx={14} ry={12} fill="#339e48" />
-      <ellipse cx={ax - 2}  cy={ay - 21} rx={6}  ry={4}  fill="#48be62" />
-      <ellipse cx={ax - 10} cy={ay - 13} rx={4}  ry={3}  fill="#3aac52" />
+      <GroundShadow cx={ax + 4} cy={ay} rx={18} ry={5.5} />
+      <ellipse cx={ax - 9} cy={ay - 10} rx={12} ry={10} fill="url(#gBush)" />
+      <ellipse cx={ax + 9} cy={ay - 10} rx={12} ry={10} fill="url(#gBush)" />
+      <ellipse cx={ax}     cy={ay - 16} rx={14} ry={12} fill="url(#gBush)" />
+      <ellipse cx={ax - 3} cy={ay - 19} rx={5}  ry={4}  fill="rgba(255,255,255,0.24)" />
+      <ellipse cx={ax - 10} cy={ay - 12} rx={3.5} ry={3} fill="rgba(255,255,255,0.15)" />
     </g>
   )
 }
@@ -101,16 +182,17 @@ function Flower({ cx, cy, delay = "0s" }: { cx: number; cy: number; delay?: stri
   const ax = cx, ay = cy + TILE_H / 2
   const petals = [0, 60, 120, 180, 240, 300].map(deg => {
     const rad = (deg * Math.PI) / 180
-    return <ellipse key={deg} cx={ax + Math.cos(rad) * 7} cy={ay - 24 + Math.sin(rad) * 7} rx={4.5} ry={4.5} fill="#fbb6ce" />
+    return <ellipse key={deg} cx={ax + Math.cos(rad) * 7} cy={ay - 24 + Math.sin(rad) * 7} rx={5} ry={5} fill="url(#gPetal)" />
   })
   return (
     <g style={{ animation: `flowerSway 3s ease-in-out ${delay} infinite`, transformOrigin: `${ax}px ${ay}px` }}>
-      <ellipse cx={ax + 3} cy={ay - 1} rx={9} ry={3} fill="rgba(0,0,0,0.08)" />
-      <path d={`M ${ax} ${ay} Q ${ax - 3} ${ay - 12} ${ax} ${ay - 18}`} stroke="#4ade80" strokeWidth={2.5} fill="none" strokeLinecap="round" />
-      <ellipse cx={ax - 6} cy={ay - 13} rx={6} ry={2.5} fill="#22c55e" transform={`rotate(-35 ${ax - 6} ${ay - 13})`} />
+      <GroundShadow cx={ax + 2} cy={ay} rx={9} ry={3} />
+      <path d={`M ${ax} ${ay} Q ${ax - 3} ${ay - 12} ${ax} ${ay - 18}`} stroke="#3f9a4c" strokeWidth={2.5} fill="none" strokeLinecap="round" />
+      <ellipse cx={ax - 6} cy={ay - 13} rx={6} ry={2.5} fill="#2e8b46" transform={`rotate(-35 ${ax - 6} ${ay - 13})`} />
       {petals}
       <circle cx={ax} cy={ay - 24} r={5}   fill="#fde047" />
-      <circle cx={ax} cy={ay - 24} r={2.5} fill="#fbbf24" />
+      <circle cx={ax - 1.5} cy={ay - 25.5} r={2} fill="#fff3b0" />
+      <circle cx={ax} cy={ay - 24} r={2.4} fill="#f59e0b" />
     </g>
   )
 }
@@ -121,23 +203,20 @@ function Cherry({ cx, cy, delay = "0s" }: { cx: number; cy: number; delay?: stri
   const ax = cx, ay = cy + TILE_H / 2
   return (
     <g style={{ animation: `treeSway 4.5s ease-in-out ${delay} infinite`, transformOrigin: `${ax}px ${ay}px` }}>
-      <ellipse cx={ax + 7} cy={ay - 1} rx={20} ry={6} fill="rgba(0,0,0,0.12)" />
-      <rect x={ax - 3} y={ay - 22} width={6} height={22} rx={2} fill="#9b6b4a" />
-      <rect x={ax - 3} y={ay - 22} width={2.5} height={22} rx={1.5} fill="#c08060" />
-      {/* Lower blossom clusters */}
-      <ellipse cx={ax - 14} cy={ay - 30} rx={14} ry={12} fill="#f9a8c9" />
-      <ellipse cx={ax + 14} cy={ay - 30} rx={14} ry={12} fill="#f9a8c9" />
-      <ellipse cx={ax}      cy={ay - 32} rx={16} ry={13} fill="#fbbcd8" />
-      {/* Upper clusters */}
-      <ellipse cx={ax - 9}  cy={ay - 48} rx={11} ry={9}  fill="#f9a8c9" />
-      <ellipse cx={ax + 9}  cy={ay - 48} rx={11} ry={9}  fill="#f9a8c9" />
-      <ellipse cx={ax}      cy={ay - 56} rx={12} ry={10} fill="#fbbcd8" />
-      <ellipse cx={ax}      cy={ay - 62} rx={7}  ry={5}  fill="#ffd0e8" />
-      {/* Flower highlights */}
-      <circle cx={ax - 12} cy={ay - 28} r={3}   fill="rgba(255,255,255,0.6)" />
-      <circle cx={ax + 10} cy={ay - 26} r={2.5} fill="rgba(255,255,255,0.6)" />
-      <circle cx={ax - 5}  cy={ay - 48} r={3}   fill="rgba(255,255,255,0.6)" />
-      <circle cx={ax + 6}  cy={ay - 52} r={2}   fill="rgba(255,255,255,0.5)" />
+      <GroundShadow cx={ax + 5} cy={ay} rx={20} ry={6.5} />
+      <rect x={ax - 3} y={ay - 22} width={6} height={23} rx={3} fill="url(#gTrunk)" />
+      {/* 丸い花房（グラデーションで立体的に） */}
+      <ellipse cx={ax - 13} cy={ay - 30} rx={13} ry={11} fill="url(#gBlossom)" />
+      <ellipse cx={ax + 13} cy={ay - 30} rx={13} ry={11} fill="url(#gBlossom)" />
+      <ellipse cx={ax}      cy={ay - 32} rx={16} ry={13} fill="url(#gBlossom)" />
+      <ellipse cx={ax - 8}  cy={ay - 46} rx={11} ry={9}  fill="url(#gBlossom)" />
+      <ellipse cx={ax + 8}  cy={ay - 46} rx={11} ry={9}  fill="url(#gBlossom)" />
+      <ellipse cx={ax}      cy={ay - 54} rx={12} ry={10} fill="url(#gBlossom)" />
+      {/* ハイライト・花弁の点 */}
+      <circle cx={ax - 9} cy={ay - 48} r={2.6} fill="rgba(255,255,255,0.7)" />
+      <circle cx={ax + 8} cy={ay - 30} r={2.2} fill="rgba(255,255,255,0.6)" />
+      <circle cx={ax - 2} cy={ay - 56} r={2}   fill="rgba(255,255,255,0.6)" />
+      <circle cx={ax - 13} cy={ay - 26} r={2}  fill="rgba(255,255,255,0.45)" />
     </g>
   )
 }
@@ -146,21 +225,19 @@ function BigTree({ cx, cy, delay = "0s" }: { cx: number; cy: number; delay?: str
   const ax = cx, ay = cy + TILE_H / 2
   return (
     <g style={{ animation: `bigTreeSway 6s ease-in-out ${delay} infinite`, transformOrigin: `${ax}px ${ay}px` }}>
-      <ellipse cx={ax + 9} cy={ay - 1} rx={24} ry={8} fill="rgba(0,0,0,0.17)" />
-      {/* Wide trunk */}
-      <rect x={ax - 5} y={ay - 30} width={10} height={30} rx={3} fill="#6b3d1e" />
-      <rect x={ax - 5} y={ay - 30} width={4}  height={30} rx={2} fill="#8c5228" />
-      {/* 5-layer canopy */}
-      <polygon points={`${ax},${ay - 62} ${ax - 30},${ay - 30} ${ax + 30},${ay - 30}`} fill="#1a5222" />
-      <polygon points={`${ax},${ay - 62} ${ax - 30},${ay - 30} ${ax},${ay - 30}`}       fill="#276834" />
-      <polygon points={`${ax},${ay - 80} ${ax - 23},${ay - 58} ${ax + 23},${ay - 58}`} fill="#1f6028" />
-      <polygon points={`${ax},${ay - 80} ${ax - 23},${ay - 58} ${ax},${ay - 58}`}       fill="#2e7a38" />
-      <polygon points={`${ax},${ay - 95} ${ax - 17},${ay - 76} ${ax + 17},${ay - 76}`} fill="#256630" />
-      <polygon points={`${ax},${ay - 95} ${ax - 17},${ay - 76} ${ax},${ay - 76}`}       fill="#348040" />
-      <polygon points={`${ax},${ay - 106} ${ax - 11},${ay - 91} ${ax + 11},${ay - 91}`} fill="#2a6e38" />
-      <polygon points={`${ax},${ay - 106} ${ax - 11},${ay - 91} ${ax},${ay - 91}`}      fill="#3a8a48" />
-      <polygon points={`${ax},${ay - 114} ${ax - 6},${ay - 103} ${ax + 6},${ay - 103}`} fill="#2e7840" />
-      <circle cx={ax} cy={ay - 115} r={3.5} fill="#3c9050" />
+      <GroundShadow cx={ax + 7} cy={ay} rx={25} ry={8} />
+      {/* 太い幹 */}
+      <rect x={ax - 5} y={ay - 30} width={10} height={31} rx={3.5} fill="url(#gTrunk)" />
+      {/* 丸い葉の塊を積み上げた大きな樹冠 */}
+      <ellipse cx={ax - 14} cy={ay - 40} rx={16} ry={14} fill="url(#gLeafB)" />
+      <ellipse cx={ax + 14} cy={ay - 40} rx={16} ry={14} fill="url(#gLeafB)" />
+      <ellipse cx={ax}      cy={ay - 44} rx={19} ry={16} fill="url(#gLeafB)" />
+      <ellipse cx={ax - 8}  cy={ay - 60} rx={13} ry={12} fill="url(#gLeafB)" />
+      <ellipse cx={ax + 8}  cy={ay - 60} rx={13} ry={12} fill="url(#gLeafB)" />
+      <ellipse cx={ax}      cy={ay - 70} rx={13} ry={12} fill="url(#gLeafB)" />
+      {/* ハイライト */}
+      <ellipse cx={ax - 8}  cy={ay - 66} rx={6} ry={5} fill="rgba(255,255,255,0.22)" />
+      <ellipse cx={ax - 15} cy={ay - 44} rx={5} ry={4} fill="rgba(255,255,255,0.14)" />
     </g>
   )
 }
@@ -171,19 +248,21 @@ function Bamboo({ cx, cy, delay = "0s" }: { cx: number; cy: number; delay?: stri
   const ax = cx, ay = cy + TILE_H / 2
   return (
     <g style={{ animation: `treeSway 5s ease-in-out ${delay} infinite`, transformOrigin: `${ax}px ${ay}px` }}>
-      <ellipse cx={ax + 4} cy={ay - 1} rx={8} ry={2.5} fill="rgba(0,0,0,0.09)" />
-      <rect x={ax - 3} y={ay - 20} width={6} height={20} rx={2} fill="#5a9a2a" />
-      <rect x={ax - 3} y={ay - 20} width={2.5} height={20} rx={1.5} fill="#72b836" />
-      <rect x={ax - 3} y={ay - 40} width={6} height={20} rx={2} fill="#4e8c22" />
-      <rect x={ax - 3} y={ay - 40} width={2.5} height={20} rx={1.5} fill="#66a82e" />
-      <rect x={ax - 3} y={ay - 60} width={6} height={20} rx={2} fill="#5a9a2a" />
-      <rect x={ax - 3} y={ay - 60} width={2.5} height={20} rx={1.5} fill="#72b836" />
-      <rect x={ax - 4} y={ay - 22} width={8} height={3} rx={1} fill="#3a7a18" />
-      <rect x={ax - 4} y={ay - 42} width={8} height={3} rx={1} fill="#3a7a18" />
-      <ellipse cx={ax - 14} cy={ay - 52} rx={13} ry={4} fill="#4caf50" transform={`rotate(-30 ${ax - 14} ${ay - 52})`} />
-      <ellipse cx={ax + 14} cy={ay - 48} rx={13} ry={4} fill="#4caf50" transform={`rotate(30 ${ax + 14} ${ay - 48})`} />
-      <ellipse cx={ax - 10} cy={ay - 64} rx={11} ry={3.5} fill="#5cc258" transform={`rotate(-20 ${ax - 10} ${ay - 64})`} />
-      <ellipse cx={ax + 10} cy={ay - 61} rx={11} ry={3.5} fill="#5cc258" transform={`rotate(20 ${ax + 10} ${ay - 61})`} />
+      <GroundShadow cx={ax + 3} cy={ay} rx={9} ry={3} />
+      {/* 円柱状の節（グラデーション） */}
+      <rect x={ax - 3} y={ay - 20} width={6} height={20} rx={2} fill="url(#gBamboo)" />
+      <rect x={ax - 3} y={ay - 40} width={6} height={20} rx={2} fill="url(#gBamboo)" />
+      <rect x={ax - 3} y={ay - 60} width={6} height={20} rx={2} fill="url(#gBamboo)" />
+      <rect x={ax - 4} y={ay - 22} width={8} height={3} rx={1} fill="#356e16" />
+      <rect x={ax - 4} y={ay - 42} width={8} height={3} rx={1} fill="#356e16" />
+      <rect x={ax - 4} y={ay - 62} width={8} height={3} rx={1} fill="#356e16" />
+      {/* 縦ハイライト */}
+      <rect x={ax - 1.5} y={ay - 60} width={1.6} height={59} rx={1} fill="rgba(255,255,255,0.28)" />
+      {/* 笹の葉 */}
+      <ellipse cx={ax - 14} cy={ay - 52} rx={13} ry={4} fill="#56b84e" transform={`rotate(-30 ${ax - 14} ${ay - 52})`} />
+      <ellipse cx={ax + 14} cy={ay - 48} rx={13} ry={4} fill="#56b84e" transform={`rotate(30 ${ax + 14} ${ay - 48})`} />
+      <ellipse cx={ax - 10} cy={ay - 64} rx={11} ry={3.5} fill="#6cca60" transform={`rotate(-20 ${ax - 10} ${ay - 64})`} />
+      <ellipse cx={ax + 10} cy={ay - 61} rx={11} ry={3.5} fill="#6cca60" transform={`rotate(20 ${ax + 10} ${ay - 61})`} />
     </g>
   )
 }
@@ -192,17 +271,20 @@ function Mushroom({ cx, cy, delay = "0s" }: { cx: number; cy: number; delay?: st
   const ax = cx, ay = cy + TILE_H / 2
   return (
     <g style={{ animation: `flowerSway 4s ease-in-out ${delay} infinite`, transformOrigin: `${ax}px ${ay}px` }}>
-      <ellipse cx={ax + 3} cy={ay - 1} rx={11} ry={3.5} fill="rgba(0,0,0,0.09)" />
-      <ellipse cx={ax} cy={ay - 10} rx={7} ry={5} fill="#f5f0e8" />
-      <rect x={ax - 6} y={ay - 18} width={12} height={10} rx={3} fill="#f0ebe0" />
-      <ellipse cx={ax} cy={ay - 26} rx={18} ry={11} fill="#f56565" />
-      <ellipse cx={ax} cy={ay - 24} rx={18} ry={12} fill="#e53e3e" />
-      <circle cx={ax - 6} cy={ay - 28} r={3} fill="rgba(255,255,255,0.85)" />
-      <circle cx={ax + 7} cy={ay - 28} r={2.5} fill="rgba(255,255,255,0.85)" />
-      <circle cx={ax + 1} cy={ay - 22} r={2} fill="rgba(255,255,255,0.75)" />
-      <circle cx={ax - 12} cy={ay - 22} r={1.8} fill="rgba(255,255,255,0.7)" />
-      <circle cx={ax + 12} cy={ay - 23} r={1.8} fill="rgba(255,255,255,0.7)" />
-      <ellipse cx={ax} cy={ay - 18} rx={18} ry={4} fill="#c53030" />
+      <GroundShadow cx={ax + 2} cy={ay} rx={12} ry={3.5} />
+      {/* 柄（中央が明るい円柱） */}
+      <rect x={ax - 6} y={ay - 17} width={12} height={11} rx={4} fill="#efe7d6" />
+      <rect x={ax - 6} y={ay - 17} width={4.5} height={11} rx={2} fill="#fbf6ec" />
+      {/* 傘（ドーム + 前面の縁） */}
+      <ellipse cx={ax} cy={ay - 23} rx={18} ry={12} fill="url(#gCap)" />
+      <ellipse cx={ax} cy={ay - 16} rx={18} ry={4.5} fill="#a82828" />
+      {/* 斑点・ハイライト */}
+      <ellipse cx={ax - 7} cy={ay - 28} rx={5} ry={3.5} fill="rgba(255,255,255,0.55)" />
+      <circle cx={ax - 5} cy={ay - 27} r={3} fill="rgba(255,255,255,0.9)" />
+      <circle cx={ax + 7} cy={ay - 27} r={2.6} fill="rgba(255,255,255,0.85)" />
+      <circle cx={ax + 1} cy={ay - 21} r={2.1} fill="rgba(255,255,255,0.78)" />
+      <circle cx={ax - 12} cy={ay - 21} r={1.8} fill="rgba(255,255,255,0.7)" />
+      <circle cx={ax + 12} cy={ay - 22} r={1.8} fill="rgba(255,255,255,0.7)" />
     </g>
   )
 }
@@ -601,6 +683,7 @@ export default function GardenCanvas({ items, milestone }: { items: Item[]; mile
             100% { opacity: 0; transform: translateY(-20px); }
           }
         `}</style>
+        <GardenDefs />
         <Platform />
         {cells.map(({ col, row }) => (
           <Tile key={`t-${col}-${row}`} col={col} row={row} />
