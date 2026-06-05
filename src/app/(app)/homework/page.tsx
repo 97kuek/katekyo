@@ -10,6 +10,7 @@ import { CancelSubmissionButton } from "./cancel-button"
 import { HomeworkFilter } from "./homework-filter"
 import { BulkApproveSection } from "./bulk-approve-section"
 import { relativeDeadline, deadlineColorClass } from "@/lib/date-utils"
+import { SwipeableHomeworkCard } from "./swipeable-card"
 
 function SubjectTags({ ids, map }: { ids: string[]; map: Map<string, string> }) {
   const names = ids.map((id) => map.get(id)).filter(Boolean) as string[]
@@ -120,31 +121,22 @@ async function TeacherHomeworkPage({
       {others.length > 0 && (
         <section className="space-y-3">
           <h2 className="text-sm font-medium text-muted-foreground">すべての宿題</h2>
-          {/* モバイル: カード表示 */}
+          {/* モバイル: スワイプカード */}
           <div className="md:hidden space-y-2">
             {others.map((h) => {
               const overdue = h.dueDate < now && h.status === "assigned"
-              const relLabel = relativeDeadline(h.dueDate)
-              const relColor = deadlineColorClass(h.dueDate)
+              const subjectNames = h.subjectIds.map((sid) => subjectMap.get(sid)).filter(Boolean) as string[]
               return (
-                <Link
+                <SwipeableHomeworkCard
                   key={h.id}
-                  href={`/homework/${h.id}`}
-                  className={`block rounded-lg border bg-card p-4 hover:bg-muted transition-colors ${overdue ? "border-red-200 bg-destructive/5" : ""}`}
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <p className="font-medium truncate">{h.title}</p>
-                      <p className="text-sm text-muted-foreground mt-0.5">{h.student.user.name}</p>
-                      <SubjectTags ids={h.subjectIds} map={subjectMap} />
-                    </div>
-                    <StatusBadge status={h.status} />
-                  </div>
-                  <p className={`text-xs mt-2 ${h.status === "assigned" ? relColor : "text-muted-foreground"}`}>
-                    期限: {h.dueDate.toLocaleDateString("ja-JP")}
-                    {h.status === "assigned" && <span className="ml-1.5">（{relLabel}）</span>}
-                  </p>
-                </Link>
+                  id={h.id}
+                  title={h.title}
+                  studentName={h.student.user.name}
+                  status={h.status}
+                  dueDateStr={h.dueDate.toISOString()}
+                  subjectNames={subjectNames}
+                  isOverdue={overdue}
+                />
               )
             })}
           </div>
