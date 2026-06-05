@@ -26,15 +26,15 @@ export default function InviteForm({ token, name, grade }: Props) {
         <form action={action} className="space-y-4">
           <input type="hidden" name="token" value={token} />
           {state.error && (
-            <p className="text-sm text-red-600 bg-red-50 p-3 rounded-md">{state.error}</p>
+            <p className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">{state.error}</p>
           )}
           <div className="space-y-2">
             <Label>名前</Label>
-            <Input value={name} disabled className="bg-gray-50" />
+            <Input value={name} disabled className="bg-muted" />
           </div>
           <div className="space-y-2">
             <Label>学年</Label>
-            <Input value={grade} disabled className="bg-gray-50" />
+            <Input value={grade} disabled className="bg-muted" />
           </div>
           <div className="space-y-2">
             <Label htmlFor="email">メールアドレス</Label>

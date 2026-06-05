@@ -719,7 +719,7 @@ export default function CalendarView({ lessons, deadlines, examEvents, students,
 
             <div className="grid grid-cols-7 text-center">
               {DOW_LABELS.map((d, i) => (
-                <div key={d} className={`py-2 text-xs font-medium ${i === 0 ? "text-red-500" : i === 6 ? "text-blue-500" : "text-muted-foreground"}`}>
+                <div key={d} className={`py-2 text-xs font-medium ${i === 0 ? "text-calendar-sun" : i === 6 ? "text-calendar-sat" : "text-muted-foreground"}`}>
                   {d}
                 </div>
               ))}
@@ -741,7 +741,7 @@ export default function CalendarView({ lessons, deadlines, examEvents, students,
                     onClick={() => setSelectedDay(key)}
                     className={`aspect-square flex flex-col items-center justify-start pt-1.5 gap-0.5 text-xs transition-colors
                       ${isSelected ? "bg-primary/10" : "hover:bg-muted"}
-                      ${dow === 0 ? "text-red-500" : dow === 6 ? "text-blue-500" : ""}
+                      ${dow === 0 ? "text-calendar-sun" : dow === 6 ? "text-calendar-sat" : ""}
                     `}
                   >
                     <span className={`h-6 w-6 flex items-center justify-center rounded-full font-medium
@@ -750,10 +750,10 @@ export default function CalendarView({ lessons, deadlines, examEvents, students,
                       {day}
                     </span>
                     <div className="flex gap-0.5">
-                      {hasLesson && <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />}
+                      {hasLesson && <span className="h-1.5 w-1.5 rounded-full bg-calendar-lesson" />}
                       {hasNote && <span className="h-1.5 w-1.5 rounded-full bg-warning" />}
-                      {hasDeadline && <span className="h-1.5 w-1.5 rounded-full bg-orange-400" />}
-                      {hasExam && <span className="h-1.5 w-1.5 rounded-full bg-red-500" />}
+                      {hasDeadline && <span className="h-1.5 w-1.5 rounded-full bg-deadline" />}
+                      {hasExam && <span className="h-1.5 w-1.5 rounded-full bg-calendar-exam" />}
                     </div>
                   </button>
                 )
@@ -761,10 +761,10 @@ export default function CalendarView({ lessons, deadlines, examEvents, students,
             </div>
 
             <div className="px-3 pb-3 pt-1 flex items-center gap-4 text-xs text-muted-foreground border-t flex-wrap">
-              <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-blue-400 inline-block" />授業</span>
+              <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-calendar-lesson inline-block" />授業</span>
               <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-warning inline-block" />ノートあり</span>
-              <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-orange-400 inline-block" />宿題期限</span>
-              <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-red-500 inline-block" />テスト</span>
+              <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-deadline inline-block" />宿題期限</span>
+              <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-calendar-exam inline-block" />テスト</span>
             </div>
           </div>
 
@@ -816,16 +816,16 @@ export default function CalendarView({ lessons, deadlines, examEvents, students,
                   <button
                     key={key}
                     onClick={() => setSelectedDay(key)}
-                    className={`flex flex-col items-center gap-1 py-3 transition-colors ${isSelected ? "bg-primary/10" : "hover:bg-muted"} ${i === 0 ? "text-red-500" : i === 6 ? "text-blue-500" : ""}`}
+                    className={`flex flex-col items-center gap-1 py-3 transition-colors ${isSelected ? "bg-primary/10" : "hover:bg-muted"} ${i === 0 ? "text-calendar-sun" : i === 6 ? "text-calendar-sat" : ""}`}
                   >
                     <span className="text-xs text-muted-foreground">{DOW_LABELS[i]}</span>
                     <span className={`h-7 w-7 flex items-center justify-center rounded-full text-sm font-medium ${isToday ? "bg-primary text-primary-foreground" : ""}`}>
                       {d.getDate()}
                     </span>
                     <div className="flex gap-0.5">
-                      {hasLesson && <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />}
-                      {hasDeadline && <span className="h-1.5 w-1.5 rounded-full bg-orange-400" />}
-                      {hasExam && <span className="h-1.5 w-1.5 rounded-full bg-red-500" />}
+                      {hasLesson && <span className="h-1.5 w-1.5 rounded-full bg-calendar-lesson" />}
+                      {hasDeadline && <span className="h-1.5 w-1.5 rounded-full bg-deadline" />}
+                      {hasExam && <span className="h-1.5 w-1.5 rounded-full bg-calendar-exam" />}
                     </div>
                   </button>
                 )

@@ -36,7 +36,7 @@ export default async function StudentMaterialsPage() {
         <div className="rounded-lg border bg-card divide-y">
           {materials.map((m) => (
             <div key={m.id} className="flex items-center gap-3 px-5 py-4">
-              <BookOpen className="h-4 w-4 text-amber-500 shrink-0" />
+              <BookOpen className="h-4 w-4 text-warning shrink-0" />
               <div className="min-w-0">
                 <p className="text-sm font-medium">{m.name}</p>
                 {m.note && <p className="text-xs text-muted-foreground mt-0.5">{m.note}</p>}

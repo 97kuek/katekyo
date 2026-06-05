@@ -121,7 +121,7 @@ export function SwipeableHomeworkCard({
 
       {/* カード本体 */}
       <div
-        className={`rounded-lg border bg-card p-4 select-none ${isOverdue ? "border-red-200 bg-destructive/5" : ""} ${isAnimating ? "animate-swipe-hint" : ""}`}
+        className={`rounded-lg border bg-card p-4 select-none ${isOverdue ? "border-destructive/30 bg-destructive/5" : ""} ${isAnimating ? "animate-swipe-hint" : ""}`}
         style={cardStyle}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}

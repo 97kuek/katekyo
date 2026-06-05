@@ -14,7 +14,7 @@ export function DeleteMaterialButton({ materialId, studentId }: { materialId: st
           await deleteMaterial(materialId, studentId)
         })
       }
-      className="text-xs text-red-500 hover:text-red-700 disabled:opacity-50"
+      className="text-xs text-destructive hover:text-destructive/80 disabled:opacity-50"
     >
       {isPending ? "削除中..." : "削除"}
     </button>

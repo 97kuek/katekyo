@@ -597,7 +597,7 @@ async function StudentGardenPreview({ userId }: { userId: string }) {
           {isFull ? (
             <Trophy className="h-9 w-9 text-warning shrink-0" />
           ) : (
-            <TreePine className="h-9 w-9 text-green-500 shrink-0" />
+            <TreePine className="h-9 w-9 text-primary shrink-0" />
           )}
           <div>
             <p className={`text-2xl font-bold leading-none ${isFull ? "text-warning" : ""}`}>{count}</p>

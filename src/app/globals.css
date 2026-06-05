@@ -23,6 +23,17 @@
   --color-chart-3: var(--chart-3);
   --color-chart-2: var(--chart-2);
   --color-chart-1: var(--chart-1);
+  --color-calendar-sun: var(--calendar-sun);
+  --color-calendar-sat: var(--calendar-sat);
+  --color-calendar-lesson: var(--calendar-lesson);
+  --color-calendar-exam: var(--calendar-exam);
+  --color-deadline: var(--deadline);
+  --color-garden-bamboo: var(--garden-bamboo);
+  --color-garden-sakura: var(--garden-sakura);
+  --color-garden-bigtree: var(--garden-bigtree);
+  --color-garden-tree: var(--garden-tree);
+  --color-garden-bush: var(--garden-bush);
+  --color-garden-mushroom: var(--garden-mushroom);
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -93,6 +104,21 @@
 
   /* Base radius (for components that reference --radius directly) */
   --radius: 0.5rem;
+
+  /* Calendar */
+  --calendar-sun: var(--destructive);          /* 日曜：赤 */
+  --calendar-sat: var(--chart-1);              /* 土曜：青 */
+  --calendar-lesson: var(--chart-1);           /* 授業ドット：青 */
+  --calendar-exam: var(--destructive);         /* テストドット：赤 */
+  --deadline: oklch(0.72 0.19 56);             /* 宿題期限：オレンジ */
+
+  /* Garden plant type dots */
+  --garden-bamboo: oklch(0.42 0.125 147);      /* 竹：深緑 */
+  --garden-sakura: oklch(0.826 0.136 3);       /* 桜：ピンク */
+  --garden-bigtree: oklch(0.38 0.095 147);     /* 大木：濃緑 */
+  --garden-tree: oklch(0.50 0.115 147);        /* 木：primary と同色 */
+  --garden-bush: oklch(0.62 0.10 147);         /* 茂み：薄緑 */
+  --garden-mushroom: oklch(0.537 0.238 21);    /* きのこ：赤（destructive と同色） */
 
   /* Sidebar — white canvas, green accent */
   --sidebar: oklch(1 0 0);

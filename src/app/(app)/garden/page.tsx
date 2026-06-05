@@ -103,7 +103,7 @@ export default async function GardenPage({
 
       {total === 0 ? (
         <div className="rounded-xl border bg-card p-12 flex flex-col items-center gap-3 text-center">
-          <TreePine className="h-10 w-10 text-green-300" />
+          <TreePine className="h-10 w-10 text-primary/30" />
           <p className="font-medium text-muted-foreground">まだ何も育っていません</p>
           <p className="text-sm text-muted-foreground">
             宿題が承認されたり高いテスト点数を取ると、<br />森にアイテムが育ちます
@@ -125,23 +125,23 @@ export default async function GardenPage({
           <p className="text-xs font-medium text-muted-foreground">植物の種類</p>
           <div className="grid grid-cols-1 gap-1.5 text-xs">
             <div className="flex items-start gap-2">
-              <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-green-400 mt-1.5" style={{ background: "linear-gradient(135deg,#5a9a2a,#72b836)" }} />
+              <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-garden-bamboo mt-1.5" />
               <span><span className="font-medium">竹</span>　— テストで満点 / 偏差値70以上の超レア植物</span>
             </div>
             <div className="flex items-start gap-2">
-              <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-pink-400 mt-1.5" />
+              <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-garden-sakura mt-1.5" />
               <span><span className="font-medium">桜</span>　— テストで90%以上 / 偏差値65以上のレア植物</span>
             </div>
             <div className="flex items-start gap-2">
-              <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-green-700 mt-1.5" />
+              <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-garden-bigtree mt-1.5" />
               <span><span className="font-medium">大木</span>　— 宿題が累計5・10・15件と承認されるごとに育つ記念植物</span>
             </div>
             <div className="flex items-start gap-2">
-              <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-green-500 mt-1.5" />
+              <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-garden-tree mt-1.5" />
               <span><span className="font-medium">木</span>　— テストで80〜89% / 偏差値60〜64のときに育つ</span>
             </div>
             <div className="flex items-start gap-2">
-              <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-green-400 mt-1.5" />
+              <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-garden-bush mt-1.5" />
               <span><span className="font-medium">茂み</span>　— テストで60〜79% / 偏差値50〜59のときに育つ</span>
             </div>
             <div className="flex items-start gap-2">
@@ -149,7 +149,7 @@ export default async function GardenPage({
               <span><span className="font-medium">花</span>　— 宿題承認時 / テストで60%未満のときに育つ</span>
             </div>
             <div className="flex items-start gap-2">
-              <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-red-400 mt-1.5" />
+              <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-garden-mushroom mt-1.5" />
               <span><span className="font-medium">きのこ</span>　— 宿題承認時に約5%の確率でまれに育つ不思議な植物</span>
             </div>
           </div>
@@ -292,7 +292,7 @@ async function ParentGardenPage({
 
       {total === 0 ? (
         <div className="rounded-xl border bg-card p-12 flex flex-col items-center gap-3 text-center">
-          <TreePine className="h-10 w-10 text-green-300" />
+          <TreePine className="h-10 w-10 text-primary/30" />
           <p className="font-medium text-muted-foreground">まだ何も育っていません</p>
           <p className="text-sm text-muted-foreground">
             宿題が承認されたり高いテスト点数を取ると、<br />森にアイテムが育ちます

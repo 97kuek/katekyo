@@ -43,11 +43,11 @@ export function StudentActionsMenu({
               森
             </Link>
             {gardenBadge === "full" ? (
-              <span className="text-[10px] font-bold text-amber-600 bg-amber-100 px-1 rounded">満開</span>
+              <span className="text-[10px] font-bold text-warning-foreground bg-warning/20 px-1 rounded">満開</span>
             ) : gardenBadge === "withered" ? (
-              <span className="inline-block h-2 w-2 rounded-full bg-amber-400 shrink-0" />
+              <span className="inline-block h-2 w-2 rounded-full bg-warning shrink-0" />
             ) : gardenBadge === "growing" ? (
-              <span className="inline-block h-2 w-2 rounded-full bg-green-400 shrink-0" />
+              <span className="inline-block h-2 w-2 rounded-full bg-primary/60 shrink-0" />
             ) : null}
           </div>
           <ResetPasswordButton studentId={studentId} />

@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth"
 import { redirect, notFound } from "next/navigation"
 import { db } from "@/lib/db"
 import Link from "next/link"
+import { buttonVariants } from "@/components/ui/button"
 import GradeChart from "@/app/(app)/grades/grade-chart"
 
 function SubjectTags({ ids, map }: { ids: string[]; map: Map<string, string> }) {
@@ -104,7 +105,7 @@ export default async function StudentGradesPage({ params }: { params: Promise<{ 
           <p className="text-muted-foreground">まだ成績記録がありません</p>
           <Link
             href="/grades/new"
-            className="mt-4 inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+            className={buttonVariants({ className: "mt-4 inline-flex" })}
           >
             成績を記録する
           </Link>
