@@ -3,6 +3,7 @@
 import { useActionState } from "react"
 import { updateGradeRecord } from "../edit-actions"
 import { Button } from "@/components/ui/button"
+import { StickyFormActions } from "@/components/ui/sticky-form-actions"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -173,9 +174,11 @@ export default function EditGradeForm({
         />
       </div>
 
-      <Button type="submit" disabled={isPending}>
-        {isPending ? "保存中..." : "変更を保存"}
-      </Button>
+      <StickyFormActions>
+        <Button type="submit" className="w-full md:w-auto" disabled={isPending}>
+          {isPending ? "保存中..." : "変更を保存"}
+        </Button>
+      </StickyFormActions>
     </form>
   )
 }

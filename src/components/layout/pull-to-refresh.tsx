@@ -1,0 +1,101 @@
+"use client"
+
+import { useRouter } from "next/navigation"
+import { useRef, useState, type ReactNode } from "react"
+import { RefreshCw } from "lucide-react"
+import { haptic } from "@/lib/haptic"
+
+const THRESHOLD = 70
+const MAX = 110
+
+/**
+ * モバイルのプルダウン更新。`<main>`（スクロールコンテナ）の最上部から下に引くと
+ * router.refresh() で Server Component を再取得する。デスクトップでは touch が発火しないため無効。
+ */
+export function PullToRefresh({ children }: { children: ReactNode }) {
+  const router = useRouter()
+  const wrapRef = useRef<HTMLDivElement>(null)
+  const startY = useRef(0)
+  const active = useRef(false)
+  const crossed = useRef(false)
+  const [pull, setPull] = useState(0)
+  const [refreshing, setRefreshing] = useState(false)
+
+  function onTouchStart(e: React.TouchEvent) {
+    if (refreshing) return
+    const scroller = wrapRef.current?.closest("main")
+    if (scroller && scroller.scrollTop <= 0) {
+      startY.current = e.touches[0].clientY
+      active.current = true
+      crossed.current = false
+    } else {
+      active.current = false
+    }
+  }
+
+  function onTouchMove(e: React.TouchEvent) {
+    if (!active.current || refreshing) return
+    const dy = e.touches[0].clientY - startY.current
+    if (dy <= 0) {
+      setPull(0)
+      return
+    }
+    const p = Math.min(MAX, dy * 0.5)
+    setPull(p)
+    if (p >= THRESHOLD && !crossed.current) {
+      crossed.current = true
+      haptic.snap()
+    } else if (p < THRESHOLD) {
+      crossed.current = false
+    }
+  }
+
+  function onTouchEnd() {
+    if (!active.current) return
+    active.current = false
+    if (pull >= THRESHOLD && !refreshing) {
+      setRefreshing(true)
+      setPull(THRESHOLD)
+      router.refresh()
+      window.setTimeout(() => {
+        setRefreshing(false)
+        setPull(0)
+      }, 800)
+    } else {
+      setPull(0)
+    }
+  }
+
+  const progress = Math.min(1, pull / THRESHOLD)
+
+  return (
+    <div
+      ref={wrapRef}
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+      className="relative"
+    >
+      <div
+        className="pointer-events-none absolute left-1/2 z-10 flex items-center justify-center"
+        style={{ top: 0, transform: `translate(-50%, ${pull - 40}px)`, opacity: progress }}
+      >
+        <div className="rounded-full border border-border bg-card p-2 shadow-sm">
+          <RefreshCw
+            className={`h-5 w-5 text-primary ${refreshing ? "animate-spin" : ""}`}
+            style={refreshing ? undefined : { transform: `rotate(${progress * 270}deg)` }}
+          />
+        </div>
+      </div>
+      <div
+        style={{
+          // アイドル時は transform を付けない（sticky 要素の containing block を壊さないため）
+          transform: pull > 0 ? `translateY(${pull}px)` : undefined,
+          transition: active.current ? "none" : "transform 0.25s ease-out",
+        }}
+      >
+        {children}
+      </div>
+    </div>
+  )
+}

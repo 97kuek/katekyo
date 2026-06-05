@@ -262,7 +262,7 @@ async function ParentHomeworkPage({ parentId, studentIdFilter }: { parentId: str
               <Link
                 key={h.id}
                 href={`/homework/${h.id}`}
-                className={`block rounded-lg border bg-card p-4 hover:bg-muted transition-colors ${overdue ? "border-destructive/30 bg-destructive/5" : ""}`}
+                className={`block rounded-lg border bg-card p-4 hover:bg-muted active:bg-muted transition-colors ${overdue ? "border-destructive/30 bg-destructive/5" : ""}`}
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
@@ -376,7 +376,7 @@ async function StudentHomeworkPage({ userId }: { userId: string }) {
               <Link
                 key={h.id}
                 href={`/homework/${h.id}`}
-                className="block rounded-lg border bg-card p-4 hover:bg-muted transition-colors opacity-75"
+                className="block rounded-lg border bg-card p-4 hover:bg-muted active:bg-muted transition-colors opacity-75"
               >
                 <div className="flex items-center justify-between gap-2">
                   <div className="min-w-0">

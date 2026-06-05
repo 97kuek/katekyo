@@ -203,7 +203,7 @@ async function TeacherUpcomingSection({ teacherId }: { teacherId: string }) {
           </div>
           <div className="space-y-2">
             {upcomingDeadlines.map((h) => (
-              <Link key={h.id} href={`/homework/${h.id}`} className="block rounded-lg border bg-card p-3 hover:bg-muted transition-colors">
+              <Link key={h.id} href={`/homework/${h.id}`} className="block rounded-lg border bg-card p-3 hover:bg-muted active:bg-muted transition-colors">
                 <div className="flex items-center justify-between gap-2">
                   <p className="text-sm font-medium truncate">{h.title}</p>
                   <span className="text-xs text-muted-foreground shrink-0">

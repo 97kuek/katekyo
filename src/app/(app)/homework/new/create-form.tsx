@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react"
 import { createHomework } from "./actions"
 import { Button } from "@/components/ui/button"
+import { StickyFormActions } from "@/components/ui/sticky-form-actions"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -116,9 +117,11 @@ export default function CreateHomeworkForm({
           写真提出を必須にする
         </Label>
       </div>
-      <Button type="submit" disabled={isPending}>
-        {isPending ? "作成中..." : "宿題を作成する"}
-      </Button>
+      <StickyFormActions>
+        <Button type="submit" className="w-full md:w-auto" disabled={isPending}>
+          {isPending ? "作成中..." : "宿題を作成する"}
+        </Button>
+      </StickyFormActions>
     </form>
   )
 }

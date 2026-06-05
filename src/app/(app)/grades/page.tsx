@@ -6,6 +6,8 @@ import Link from "next/link"
 import { buttonVariants } from "@/components/ui/button"
 import GradeChart from "./grade-chart"
 import { GradeActionsCell } from "./grade-actions-cell"
+import { GradeSwipeActions } from "./grade-swipe-actions"
+import { SwipeableRow } from "@/components/ui/swipeable-row"
 import { GradeTypeFilter } from "./grade-type-filter"
 import { GradeStudentFilter } from "./grade-student-filter"
 import { GradeSubjectFilter } from "./grade-subject-filter"
@@ -168,39 +170,38 @@ async function TeacherGradesPage({
           {/* モバイル: カード表示 */}
           <div className="md:hidden space-y-2">
             {grades.map((g, i) => (
-              <div key={g.id} className="rounded-lg border bg-card p-4 space-y-2">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className="font-medium truncate">{g.testName}</p>
-                    <SubjectTags ids={g.subjectIds} map={subjectMap} />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {g.student.user.name} · {g.date.toLocaleDateString("ja-JP")}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span className={`text-xs rounded-full px-2 py-0.5 ${TEST_TYPE_BADGE[g.testType] ?? TEST_TYPE_BADGE.other}`}>
+              <SwipeableRow key={g.id} showHint={i === 0} actions={<GradeSwipeActions gradeId={g.id} />}>
+                <div className="space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="font-medium truncate">{g.testName}</p>
+                      <SubjectTags ids={g.subjectIds} map={subjectMap} />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {g.student.user.name} · {g.date.toLocaleDateString("ja-JP")}
+                      </p>
+                    </div>
+                    <span className={`text-xs rounded-full px-2 py-0.5 shrink-0 ${TEST_TYPE_BADGE[g.testType] ?? TEST_TYPE_BADGE.other}`}>
                       {TEST_TYPE_LABELS[g.testType as keyof typeof TEST_TYPE_LABELS] ?? g.testType}
                     </span>
-                    <GradeActionsCell gradeId={g.id} />
+                  </div>
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+                    {g.score != null && (
+                      <span>
+                        得点: {g.maxScore != null ? `${g.score}/${g.maxScore}` : g.score}
+                        <DiffBadge diff={prevDiff[i]} />
+                      </span>
+                    )}
+                    {g.avgScore != null && g.score != null && (
+                      <span className="flex items-center gap-1">対平均: <VsAvg score={g.score} avgScore={g.avgScore} /></span>
+                    )}
+                    {g.deviation != null && <span>偏差値: {g.deviation}</span>}
+                    {g.rank != null && (
+                      <span>順位: {g.rank}{g.totalStudents != null ? `/${g.totalStudents}` : ""}</span>
+                    )}
+                    {g.teacherRating != null && <span>{"★".repeat(g.teacherRating)}</span>}
                   </div>
                 </div>
-                <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
-                  {g.score != null && (
-                    <span>
-                      得点: {g.maxScore != null ? `${g.score}/${g.maxScore}` : g.score}
-                      <DiffBadge diff={prevDiff[i]} />
-                    </span>
-                  )}
-                  {g.avgScore != null && g.score != null && (
-                    <span className="flex items-center gap-1">対平均: <VsAvg score={g.score} avgScore={g.avgScore} /></span>
-                  )}
-                  {g.deviation != null && <span>偏差値: {g.deviation}</span>}
-                  {g.rank != null && (
-                    <span>順位: {g.rank}{g.totalStudents != null ? `/${g.totalStudents}` : ""}</span>
-                  )}
-                  {g.teacherRating != null && <span>{"★".repeat(g.teacherRating)}</span>}
-                </div>
-              </div>
+              </SwipeableRow>
             ))}
           </div>
           {/* デスクトップ: テーブル表示 */}

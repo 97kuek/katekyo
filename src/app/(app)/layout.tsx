@@ -10,6 +10,7 @@ import { SearchParamsToast } from "@/components/success-toast"
 import { TermsAgreementModal } from "@/components/terms-agreement-modal"
 import { ViewAsBanner } from "@/components/view-as-banner"
 import { PageContent } from "@/components/layout/page-content"
+import { PullToRefresh } from "@/components/layout/pull-to-refresh"
 import { db } from "@/lib/db"
 import type { NotificationData } from "@/lib/changelog"
 
@@ -47,9 +48,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
               <Suspense>
                 <SearchParamsToast />
               </Suspense>
-              <PageContent>
-                {children}
-              </PageContent>
+              <PullToRefresh>
+                <PageContent>
+                  {children}
+                </PageContent>
+              </PullToRefresh>
             </main>
           </div>
         </div>

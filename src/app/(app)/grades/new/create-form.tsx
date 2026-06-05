@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react"
 import { createGradeRecord } from "./actions"
 import { Button } from "@/components/ui/button"
+import { StickyFormActions } from "@/components/ui/sticky-form-actions"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -202,9 +203,11 @@ export default function CreateGradeForm({
         />
       </div>
 
-      <Button type="submit" disabled={isPending}>
-        {isPending ? "保存中..." : "成績を記録する"}
-      </Button>
+      <StickyFormActions>
+        <Button type="submit" className="w-full md:w-auto" disabled={isPending}>
+          {isPending ? "保存中..." : "成績を記録する"}
+        </Button>
+      </StickyFormActions>
     </form>
   )
 }
