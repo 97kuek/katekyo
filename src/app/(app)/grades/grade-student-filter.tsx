@@ -23,7 +23,7 @@ export function GradeStudentFilter({ students }: { students: Student[] }) {
     <select
       value={current}
       onChange={(e) => setStudent(e.target.value)}
-      className="h-9 rounded-md border border-input bg-background px-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      className="h-8 rounded-lg border border-input bg-background pl-2.5 pr-1.5 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
       <option value="">生徒: すべて</option>
       {students.map((s) => (

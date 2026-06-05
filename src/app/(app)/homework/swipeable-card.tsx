@@ -2,6 +2,7 @@
 
 import { useTransition } from "react"
 import Link from "next/link"
+import { Pencil, Trash2 } from "lucide-react"
 import { deleteHomework } from "@/app/(app)/homework/[id]/edit-actions"
 import { StatusBadge } from "@/components/homework/status-badge"
 import { deadlineColorClass, relativeDeadline } from "@/lib/date-utils"
@@ -18,11 +19,10 @@ type Props = {
   dueDateStr: string
   subjectNames: string[]
   isOverdue: boolean
-  showHint?: boolean
 }
 
 export function SwipeableHomeworkCard({
-  id, title, studentName, status, dueDateStr, subjectNames, isOverdue, showHint = false,
+  id, title, studentName, status, dueDateStr, subjectNames, isOverdue,
 }: Props) {
   const [isPending, startTransition] = useTransition()
 
@@ -40,24 +40,25 @@ export function SwipeableHomeworkCard({
 
   return (
     <SwipeableRow
-      showHint={showHint}
       className={isOverdue ? "border-destructive/30 bg-destructive/5" : ""}
       actions={
         <>
           {canEdit && (
             <Link
               href={`/homework/${id}/edit`}
-              className="flex-1 flex items-center justify-center bg-primary/90 text-primary-foreground text-sm font-medium hover:bg-primary transition-colors"
+              className="flex-1 flex flex-col items-center justify-center gap-1 bg-primary/15 text-primary text-xs font-medium hover:bg-primary/25 transition-colors"
               onClick={() => haptic.tap()}
             >
+              <Pencil className="h-4 w-4" />
               編集
             </Link>
           )}
           <button
             onClick={handleDelete}
             disabled={isPending}
-            className={`flex items-center justify-center bg-destructive text-destructive-foreground text-sm font-medium hover:bg-destructive/90 transition-colors disabled:opacity-50 ${canEdit ? "flex-1" : "w-full"}`}
+            className={`flex flex-col items-center justify-center gap-1 bg-destructive/15 text-destructive text-xs font-medium hover:bg-destructive/25 transition-colors disabled:opacity-50 ${canEdit ? "flex-1" : "w-full"}`}
           >
+            <Trash2 className="h-4 w-4" />
             {isPending ? "…" : "削除"}
           </button>
         </>

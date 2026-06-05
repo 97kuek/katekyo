@@ -45,19 +45,22 @@ export function HomeworkFilter({ students, subjects, children }: { students: Stu
 
   return (
     <div className={`space-y-2 transition-opacity duration-150 ${isPending ? "opacity-50 pointer-events-none" : ""}`}>
-      <div className="flex items-center gap-2 flex-wrap">
+      <div className="flex items-center gap-2">
         <input
           type="search"
           placeholder="タイトルで検索..."
           value={currentQ}
           onChange={(e) => update("q", e.target.value)}
-          className="h-9 flex-1 min-w-[160px] rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="h-9 flex-1 min-w-0 rounded-lg border border-input bg-background px-3 text-base md:text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         />
+        {children}
+      </div>
 
+      <div className="flex items-center gap-2 flex-wrap">
         <select
           value={currentStudent}
           onChange={(e) => update("studentId", e.target.value)}
-          className="h-9 rounded-md border border-input bg-background px-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="h-8 rounded-lg border border-input bg-background pl-2.5 pr-1.5 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <option value="">生徒: すべて</option>
           {students.map((s) => (
@@ -65,49 +68,34 @@ export function HomeworkFilter({ students, subjects, children }: { students: Stu
           ))}
         </select>
 
-        <div className="flex items-center gap-0.5 rounded-md border border-input bg-background p-0.5 shrink-0">
+        <div className="flex items-center gap-0.5 rounded-lg border border-input bg-background p-0.5 shrink-0">
           <button
             onClick={() => update("sort", "created")}
-            className={`px-2.5 py-1.5 rounded text-xs font-medium transition-colors ${currentSort === "created" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
+            className={`px-2 py-1 rounded-md text-xs font-medium transition-colors ${currentSort === "created" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
           >
             作成日
           </button>
           <button
             onClick={() => update("sort", "due")}
-            className={`px-2.5 py-1.5 rounded text-xs font-medium transition-colors ${currentSort === "due" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
+            className={`px-2 py-1 rounded-md text-xs font-medium transition-colors ${currentSort === "due" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
           >
             期限
           </button>
         </div>
 
-        {children}
-      </div>
-
-      {subjects.length > 0 && (
-        <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="text-xs text-muted-foreground shrink-0">科目:</span>
-          {subjects.map((s) => {
-            const active = currentSubjects.includes(s.id)
-            return (
-              <button
-                key={s.id}
-                onClick={() => toggleSubject(s.id)}
-                className={`px-2.5 py-1 rounded-full text-xs border transition-colors ${active ? "bg-primary text-primary-foreground border-primary" : "bg-card text-muted-foreground border-input hover:bg-muted"}`}
-              >
-                {s.name}
-              </button>
-            )
-          })}
-          {currentSubjects.length > 0 && (
+        {subjects.map((s) => {
+          const active = currentSubjects.includes(s.id)
+          return (
             <button
-              onClick={() => update("subjects", "")}
-              className="text-xs text-muted-foreground hover:text-foreground ml-1"
+              key={s.id}
+              onClick={() => toggleSubject(s.id)}
+              className={`px-2.5 py-1 rounded-full text-xs border transition-colors ${active ? "bg-primary text-primary-foreground border-primary" : "bg-card text-muted-foreground border-input hover:bg-muted"}`}
             >
-              クリア
+              {s.name}
             </button>
-          )}
-        </div>
-      )}
+          )
+        })}
+      </div>
     </div>
   )
 }

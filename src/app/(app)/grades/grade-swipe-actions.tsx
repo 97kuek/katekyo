@@ -2,6 +2,7 @@
 
 import { useTransition } from "react"
 import Link from "next/link"
+import { Pencil, Trash2 } from "lucide-react"
 import { deleteGradeRecord } from "./[id]/edit-actions"
 import { haptic } from "@/lib/haptic"
 
@@ -19,16 +20,18 @@ export function GradeSwipeActions({ gradeId }: { gradeId: string }) {
     <>
       <Link
         href={`/grades/${gradeId}/edit`}
-        className="flex-1 flex items-center justify-center bg-primary/90 text-primary-foreground text-sm font-medium hover:bg-primary transition-colors"
+        className="flex-1 flex flex-col items-center justify-center gap-1 bg-primary/15 text-primary text-xs font-medium hover:bg-primary/25 transition-colors"
         onClick={() => haptic.tap()}
       >
+        <Pencil className="h-4 w-4" />
         編集
       </Link>
       <button
         onClick={handleDelete}
         disabled={isPending}
-        className="flex-1 flex items-center justify-center bg-destructive text-destructive-foreground text-sm font-medium hover:bg-destructive/90 transition-colors disabled:opacity-50"
+        className="flex-1 flex flex-col items-center justify-center gap-1 bg-destructive/15 text-destructive text-xs font-medium hover:bg-destructive/25 transition-colors disabled:opacity-50"
       >
+        <Trash2 className="h-4 w-4" />
         {isPending ? "…" : "削除"}
       </button>
     </>

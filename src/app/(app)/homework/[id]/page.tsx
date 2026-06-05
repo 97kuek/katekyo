@@ -71,16 +71,16 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <div className="flex flex-col gap-2">
-        <Link href="/homework" className="text-sm text-muted-foreground hover:underline self-start">
+      <div className="flex items-center justify-between gap-2">
+        <Link href="/homework" className="text-sm text-muted-foreground hover:underline">
           ← 宿題一覧に戻る
         </Link>
         {isTeacher && (
-          <div className="flex gap-2 self-end">
+          <div className="flex gap-2 shrink-0">
             {["assigned", "rejected"].includes(homework.status) && (
               <Link
                 href={`/homework/${id}/edit`}
-                className={buttonVariants({ variant: "outline", size: "sm" })}
+                className={buttonVariants({ variant: "outline", size: "xs" })}
               >
                 編集
               </Link>

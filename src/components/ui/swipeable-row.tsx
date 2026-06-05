@@ -1,6 +1,7 @@
 "use client"
 
 import { useRef, useState } from "react"
+import { GripVertical } from "lucide-react"
 import { haptic } from "@/lib/haptic"
 
 type Props = {
@@ -78,6 +79,7 @@ export function SwipeableRow({
   }
 
   const isAnimating = showHint && !hintDone
+  const closed = offset === 0 && !isOpen
   const cardStyle = isAnimating
     ? { touchAction: "pan-y" as const, willChange: "transform" }
     : {
@@ -93,7 +95,7 @@ export function SwipeableRow({
         {actions}
       </div>
       <div
-        className={`rounded-lg border bg-card p-4 select-none ${className ?? ""} ${isAnimating ? "animate-swipe-hint" : ""}`}
+        className={`relative rounded-lg border bg-card p-4 select-none ${className ?? ""} ${isAnimating ? "animate-swipe-hint" : ""}`}
         style={cardStyle}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
@@ -102,6 +104,11 @@ export function SwipeableRow({
         onClickCapture={handleClickCapture}
         onAnimationEnd={() => setHintDone(true)}
       >
+        {/* スワイプ可能を示す控えめなグリップ（md以上では非表示） */}
+        <GripVertical
+          aria-hidden
+          className={`md:hidden pointer-events-none absolute right-1 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/25 transition-opacity duration-200 ${closed ? "opacity-100" : "opacity-0"}`}
+        />
         {children}
       </div>
     </div>

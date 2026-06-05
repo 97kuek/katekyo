@@ -10,7 +10,7 @@ export function DeleteHomeworkButton({ homeworkId }: { homeworkId: string }) {
   return (
     <Button
       variant="outline"
-      size="sm"
+      size="xs"
       disabled={isPending}
       onClick={() => startTransition(async () => {
         const fd = new FormData()

@@ -18,12 +18,12 @@ export function GradeTypeFilter() {
     router.push(`/grades?${params.toString()}`)
   }
 
-  const base = "px-2.5 py-1.5 rounded text-xs font-medium transition-colors"
+  const base = "px-2 py-1 rounded-md text-xs font-medium transition-colors whitespace-nowrap"
   const active = "bg-primary text-primary-foreground"
   const inactive = "text-muted-foreground hover:text-foreground"
 
   return (
-    <div className="flex items-center gap-0.5 rounded-md border border-input bg-background p-0.5">
+    <div className="flex items-center gap-0.5 rounded-lg border border-input bg-background p-0.5 overflow-x-auto">
       <button
         type="button"
         onClick={() => setType("")}
