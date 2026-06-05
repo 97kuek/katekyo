@@ -5,6 +5,7 @@ import { getStudentByUserId } from "@/lib/queries"
 import Link from "next/link"
 import { buttonVariants } from "@/components/ui/button"
 import GradeChart from "./grade-chart"
+import GradeRadar from "./grade-radar"
 import { GradeActionsCell } from "./grade-actions-cell"
 import { GradeSwipeActions } from "./grade-swipe-actions"
 import { SwipeableRow } from "@/components/ui/swipeable-row"
@@ -153,7 +154,10 @@ async function TeacherGradesPage({
       </div>
 
       {studentIdFilter && chartGrades.length > 0 && (
-        <GradeChart grades={chartGrades} subjects={subjects} typeFilter={typeFilter} />
+        <>
+          <GradeChart grades={chartGrades} subjects={subjects} typeFilter={typeFilter} />
+          <GradeRadar grades={chartGrades} subjects={subjects} />
+        </>
       )}
 
       {grades.length === 0 ? (
@@ -300,6 +304,7 @@ async function StudentGradesPage({ userId }: { userId: string }) {
       ) : (
         <>
           <GradeChart grades={chartGrades} subjects={subjects} />
+          <GradeRadar grades={chartGrades} subjects={subjects} />
 
           {/* モバイル: カード表示 */}
           <div className="md:hidden space-y-2">
@@ -474,6 +479,7 @@ async function ParentGradesPage({
       ) : (
         <>
           <GradeChart grades={chartGrades} subjects={subjects} />
+          <GradeRadar grades={chartGrades} subjects={subjects} />
           <div className="md:hidden space-y-2">
             {grades.map((g, i) => (
               <div key={g.id} className="rounded-lg border bg-card p-4 space-y-2">

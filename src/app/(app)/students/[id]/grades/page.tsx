@@ -4,6 +4,7 @@ import { db } from "@/lib/db"
 import Link from "next/link"
 import { buttonVariants } from "@/components/ui/button"
 import GradeChart from "@/app/(app)/grades/grade-chart"
+import GradeRadar from "@/app/(app)/grades/grade-radar"
 
 function SubjectTags({ ids, map }: { ids: string[]; map: Map<string, string> }) {
   const names = ids.map((id) => map.get(id)).filter(Boolean) as string[]
@@ -113,6 +114,7 @@ export default async function StudentGradesPage({ params }: { params: Promise<{ 
       ) : (
         <>
           <GradeChart grades={chartGrades} subjects={subjects} />
+          <GradeRadar grades={chartGrades} subjects={subjects} />
 
           {/* モバイル: カード表示 */}
           <div className="md:hidden space-y-2">
