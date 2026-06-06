@@ -1,20 +1,28 @@
 "use client"
 
-import { Eye } from "lucide-react"
+import { useTransition } from "react"
+import { Eye, Loader2 } from "lucide-react"
 import { startViewingAs } from "@/app/(app)/view-as-actions"
-import { buttonVariants } from "@/components/ui/button"
+import { Button } from "@/components/ui/button"
 
 export function ViewAsButton({ studentId }: { studentId: string }) {
+  const [isPending, startTransition] = useTransition()
+
   return (
-    <form action={startViewingAs.bind(null, studentId)}>
-      <button
-        type="submit"
-        className={buttonVariants({ variant: "ghost", size: "xs" })}
-        title="生徒として表示"
-      >
+    <Button
+      type="button"
+      variant="ghost"
+      size="xs"
+      disabled={isPending}
+      title="生徒として表示"
+      onClick={() => startTransition(async () => { await startViewingAs(studentId) })}
+    >
+      {isPending ? (
+        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+      ) : (
         <Eye className="h-3 w-3 mr-1" />
-        生徒画面
-      </button>
-    </form>
+      )}
+      {isPending ? "切替中..." : "生徒画面"}
+    </Button>
   )
 }

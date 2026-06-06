@@ -80,7 +80,7 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
             {["assigned", "rejected"].includes(homework.status) && (
               <Link
                 href={`/homework/${id}/edit`}
-                className={buttonVariants({ variant: "outline", size: "xs" })}
+                className={buttonVariants({ variant: "ghost", size: "xs" })}
               >
                 編集
               </Link>

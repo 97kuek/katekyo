@@ -39,9 +39,14 @@ function DeleteLessonButton({ lessonId }: { lessonId: string }) {
   }
 
   return (
-    <button onClick={() => setConfirming(true)} className="text-xs text-muted-foreground hover:text-foreground shrink-0">
+    <Button
+      variant="ghost"
+      size="xs"
+      onClick={() => setConfirming(true)}
+      className="text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0"
+    >
       削除
-    </button>
+    </Button>
   )
 }
 
@@ -134,12 +139,9 @@ function UncompleteLessonButton({ lessonId }: { lessonId: string }) {
   }
 
   return (
-    <button
-      onClick={() => setConfirming(true)}
-      className="text-xs text-muted-foreground hover:text-foreground"
-    >
+    <Button variant="ghost" size="xs" onClick={() => setConfirming(true)}>
       取り消し
-    </button>
+    </Button>
   )
 }
 
@@ -435,12 +437,13 @@ function DayDetail({
                         )
                       )}
                       {l.completedAt && <UncompleteLessonButton lessonId={l.id} />}
-                      <button
+                      <Button
+                        variant="ghost"
+                        size="xs"
                         onClick={() => { setEditingLessonId(editingLessonId === l.id ? null : l.id); setCompletingLessonId(null) }}
-                        className="text-xs text-muted-foreground hover:text-foreground"
                       >
                         {editingLessonId === l.id ? "閉じる" : "編集"}
-                      </button>
+                      </Button>
                       <DeleteLessonButton lessonId={l.id} />
                     </div>
                   )}

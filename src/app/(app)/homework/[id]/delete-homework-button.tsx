@@ -9,7 +9,7 @@ export function DeleteHomeworkButton({ homeworkId }: { homeworkId: string }) {
 
   return (
     <Button
-      variant="outline"
+      variant="ghost"
       size="xs"
       disabled={isPending}
       onClick={() => startTransition(async () => {
@@ -17,7 +17,7 @@ export function DeleteHomeworkButton({ homeworkId }: { homeworkId: string }) {
         fd.append("homeworkId", homeworkId)
         await deleteHomework(fd)
       })}
-      className="text-destructive border-input hover:bg-destructive/10 hover:text-destructive hover:border-destructive/50"
+      className="text-destructive hover:bg-destructive/10 hover:text-destructive"
     >
       {isPending ? "削除中..." : "削除"}
     </Button>

@@ -194,18 +194,19 @@ export default async function BillingPage({
                   </div>
                   {/* 2行目: 期限設定 / 入金確認 */}
                   <div className="flex items-center gap-2">
-                    <form action={setPaymentDueDate} className="flex items-center gap-1">
+                    <form action={setPaymentDueDate} className="flex items-center gap-1.5">
                       <input type="hidden" name="studentId" value={sid} />
                       <input type="hidden" name="year" value={year} />
                       <input type="hidden" name="month" value={month + 1} />
+                      <span className="text-xs text-muted-foreground shrink-0">期限</span>
                       <input
                         type="date"
                         name="dueDate"
                         defaultValue={currentDueDateValue}
                         className="text-xs border border-input rounded-lg px-2 bg-background text-foreground h-7 w-32"
                       />
-                      <button type="submit" className={buttonVariants({ variant: "ghost", size: "xs" })}>
-                        期限設定
+                      <button type="submit" className={buttonVariants({ variant: "outline", size: "xs" })}>
+                        設定
                       </button>
                     </form>
                     <form action={isPaid ? markAsUnpaid : markAsPaid} className="ml-auto shrink-0">

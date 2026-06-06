@@ -89,10 +89,8 @@ export default async function StudentsPage({
     : students
 
   return (
-    <div className="space-y-4">
-      <p className="text-sm text-muted-foreground">{students.length}名の生徒が登録されています</p>
-
-      <div className="flex items-center justify-between gap-3 flex-wrap">
+    <div className="space-y-3">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
         <StudentSort />
         <div className="flex items-center gap-2">
           <Link href="/students/invites" className={buttonVariants({ variant: "outline", size: "sm" })}>
@@ -103,6 +101,7 @@ export default async function StudentsPage({
           </Link>
         </div>
       </div>
+      <p className="text-xs text-muted-foreground">{students.length}名の生徒</p>
 
       {students.length === 0 ? (
         <div className="rounded-lg border bg-card p-12 text-center">
@@ -123,12 +122,11 @@ export default async function StudentsPage({
               const isFull = gardenCount >= 64
               const isWithered = problemCount > 0 && gardenCount > 0
               return (
-                <div key={s.id} className="rounded-lg border bg-card p-4 space-y-3">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="font-medium">{s.user.name}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">{s.grade}</p>
-                      <p className="text-xs text-muted-foreground">{s.user.email}</p>
+                <div key={s.id} className="rounded-lg border bg-card p-3 space-y-2.5">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0 flex items-baseline gap-2">
+                      <p className="font-medium truncate">{s.user.name}</p>
+                      <p className="text-xs text-muted-foreground shrink-0">{s.grade}</p>
                     </div>
                     <UpdateGradeForm studentId={s.id} currentGrade={s.grade} />
                   </div>
