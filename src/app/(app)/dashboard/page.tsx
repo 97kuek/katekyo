@@ -6,7 +6,7 @@ import Link from "next/link"
 import { Suspense } from "react"
 import { buttonVariants } from "@/components/ui/button"
 import { TEST_TYPE_LABELS } from "@/lib/test-types"
-import { TreePine, Trophy } from "lucide-react"
+import { TreePine, Trophy, Video, MapPin } from "lucide-react"
 
 function Sk({ className }: { className?: string }) {
   return <div className={`animate-pulse rounded bg-muted ${className ?? ""}`} />
@@ -178,8 +178,8 @@ async function TeacherUpcomingSection({ teacherId }: { teacherId: string }) {
           <div className="space-y-2">
             {upcomingLessons.map((l) => (
               <div key={l.id} className="rounded-lg border bg-card p-3 flex items-center gap-3">
-                <div className="h-8 w-8 rounded-full flex items-center justify-center shrink-0 text-xs font-bold bg-muted text-muted-foreground">
-                  {l.type === "online" ? "ON" : "OF"}
+                <div className="h-8 w-8 rounded-full flex items-center justify-center shrink-0 bg-muted text-muted-foreground">
+                  {l.type === "online" ? <Video className="h-4 w-4" /> : <MapPin className="h-4 w-4" />}
                 </div>
                 <div>
                   <p className="text-sm font-medium">{l.student.user.name}</p>
@@ -480,8 +480,8 @@ async function StudentUpcomingSection({ userId }: { userId: string }) {
           <div className="space-y-2">
             {upcomingLessons.map((l) => (
               <div key={l.id} className="rounded-lg border bg-card p-3 flex items-center gap-3">
-                <div className="h-8 w-8 rounded-full flex items-center justify-center shrink-0 text-xs font-bold bg-muted text-muted-foreground">
-                  {l.type === "online" ? "ON" : "OF"}
+                <div className="h-8 w-8 rounded-full flex items-center justify-center shrink-0 bg-muted text-muted-foreground">
+                  {l.type === "online" ? <Video className="h-4 w-4" /> : <MapPin className="h-4 w-4" />}
                 </div>
                 <div>
                   <p className="text-sm font-medium">{l.type === "online" ? "オンライン授業" : "対面授業"}</p>

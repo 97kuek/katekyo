@@ -48,7 +48,7 @@ export default async function StudentParentsPage({ params }: { params: Promise<{
         </div>
 
         {parentLinks.length === 0 ? (
-          <div className="rounded-lg border bg-card p-8 text-center text-sm text-muted-foreground">
+          <div className="rounded-lg border bg-card p-12 text-center text-sm text-muted-foreground">
             まだ保護者が登録されていません
           </div>
         ) : (
