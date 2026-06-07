@@ -2,12 +2,10 @@ import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { db } from "@/lib/db"
 import Link from "next/link"
+import { ChevronRight } from "lucide-react"
 import { buttonVariants } from "@/components/ui/button"
-import { UpdateGradeForm } from "./update-grade-form"
-import { UpdateStudentRatesForm } from "./update-student-rates-form"
 import { StudentSort } from "./student-sort"
-import { ViewAsButton } from "./view-as-button"
-import { StudentActionsMenu } from "./student-actions-menu"
+import { StudentRow } from "./student-row"
 
 export default async function StudentsPage({
   searchParams,
@@ -18,14 +16,13 @@ export default async function StudentsPage({
   if (!session || session.user.role !== "teacher") redirect("/dashboard")
 
   const { sort } = await searchParams
-  const now = new Date()
 
   const orderBy =
     sort === "name" ? { user: { name: "asc" as const } } :
     sort === "grade" ? { grade: "asc" as const } :
     { createdAt: "desc" as const }
 
-  const [students, homeworkStats, subjects] = await Promise.all([
+  const [students, homeworkStats] = await Promise.all([
     db.student.findMany({
       where: { teacherId: session.user.id },
       include: { user: { select: { name: true, email: true } } },
@@ -36,31 +33,6 @@ export default async function StudentsPage({
       where: { teacherId: session.user.id },
       _count: { status: true },
     }),
-    db.subject.findMany({
-      where: { teacherId: session.user.id },
-      orderBy: { name: "asc" },
-    }),
-  ])
-
-  const studentIds = students.map(s => s.id)
-
-  const [gardenStats, problemStats] = studentIds.length === 0 ? [[], []] : await Promise.all([
-    db.gardenItem.groupBy({
-      by: ["studentId"],
-      where: { studentId: { in: studentIds } },
-      _count: { _all: true },
-    }),
-    db.homework.groupBy({
-      by: ["studentId"],
-      where: {
-        teacherId: session.user.id,
-        OR: [
-          { status: "assigned", dueDate: { lt: now } },
-          { status: "rejected" },
-        ],
-      },
-      _count: { _all: true },
-    }),
   ])
 
   const progressMap = new Map<string, { total: number; approved: number }>()
@@ -70,13 +42,6 @@ export default async function StudentsPage({
     if (row.status === "approved") entry.approved += row._count.status
     progressMap.set(row.studentId, entry)
   }
-
-  const gardenMap = new Map<string, number>(
-    (gardenStats as { studentId: string; _count: { _all: number } }[]).map(g => [g.studentId, g._count._all])
-  )
-  const problemMap = new Map<string, number>(
-    (problemStats as { studentId: string; _count: { _all: number } }[]).map(p => [p.studentId, p._count._all])
-  )
 
   const sortedStudents = sort === "progress"
     ? [...students].sort((a, b) => {
@@ -117,27 +82,19 @@ export default async function StudentsPage({
             {sortedStudents.map((s) => {
               const prog = progressMap.get(s.id)
               const pct = prog && prog.total > 0 ? Math.round((prog.approved / prog.total) * 100) : null
-              const gardenCount = gardenMap.get(s.id) ?? 0
-              const problemCount = problemMap.get(s.id) ?? 0
-              const isFull = gardenCount >= 64
-              const isWithered = problemCount > 0 && gardenCount > 0
               return (
-                <div key={s.id} className="rounded-lg border bg-card p-3 space-y-2.5">
-                  <div className="flex items-center justify-between gap-3">
+                <Link
+                  key={s.id}
+                  href={`/students/${s.id}`}
+                  className="block rounded-lg border bg-card p-3 space-y-2 hover:bg-muted transition-colors"
+                >
+                  <div className="flex items-center justify-between gap-2">
                     <div className="min-w-0 flex items-baseline gap-2">
                       <p className="font-medium truncate">{s.user.name}</p>
                       <p className="text-xs text-muted-foreground shrink-0">{s.grade}</p>
                     </div>
-                    <UpdateGradeForm studentId={s.id} currentGrade={s.grade} />
+                    <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
                   </div>
-                  <UpdateStudentRatesForm
-                    studentId={s.id}
-                    defaultHourlyRate={s.defaultHourlyRate}
-                    defaultTravelExpense={s.defaultTravelExpense}
-                    defaultDurationMin={s.defaultDurationMin}
-                    defaultSubjectIds={s.defaultSubjectIds}
-                    subjects={subjects.map((sub) => ({ id: sub.id, name: sub.name }))}
-                  />
                   {pct != null && (
                     <div className="space-y-1">
                       <div className="flex items-center justify-between text-xs text-muted-foreground">
@@ -149,22 +106,11 @@ export default async function StudentsPage({
                       </div>
                     </div>
                   )}
-                  <div className="flex items-center gap-2 pt-1 border-t flex-wrap">
-                    <ViewAsButton studentId={s.id} />
-                    <Link href={`/students/${s.id}/grades`} className={buttonVariants({ variant: "ghost", size: "xs" })}>
-                      成績を見る
-                    </Link>
-                    <StudentActionsMenu
-                      studentId={s.id}
-                      studentName={s.user.name ?? ""}
-                      gardenBadge={isFull ? "full" : isWithered ? "withered" : gardenCount > 0 ? "growing" : null}
-                    />
-                  </div>
-                </div>
+                </Link>
               )
             })}
           </div>
-          {/* デスクトップ: テーブル表示 */}
+          {/* デスクトップ: テーブル表示（行クリックで詳細へ） */}
           <div className="hidden md:block rounded-lg border bg-card overflow-hidden overflow-x-auto">
             <table className="w-full text-sm min-w-[480px]">
               <thead className="border-b bg-muted">
@@ -174,35 +120,18 @@ export default async function StudentsPage({
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">学年</th>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">宿題進捗</th>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">登録日</th>
-                  <th className="px-4 py-3"></th>
+                  <th className="px-4 py-3 w-10"></th>
                 </tr>
               </thead>
               <tbody className="divide-y">
                 {sortedStudents.map((s) => {
                   const prog = progressMap.get(s.id)
                   const pct = prog && prog.total > 0 ? Math.round((prog.approved / prog.total) * 100) : null
-                  const gardenCount = gardenMap.get(s.id) ?? 0
-                  const problemCount = problemMap.get(s.id) ?? 0
-                  const isFull = gardenCount >= 64
-                  const isWithered = problemCount > 0 && gardenCount > 0
                   return (
-                    <tr key={s.id} className="hover:bg-muted">
+                    <StudentRow key={s.id} href={`/students/${s.id}`}>
                       <td className="px-4 py-3 font-medium">{s.user.name}</td>
                       <td className="hidden lg:table-cell px-4 py-3 text-muted-foreground">{s.user.email}</td>
-                      <td className="px-4 py-3">
-                        <div className="space-y-1">
-                          <span className="text-sm">{s.grade}</span>
-                          <UpdateGradeForm studentId={s.id} currentGrade={s.grade} />
-                          <UpdateStudentRatesForm
-                            studentId={s.id}
-                            defaultHourlyRate={s.defaultHourlyRate}
-                            defaultTravelExpense={s.defaultTravelExpense}
-                            defaultDurationMin={s.defaultDurationMin}
-                            defaultSubjectIds={s.defaultSubjectIds}
-                            subjects={subjects.map((sub) => ({ id: sub.id, name: sub.name }))}
-                          />
-                        </div>
-                      </td>
+                      <td className="px-4 py-3">{s.grade}</td>
                       <td className="px-4 py-3">
                         {pct != null ? (
                           <div className="space-y-1 min-w-[80px]">
@@ -219,20 +148,10 @@ export default async function StudentsPage({
                         )}
                       </td>
                       <td className="px-4 py-3 text-muted-foreground">{s.createdAt.toLocaleDateString("ja-JP")}</td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <ViewAsButton studentId={s.id} />
-                          <Link href={`/students/${s.id}/grades`} className={buttonVariants({ variant: "ghost", size: "xs" })}>
-                            成績を見る
-                          </Link>
-                          <StudentActionsMenu
-                            studentId={s.id}
-                            studentName={s.user.name ?? ""}
-                            gardenBadge={isFull ? "full" : isWithered ? "withered" : gardenCount > 0 ? "growing" : null}
-                          />
-                        </div>
+                      <td className="px-4 py-3 text-muted-foreground">
+                        <ChevronRight className="h-4 w-4" />
                       </td>
-                    </tr>
+                    </StudentRow>
                   )
                 })}
               </tbody>

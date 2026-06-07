@@ -12,7 +12,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
       {/* ブランドパネル */}
-      <div className="bg-primary text-primary-foreground flex flex-col justify-center px-8 pt-6 pb-3 md:w-1/2 md:min-h-screen md:py-10">
+      <div className="bg-primary text-primary-foreground flex flex-col justify-center px-8 pt-6 pb-3 md:w-2/5 lg:w-1/3 md:min-h-screen md:py-10">
         <div className="max-w-sm mx-auto w-full space-y-3 md:space-y-6">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-primary-foreground rounded-xl flex items-center justify-center shrink-0">
@@ -33,7 +33,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
                 <Icon className="h-4 w-4 mt-0.5 shrink-0" />
                 <div className="flex gap-2 min-w-0">
                   <span className="font-medium shrink-0">{label}</span>
-                  <span className="text-primary-foreground/75">{text}</span>
+                  <span className="hidden lg:inline text-primary-foreground/75">{text}</span>
                 </div>
               </li>
             ))}
@@ -42,7 +42,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       </div>
 
       {/* フォームパネル */}
-      <div className="flex-1 flex flex-col items-center justify-center px-4 pt-3 pb-6 bg-muted md:w-1/2 md:min-h-screen md:py-10">
+      <div className="flex-1 flex flex-col items-center justify-center px-4 pt-3 pb-6 bg-muted md:min-h-screen md:py-10">
         <div className="w-full max-w-md space-y-6">
           {children}
           <footer className="flex justify-center gap-4 text-xs text-muted-foreground">
