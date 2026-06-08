@@ -17,7 +17,6 @@ export function StudentSort() {
     { value: "date", label: "登録日順" },
     { value: "name", label: "名前順" },
     { value: "grade", label: "学年順" },
-    { value: "progress", label: "進捗順" },
   ]
 
   return (

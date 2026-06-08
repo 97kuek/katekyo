@@ -30,12 +30,7 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
 
   if (!student) notFound()
 
-  const [homeworkStats, gardenCount, problemCount] = await Promise.all([
-    db.homework.groupBy({
-      by: ["status"],
-      where: { teacherId: session.user.id, studentId: student.id },
-      _count: { status: true },
-    }),
+  const [gardenCount, problemCount] = await Promise.all([
     db.gardenItem.count({ where: { studentId: student.id } }),
     db.homework.count({
       where: {
@@ -48,14 +43,6 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
       },
     }),
   ])
-
-  let total = 0
-  let approved = 0
-  for (const row of homeworkStats) {
-    total += row._count.status
-    if (row.status === "approved") approved += row._count.status
-  }
-  const pct = total > 0 ? Math.round((approved / total) * 100) : null
 
   const isFull = gardenCount >= 64
   const isWithered = problemCount > 0 && gardenCount > 0
@@ -114,28 +101,6 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
               subjects={subjects.map((sub) => ({ id: sub.id, name: sub.name }))}
             />
           </div>
-        </CardContent>
-      </Card>
-
-      {/* 宿題進捗 */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">宿題進捗</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {pct != null ? (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-sm text-muted-foreground">
-                <span>承認済み {approved} / {total} 件</span>
-                <span className="font-medium text-foreground">{pct}%</span>
-              </div>
-              <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
-                <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${pct}%` }} />
-              </div>
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">まだ宿題がありません</p>
-          )}
         </CardContent>
       </Card>
 
