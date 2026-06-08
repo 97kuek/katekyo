@@ -170,7 +170,6 @@ export default function SubmitForm({ id, rejectedFeedback, requiresPhoto = false
                 type="file"
                 name="photo"
                 accept="image/*"
-                capture="environment"
                 className="hidden"
                 onChange={handleFileChange}
               />
