@@ -30,7 +30,7 @@ export default function InvitePage() {
   }
 
   return (
-    <div className="max-w-lg">
+    <div className="max-w-2xl mx-auto">
       <div className="mb-6">
         <Link href="/students" className="text-sm text-muted-foreground hover:underline">
           ← 生徒一覧に戻る

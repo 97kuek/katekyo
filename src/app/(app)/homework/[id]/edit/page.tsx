@@ -22,7 +22,7 @@ export default async function EditHomeworkPage({ params }: { params: Promise<{ i
   if (!["assigned", "rejected"].includes(homework.status)) redirect(`/homework/${id}`)
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="max-w-2xl mx-auto space-y-6">
       <Link href={`/homework/${id}`} className="text-sm text-muted-foreground hover:underline">
         ← 宿題詳細に戻る
       </Link>

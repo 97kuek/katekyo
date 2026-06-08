@@ -31,7 +31,7 @@ export default async function NewGradePage() {
 
   if (students.length === 0) {
     return (
-      <div className="max-w-2xl space-y-6">
+      <div className="max-w-2xl mx-auto space-y-6">
         <Link href="/grades" className="text-sm text-muted-foreground hover:underline">
           ← 成績一覧に戻る
         </Link>
@@ -48,7 +48,7 @@ export default async function NewGradePage() {
   }
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="max-w-2xl mx-auto space-y-6">
       <Link href="/grades" className="text-sm text-muted-foreground hover:underline">
         ← 成績一覧に戻る
       </Link>

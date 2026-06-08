@@ -21,7 +21,7 @@ export default async function SubmitHomeworkPage({ params }: { params: Promise<{
   if (!["assigned", "rejected"].includes(homework.status)) redirect("/homework")
 
   return (
-    <div className="max-w-lg space-y-6">
+    <div className="max-w-2xl mx-auto space-y-6">
       <Link href="/homework" className="text-sm text-muted-foreground hover:underline">
         ← 宿題一覧に戻る
       </Link>

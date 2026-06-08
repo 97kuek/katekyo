@@ -32,7 +32,7 @@ export default async function StudentMaterialsPage({ params }: { params: Promise
   const subjectMap = new Map(subjects.map((s) => [s.id, s.name]))
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="max-w-2xl mx-auto space-y-6">
       <div>
         <Link href="/students" className="text-sm text-muted-foreground hover:underline">
           ← 生徒一覧に戻る

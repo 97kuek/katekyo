@@ -30,7 +30,7 @@ export default async function NewHomeworkPage() {
 
   if (students.length === 0) {
     return (
-      <div className="max-w-lg space-y-6">
+      <div className="max-w-2xl mx-auto space-y-6">
         <div>
           <Link href="/homework" className="text-sm text-muted-foreground hover:underline">
             ← 宿題一覧に戻る
@@ -49,7 +49,7 @@ export default async function NewHomeworkPage() {
   }
 
   return (
-    <div className="max-w-lg space-y-6">
+    <div className="max-w-2xl mx-auto space-y-6">
       <div>
         <Link href="/homework" className="text-sm text-muted-foreground hover:underline">
           ← 宿題一覧に戻る

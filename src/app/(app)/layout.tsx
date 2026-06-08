@@ -48,11 +48,13 @@ export default async function AppLayout({ children }: { children: React.ReactNod
               <Suspense>
                 <SearchParamsToast />
               </Suspense>
-              <PullToRefresh>
-                <PageContent>
-                  {children}
-                </PageContent>
-              </PullToRefresh>
+              <div className="mx-auto w-full max-w-6xl">
+                <PullToRefresh>
+                  <PageContent>
+                    {children}
+                  </PageContent>
+                </PullToRefresh>
+              </div>
             </main>
           </div>
         </div>

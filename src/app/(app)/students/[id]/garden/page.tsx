@@ -53,7 +53,7 @@ export default async function StudentGardenPage({
   const generation = student.gardenGeneration
 
   return (
-    <div className="space-y-5 max-w-2xl">
+    <div className="space-y-5 max-w-2xl mx-auto">
       <Link href="/students" className="text-sm text-muted-foreground hover:underline">
         ← 生徒一覧に戻る
       </Link>

@@ -57,7 +57,7 @@ export default async function GardenPage({
   const generation = student.gardenGeneration
 
   return (
-    <div className="space-y-5 max-w-2xl">
+    <div className="space-y-5 max-w-2xl mx-auto">
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-2">
           {generation > 1 && (
@@ -229,7 +229,7 @@ async function ParentGardenPage({
   const generation = student.gardenGeneration
 
   return (
-    <div className="space-y-5 max-w-2xl">
+    <div className="space-y-5 max-w-2xl mx-auto">
       {links.length > 1 && (
         <div className="flex items-center gap-2 flex-wrap">
           {links.map(({ student: s }) => (

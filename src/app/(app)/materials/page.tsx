@@ -24,7 +24,7 @@ export default async function StudentMaterialsPage() {
   const subjectMap = new Map(subjects.map((s) => [s.id, s.name]))
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="max-w-2xl mx-auto space-y-6">
       <p className="text-sm text-muted-foreground">先生に登録してもらった教材の一覧です</p>
 
       {materials.length === 0 ? (
