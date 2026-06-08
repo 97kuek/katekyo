@@ -3,6 +3,7 @@ import { redirect, notFound } from "next/navigation"
 import { db } from "@/lib/db"
 import Link from "next/link"
 import ReviewForm from "./review-form"
+import { DifficultyBars } from "@/components/homework/difficulty-bars"
 
 export default async function ReviewHomeworkPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -55,7 +56,8 @@ export default async function ReviewHomeworkPage({ params }: { params: Promise<{
             homework.difficultyRating === 2 ? "text-warning bg-warning/10" :
             "text-destructive bg-destructive/10"
           }`}>
-            {homework.difficultyRating === 1 ? "😊 かんたん" : homework.difficultyRating === 2 ? "😐 ふつう" : "😰 むずかしい"}
+            <DifficultyBars level={homework.difficultyRating} className="w-4 h-2.5" />
+            {homework.difficultyRating === 1 ? "かんたん" : homework.difficultyRating === 2 ? "ふつう" : "むずかしい"}
           </p>
         )}
         {homework.studentNote && (

@@ -6,11 +6,12 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { DifficultyBars } from "@/components/homework/difficulty-bars"
 
 const DIFFICULTIES = [
-  { value: 1, label: "かんたん",   emoji: "😊", active: "bg-foreground border-foreground text-background", inactive: "border-input text-muted-foreground hover:bg-muted" },
-  { value: 2, label: "ふつう",     emoji: "😐", active: "bg-foreground border-foreground text-background", inactive: "border-input text-muted-foreground hover:bg-muted" },
-  { value: 3, label: "むずかしい", emoji: "😰", active: "bg-foreground border-foreground text-background", inactive: "border-input text-muted-foreground hover:bg-muted" },
+  { value: 1, label: "かんたん" },
+  { value: 2, label: "ふつう" },
+  { value: 3, label: "むずかしい" },
 ] as const
 
 const MAX_DIMENSION = 1200
@@ -110,10 +111,12 @@ export default function SubmitForm({ id, rejectedFeedback, requiresPhoto = false
                   key={d.value}
                   type="button"
                   onClick={() => setDifficulty(difficulty === d.value ? null : d.value)}
-                  className={`flex-1 py-2.5 rounded-md text-sm border-2 font-medium transition-colors flex flex-col items-center gap-0.5
-                    ${difficulty === d.value ? d.active : d.inactive}`}
+                  className={`flex-1 py-2.5 rounded-md text-sm border-2 font-medium transition-colors flex flex-col items-center gap-1.5
+                    ${difficulty === d.value
+                      ? "bg-primary border-primary text-primary-foreground"
+                      : "border-input text-muted-foreground hover:bg-muted"}`}
                 >
-                  <span className="text-lg leading-none">{d.emoji}</span>
+                  <DifficultyBars level={d.value} className="w-5 h-3" />
                   <span className="text-xs">{d.label}</span>
                 </button>
               ))}

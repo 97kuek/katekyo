@@ -9,11 +9,12 @@ import { CancelSubmissionButton } from "@/app/(app)/homework/cancel-button"
 import { relativeDeadline, deadlineColorClass } from "@/lib/date-utils"
 import { ExtendDeadlineButton } from "./extend-deadline"
 import { AlertCircle } from "lucide-react"
+import { DifficultyBars } from "@/components/homework/difficulty-bars"
 
-const DIFFICULTY_LABELS: Record<number, { label: string; emoji: string; color: string }> = {
-  1: { label: "かんたん",    emoji: "😊", color: "text-foreground bg-muted" },
-  2: { label: "ふつう",      emoji: "😐", color: "text-foreground bg-muted" },
-  3: { label: "むずかしい",  emoji: "😰", color: "text-foreground bg-muted" },
+const DIFFICULTY_LABELS: Record<number, { label: string; color: string }> = {
+  1: { label: "かんたん",    color: "text-primary bg-primary/10" },
+  2: { label: "ふつう",      color: "text-warning bg-warning/10" },
+  3: { label: "むずかしい",  color: "text-destructive bg-destructive/10" },
 }
 
 export default async function HomeworkDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -161,7 +162,8 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
             const d = DIFFICULTY_LABELS[homework.difficultyRating]
             return d ? (
               <p className={`inline-flex items-center gap-1.5 text-xs font-medium rounded-full px-2.5 py-1 ${d.color}`}>
-                {d.emoji} 難易度: {d.label}
+                <DifficultyBars level={homework.difficultyRating} className="w-4 h-2.5" />
+                難易度: {d.label}
               </p>
             ) : null
           })()}
