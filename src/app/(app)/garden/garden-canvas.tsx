@@ -15,78 +15,89 @@ function iso(col: number, row: number) {
   }
 }
 
-// ---- Gradients & shared defs ----------------------------------------------
-// 立体感は SVG グラデーションで表現。接地影はぼかしフィルタの代わりに
-// 放射グラデーション（中心濃→外側透明）で軽量に柔らかく見せる。
+// ---- Palette ---------------------------------------------------------------
+// フラットシェーディング（セルシェード）。グラデーションは使わず、
+// ベース／陰／ハイライトの段階的なベタ塗りで自然な立体感を出す。
 
-function GardenDefs() {
+// アプリのブランドカラー（primary = oklch(0.50 0.115 147) の渋い緑）に合わせ、
+// hue 147 を基調にしたトーン・オン・トーンで統一。彩度・影を抑えてモダンに。
+const SHADOW = "rgba(0,0,0,0.07)"
+
+const LEAF = "oklch(0.64 0.145 147)"
+const LEAF_HI = "oklch(0.74 0.15 147)"
+const LEAF_SH = "oklch(0.53 0.12 147)"
+const TRUNK = "oklch(0.58 0.062 70)"
+const TRUNK_SH = "oklch(0.47 0.056 68)"
+const BLOSSOM = "oklch(0.83 0.075 350)"
+const BLOSSOM_HI = "oklch(0.89 0.055 350)"
+const BLOSSOM_SH = "oklch(0.75 0.085 350)"
+const PETAL = "oklch(0.83 0.075 350)"
+const PETAL_SH = "oklch(0.75 0.085 350)"
+const CENTER = "oklch(0.84 0.135 85)"
+const CENTER_SH = "oklch(0.76 0.13 82)"
+const STEM = "oklch(0.57 0.125 147)"
+const BAMBOO = "oklch(0.71 0.145 140)"
+const BAMBOO_SH = "oklch(0.59 0.12 140)"
+const BAMBOO_NODE = "oklch(0.49 0.10 140)"
+const SASA = "oklch(0.68 0.135 143)"
+const SASA_SH = "oklch(0.58 0.115 143)"
+const CAP = "oklch(0.65 0.16 22)"
+const CAP_FRONT = "oklch(0.57 0.15 22)"
+const MSTEM = "oklch(0.96 0.012 90)"
+const MSTEM_SH = "oklch(0.89 0.014 90)"
+
+const TILE_TOP = "oklch(0.75 0.12 147)"
+const TILE_DARK = "oklch(0.71 0.12 147)"
+const SOIL_R = "oklch(0.61 0.062 68)"
+const SOIL_L = "oklch(0.52 0.058 66)"
+const SOIL_EDGE = "oklch(0.45 0.05 66)"
+
+// 枯れ色（くすんだ黄土系・hue 95 で緑と区別）
+const W_LEAF = "oklch(0.74 0.09 95)"
+const W_LEAF_HI = "oklch(0.82 0.085 95)"
+const W_LEAF_SH = "oklch(0.64 0.08 92)"
+const W_TRUNK = "oklch(0.53 0.05 70)"
+const W_TRUNK_SH = "oklch(0.43 0.045 68)"
+const W_BLOSSOM = "oklch(0.79 0.045 75)"
+const W_BLOSSOM_SH = "oklch(0.70 0.045 72)"
+const W_BAMBOO = "oklch(0.70 0.075 110)"
+const W_BAMBOO_SH = "oklch(0.59 0.065 108)"
+const W_CAP = "oklch(0.64 0.06 25)"
+const W_MSTEM = "oklch(0.88 0.02 88)"
+
+// ---- Shared helpers --------------------------------------------------------
+
+// 接地影（やわらかいベタ楕円）
+function GroundShadow({ cx, cy, rx, ry }: { cx: number; cy: number; rx: number; ry: number }) {
+  return <ellipse cx={cx} cy={cy} rx={rx} ry={ry} fill={SHADOW} />
+}
+
+type Blob = [x: number, y: number, rx: number, ry: number]
+
+// 重なる葉の塊をセルシェードで描く。
+// 先に陰色を少し下にずらして敷き、上にベース色を重ねると、
+// 下側に陰がはみ出て自然な立体感が出る（輪郭線・グラデは使わない）。
+function ShadedBlobs({ blobs, base, shade }: { blobs: Blob[]; base: string; shade: string }) {
   return (
-    <defs>
-      {/* 接地影（やわらかい） */}
-      <radialGradient id="gShadow" cx="50%" cy="50%" r="50%">
-        <stop offset="0%" stopColor="rgba(0,0,0,0.30)" />
-        <stop offset="65%" stopColor="rgba(0,0,0,0.16)" />
-        <stop offset="100%" stopColor="rgba(0,0,0,0)" />
-      </radialGradient>
-      {/* 葉（光源は左上） */}
-      <radialGradient id="gLeafA" cx="36%" cy="28%" r="80%">
-        <stop offset="0%" stopColor="#74d182" />
-        <stop offset="50%" stopColor="#43a052" />
-        <stop offset="100%" stopColor="#236430" />
-      </radialGradient>
-      <radialGradient id="gLeafB" cx="36%" cy="26%" r="82%">
-        <stop offset="0%" stopColor="#5fc06f" />
-        <stop offset="50%" stopColor="#318240" />
-        <stop offset="100%" stopColor="#184f1f" />
-      </radialGradient>
-      <radialGradient id="gBush" cx="36%" cy="30%" r="80%">
-        <stop offset="0%" stopColor="#5fce72" />
-        <stop offset="55%" stopColor="#37a44e" />
-        <stop offset="100%" stopColor="#1f7233" />
-      </radialGradient>
-      {/* 幹（円柱風: 端が暗く中央が明るい） */}
-      <linearGradient id="gTrunk" x1="0" y1="0" x2="1" y2="0">
-        <stop offset="0%" stopColor="#583512" />
-        <stop offset="38%" stopColor="#a0682e" />
-        <stop offset="64%" stopColor="#7c4a1e" />
-        <stop offset="100%" stopColor="#4c2c10" />
-      </linearGradient>
-      {/* 桜・花の花びら */}
-      <radialGradient id="gBlossom" cx="38%" cy="30%" r="78%">
-        <stop offset="0%" stopColor="#ffe1ee" />
-        <stop offset="55%" stopColor="#f9a8c9" />
-        <stop offset="100%" stopColor="#e87bab" />
-      </radialGradient>
-      <radialGradient id="gPetal" cx="40%" cy="32%" r="75%">
-        <stop offset="0%" stopColor="#fde3ec" />
-        <stop offset="60%" stopColor="#fbb6ce" />
-        <stop offset="100%" stopColor="#f386af" />
-      </radialGradient>
-      {/* 竹（円柱風） */}
-      <linearGradient id="gBamboo" x1="0" y1="0" x2="1" y2="0">
-        <stop offset="0%" stopColor="#3f7016" />
-        <stop offset="40%" stopColor="#79bd3a" />
-        <stop offset="70%" stopColor="#5a9a2a" />
-        <stop offset="100%" stopColor="#3a6014" />
-      </linearGradient>
-      {/* きのこの傘 */}
-      <radialGradient id="gCap" cx="38%" cy="26%" r="80%">
-        <stop offset="0%" stopColor="#ff8585" />
-        <stop offset="55%" stopColor="#e53e3e" />
-        <stop offset="100%" stopColor="#a82828" />
-      </radialGradient>
-      {/* タイル（上方向に明るい芝） */}
-      <linearGradient id="gTile" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stopColor="#84db72" />
-        <stop offset="100%" stopColor="#5fb653" />
-      </linearGradient>
-    </defs>
+    <>
+      {blobs.map(([x, y, rx, ry], i) => (
+        <ellipse key={`s${i}`} cx={x} cy={y + 3} rx={rx} ry={ry} fill={shade} />
+      ))}
+      {blobs.map(([x, y, rx, ry], i) => (
+        <ellipse key={`b${i}`} cx={x} cy={y - 1} rx={rx} ry={ry} fill={base} />
+      ))}
+    </>
   )
 }
 
-// 共通の接地影
-function GroundShadow({ cx, cy, rx, ry }: { cx: number; cy: number; rx: number; ry: number }) {
-  return <ellipse cx={cx} cy={cy} rx={rx} ry={ry} fill="url(#gShadow)" />
+// 円柱風の幹（左がベース・右が陰の2トーン）
+function Trunk({ x, y, w, h, base, shade }: { x: number; y: number; w: number; h: number; base: string; shade: string }) {
+  return (
+    <g>
+      <rect x={x} y={y} width={w} height={h} rx={w / 2.5} fill={base} />
+      <rect x={x + w * 0.55} y={y} width={w * 0.45} height={h} rx={w / 3} fill={shade} />
+    </g>
+  )
 }
 
 // ---- Platform --------------------------------------------------------------
@@ -97,16 +108,10 @@ function Platform() {
   const lx = -256, ly = 128
   return (
     <g>
-      <polygon
-        points={`${rx},${ry} ${bx},${by} ${bx},${by + DEPTH} ${rx},${ry + DEPTH}`}
-        fill="#9c7040"
-      />
-      <polygon
-        points={`${lx},${ly} ${bx},${by} ${bx},${by + DEPTH} ${lx},${ly + DEPTH}`}
-        fill="#7a5028"
-      />
-      <line x1={lx} y1={ly + DEPTH} x2={bx} y2={by + DEPTH} stroke="#5e3c18" strokeWidth={1.5} />
-      <line x1={rx} y1={ry + DEPTH} x2={bx} y2={by + DEPTH} stroke="#5e3c18" strokeWidth={1.5} />
+      <polygon points={`${rx},${ry} ${bx},${by} ${bx},${by + DEPTH} ${rx},${ry + DEPTH}`} fill={SOIL_R} />
+      <polygon points={`${lx},${ly} ${bx},${by} ${bx},${by + DEPTH} ${lx},${ly + DEPTH}`} fill={SOIL_L} />
+      <line x1={lx} y1={ly + DEPTH} x2={bx} y2={by + DEPTH} stroke={SOIL_EDGE} strokeWidth={1.5} />
+      <line x1={rx} y1={ry + DEPTH} x2={bx} y2={by + DEPTH} stroke={SOIL_EDGE} strokeWidth={1.5} />
     </g>
   )
 }
@@ -116,25 +121,22 @@ function Platform() {
 function Tile({ col, row }: { col: number; row: number }) {
   const { cx, cy } = iso(col, row)
   const seed = col * 7 + row * 13
-  // 市松状に明暗を付けて立体感（色は gTile グラデーションをベースにわずかに変化）
-  const tint = (col + row) % 2 === 0 ? 0.06 : 0
   const top    = `${cx},${cy}`
   const right  = `${cx + TILE_W / 2},${cy + TILE_H / 2}`
   const bottom = `${cx},${cy + TILE_H}`
   const left   = `${cx - TILE_W / 2},${cy + TILE_H / 2}`
-  // 芝の小さな束（一部のタイルのみ・軽量）
+  // 市松状にわずかな明暗を付けて芝のムラを表現
+  const dark = (col + row) % 2 === 0
+  // 芝の小さな束（一部のタイルのみ）
   const tuft = seed % 3 === 0
   const tx = cx + ((seed % 5) - 2) * 6
   const ty = cy + TILE_H / 2 + ((seed % 3) - 1) * 3
   return (
     <g>
-      <polygon points={`${top} ${right} ${bottom} ${left}`} fill="url(#gTile)" />
-      {tint > 0 && <polygon points={`${top} ${right} ${bottom} ${left}`} fill="rgba(20,80,30,0.07)" />}
-      {/* 左上辺のハイライトで稜線を強調 */}
-      <line x1={cx} y1={cy} x2={cx - TILE_W / 2} y2={cy + TILE_H / 2} stroke="rgba(255,255,255,0.20)" strokeWidth={1} />
-      <line x1={cx} y1={cy} x2={cx + TILE_W / 2} y2={cy + TILE_H / 2} stroke="rgba(255,255,255,0.10)" strokeWidth={1} />
+      <polygon points={`${top} ${right} ${bottom} ${left}`} fill={TILE_TOP} />
+      {dark && <polygon points={`${top} ${right} ${bottom} ${left}`} fill={TILE_DARK} />}
       {tuft && (
-        <g stroke="#3f9a4c" strokeWidth={1.1} strokeLinecap="round" opacity={0.55}>
+        <g stroke={LEAF_SH} strokeWidth={1.3} strokeLinecap="round" opacity={0.55}>
           <line x1={tx} y1={ty} x2={tx - 2} y2={ty - 4} />
           <line x1={tx} y1={ty} x2={tx} y2={ty - 5} />
           <line x1={tx} y1={ty} x2={tx + 2} y2={ty - 4} />
@@ -150,16 +152,18 @@ function Tree({ cx, cy, delay = "0s" }: { cx: number; cy: number; delay?: string
   const ax = cx, ay = cy + TILE_H / 2
   return (
     <g style={{ animation: `treeSway 4s ease-in-out ${delay} infinite`, transformOrigin: `${ax}px ${ay}px` }}>
-      <GroundShadow cx={ax + 4} cy={ay} rx={18} ry={6} />
-      <rect x={ax - 3} y={ay - 22} width={6} height={23} rx={3} fill="url(#gTrunk)" />
-      {/* 丸みのある葉の塊（重ねて立体的に） */}
-      <ellipse cx={ax - 10} cy={ay - 32} rx={13} ry={12} fill="url(#gLeafA)" />
-      <ellipse cx={ax + 10} cy={ay - 32} rx={13} ry={12} fill="url(#gLeafA)" />
-      <ellipse cx={ax}      cy={ay - 30} rx={15} ry={13} fill="url(#gLeafA)" />
-      <ellipse cx={ax}      cy={ay - 46} rx={14} ry={13} fill="url(#gLeafA)" />
-      {/* ハイライト（左上） */}
-      <ellipse cx={ax - 6}  cy={ay - 47} rx={6}   ry={5}   fill="rgba(255,255,255,0.26)" />
-      <ellipse cx={ax - 12} cy={ay - 34} rx={4}   ry={3.5} fill="rgba(255,255,255,0.16)" />
+      <GroundShadow cx={ax + 4} cy={ay} rx={17} ry={5} />
+      <Trunk x={ax - 3.5} y={ay - 22} w={7} h={24} base={TRUNK} shade={TRUNK_SH} />
+      <ShadedBlobs
+        blobs={[
+          [ax,      ay - 36, 17, 15],
+          [ax - 11, ay - 31, 11, 10],
+          [ax + 11, ay - 31, 11, 10],
+          [ax - 1,  ay - 50, 12, 11],
+        ]}
+        base={LEAF} shade={LEAF_SH}
+      />
+      <ellipse cx={ax - 4} cy={ay - 46} rx={9} ry={7.5} fill={LEAF_HI} opacity={0.7} />
     </g>
   )
 }
@@ -168,31 +172,35 @@ function Bush({ cx, cy, delay = "0s" }: { cx: number; cy: number; delay?: string
   const ax = cx, ay = cy + TILE_H / 2
   return (
     <g style={{ animation: `bushSway 5s ease-in-out ${delay} infinite`, transformOrigin: `${ax}px ${ay}px` }}>
-      <GroundShadow cx={ax + 4} cy={ay} rx={18} ry={5.5} />
-      <ellipse cx={ax - 9} cy={ay - 10} rx={12} ry={10} fill="url(#gBush)" />
-      <ellipse cx={ax + 9} cy={ay - 10} rx={12} ry={10} fill="url(#gBush)" />
-      <ellipse cx={ax}     cy={ay - 16} rx={14} ry={12} fill="url(#gBush)" />
-      <ellipse cx={ax - 3} cy={ay - 19} rx={5}  ry={4}  fill="rgba(255,255,255,0.24)" />
-      <ellipse cx={ax - 10} cy={ay - 12} rx={3.5} ry={3} fill="rgba(255,255,255,0.15)" />
+      <GroundShadow cx={ax + 4} cy={ay} rx={17} ry={5} />
+      <ShadedBlobs
+        blobs={[
+          [ax,      ay - 14, 16, 13],
+          [ax - 10, ay - 9,  11, 9],
+          [ax + 10, ay - 9,  11, 9],
+        ]}
+        base={LEAF} shade={LEAF_SH}
+      />
+      <ellipse cx={ax - 4} cy={ay - 17} rx={7} ry={5.5} fill={LEAF_HI} opacity={0.65} />
     </g>
   )
 }
 
 function Flower({ cx, cy, delay = "0s" }: { cx: number; cy: number; delay?: string }) {
   const ax = cx, ay = cy + TILE_H / 2
-  const petals = [0, 60, 120, 180, 240, 300].map(deg => {
+  const positions = [0, 60, 120, 180, 240, 300].map(deg => {
     const rad = (deg * Math.PI) / 180
-    return <ellipse key={deg} cx={ax + Math.cos(rad) * 7} cy={ay - 24 + Math.sin(rad) * 7} rx={5} ry={5} fill="url(#gPetal)" />
+    return { px: ax + Math.cos(rad) * 7, py: ay - 24 + Math.sin(rad) * 7 }
   })
   return (
     <g style={{ animation: `flowerSway 3s ease-in-out ${delay} infinite`, transformOrigin: `${ax}px ${ay}px` }}>
       <GroundShadow cx={ax + 2} cy={ay} rx={9} ry={3} />
-      <path d={`M ${ax} ${ay} Q ${ax - 3} ${ay - 12} ${ax} ${ay - 18}`} stroke="#3f9a4c" strokeWidth={2.5} fill="none" strokeLinecap="round" />
-      <ellipse cx={ax - 6} cy={ay - 13} rx={6} ry={2.5} fill="#2e8b46" transform={`rotate(-35 ${ax - 6} ${ay - 13})`} />
-      {petals}
-      <circle cx={ax} cy={ay - 24} r={5}   fill="#fde047" />
-      <circle cx={ax - 1.5} cy={ay - 25.5} r={2} fill="#fff3b0" />
-      <circle cx={ax} cy={ay - 24} r={2.4} fill="#f59e0b" />
+      <path d={`M ${ax} ${ay} Q ${ax - 3} ${ay - 12} ${ax} ${ay - 18}`} stroke={STEM} strokeWidth={2.5} fill="none" strokeLinecap="round" />
+      <ellipse cx={ax - 6} cy={ay - 13} rx={6} ry={2.6} fill={STEM} transform={`rotate(-35 ${ax - 6} ${ay - 13})`} />
+      {positions.map(({ px, py }, i) => <circle key={`s${i}`} cx={px} cy={py + 1.5} r={5} fill={PETAL_SH} />)}
+      {positions.map(({ px, py }, i) => <circle key={`p${i}`} cx={px} cy={py} r={5} fill={PETAL} />)}
+      <circle cx={ax} cy={ay - 23.5} r={4.5} fill={CENTER} />
+      <path d={`M ${ax - 4.5} ${ay - 22} A 4.5 4.5 0 0 0 ${ax + 4.5} ${ay - 22} Z`} fill={CENTER_SH} />
     </g>
   )
 }
@@ -203,20 +211,18 @@ function Cherry({ cx, cy, delay = "0s" }: { cx: number; cy: number; delay?: stri
   const ax = cx, ay = cy + TILE_H / 2
   return (
     <g style={{ animation: `treeSway 4.5s ease-in-out ${delay} infinite`, transformOrigin: `${ax}px ${ay}px` }}>
-      <GroundShadow cx={ax + 5} cy={ay} rx={20} ry={6.5} />
-      <rect x={ax - 3} y={ay - 22} width={6} height={23} rx={3} fill="url(#gTrunk)" />
-      {/* 丸い花房（グラデーションで立体的に） */}
-      <ellipse cx={ax - 13} cy={ay - 30} rx={13} ry={11} fill="url(#gBlossom)" />
-      <ellipse cx={ax + 13} cy={ay - 30} rx={13} ry={11} fill="url(#gBlossom)" />
-      <ellipse cx={ax}      cy={ay - 32} rx={16} ry={13} fill="url(#gBlossom)" />
-      <ellipse cx={ax - 8}  cy={ay - 46} rx={11} ry={9}  fill="url(#gBlossom)" />
-      <ellipse cx={ax + 8}  cy={ay - 46} rx={11} ry={9}  fill="url(#gBlossom)" />
-      <ellipse cx={ax}      cy={ay - 54} rx={12} ry={10} fill="url(#gBlossom)" />
-      {/* ハイライト・花弁の点 */}
-      <circle cx={ax - 9} cy={ay - 48} r={2.6} fill="rgba(255,255,255,0.7)" />
-      <circle cx={ax + 8} cy={ay - 30} r={2.2} fill="rgba(255,255,255,0.6)" />
-      <circle cx={ax - 2} cy={ay - 56} r={2}   fill="rgba(255,255,255,0.6)" />
-      <circle cx={ax - 13} cy={ay - 26} r={2}  fill="rgba(255,255,255,0.45)" />
+      <GroundShadow cx={ax + 5} cy={ay} rx={19} ry={6} />
+      <Trunk x={ax - 3.5} y={ay - 22} w={7} h={24} base={TRUNK} shade={TRUNK_SH} />
+      <ShadedBlobs
+        blobs={[
+          [ax,      ay - 34, 18, 14],
+          [ax - 13, ay - 29, 12, 10],
+          [ax + 13, ay - 29, 12, 10],
+          [ax - 1,  ay - 50, 13, 11],
+        ]}
+        base={BLOSSOM} shade={BLOSSOM_SH}
+      />
+      <ellipse cx={ax - 5} cy={ay - 46} rx={8} ry={6.5} fill={BLOSSOM_HI} opacity={0.8} />
     </g>
   )
 }
@@ -225,19 +231,18 @@ function BigTree({ cx, cy, delay = "0s" }: { cx: number; cy: number; delay?: str
   const ax = cx, ay = cy + TILE_H / 2
   return (
     <g style={{ animation: `bigTreeSway 6s ease-in-out ${delay} infinite`, transformOrigin: `${ax}px ${ay}px` }}>
-      <GroundShadow cx={ax + 7} cy={ay} rx={25} ry={8} />
-      {/* 太い幹 */}
-      <rect x={ax - 5} y={ay - 30} width={10} height={31} rx={3.5} fill="url(#gTrunk)" />
-      {/* 丸い葉の塊を積み上げた大きな樹冠 */}
-      <ellipse cx={ax - 14} cy={ay - 40} rx={16} ry={14} fill="url(#gLeafB)" />
-      <ellipse cx={ax + 14} cy={ay - 40} rx={16} ry={14} fill="url(#gLeafB)" />
-      <ellipse cx={ax}      cy={ay - 44} rx={19} ry={16} fill="url(#gLeafB)" />
-      <ellipse cx={ax - 8}  cy={ay - 60} rx={13} ry={12} fill="url(#gLeafB)" />
-      <ellipse cx={ax + 8}  cy={ay - 60} rx={13} ry={12} fill="url(#gLeafB)" />
-      <ellipse cx={ax}      cy={ay - 70} rx={13} ry={12} fill="url(#gLeafB)" />
-      {/* ハイライト */}
-      <ellipse cx={ax - 8}  cy={ay - 66} rx={6} ry={5} fill="rgba(255,255,255,0.22)" />
-      <ellipse cx={ax - 15} cy={ay - 44} rx={5} ry={4} fill="rgba(255,255,255,0.14)" />
+      <GroundShadow cx={ax + 7} cy={ay} rx={24} ry={7} />
+      <Trunk x={ax - 5} y={ay - 30} w={10} h={32} base={TRUNK} shade={TRUNK_SH} />
+      <ShadedBlobs
+        blobs={[
+          [ax,      ay - 46, 21, 18],
+          [ax - 15, ay - 40, 14, 13],
+          [ax + 15, ay - 40, 14, 13],
+          [ax - 1,  ay - 66, 15, 14],
+        ]}
+        base={LEAF} shade={LEAF_SH}
+      />
+      <ellipse cx={ax - 6} cy={ay - 62} rx={10} ry={8.5} fill={LEAF_HI} opacity={0.7} />
     </g>
   )
 }
@@ -249,20 +254,17 @@ function Bamboo({ cx, cy, delay = "0s" }: { cx: number; cy: number; delay?: stri
   return (
     <g style={{ animation: `treeSway 5s ease-in-out ${delay} infinite`, transformOrigin: `${ax}px ${ay}px` }}>
       <GroundShadow cx={ax + 3} cy={ay} rx={9} ry={3} />
-      {/* 円柱状の節（グラデーション） */}
-      <rect x={ax - 3} y={ay - 20} width={6} height={20} rx={2} fill="url(#gBamboo)" />
-      <rect x={ax - 3} y={ay - 40} width={6} height={20} rx={2} fill="url(#gBamboo)" />
-      <rect x={ax - 3} y={ay - 60} width={6} height={20} rx={2} fill="url(#gBamboo)" />
-      <rect x={ax - 4} y={ay - 22} width={8} height={3} rx={1} fill="#356e16" />
-      <rect x={ax - 4} y={ay - 42} width={8} height={3} rx={1} fill="#356e16" />
-      <rect x={ax - 4} y={ay - 62} width={8} height={3} rx={1} fill="#356e16" />
-      {/* 縦ハイライト */}
-      <rect x={ax - 1.5} y={ay - 60} width={1.6} height={59} rx={1} fill="rgba(255,255,255,0.28)" />
-      {/* 笹の葉 */}
-      <ellipse cx={ax - 14} cy={ay - 52} rx={13} ry={4} fill="#56b84e" transform={`rotate(-30 ${ax - 14} ${ay - 52})`} />
-      <ellipse cx={ax + 14} cy={ay - 48} rx={13} ry={4} fill="#56b84e" transform={`rotate(30 ${ax + 14} ${ay - 48})`} />
-      <ellipse cx={ax - 10} cy={ay - 64} rx={11} ry={3.5} fill="#6cca60" transform={`rotate(-20 ${ax - 10} ${ay - 64})`} />
-      <ellipse cx={ax + 10} cy={ay - 61} rx={11} ry={3.5} fill="#6cca60" transform={`rotate(20 ${ax + 10} ${ay - 61})`} />
+      {/* 笹の葉（後ろ） */}
+      <ellipse cx={ax - 14} cy={ay - 52} rx={13} ry={4} fill={SASA} transform={`rotate(-30 ${ax - 14} ${ay - 52})`} />
+      <ellipse cx={ax + 14} cy={ay - 48} rx={13} ry={4} fill={SASA_SH} transform={`rotate(30 ${ax + 14} ${ay - 48})`} />
+      <ellipse cx={ax - 10} cy={ay - 64} rx={11} ry={3.5} fill={SASA} transform={`rotate(-20 ${ax - 10} ${ay - 64})`} />
+      <ellipse cx={ax + 10} cy={ay - 61} rx={11} ry={3.5} fill={SASA_SH} transform={`rotate(20 ${ax + 10} ${ay - 61})`} />
+      {/* 稈（左ベース・右陰） */}
+      <rect x={ax - 3.5} y={ay - 60} width={7} height={60} rx={3} fill={BAMBOO} />
+      <rect x={ax + 0.5} y={ay - 60} width={3} height={60} rx={1.5} fill={BAMBOO_SH} />
+      {/* 節 */}
+      <line x1={ax - 4} y1={ay - 22} x2={ax + 4} y2={ay - 22} stroke={BAMBOO_NODE} strokeWidth={3} strokeLinecap="round" />
+      <line x1={ax - 4} y1={ay - 42} x2={ax + 4} y2={ay - 42} stroke={BAMBOO_NODE} strokeWidth={3} strokeLinecap="round" />
     </g>
   )
 }
@@ -272,40 +274,41 @@ function Mushroom({ cx, cy, delay = "0s" }: { cx: number; cy: number; delay?: st
   return (
     <g style={{ animation: `flowerSway 4s ease-in-out ${delay} infinite`, transformOrigin: `${ax}px ${ay}px` }}>
       <GroundShadow cx={ax + 2} cy={ay} rx={12} ry={3.5} />
-      {/* 柄（中央が明るい円柱） */}
-      <rect x={ax - 6} y={ay - 17} width={12} height={11} rx={4} fill="#efe7d6" />
-      <rect x={ax - 6} y={ay - 17} width={4.5} height={11} rx={2} fill="#fbf6ec" />
-      {/* 傘（ドーム + 前面の縁） */}
-      <ellipse cx={ax} cy={ay - 23} rx={18} ry={12} fill="url(#gCap)" />
-      <ellipse cx={ax} cy={ay - 16} rx={18} ry={4.5} fill="#a82828" />
+      {/* 柄（左ベース・右陰） */}
+      <rect x={ax - 6} y={ay - 17} width={12} height={12} rx={5} fill={MSTEM} />
+      <rect x={ax + 1} y={ay - 17} width={5} height={12} rx={2.5} fill={MSTEM_SH} />
+      {/* 傘（上面ベース＋前面の陰） */}
+      <ellipse cx={ax} cy={ay - 23} rx={18} ry={12} fill={CAP} />
+      <path d={`M ${ax - 18} ${ay - 22} A 18 12 0 0 0 ${ax + 18} ${ay - 22} Z`} fill={CAP_FRONT} />
       {/* 斑点・ハイライト */}
-      <ellipse cx={ax - 7} cy={ay - 28} rx={5} ry={3.5} fill="rgba(255,255,255,0.55)" />
-      <circle cx={ax - 5} cy={ay - 27} r={3} fill="rgba(255,255,255,0.9)" />
-      <circle cx={ax + 7} cy={ay - 27} r={2.6} fill="rgba(255,255,255,0.85)" />
-      <circle cx={ax + 1} cy={ay - 21} r={2.1} fill="rgba(255,255,255,0.78)" />
-      <circle cx={ax - 12} cy={ay - 21} r={1.8} fill="rgba(255,255,255,0.7)" />
-      <circle cx={ax + 12} cy={ay - 22} r={1.8} fill="rgba(255,255,255,0.7)" />
+      <ellipse cx={ax - 6} cy={ay - 28} rx={4.5} ry={3} fill="rgba(255,255,255,0.3)" />
+      <circle cx={ax - 6} cy={ay - 27} r={3} fill="#fff" />
+      <circle cx={ax + 7} cy={ay - 25} r={2.4} fill="#fff" />
+      <circle cx={ax + 1} cy={ay - 20} r={2} fill="#fff" />
+      <circle cx={ax - 11} cy={ay - 21} r={1.8} fill="#fff" />
     </g>
   )
 }
 
 // ---- Wilted items ----------------------------------------------------------
-// 枯れ色: 乾いた茶褐色・黄褐色を使用し、通常の緑と明確に区別できるようにする
+// 枯れ色: 乾いた黄茶色で通常の緑と明確に区別する
 
 function WiltedTree({ cx, cy }: { cx: number; cy: number }) {
   const ax = cx, ay = cy + TILE_H / 2
   return (
-    <g opacity={0.58}>
-      <ellipse cx={ax + 5} cy={ay - 1} rx={11} ry={3.5} fill="rgba(0,0,0,0.06)" />
-      <rect x={ax - 3.5} y={ay - 18} width={7} height={18} rx={2} fill="#5c3a18" />
-      <rect x={ax - 3.5} y={ay - 18} width={2.5} height={18} rx={1.5} fill="#7a4e24" />
-      {/* 乾燥した黄茶色の枯れ葉 */}
-      <polygon points={`${ax},${ay - 40} ${ax - 17},${ay - 22} ${ax + 17},${ay - 22}`} fill="#a07e28" />
-      <polygon points={`${ax},${ay - 40} ${ax - 17},${ay - 22} ${ax},${ay - 22}`}       fill="#b48e30" />
-      <polygon points={`${ax},${ay - 52} ${ax - 11},${ay - 38} ${ax + 11},${ay - 38}`} fill="#a87e20" />
-      <polygon points={`${ax},${ay - 52} ${ax - 11},${ay - 38} ${ax},${ay - 38}`}       fill="#ba9028" />
-      <polygon points={`${ax},${ay - 60} ${ax - 6},${ay - 50} ${ax + 6},${ay - 50}`}   fill="#a07c20" />
-      <circle cx={ax} cy={ay - 61} r={2} fill="#b08828" />
+    <g opacity={0.62}>
+      <GroundShadow cx={ax + 4} cy={ay} rx={14} ry={4} />
+      <Trunk x={ax - 3.5} y={ay - 18} w={7} h={18} base={W_TRUNK} shade={W_TRUNK_SH} />
+      <ShadedBlobs
+        blobs={[
+          [ax - 9, ay - 30, 11, 9],
+          [ax + 9, ay - 30, 11, 9],
+          [ax,     ay - 34, 12, 10],
+          [ax,     ay - 46, 9,  8],
+        ]}
+        base={W_LEAF} shade={W_LEAF_SH}
+      />
+      <ellipse cx={ax - 5} cy={ay - 47} rx={4} ry={3} fill={W_LEAF_HI} opacity={0.7} />
     </g>
   )
 }
@@ -313,35 +316,34 @@ function WiltedTree({ cx, cy }: { cx: number; cy: number }) {
 function WiltedBush({ cx, cy }: { cx: number; cy: number }) {
   const ax = cx, ay = cy + TILE_H / 2
   return (
-    <g opacity={0.58}>
-      <ellipse cx={ax + 3} cy={ay - 1} rx={12} ry={3.5} fill="rgba(0,0,0,0.06)" />
-      {/* 潰れて黄茶色に枯れた茂み */}
-      <ellipse cx={ax - 7} cy={ay - 8}  rx={9}  ry={7}  fill="#8a7820" />
-      <ellipse cx={ax + 7} cy={ay - 8}  rx={9}  ry={7}  fill="#8a7820" />
-      <ellipse cx={ax}     cy={ay - 13} rx={11} ry={8}  fill="#a08c28" />
-      <ellipse cx={ax - 1} cy={ay - 15} rx={4}  ry={3}  fill="#b09a30" />
+    <g opacity={0.62}>
+      <GroundShadow cx={ax + 3} cy={ay} rx={13} ry={4} />
+      <ShadedBlobs
+        blobs={[
+          [ax - 7, ay - 8,  9,  7],
+          [ax + 7, ay - 8,  9,  7],
+          [ax,     ay - 13, 11, 8],
+        ]}
+        base={W_LEAF} shade={W_LEAF_SH}
+      />
     </g>
   )
 }
 
 function WiltedFlower({ cx, cy }: { cx: number; cy: number }) {
   const ax = cx, ay = cy + TILE_H / 2
-  // 茎がしなだれて頭が大きく傾いた枯れ花
+  // 茎がしなだれて頭が傾いた枯れ花
   const hx = ax + 9, hy = ay - 11
   const petals = [0, 60, 120, 180, 240, 300].map(deg => {
     const rad = (deg * Math.PI) / 180
-    return <ellipse key={deg} cx={hx + Math.cos(rad) * 5.5} cy={hy + Math.sin(rad) * 5.5} rx={3.5} ry={3.5} fill="#c4a840" />
+    return <circle key={deg} cx={hx + Math.cos(rad) * 5.5} cy={hy + Math.sin(rad) * 5.5} r={3.5} fill={W_LEAF} />
   })
   return (
-    <g opacity={0.58}>
-      <ellipse cx={ax + 5} cy={ay - 1} rx={7} ry={2.5} fill="rgba(0,0,0,0.05)" />
-      {/* しなだれた茎 */}
-      <path d={`M ${ax} ${ay} Q ${ax + 14} ${ay - 6} ${hx} ${hy}`} stroke="#7a8830" strokeWidth={2.5} fill="none" strokeLinecap="round" />
-      {/* 垂れ下がった葉 */}
-      <ellipse cx={ax + 7} cy={ay - 5} rx={5} ry={2} fill="#7a8830" transform={`rotate(35 ${ax + 7} ${ay - 5})`} />
+    <g opacity={0.62}>
+      <GroundShadow cx={ax + 5} cy={ay} rx={7} ry={2.5} />
+      <path d={`M ${ax} ${ay} Q ${ax + 14} ${ay - 6} ${hx} ${hy}`} stroke={W_LEAF_SH} strokeWidth={2.5} fill="none" strokeLinecap="round" />
       {petals}
-      <circle cx={hx} cy={hy} r={4.5} fill="#c4a840" />
-      <circle cx={hx} cy={hy} r={2.2} fill="#a88828" />
+      <circle cx={hx} cy={hy} r={4} fill={CENTER} opacity={0.85} />
     </g>
   )
 }
@@ -349,48 +351,20 @@ function WiltedFlower({ cx, cy }: { cx: number; cy: number }) {
 function WiltedCherry({ cx, cy }: { cx: number; cy: number }) {
   const ax = cx, ay = cy + TILE_H / 2
   return (
-    <g opacity={0.58}>
-      <ellipse cx={ax + 5} cy={ay - 1} rx={14} ry={4} fill="rgba(0,0,0,0.07)" />
-      <rect x={ax - 3} y={ay - 20} width={6} height={20} rx={2} fill="#6a4830" />
-      {/* 枯れた桜: ピンクから乾いた茶ピンクへ */}
-      <ellipse cx={ax - 11} cy={ay - 26} rx={11} ry={8}  fill="#b89070" />
-      <ellipse cx={ax + 11} cy={ay - 26} rx={11} ry={8}  fill="#b89070" />
-      <ellipse cx={ax}      cy={ay - 28} rx={12} ry={9}  fill="#c8a07e" />
-      <ellipse cx={ax - 6}  cy={ay - 41} rx={8}  ry={6}  fill="#b89070" />
-      <ellipse cx={ax + 6}  cy={ay - 41} rx={8}  ry={6}  fill="#b89070" />
-      <ellipse cx={ax}      cy={ay - 47} rx={7}  ry={5}  fill="#c8a07e" />
-    </g>
-  )
-}
-
-function WiltedBamboo({ cx, cy }: { cx: number; cy: number }) {
-  const ax = cx, ay = cy + TILE_H / 2
-  return (
-    <g opacity={0.58}>
-      <ellipse cx={ax + 3} cy={ay - 1} rx={6} ry={2} fill="rgba(0,0,0,0.05)" />
-      <rect x={ax - 3} y={ay - 20} width={6} height={20} rx={2} fill="#8a8a40" />
-      <rect x={ax - 3} y={ay - 40} width={6} height={20} rx={2} fill="#7a7a38" />
-      <rect x={ax - 3} y={ay - 60} width={6} height={20} rx={2} fill="#8a8a40" />
-      <rect x={ax - 4} y={ay - 22} width={8} height={3} rx={1} fill="#6a6a30" />
-      <rect x={ax - 4} y={ay - 42} width={8} height={3} rx={1} fill="#6a6a30" />
-      <ellipse cx={ax - 12} cy={ay - 51} rx={11} ry={3.5} fill="#9a9a48" transform={`rotate(-30 ${ax - 12} ${ay - 51})`} />
-      <ellipse cx={ax + 12} cy={ay - 48} rx={11} ry={3.5} fill="#9a9a48" transform={`rotate(30 ${ax + 12} ${ay - 48})`} />
-    </g>
-  )
-}
-
-function WiltedMushroom({ cx, cy }: { cx: number; cy: number }) {
-  const ax = cx, ay = cy + TILE_H / 2
-  return (
-    <g opacity={0.58}>
-      <ellipse cx={ax + 2} cy={ay - 1} rx={9} ry={3} fill="rgba(0,0,0,0.05)" />
-      <ellipse cx={ax} cy={ay - 10} rx={6} ry={4} fill="#d4c8b8" />
-      <rect x={ax - 5} y={ay - 17} width={10} height={9} rx={3} fill="#ccc0b0" />
-      <ellipse cx={ax} cy={ay - 24} rx={15} ry={9} fill="#b07070" />
-      <ellipse cx={ax} cy={ay - 22} rx={15} ry={10} fill="#a06060" />
-      <circle cx={ax - 5} cy={ay - 26} r={2.5} fill="rgba(220,200,190,0.7)" />
-      <circle cx={ax + 6} cy={ay - 25} r={2} fill="rgba(220,200,190,0.7)" />
-      <ellipse cx={ax} cy={ay - 16} rx={15} ry={3} fill="#906050" />
+    <g opacity={0.62}>
+      <GroundShadow cx={ax + 5} cy={ay} rx={15} ry={4.5} />
+      <Trunk x={ax - 3.5} y={ay - 20} w={7} h={20} base={W_TRUNK} shade={W_TRUNK_SH} />
+      <ShadedBlobs
+        blobs={[
+          [ax - 11, ay - 26, 11, 8],
+          [ax + 11, ay - 26, 11, 8],
+          [ax,      ay - 28, 12, 9],
+          [ax - 6,  ay - 41, 8,  6],
+          [ax + 6,  ay - 41, 8,  6],
+          [ax,      ay - 47, 7,  5],
+        ]}
+        base={W_BLOSSOM} shade={W_BLOSSOM_SH}
+      />
     </g>
   )
 }
@@ -398,19 +372,49 @@ function WiltedMushroom({ cx, cy }: { cx: number; cy: number }) {
 function WiltedBigTree({ cx, cy }: { cx: number; cy: number }) {
   const ax = cx, ay = cy + TILE_H / 2
   return (
-    <g opacity={0.58}>
-      <ellipse cx={ax + 6} cy={ay - 1} rx={15} ry={5} fill="rgba(0,0,0,0.08)" />
-      <rect x={ax - 5} y={ay - 26} width={10} height={26} rx={3} fill="#4a3010" />
-      <rect x={ax - 5} y={ay - 26} width={3.5} height={26} rx={2} fill="#6a4820" />
-      {/* 乾いた黄茶色の枯れ枝 */}
-      <polygon points={`${ax},${ay - 55} ${ax - 24},${ay - 26} ${ax + 24},${ay - 26}`} fill="#987020" />
-      <polygon points={`${ax},${ay - 55} ${ax - 24},${ay - 26} ${ax},${ay - 26}`}       fill="#a88028" />
-      <polygon points={`${ax},${ay - 70} ${ax - 17},${ay - 49} ${ax + 17},${ay - 49}`} fill="#a07820" />
-      <polygon points={`${ax},${ay - 70} ${ax - 17},${ay - 49} ${ax},${ay - 49}`}       fill="#b08830" />
-      <polygon points={`${ax},${ay - 81} ${ax - 12},${ay - 65} ${ax + 12},${ay - 65}`} fill="#a07820" />
-      <polygon points={`${ax},${ay - 81} ${ax - 12},${ay - 65} ${ax},${ay - 65}`}       fill="#b08828" />
-      <polygon points={`${ax},${ay - 89} ${ax - 7},${ay - 77} ${ax + 7},${ay - 77}`}   fill="#987020" />
-      <circle cx={ax} cy={ay - 90} r={3} fill="#a07820" />
+    <g opacity={0.62}>
+      <GroundShadow cx={ax + 6} cy={ay} rx={20} ry={6} />
+      <Trunk x={ax - 5} y={ay - 26} w={10} h={26} base={W_TRUNK} shade={W_TRUNK_SH} />
+      <ShadedBlobs
+        blobs={[
+          [ax - 13, ay - 36, 14, 12],
+          [ax + 13, ay - 36, 14, 12],
+          [ax,      ay - 40, 17, 14],
+          [ax - 7,  ay - 54, 11, 10],
+          [ax + 7,  ay - 54, 11, 10],
+          [ax,      ay - 63, 11, 10],
+        ]}
+        base={W_LEAF} shade={W_LEAF_SH}
+      />
+    </g>
+  )
+}
+
+function WiltedBamboo({ cx, cy }: { cx: number; cy: number }) {
+  const ax = cx, ay = cy + TILE_H / 2
+  return (
+    <g opacity={0.62}>
+      <GroundShadow cx={ax + 3} cy={ay} rx={6} ry={2} />
+      <ellipse cx={ax - 12} cy={ay - 51} rx={11} ry={3.5} fill={W_BAMBOO} transform={`rotate(-30 ${ax - 12} ${ay - 51})`} />
+      <ellipse cx={ax + 12} cy={ay - 48} rx={11} ry={3.5} fill={W_BAMBOO_SH} transform={`rotate(30 ${ax + 12} ${ay - 48})`} />
+      <rect x={ax - 3.5} y={ay - 60} width={7} height={60} rx={3} fill={W_BAMBOO} />
+      <rect x={ax + 0.5} y={ay - 60} width={3} height={60} rx={1.5} fill={W_BAMBOO_SH} />
+      <line x1={ax - 4} y1={ay - 22} x2={ax + 4} y2={ay - 22} stroke={W_BAMBOO_SH} strokeWidth={3} strokeLinecap="round" />
+      <line x1={ax - 4} y1={ay - 42} x2={ax + 4} y2={ay - 42} stroke={W_BAMBOO_SH} strokeWidth={3} strokeLinecap="round" />
+    </g>
+  )
+}
+
+function WiltedMushroom({ cx, cy }: { cx: number; cy: number }) {
+  const ax = cx, ay = cy + TILE_H / 2
+  return (
+    <g opacity={0.62}>
+      <GroundShadow cx={ax + 2} cy={ay} rx={9} ry={3} />
+      <rect x={ax - 5} y={ay - 16} width={10} height={11} rx={4.5} fill={W_MSTEM} />
+      <ellipse cx={ax} cy={ay - 23} rx={15} ry={10} fill={W_CAP} />
+      <path d={`M ${ax - 15} ${ay - 22} A 15 10 0 0 0 ${ax + 15} ${ay - 22} Z`} fill="#9c6060" />
+      <circle cx={ax - 5} cy={ay - 26} r={2.5} fill="#e8ddcd" />
+      <circle cx={ax + 6} cy={ay - 24} r={2} fill="#e8ddcd" />
     </g>
   )
 }
@@ -683,7 +687,6 @@ export default function GardenCanvas({ items, milestone }: { items: Item[]; mile
             100% { opacity: 0; transform: translateY(-20px); }
           }
         `}</style>
-        <GardenDefs />
         <Platform />
         {cells.map(({ col, row }) => (
           <Tile key={`t-${col}-${row}`} col={col} row={row} />
