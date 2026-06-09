@@ -3,7 +3,7 @@
 import { useTransition } from "react"
 import Link from "next/link"
 import { Pencil, Trash2 } from "lucide-react"
-import { deleteGradeRecord } from "./[id]/edit-actions"
+import { deleteGradeRecord } from "./[id]/actions"
 import { haptic } from "@/lib/haptic"
 import { SwipeableRow } from "@/components/ui/swipeable-row"
 

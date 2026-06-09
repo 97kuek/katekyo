@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { BookOpen, LogOut, HelpCircle, Settings } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import ChangelogBell from "@/components/changelog-bell"
+import ChangelogBell from "@/components/notifications/changelog-bell"
 import type { NotificationData } from "@/lib/changelog"
 
 const PAGE_TITLES: { pattern: (p: string) => boolean; label: string }[] = [

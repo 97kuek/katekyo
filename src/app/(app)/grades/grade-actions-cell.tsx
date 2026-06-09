@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { deleteGradeRecord } from "./[id]/edit-actions"
+import { deleteGradeRecord } from "./[id]/actions"
 
 export function GradeActionsCell({ gradeId }: { gradeId: string }) {
   return (

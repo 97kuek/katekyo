@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useActionState, useEffect } from "react"
-import { extendDueDate } from "./edit-actions"
+import { extendDueDate } from "./actions"
 import { Button } from "@/components/ui/button"
 
 export function ExtendDeadlineButton({ homeworkId, currentDueDate }: { homeworkId: string; currentDueDate: string }) {

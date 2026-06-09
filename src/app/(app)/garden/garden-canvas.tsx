@@ -1,6 +1,6 @@
 "use client"
 
-import type { GardenItemType } from "@/lib/garden-utils"
+import type { GardenItemType } from "@/lib/garden/utils"
 import { useState, useEffect } from "react"
 
 const TILE_W = 64

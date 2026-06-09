@@ -3,7 +3,7 @@
 import { useTransition } from "react"
 import { Loader2 } from "lucide-react"
 import { toast } from "sonner"
-import { cancelSubmission } from "./[id]/cancel-actions"
+import { cancelSubmission } from "./[id]/actions"
 import { haptic } from "@/lib/haptic"
 
 export function CancelSubmissionButton({ homeworkId }: { homeworkId: string }) {

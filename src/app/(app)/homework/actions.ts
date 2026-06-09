@@ -3,7 +3,7 @@
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { revalidatePath } from "next/cache"
-import { plantForHomeworkApproval } from "@/lib/garden"
+import { plantForHomeworkApproval } from "@/lib/garden/actions"
 import { sendLineMessage } from "@/lib/line"
 
 export async function bulkApproveHomework(ids: string[]): Promise<{ error: string; approved: number }> {

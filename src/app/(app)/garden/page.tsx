@@ -4,7 +4,7 @@ import { db } from "@/lib/db"
 import { getStudentByUserId } from "@/lib/queries"
 import GardenCanvas from "./garden-canvas"
 import { TreePine, Trophy, Star } from "lucide-react"
-import type { GardenItemType } from "@/lib/garden-utils"
+import type { GardenItemType } from "@/lib/garden/utils"
 
 export default async function GardenPage({
   searchParams,

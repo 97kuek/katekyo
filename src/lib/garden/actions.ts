@@ -1,7 +1,7 @@
 "use server"
 
-import { db } from "./db"
-import type { GardenItemType } from "./garden-utils"
+import { db } from "@/lib/db"
+import type { GardenItemType } from "./utils"
 
 export async function plantForHomeworkApproval(
   homework: { id: string; studentId: string; dueDate: Date; submittedAt: Date | null },

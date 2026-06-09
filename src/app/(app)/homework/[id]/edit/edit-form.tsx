@@ -1,7 +1,7 @@
 "use client"
 
 import { useActionState } from "react"
-import { updateHomework } from "../edit-actions"
+import { updateHomework } from "../actions"
 import { Button } from "@/components/ui/button"
 import { StickyFormActions } from "@/components/ui/sticky-form-actions"
 import { Input } from "@/components/ui/input"

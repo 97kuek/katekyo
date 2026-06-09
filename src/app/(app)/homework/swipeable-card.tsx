@@ -3,7 +3,7 @@
 import { useTransition } from "react"
 import Link from "next/link"
 import { Pencil, Trash2 } from "lucide-react"
-import { deleteHomework } from "@/app/(app)/homework/[id]/edit-actions"
+import { deleteHomework } from "@/app/(app)/homework/[id]/actions"
 import { StatusBadge } from "@/components/homework/status-badge"
 import { deadlineColorClass, relativeDeadline } from "@/lib/date-utils"
 import { haptic } from "@/lib/haptic"

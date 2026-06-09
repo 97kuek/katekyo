@@ -1,7 +1,7 @@
 "use client"
 
 import { useActionState } from "react"
-import { updateGradeRecord } from "../edit-actions"
+import { updateGradeRecord } from "../actions"
 import { Button } from "@/components/ui/button"
 import { StickyFormActions } from "@/components/ui/sticky-form-actions"
 import { Input } from "@/components/ui/input"

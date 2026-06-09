@@ -6,7 +6,7 @@ import { Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { SubjectTagsList } from "./subject-tags"
-import { bulkApproveHomework } from "./bulk-actions"
+import { bulkApproveHomework } from "./actions"
 import { haptic } from "@/lib/haptic"
 
 type Homework = {
