@@ -49,15 +49,15 @@ enum HomeworkEventType {
 }
 
 model User {
-  id         String   @id @default(uuid())
-  email      String   @unique
-  name       String
-  role       Role
-  password   String
+  id              String    @id @default(uuid())
+  email           String    @unique
+  name            String
+  role            Role
+  password        String
   lineUserId      String?   @unique
   meetLink        String?
-  agreedToTermsAt DateTime?
-  createdAt       DateTime  @default(now())
+  agreedToTermsAt DateTime? @db.Timestamptz(3)
+  createdAt       DateTime  @default(now()) @db.Timestamptz(3)
 
   // teacher relations
   students            Student[]           @relation("TeacherStudents")
@@ -71,22 +71,22 @@ model User {
   monthlyPayments     MonthlyPayment[]    @relation("TeacherPayments")
 
   // student relation
-  studentProfile Student?  @relation("StudentUser")
+  studentProfile Student? @relation("StudentUser")
 
   // parent relations
-  parentLinks        ParentStudent[]    @relation("ParentLinks")
-  teacherParentLinks ParentStudent[]    @relation("TeacherParentLinks")
+  parentLinks        ParentStudent[]     @relation("ParentLinks")
+  teacherParentLinks ParentStudent[]     @relation("TeacherParentLinks")
   parentInviteTokens ParentInviteToken[]
 
-  lineLinkToken  LineLinkToken?
+  lineLinkToken LineLinkToken?
 }
 
 model LineLinkToken {
   id        String   @id @default(uuid())
   userId    String   @unique
   token     String   @unique
-  expiresAt DateTime
-  createdAt DateTime @default(now())
+  expiresAt DateTime @db.Timestamptz(3)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -103,19 +103,20 @@ model Student {
   defaultTravelExpense Int?
   defaultDurationMin   Int?
   defaultSubjectIds    String[] @default([])
-  createdAt            DateTime @default(now())
+  createdAt            DateTime @default(now()) @db.Timestamptz(3)
 
-  user       User              @relation("StudentUser", fields: [userId], references: [id], onDelete: Cascade)
-  teacher    User              @relation("TeacherStudents", fields: [teacherId], references: [id])
-  homeworks       Homework[]
-  grades          GradeRecord[]
-  lessons         Lesson[]
-  materials       StudentMaterial[]
-  examEvents      ExamEvent[]
-  gardenItems          GardenItem[]
-  monthlyPayments      MonthlyPayment[]
-  parentLinks          ParentStudent[]
-  parentInviteTokens   ParentInviteToken[]
+  user    User @relation("StudentUser", fields: [userId], references: [id], onDelete: Cascade)
+  teacher User @relation("TeacherStudents", fields: [teacherId], references: [id])
+
+  homeworks          Homework[]
+  grades             GradeRecord[]
+  lessons            Lesson[]
+  materials          StudentMaterial[]
+  examEvents         ExamEvent[]
+  gardenItems        GardenItem[]
+  monthlyPayments    MonthlyPayment[]
+  parentLinks        ParentStudent[]
+  parentInviteTokens ParentInviteToken[]
 
   @@index([teacherId])
 }
@@ -127,11 +128,11 @@ model InviteToken {
   email     String?
   name      String
   grade     String
-  usedAt    DateTime?
-  expiresAt DateTime
-  createdAt DateTime  @default(now())
+  usedAt    DateTime? @db.Timestamptz(3)
+  expiresAt DateTime  @db.Timestamptz(3)
+  createdAt DateTime  @default(now()) @db.Timestamptz(3)
 
-  teacher   User      @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  teacher User @relation(fields: [teacherId], references: [id], onDelete: Cascade)
 
   @@index([teacherId])
   @@index([expiresAt])
@@ -142,7 +143,7 @@ model ParentStudent {
   parentId  String
   studentId String
   teacherId String
-  createdAt DateTime @default(now())
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
 
   parent  User    @relation("ParentLinks", fields: [parentId], references: [id], onDelete: Cascade)
   student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
@@ -160,9 +161,9 @@ model ParentInviteToken {
   teacherId String
   studentId String
   email     String?
-  usedAt    DateTime?
-  expiresAt DateTime
-  createdAt DateTime  @default(now())
+  usedAt    DateTime? @db.Timestamptz(3)
+  expiresAt DateTime  @db.Timestamptz(3)
+  createdAt DateTime  @default(now()) @db.Timestamptz(3)
 
   teacher User    @relation(fields: [teacherId], references: [id], onDelete: Cascade)
   student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
@@ -176,32 +177,32 @@ model Subject {
   id        String   @id @default(uuid())
   name      String
   teacherId String
-  createdAt DateTime @default(now())
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
 
-  teacher   User     @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  teacher User @relation(fields: [teacherId], references: [id], onDelete: Cascade)
 
   @@unique([name, teacherId])
   @@index([teacherId])
 }
 
 model Homework {
-  id              String         @id @default(uuid())
-  studentId       String
-  teacherId       String
-  title           String
-  description     String?
-  dueDate         DateTime
-  subjectIds      String[]
-  materialId      String?
-  status          HomeworkStatus @default(assigned)
+  id               String         @id @default(uuid())
+  studentId        String
+  teacherId        String
+  title            String
+  description      String?
+  dueDate          DateTime       @db.Timestamptz(3)
+  subjectIds       String[]
+  materialId       String?
+  status           HomeworkStatus @default(assigned)
   studentNote      String?
   difficultyRating Int?
   teacherFeedback  String?
-  requiresPhoto   Boolean        @default(false)
-  photoUrl        String?
-  submittedAt     DateTime?
-  reviewedAt      DateTime?
-  createdAt       DateTime       @default(now())
+  requiresPhoto    Boolean        @default(false)
+  photoUrl         String?
+  submittedAt      DateTime?      @db.Timestamptz(3)
+  reviewedAt       DateTime?      @db.Timestamptz(3)
+  createdAt        DateTime       @default(now()) @db.Timestamptz(3)
 
   student  Student          @relation(fields: [studentId], references: [id], onDelete: Cascade)
   teacher  User             @relation("TeacherHomework", fields: [teacherId], references: [id], onDelete: Cascade)
@@ -209,7 +210,7 @@ model Homework {
   events   HomeworkEvent[]
 
   @@index([teacherId])
-  @@index([studentId])
+  @@index([studentId, status])
   @@index([teacherId, status])
   @@index([dueDate])
 }
@@ -220,7 +221,7 @@ model HomeworkEvent {
   eventType  HomeworkEventType
   actorName  String
   note       String?
-  createdAt  DateTime          @default(now())
+  createdAt  DateTime          @default(now()) @db.Timestamptz(3)
 
   homework Homework @relation(fields: [homeworkId], references: [id], onDelete: Cascade)
 
@@ -232,7 +233,7 @@ model GradeRecord {
   studentId     String
   teacherId     String
   testName      String
-  date          DateTime
+  date          DateTime @db.Timestamptz(3)
   subjectIds    String[]
   score         Int?
   maxScore      Int?
@@ -243,7 +244,7 @@ model GradeRecord {
   avgScore      Int?
   teacherRating Int?
   comment       String?
-  createdAt     DateTime @default(now())
+  createdAt     DateTime @default(now()) @db.Timestamptz(3)
 
   student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
   teacher User    @relation("TeacherGrades", fields: [teacherId], references: [id], onDelete: Cascade)
@@ -258,7 +259,7 @@ model Lesson {
   id              String     @id @default(uuid())
   teacherId       String
   studentId       String
-  date            DateTime
+  date            DateTime   @db.Timestamptz(3)
   durationMin     Int?
   type            LessonType @default(online)
   notes           String?
@@ -267,9 +268,9 @@ model Lesson {
   subjectIds      String[]   @default([])
   hourlyRate      Int?
   travelExpense   Int?
-  completedAt     DateTime?
+  completedAt     DateTime?  @db.Timestamptz(3)
   qstashMessageId String?
-  createdAt       DateTime   @default(now())
+  createdAt       DateTime   @default(now()) @db.Timestamptz(3)
 
   teacher User    @relation("TeacherLessons", fields: [teacherId], references: [id], onDelete: Cascade)
   student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
@@ -284,10 +285,10 @@ model ExamEvent {
   studentId String
   teacherId String
   name      String
-  date      DateTime
-  endDate   DateTime?
+  date      DateTime  @db.Timestamptz(3)
+  endDate   DateTime? @db.Timestamptz(3)
   testType  TestType  @default(exam)
-  createdAt DateTime  @default(now())
+  createdAt DateTime  @default(now()) @db.Timestamptz(3)
 
   student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
   teacher User    @relation("TeacherExamEvents", fields: [teacherId], references: [id], onDelete: Cascade)
@@ -303,7 +304,7 @@ model GardenItem {
   x         Int
   y         Int
   itemType  GardenItemType
-  createdAt DateTime       @default(now())
+  createdAt DateTime       @default(now()) @db.Timestamptz(3)
 
   student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
@@ -318,7 +319,7 @@ model StudentMaterial {
   name       String
   note       String?
   subjectIds String[] @default([])
-  createdAt  DateTime @default(now())
+  createdAt  DateTime @default(now()) @db.Timestamptz(3)
 
   student   Student    @relation(fields: [studentId], references: [id], onDelete: Cascade)
   teacher   User       @relation("TeacherMaterials", fields: [teacherId], references: [id], onDelete: Cascade)
@@ -334,13 +335,14 @@ model MonthlyPayment {
   studentId String
   year      Int
   month     Int
-  dueDate   DateTime?
-  paidAt    DateTime?
-  createdAt DateTime  @default(now())
+  dueDate   DateTime? @db.Timestamptz(3)
+  paidAt    DateTime? @db.Timestamptz(3)
+  createdAt DateTime  @default(now()) @db.Timestamptz(3)
 
   teacher User    @relation("TeacherPayments", fields: [teacherId], references: [id], onDelete: Cascade)
   student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   @@unique([teacherId, studentId, year, month])
   @@index([teacherId])
+  @@index([studentId])
 }
