@@ -72,7 +72,7 @@ export default function CreateGradeForm({
 
       <p className="text-xs text-muted-foreground"><span className="text-destructive font-medium">*</span> は必須項目です</p>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="col-span-2 space-y-2">
           <Label htmlFor="studentId">生徒 <span className="text-destructive">*</span></Label>
           {singleStudent ? (
