@@ -5,6 +5,8 @@ import { sendLineMessage } from "@/lib/line"
 export const POST = verifySignatureAppRouter(async (req: Request) => {
   const { lessonId } = await req.json() as { lessonId: string }
 
+  console.log(`[lesson-reminder] processing lessonId=${lessonId}`)
+
   const lesson = await db.lesson.findFirst({
     where: { id: lessonId, type: "online" },
     include: {

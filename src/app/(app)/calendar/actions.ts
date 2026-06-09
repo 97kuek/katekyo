@@ -88,8 +88,8 @@ export async function createLesson(
           }
         })
       )
-    } catch {
-      // リマインダー登録失敗は無視（授業は保存済み）
+    } catch (err) {
+      console.error("[createLesson] QStash scheduling failed:", err)
     }
   }
 
