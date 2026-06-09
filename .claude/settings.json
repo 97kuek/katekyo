@@ -3,7 +3,29 @@
     "allow": [
       "Bash(xargs grep -l \"framer-motion\\\\|motion\\\\|@react-spring\\\\|animate-css\")",
       "PowerShell(cd \"c:\\\\Users\\\\yamashita\\\\Documents\\\\katekyo\"; git add src/app/globals.css src/components/layout/page-content.tsx src/app/\\(app\\)/layout.tsx src/components/ui/button.tsx src/components/layout/bottom-nav.tsx src/components/layout/sidebar.tsx src/app/\\(app\\)/billing/loading.tsx prisma/schema.prisma src/app/\\(app\\)/billing/actions.ts src/app/\\(app\\)/billing/page.tsx \"src/app/\\(app\\)/homework/[id]/delete-homework-button.tsx\" \"src/app/\\(app\\)/homework/[id]/page.tsx\")",
-      "Bash(git mv *)"
+      "Bash(git mv *)",
+      "Bash(cat)",
+      "Bash(node /tmp/check-line.mjs)",
+      "Bash(node check-line.mjs)",
+      "Bash(rm -f check-line.mjs)",
+      "PowerShell(winget search responsively)",
+      "PowerShell(winget install --id Responsively.ResponsivelyApp --accept-package-agreements --accept-source-agreements -e)",
+      "PowerShell(winget install --id Responsively.ResponsivelyApp -e --interactive --accept-package-agreements --accept-source-agreements)",
+      "Read(//c/Users/yamashita/AppData/Local/**)",
+      "PowerShell($p = Get-ChildItem -Path \"$env:LOCALAPPDATA\" -Filter \"ResponsivelyApp.exe\" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1; if \\($p\\) { $p.FullName } else { \"not found in LOCALAPPDATA\" })",
+      "PowerShell($pids = \\(Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue\\).OwningProcess | Select-Object -Unique; foreach \\($procId in $pids\\) { Get-Process -Id $procId -ErrorAction SilentlyContinue | Select-Object Id, ProcessName, Path })",
+      "PowerShell(\\(Get-CimInstance Win32_Process -Filter \"ProcessId = 27916\"\\).CommandLine; Stop-Process -Id 27916 -Force; Start-Sleep -Milliseconds 500; if \\(Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue\\) { \"port 3000 still in use\" } else { \"port 3000 freed\" })",
+      "PowerShell(npm run dev)",
+      "PowerShell($conn = Get-NetTCPConnection -LocalPort 3000 -ErrorAction SilentlyContinue; if \\($conn\\) { $conn.OwningProcess | Select-Object -Unique | ForEach-Object { $p = Get-Process -Id $_ -ErrorAction SilentlyContinue; if \\($p\\) { Write-Output \"Stopping PID $\\($p.Id\\) \\($\\($p.ProcessName\\)\\)\"; Stop-Process -Id $p.Id -Force } } } else { Write-Output \"No process listening on port 3000\" })",
+      "Bash(Get-ChildItem \"c:\\\\Users\\\\yamashita\\\\Documents\\\\katekyo\\\\src\\\\app\\\\\\(app\\)\\\\homework\\\\photos\" -ErrorAction SilentlyContinue)",
+      "Bash(Measure-Object)",
+      "Bash(Select-Object -ExpandProperty Count)",
+      "Bash(Get-ChildItem \"c:\\\\Users\\\\yamashita\\\\Documents\\\\katekyo\\\\src\\\\app\\\\\\(app\\)\\\\homework\\\\templates\" -ErrorAction SilentlyContinue)",
+      "PowerShell($photos = \\(Get-ChildItem \"c:\\\\Users\\\\yamashita\\\\Documents\\\\katekyo\\\\src\\\\app\\\\\\(app\\)\\\\homework\\\\photos\" -ErrorAction SilentlyContinue | Measure-Object\\).Count; $templates = \\(Get-ChildItem \"c:\\\\Users\\\\yamashita\\\\Documents\\\\katekyo\\\\src\\\\app\\\\\\(app\\)\\\\homework\\\\templates\" -ErrorAction SilentlyContinue | Measure-Object\\).Count; \"photos: $photos files, templates: $templates files\")"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\yamashita\\Documents\\katekyo\\src\\app\\(app)\\homework\\[id]",
+      "c:\\Users\\yamashita\\Documents\\katekyo\\src\\app\\(app)\\grades\\[id]"
     ]
   },
   "hooks": {
