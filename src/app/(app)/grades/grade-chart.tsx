@@ -206,7 +206,7 @@ export default function GradeChart({
                       strokeOpacity={dimmed ? 0.2 : 1}
                       dot={{ r: dimmed ? 2 : 4 }}
                       activeDot={{ r: 6 }}
-                      connectNulls={false}
+                      connectNulls
                     />
                   )
                 })
@@ -234,7 +234,7 @@ export default function GradeChart({
                       strokeOpacity={dimmed ? 0.15 : 0.6}
                       strokeDasharray="4 4"
                       dot={false}
-                      connectNulls={false}
+                      connectNulls
                       legendType="none"
                     />
                   )
