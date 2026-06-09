@@ -12,15 +12,16 @@ export default function AppleIcon() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "white",
+        background: "#2e743a",
+        borderRadius: 40,
       }}
     >
       <svg
-        width="120"
-        height="120"
+        width="130"
+        height="130"
         viewBox="0 0 24 24"
         fill="none"
-        stroke="#2e743a"
+        stroke="white"
         strokeWidth="1.5"
         strokeLinecap="round"
         strokeLinejoin="round"

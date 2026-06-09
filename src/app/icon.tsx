@@ -12,15 +12,16 @@ export default function Icon() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "white",
+        background: "#2e743a",
+        borderRadius: 44,
       }}
     >
       <svg
-        width="128"
-        height="128"
+        width="136"
+        height="136"
         viewBox="0 0 24 24"
         fill="none"
-        stroke="#2e743a"
+        stroke="white"
         strokeWidth="1.5"
         strokeLinecap="round"
         strokeLinejoin="round"
