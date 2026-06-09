@@ -2,7 +2,7 @@
 
 import { useState, useTransition, useActionState, useEffect } from "react"
 import Link from "next/link"
-import { ChevronLeft, ChevronRight } from "lucide-react"
+import { ChevronLeft, ChevronRight, CheckCheck, RotateCcw, Pencil, Trash2 } from "lucide-react"
 import { LessonForm } from "./lesson-form"
 import { LessonEditForm } from "./lesson-edit-form"
 import { deleteLesson, createExamEvent, deleteExamEvent, completeLesson, uncompleteLesson, createHomeworkFromCalendar } from "./actions"
@@ -18,7 +18,7 @@ function DeleteLessonButton({ lessonId }: { lessonId: string }) {
 
   if (confirming) {
     return (
-      <div className="flex items-center gap-1.5 shrink-0">
+      <div className="flex items-center gap-1.5 shrink-0 bg-destructive/10 rounded-md px-2 py-1">
         <span className="text-xs text-muted-foreground">削除?</span>
         <button
           onClick={() => startTransition(async () => {
@@ -29,7 +29,7 @@ function DeleteLessonButton({ lessonId }: { lessonId: string }) {
           disabled={isPending}
           className="text-xs font-medium text-destructive hover:text-destructive/80 disabled:opacity-50"
         >
-          {isPending ? "削除中..." : "削除"}
+          {isPending ? "..." : "はい"}
         </button>
         <button onClick={() => setConfirming(false)} className="text-xs text-muted-foreground hover:text-foreground">
           ✕
@@ -41,11 +41,12 @@ function DeleteLessonButton({ lessonId }: { lessonId: string }) {
   return (
     <Button
       variant="ghost"
-      size="xs"
+      size="icon-sm"
       onClick={() => setConfirming(true)}
       className="text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0"
+      title="削除"
     >
-      削除
+      <Trash2 className="h-4 w-4" />
     </Button>
   )
 }
@@ -118,8 +119,8 @@ function UncompleteLessonButton({ lessonId }: { lessonId: string }) {
 
   if (confirming) {
     return (
-      <div className="flex items-center gap-1.5 shrink-0">
-        <span className="text-xs text-muted-foreground">取り消し?</span>
+      <div className="flex items-center gap-1.5 shrink-0 bg-muted rounded-md px-2 py-1">
+        <span className="text-xs text-muted-foreground">取消?</span>
         <button
           onClick={() => startTransition(async () => {
             const fd = new FormData()
@@ -127,7 +128,7 @@ function UncompleteLessonButton({ lessonId }: { lessonId: string }) {
             await uncompleteLesson(fd)
           })}
           disabled={isPending}
-          className="text-xs font-medium text-muted-foreground hover:text-foreground disabled:opacity-50"
+          className="text-xs font-medium text-foreground hover:text-primary disabled:opacity-50"
         >
           {isPending ? "..." : "はい"}
         </button>
@@ -139,8 +140,8 @@ function UncompleteLessonButton({ lessonId }: { lessonId: string }) {
   }
 
   return (
-    <Button variant="ghost" size="xs" onClick={() => setConfirming(true)}>
-      取り消し
+    <Button variant="ghost" size="icon-sm" onClick={() => setConfirming(true)} title="完了を取り消し">
+      <RotateCcw className="h-4 w-4" />
     </Button>
   )
 }
@@ -422,16 +423,18 @@ function DayDetail({
                     )}
                   </div>
                   {isTeacher && (
-                    <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex items-center gap-1 shrink-0">
                       {isPast && !l.completedAt && (
                         completingLessonId === l.id ? (
-                          <button onClick={() => setCompletingLessonId(null)} className="text-xs text-muted-foreground hover:text-foreground">キャンセル</button>
+                          <button onClick={() => setCompletingLessonId(null)} className="text-xs text-muted-foreground hover:text-foreground px-1">✕</button>
                         ) : (
                           <Button
                             onClick={() => { setCompletingLessonId(l.id); setEditingLessonId(null) }}
                             variant="outline"
                             size="xs"
+                            title="完了にする"
                           >
+                            <CheckCheck className="h-3.5 w-3.5 mr-1" />
                             完了
                           </Button>
                         )
@@ -439,10 +442,11 @@ function DayDetail({
                       {l.completedAt && <UncompleteLessonButton lessonId={l.id} />}
                       <Button
                         variant="ghost"
-                        size="xs"
+                        size="icon-sm"
                         onClick={() => { setEditingLessonId(editingLessonId === l.id ? null : l.id); setCompletingLessonId(null) }}
+                        title={editingLessonId === l.id ? "閉じる" : "編集"}
                       >
-                        {editingLessonId === l.id ? "閉じる" : "編集"}
+                        <Pencil className="h-4 w-4" />
                       </Button>
                       <DeleteLessonButton lessonId={l.id} />
                     </div>

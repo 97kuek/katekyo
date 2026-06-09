@@ -7,6 +7,7 @@ import { Suspense } from "react"
 import { buttonVariants } from "@/components/ui/button"
 import { TEST_TYPE_LABELS } from "@/lib/test-types"
 import { TreePine, Trophy, Video, MapPin } from "lucide-react"
+import { LessonLogCard } from "./lesson-log-card"
 
 function Sk({ className }: { className?: string }) {
   return <div className={`animate-pulse rounded bg-muted ${className ?? ""}`} />
@@ -655,18 +656,14 @@ async function StudentRecentLogs({ userId }: { userId: string }) {
       <div className="space-y-2">
         {lessons.map((l) => {
           const subjectNames = l.subjectIds.map((id) => subjectMap.get(id)).filter(Boolean) as string[]
+          const dateStr = l.date.toLocaleDateString("ja-JP", { month: "short", day: "numeric", weekday: "short" })
           return (
-            <div key={l.id} className="rounded-lg border bg-card p-3 space-y-1.5">
-              <div className="flex items-center gap-2 flex-wrap">
-                <p className="text-xs text-muted-foreground">
-                  {l.date.toLocaleDateString("ja-JP", { month: "short", day: "numeric", weekday: "short" })}
-                </p>
-                {subjectNames.map((n) => (
-                  <span key={n} className="text-xs bg-muted text-foreground rounded-full px-2 py-0.5">{n}</span>
-                ))}
-              </div>
-              <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed line-clamp-4">{l.lessonLog}</p>
-            </div>
+            <LessonLogCard
+              key={l.id}
+              date={dateStr}
+              subjectNames={subjectNames}
+              log={l.lessonLog!}
+            />
           )
         })}
       </div>
