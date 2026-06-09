@@ -142,17 +142,18 @@ export async function reviewHomework(
     },
   })
 
-  const studentUser = await db.student.findUnique({
-    where: { id: homework.studentId },
-    include: { user: { select: { lineUserId: true } } },
-  })
-  if (studentUser?.user.lineUserId) {
-    const baseUrl = process.env.NEXTAUTH_URL ?? ""
-    const msg =
-      action === "approved"
-        ? `✅ 宿題が承認されました\n\n「${homework.title}」が承認されました！\n森に植物が1つ育ちました 🌱\n${baseUrl}/homework/${id}`
-        : `🔁 宿題が差し戻されました\n\n「${homework.title}」が差し戻されました。\n\nフィードバック：\n${feedback ?? "（なし）"}\n\n${baseUrl}/homework/${id}`
-    await sendLineMessage(studentUser.user.lineUserId, msg)
+  if (action === "rejected") {
+    const studentUser = await db.student.findUnique({
+      where: { id: homework.studentId },
+      include: { user: { select: { lineUserId: true } } },
+    })
+    if (studentUser?.user.lineUserId) {
+      const baseUrl = process.env.NEXTAUTH_URL ?? ""
+      await sendLineMessage(
+        studentUser.user.lineUserId,
+        `🔁 宿題が差し戻されました\n\n「${homework.title}」が差し戻されました。\n\nフィードバック：\n${feedback ?? "（なし）"}\n\n${baseUrl}/homework/${id}`
+      )
+    }
   }
 
   if (action === "approved") {

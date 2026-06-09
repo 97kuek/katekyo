@@ -6,6 +6,7 @@ import { redirect } from "next/navigation"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import { scheduleReminderMessage, cancelReminderMessage } from "@/lib/qstash"
+import { sendLineMessage } from "@/lib/line"
 
 const createSchema = z.object({
   studentId: z.string().min(1, "生徒を選択してください"),
@@ -304,10 +305,13 @@ export async function createHomeworkFromCalendar(
   if (!result.success) return { error: result.error.issues[0].message }
 
   const { studentId, title, dueDate } = result.data
-  const student = await db.student.findFirst({ where: { id: studentId, teacherId: session.user.id } })
+  const student = await db.student.findFirst({
+    where: { id: studentId, teacherId: session.user.id },
+    include: { user: { select: { lineUserId: true } } },
+  })
   if (!student) return { error: "生徒が見つかりません" }
 
-  await db.homework.create({
+  const homework = await db.homework.create({
     data: {
       teacherId: session.user.id,
       studentId,
@@ -316,6 +320,15 @@ export async function createHomeworkFromCalendar(
       subjectIds: [],
     },
   })
+
+  if (student.user.lineUserId) {
+    const dueStr = new Date(`${dueDate}T00:00:00+09:00`).toLocaleDateString("ja-JP", { month: "numeric", day: "numeric", timeZone: "Asia/Tokyo" })
+    const baseUrl = process.env.NEXTAUTH_URL ?? ""
+    await sendLineMessage(
+      student.user.lineUserId,
+      `📝 新しい宿題が追加されました\n\n「${title}」\n期限: ${dueStr}\n\n${baseUrl}/homework/${homework.id}`
+    )
+  }
 
   revalidatePath("/calendar")
   revalidatePath("/homework")

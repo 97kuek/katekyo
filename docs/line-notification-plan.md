@@ -1,59 +1,64 @@
 # LINE通知機能 実装計画書
 
-> **実装状況**: Phase 1〜4 完了済み（2025年5月）、追加実装あり（2026年5月）
+> **実装状況**: Phase 1〜4 完了済み（2025年5月）、追加実装あり（2026年5月〜6月）
 
 ## 概要
 
-LINE Messaging API を使い、宿題・授業に関するリアルタイム通知と月次レポートを
+LINE Messaging API を使い、宿題・授業に関するリアルタイム通知と定期リマインダーを
 先生・生徒それぞれの LINE に送信する。
 
 ---
 
 ## 通知一覧
 
-### リアルタイム通知（Server Action / Webhook トリガー）
+### リアルタイム通知（Server Action トリガー）
 
 | イベント | 受信者 | 送信タイミング | 実装ファイル |
 | -------- | -------- | ------------ | ------------ |
-| 宿題提出 (submitted) | 先生 | `submitHomework` 実行時 | `homework/[id]/actions.ts` |
-| 宿題承認 (approved) | 生徒 | `reviewHomework` 実行時 | `homework/[id]/actions.ts` |
-| 宿題差し戻し (rejected) | 生徒 | `reviewHomework` 実行時 | `homework/[id]/actions.ts` |
-| 生徒のLINE連携完了 | 先生 | LINE Webhook 受信時（生徒が6桁コードを送信した瞬間） | `api/line/webhook/route.ts` |
-| オンライン授業10分前 | 生徒 | QStash Webhook（授業登録時に予約） | `api/webhooks/lesson-reminder/route.ts` |
+| 宿題追加 | 生徒 | `createHomework` 実行時 | `homework/new/actions.ts` |
+| 宿題追加（カレンダーから） | 生徒 | `createHomeworkFromCalendar` 実行時 | `calendar/actions.ts` |
+| 宿題提出 | 先生 | `submitHomework` 実行時 | `homework/[id]/actions.ts` |
+| 宿題差し戻し | 生徒 | `reviewHomework` で rejected 時 | `homework/[id]/actions.ts` |
+| ~~宿題承認~~ | ~~生徒~~ | ~~削除~~ | — |
+| 生徒の LINE 連携完了 | 先生 | LINE Webhook 受信時 | `api/line/webhook/route.ts` |
+| オンライン授業 10 分前 | 生徒・先生 | QStash Webhook（授業登録時に予約） | `api/webhooks/lesson-reminder/route.ts` |
+
+> 宿題承認通知は削除。承認はアプリ上で確認できるため、通知は不要と判断。
 
 ### 定期通知（Vercel Cron）
 
 | スケジュール | 対象 | 内容 | 実装ファイル |
 | ------------ | ---- | ---- | ------------ |
-| 毎週日曜 8:00 JST（23:00 UTC） | 生徒 | 今日期限の宿題 / 期限切れ宿題（該当なしは送信しない） | `api/cron/line-daily` |
-| 毎月1日 9:00 JST（0:00 UTC） | 先生 | 前月授業レポート（生徒別）※line-monthly Cron は Vercel Hobby プラン上限のため削除済み | `api/cron/line-monthly`（削除済み） |
+| 毎日 8:00 JST（23:00 UTC） | 生徒 | 今日期限 / 期限切れ宿題（該当なしは送信しない） | `api/cron/line-daily` |
+| 毎週月曜 8:00 JST（日曜 23:00 UTC） | 先生 | 未完了授業リマインダー（line-daily 内で月曜のみ実行） | `api/cron/line-daily` |
 
 ---
 
 ## メッセージ文面
 
+### 宿題追加通知（生徒）
+
+```text
+📝 新しい宿題が追加されました
+
+「{宿題タイトル}」
+期限: {M月D日}
+
+https://katekyo-one.vercel.app/homework/{id}
+```
+
 ### 宿題提出通知（先生）
 
-```
+```text
 📬 宿題が提出されました
 
 {生徒名}さんが「{宿題タイトル}」を提出しました。
 https://katekyo-one.vercel.app/homework/{id}
 ```
 
-### 宿題承認通知（生徒）
-
-```
-✅ 宿題が承認されました
-
-「{宿題タイトル}」が承認されました！
-森に植物が1つ育ちました 🌱
-https://katekyo-one.vercel.app/homework/{id}
-```
-
 ### 宿題差し戻し通知（生徒）
 
-```
+```text
 🔁 宿題が差し戻されました
 
 「{宿題タイトル}」が差し戻されました。
@@ -64,16 +69,16 @@ https://katekyo-one.vercel.app/homework/{id}
 https://katekyo-one.vercel.app/homework/{id}
 ```
 
-### LINE連携完了通知（先生）
+### LINE 連携完了通知（先生）
 
-```
+```text
 📲 {生徒名}さんがLINE連携を完了しました
 これから通知が届くようになります。
 ```
 
-### オンライン授業10分前リマインダー（生徒）
+### オンライン授業 10 分前リマインダー（生徒）
 
-```
+```text
 📅 もうすぐ授業が始まります
 
 10分後に授業が始まります。
@@ -82,37 +87,45 @@ https://katekyo-one.vercel.app/homework/{id}
 {meetLink}
 ```
 
-※ 先生の `meetLink` が未設定、または生徒が LINE 未連携の場合はスキップ。詳細は [meet-reminder-plan.md](meet-reminder-plan.md)
+### オンライン授業 10 分前リマインダー（先生）
 
-### 毎週の宿題リマインダー（生徒・毎週日曜）
+```text
+📅 まもなく授業があります
 
+{生徒名}さんとの授業が10分後に始まります。
+
+{meetLink}
 ```
+
+### 宿題リマインダー（生徒・毎日朝 8:00 JST）
+
+```text
 📚 宿題リマインダー
 
 【今日が期限】
 ・{title}
 
 【期限切れ】
-・{title}（{dueDate}が期限でした）
+・{title}（{M/D}が期限でした）
 
 https://katekyo-one.vercel.app/homework
 ```
 
 ※ 該当する宿題がない場合は送信しない
 
-### 月次レポート（先生）
+### 未完了授業リマインダー（先生・毎週月曜 8:00 JST）
 
+```text
+📋 未完了の授業があります
+
+・{M/D} {生徒名}さん
+・{M/D} {生徒名}さん
+
+完了済みにすると請求に反映されます。
+https://katekyo-one.vercel.app/calendar
 ```
-📊 {month}月の授業レポート
 
-▶ {生徒名}
-　授業: {count}回 / {totalMin}分
-　請求: ¥{amount:,}
-　宿題承認率: {rate}%
-
-─────────
-合計請求額: ¥{totalAmount:,}
-```
+※ 前日以前の未完了授業がない場合は送信しない
 
 ---
 
@@ -122,19 +135,26 @@ https://katekyo-one.vercel.app/homework
 
 ```bash
 LINE_CHANNEL_ACCESS_TOKEN=       # Messaging API チャネルアクセストークン
-LINE_CHANNEL_SECRET=             # チャネルシークレット（Webhook署名検証用）
+LINE_CHANNEL_SECRET=             # チャネルシークレット（Webhook 署名検証用）
 NEXTAUTH_URL=                    # ベースURL（通知内リンク生成に使用）
-CRON_SECRET=                     # Cronエンドポイント認証
+CRON_SECRET=                     # Cron エンドポイント認証
 LINE_RICH_MENU_TEACHER_ID=       # リッチメニューID（先生用）
 LINE_RICH_MENU_STUDENT_ID=       # リッチメニューID（生徒用）
+QSTASH_TOKEN=                    # QStash API トークン
+QSTASH_CURRENT_SIGNING_KEY=      # Webhook 署名検証キー（現在）
+QSTASH_NEXT_SIGNING_KEY=         # Webhook 署名検証キー（ローテーション用）
 ```
 
-### DBスキーマ
+> QStash の署名キーは Upstash Console → QStash → **Request Keys** タブで取得。
+> これらが未設定だと `verifySignatureAppRouter` が失敗し Meet リマインダーが届かない。
+
+### DB スキーマ
 
 #### User モデルへの追加フィールド
 
 ```prisma
 lineUserId  String? @unique  // LINE の userId（紐づけ後に設定）
+meetLink    String?           // Google Meet 固定 URL（先生のみ）
 ```
 
 #### LineLinkToken モデル
@@ -142,10 +162,10 @@ lineUserId  String? @unique  // LINE の userId（紐づけ後に設定）
 ```prisma
 model LineLinkToken {
   id        String   @id @default(uuid())
-  userId    String   @unique          // 1ユーザーにトークンは1つ
-  token     String   @unique          // 6桁数字
-  expiresAt DateTime                  // 発行から10分後
-  createdAt DateTime @default(now())
+  userId    String   @unique
+  token     String   @unique  // 6桁数字
+  expiresAt DateTime @db.Timestamptz(3)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -153,11 +173,28 @@ model LineLinkToken {
 }
 ```
 
+#### Lesson モデルへの追加フィールド
+
+```prisma
+qstashMessageId  String?  // QStash メッセージ ID（リマインダーキャンセル用）
+```
+
 ---
 
-## LINE連携フロー（ユーザー視点）
+## Cron タイミング設計
 
-```
+| ファイル | vercel.json スケジュール | 実行時刻（JST） | 処理内容 |
+| --- | --- | --- | --- |
+| `api/cron/cleanup-homework` | `0 18 * * *` | 03:00 JST 毎日 | 期限切れ宿題クリーンアップ |
+| `api/cron/line-daily` | `0 23 * * *` | 08:00 JST 毎日 | 生徒: 宿題リマインダー / 先生: 未完了授業（月曜のみ） |
+
+> Vercel Hobby プランは Cron 2 本まで。先生の週次通知は `line-daily` 内でコードレベルで曜日を判定（UTC day === 0 が月曜 8 時 JST）することで 1 本に統合している。
+
+---
+
+## LINE 連携フロー（ユーザー視点）
+
+```text
 1. アプリの「設定」ページ → 「LINE連携を開始する」ボタンを押す
 2. 6桁のトークンが表示される（10分間有効）
 3. LINE公式アカウントを友だち追加する
@@ -169,62 +206,50 @@ model LineLinkToken {
 
 ---
 
-## ファイル一覧
+## Meet リマインダー フロー
 
-### 新規作成ファイル
-
-| ファイル | 役割 |
-|--------|------|
-| `src/lib/line.ts` | `sendLineMessage(lineUserId, text)` ヘルパー（fire-and-forget） |
-| `src/app/api/line/webhook/route.ts` | LINEからのWebhookを受信・処理 |
-| `src/app/(app)/settings/page.tsx` | LINE連携設定ページ（Server Component） |
-| `src/app/(app)/settings/actions.ts` | `generateLinkToken` / `unlinkLine` |
-| `src/app/(app)/settings/settings-client.tsx` | `LineSettings` クライアントコンポーネント |
-| `src/app/api/cron/line-daily/route.ts` | 毎朝リマインダーCron |
-| `src/app/api/cron/line-monthly/route.ts` | 月次レポートCron |
-
-### 変更ファイル
-
-| ファイル | 変更内容 |
-|--------|--------|
-| `prisma/schema.prisma` | `User.lineUserId`、`LineLinkToken` モデル追加 |
-| `src/app/(app)/homework/[id]/actions.ts` | submit/approve/reject 時にLINE通知送信（URL付き） |
-| `src/components/layout/sidebar.tsx` | 「設定」リンク追加 |
-| `src/components/layout/header.tsx` | 「設定」リンク追加（モバイルヘッダー） |
-| `vercel.json` | Cronエントリ2件追加 |
+```text
+1. 先生が設定ページで Google Meet の固定リンクを登録
+2. 先生がカレンダーでオンライン授業を登録
+   └─ meetLink が設定済みの場合のみ QStash に「授業開始10分前に叩いて」と予約
+3. 授業開始10分前に QStash が Webhook を叩く
+4. Webhook が生徒・先生それぞれの LINE に Meet リンクを送信
+5. 授業を変更・削除した場合は既存 QStash メッセージをキャンセル→再予約
+```
 
 ---
 
-## Webhook セキュリティ
+## ファイル一覧
 
-```typescript
-// X-Line-Signature ヘッダーで本物のLINEリクエストか検証
-import { createHmac } from "crypto"
-
-function verifyLineSignature(body: string, signature: string): boolean {
-  const hash = createHmac("SHA256", process.env.LINE_CHANNEL_SECRET!)
-    .update(body)
-    .digest("base64")
-  return hash === signature
-}
-```
+| ファイル | 役割 |
+| --- | --- |
+| `src/lib/line.ts` | `sendLineMessage` ヘルパー（fire-and-forget） |
+| `src/lib/qstash.ts` | QStash スケジュール・キャンセルヘルパー |
+| `src/app/api/line/webhook/route.ts` | LINE からの Webhook 受信・処理 |
+| `src/app/api/webhooks/lesson-reminder/route.ts` | QStash から叩かれる Webhook（生徒・先生両方に送信） |
+| `src/app/api/cron/line-daily/route.ts` | 毎日朝 8:00 JST の Cron（生徒: 宿題リマインダー / 先生: 未完了授業） |
+| `src/app/(app)/settings/actions.ts` | `generateLinkToken` / `unlinkLine` / `saveMeetLink` |
+| `src/app/(app)/homework/new/actions.ts` | 宿題追加時に生徒へ LINE 通知 |
+| `src/app/(app)/calendar/actions.ts` | カレンダーから宿題追加時に生徒へ LINE 通知 |
+| `src/app/(app)/homework/[id]/actions.ts` | 提出時→先生 / 差し戻し時→生徒 に LINE 通知 |
 
 ---
 
 ## 注意事項
 
-- LINE Messaging API の無料枠: **月1000通**（先生1名 + 生徒数名の構成なら十分）
+- LINE Messaging API の無料枠: **月 1000 通**（先生 1 名 + 生徒数名なら余裕）
 - `sendLineMessage` は fire-and-forget（通知失敗でも宿題操作自体は成功させる）
 - `lineUserId` が null のユーザーはすべての通知処理をスキップ
-- Cronエンドポイントは `Authorization: Bearer CRON_SECRET` で認証
+- Cron エンドポイントは `Authorization: Bearer CRON_SECRET` で認証
 - LINE OAM の「応答メッセージ」は **オフ** にすること（二重返信防止）
-- 通知内URLのベースは `NEXTAUTH_URL` 環境変数から生成
+- 通知内 URL のベースは `NEXTAUTH_URL` 環境変数から生成
+- QStash の署名キー（`QSTASH_CURRENT_SIGNING_KEY` / `QSTASH_NEXT_SIGNING_KEY`）を Vercel に設定しないと Meet リマインダーの Webhook 検証が失敗する
 
 ---
 
 ## リッチメニュー（2026年5月実装）
 
-先生・生徒それぞれに専用リッチメニューを表示する。メニューは LINE OA Manager ではなく **Messaging API（Linked Rich Menu）** で管理するため、OA Manager の画面には表示されない。
+先生・生徒それぞれに専用リッチメニューを表示する。
 
 ### メニュー構成
 
@@ -233,38 +258,10 @@ function verifyLineSignature(body: string, signature: string): boolean {
 | 先生 | 提出確認（clipboardCheck） | 授業管理（calendar） | 請求管理（receipt） |
 | 生徒 | 宿題（bookOpen） | 学習の森（leaf） | カレンダー（calendar） |
 
-画像: 2500×843px PNG、白背景、アイコン色 `#2e743a`（katekyo primary green）
-
 ### 初期セットアップ手順
 
-1. `node scripts/generate-rich-menu.mjs` — PNG 画像を `public/` に生成（`sharp` 使用）
-2. `POST /api/line/setup-rich-menus` — LINE API でメニュー定義を作成し ID を返す
+1. `node scripts/generate-rich-menu.mjs` — PNG 画像を `public/` に生成
+2. `POST /api/line/setup-rich-menus` — LINE API でメニュー定義を作成
 3. 返却された ID を `.env.local` と Vercel 環境変数に設定
 4. `node scripts/upload-rich-menu-images.mjs` — PNG を LINE API にアップロード
 5. `POST /api/line/apply-rich-menus` — 既存 LINE 連携ユーザー全員に一括適用
-
-### 自動適用タイミング
-
-- **新規連携時**: `api/line/webhook/route.ts` でユーザーの role に応じたメニューを即適用
-- **連携解除時**: `settings/actions.ts` の `unlinkLine` でメニューを解除してから DB をクリア
-
-### 関連ファイル
-
-| ファイル | 役割 |
-| --- | --- |
-| `src/lib/line.ts` | `linkRichMenuToUser` / `unlinkRichMenuFromUser` ヘルパー |
-| `src/app/api/line/setup-rich-menus/route.ts` | メニュー定義を LINE API に登録（一回限り） |
-| `src/app/api/line/apply-rich-menus/route.ts` | 既存ユーザーに一括適用（一回限り） |
-| `scripts/generate-rich-menu.mjs` | SVG → PNG 変換（sharp） |
-| `scripts/upload-rich-menu-images.mjs` | PNG を LINE API にアップロード |
-
----
-
-## 今後の拡張候補
-
-| 機能 | 対象 | 概要 |
-| ---- | ---- | ---- |
-| 前日授業リマインダー | 生徒 | 前日夜に翌日の授業日時を通知（Cron追加） |
-| 新規宿題追加通知 | 生徒 | 先生が宿題を追加したとき即時通知 |
-| 成績登録通知 | 生徒 | テスト結果が記録されたときにLINE通知 |
-| 未完了授業リマインダー | 先生 | 週1回、完了し忘れた授業がある場合に通知（請求漏れ防止） |

@@ -4,6 +4,7 @@ import { db } from "@/lib/db"
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { z } from "zod"
+import { sendLineMessage } from "@/lib/line"
 
 const schema = z.object({
   studentId: z.string().min(1, "生徒を選択してください"),
@@ -40,6 +41,7 @@ export async function createHomework(
 
   const student = await db.student.findFirst({
     where: { id: studentId, teacherId: session.user.id },
+    include: { user: { select: { lineUserId: true } } },
   })
   if (!student) {
     return { error: "指定された生徒が見つかりません" }
@@ -54,7 +56,7 @@ export async function createHomework(
     }
   }
 
-  await db.homework.create({
+  const homework = await db.homework.create({
     data: {
       teacherId: session.user.id,
       studentId,
@@ -66,6 +68,15 @@ export async function createHomework(
       requiresPhoto: requiresPhoto === "1",
     },
   })
+
+  if (student.user.lineUserId) {
+    const dueStr = new Date(dueDate).toLocaleDateString("ja-JP", { month: "numeric", day: "numeric", timeZone: "Asia/Tokyo" })
+    const baseUrl = process.env.NEXTAUTH_URL ?? ""
+    await sendLineMessage(
+      student.user.lineUserId,
+      `📝 新しい宿題が追加されました\n\n「${title}」\n期限: ${dueStr}\n\n${baseUrl}/homework/${homework.id}`
+    )
+  }
 
   redirect("/homework")
 }
