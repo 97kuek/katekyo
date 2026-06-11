@@ -21,7 +21,8 @@
       "Bash(Measure-Object)",
       "Bash(Select-Object -ExpandProperty Count)",
       "Bash(Get-ChildItem \"c:\\\\Users\\\\yamashita\\\\Documents\\\\katekyo\\\\src\\\\app\\\\\\(app\\)\\\\homework\\\\templates\" -ErrorAction SilentlyContinue)",
-      "PowerShell($photos = \\(Get-ChildItem \"c:\\\\Users\\\\yamashita\\\\Documents\\\\katekyo\\\\src\\\\app\\\\\\(app\\)\\\\homework\\\\photos\" -ErrorAction SilentlyContinue | Measure-Object\\).Count; $templates = \\(Get-ChildItem \"c:\\\\Users\\\\yamashita\\\\Documents\\\\katekyo\\\\src\\\\app\\\\\\(app\\)\\\\homework\\\\templates\" -ErrorAction SilentlyContinue | Measure-Object\\).Count; \"photos: $photos files, templates: $templates files\")"
+      "PowerShell($photos = \\(Get-ChildItem \"c:\\\\Users\\\\yamashita\\\\Documents\\\\katekyo\\\\src\\\\app\\\\\\(app\\)\\\\homework\\\\photos\" -ErrorAction SilentlyContinue | Measure-Object\\).Count; $templates = \\(Get-ChildItem \"c:\\\\Users\\\\yamashita\\\\Documents\\\\katekyo\\\\src\\\\app\\\\\\(app\\)\\\\homework\\\\templates\" -ErrorAction SilentlyContinue | Measure-Object\\).Count; \"photos: $photos files, templates: $templates files\")",
+      "Bash(node_modules\\\\.bin\\\\next --version)"
     ],
     "additionalDirectories": [
       "c:\\Users\\yamashita\\Documents\\katekyo\\src\\app\\(app)\\homework\\[id]",
