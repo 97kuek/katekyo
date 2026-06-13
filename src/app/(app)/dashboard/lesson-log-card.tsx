@@ -29,6 +29,10 @@ export function LessonLogCard({ date, subjectNames, log, lessonId, unread }: Pro
   return (
     <div
       onClick={isUnread ? acknowledge : undefined}
+      onKeyDown={isUnread ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); acknowledge() } } : undefined}
+      role={isUnread ? "button" : undefined}
+      tabIndex={isUnread ? 0 : undefined}
+      aria-label={isUnread ? "授業ログを既読にする" : undefined}
       className={`rounded-lg border p-3 space-y-1.5 transition-colors ${
         isUnread ? "border-primary/30 bg-primary/5 cursor-pointer" : "bg-card"
       }`}

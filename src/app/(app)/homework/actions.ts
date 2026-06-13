@@ -28,7 +28,18 @@ export async function bulkApproveHomework(ids: string[]): Promise<{ error: strin
   const now = new Date()
   await db.homework.updateMany({
     where: { id: { in: homeworks.map((h) => h.id) } },
-    data: { status: "approved", reviewedAt: now },
+    // コメント無しの承認なので、過去の差し戻しコメントが残らないようクリアする
+    data: { status: "approved", reviewedAt: now, teacherFeedback: null, feedbackSeenAt: null },
+  })
+
+  // 詳細ページの「やり取り履歴」に承認イベントを残す
+  await db.homeworkEvent.createMany({
+    data: homeworks.map((h) => ({
+      homeworkId: h.id,
+      eventType: "approved" as const,
+      actorName: session.user.name ?? "",
+      note: null,
+    })),
   })
 
   // 差し戻し履歴を一括取得してN+1を回避

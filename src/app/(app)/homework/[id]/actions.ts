@@ -147,18 +147,22 @@ export async function reviewHomework(
     },
   })
 
-  // 差し戻し時、または承認でもフィードバックがある場合は生徒へ通知
-  if (action === "rejected" || feedback) {
+  // 承認・差し戻しいずれも生徒へ通知（一括承認と挙動を揃える）
+  {
     const studentUser = await db.student.findUnique({
       where: { id: homework.studentId },
       include: { user: { select: { lineUserId: true } } },
     })
     if (studentUser?.user.lineUserId) {
       const baseUrl = process.env.NEXTAUTH_URL ?? ""
-      const message =
-        action === "rejected"
-          ? `🔁 宿題が差し戻されました\n\n「${homework.title}」が差し戻されました。\n\nフィードバック：\n${feedback ?? "（なし）"}\n\n${baseUrl}/homework/${id}`
-          : `✅ 宿題が承認されました\n\n「${homework.title}」が承認されました。\n\n先生からのコメント：\n${feedback}\n\n${baseUrl}/homework/${id}`
+      let message: string
+      if (action === "rejected") {
+        message = `🔁 宿題が差し戻されました\n\n「${homework.title}」が差し戻されました。\n\nフィードバック：\n${feedback ?? "（なし）"}\n\n${baseUrl}/homework/${id}`
+      } else {
+        message = `✅ 宿題が承認されました\n\n「${homework.title}」が承認されました！\n森に植物が1つ育ちました 🌱`
+        if (feedback) message += `\n\n先生からのコメント：\n${feedback}`
+        message += `\n\n${baseUrl}/homework/${id}`
+      }
       await sendLineMessage(studentUser.user.lineUserId, message)
     }
   }

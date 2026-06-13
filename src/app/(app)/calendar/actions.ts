@@ -137,9 +137,12 @@ export async function updateLesson(
 
   const existing = await db.lesson.findFirst({
     where: { id: lessonId, teacherId: session.user.id },
-    select: { qstashMessageId: true },
+    select: { qstashMessageId: true, lessonLog: true },
   })
   if (!existing) return { error: "授業が見つかりません" }
+
+  // ログ本文が変わったら未読に戻す（生徒へ再度知らせる）
+  const logChanged = (lessonLog || null) !== existing.lessonLog
 
   if (existing.qstashMessageId) {
     await cancelReminderMessage(existing.qstashMessageId)
@@ -158,6 +161,7 @@ export async function updateLesson(
       hourlyRate: hourlyRate ?? null,
       travelExpense: effectiveTravelExpense,
       qstashMessageId: null,
+      ...(logChanged ? { lessonLogSeenAt: null } : {}),
     },
   })
 
