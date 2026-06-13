@@ -266,6 +266,7 @@ model Lesson {
   notes           String?
   lessonLog       String?
   lessonLogPublic Boolean    @default(false)
+  lessonLogSeenAt DateTime?  @db.Timestamptz(3)
   subjectIds      String[]   @default([])
   hourlyRate      Int?
   travelExpense   Int?

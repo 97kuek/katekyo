@@ -6,6 +6,7 @@ import Link from "next/link"
 import { buttonVariants } from "@/components/ui/button"
 import { Plus } from "lucide-react"
 import { StatusBadge } from "@/components/homework/status-badge"
+import { UnreadBadge } from "@/components/ui/unread-badge"
 import { CancelSubmissionButton } from "./cancel-button"
 import { HomeworkFilter } from "./homework-filter"
 import { BulkApproveSection } from "./bulk-approve-section"
@@ -379,26 +380,22 @@ async function StudentHomeworkPage({ userId }: { userId: string }) {
                   href={`/homework/${h.id}`}
                   className={`block rounded-lg border p-4 transition-colors ${
                     unseenFeedback
-                      ? "border-primary/30 bg-primary/5 hover:opacity-90"
+                      ? "border-primary/30 bg-primary/5 hover:bg-primary/10"
                       : "bg-card hover:bg-muted active:bg-muted opacity-75"
                   }`}
                 >
                   <div className="flex items-center justify-between gap-2">
                     <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="font-medium truncate">{h.title}</p>
-                        {unseenFeedback && (
-                          <span className="shrink-0 rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold text-primary-foreground">
-                            NEW
-                          </span>
-                        )}
-                      </div>
+                      <p className="font-medium truncate">{h.title}</p>
                       <p className="text-xs text-muted-foreground mt-0.5">
                         期限: {h.dueDate.toLocaleDateString("ja-JP")}
                       </p>
                       <SubjectTags ids={h.subjectIds} map={subjectMap} />
                     </div>
-                    <StatusBadge status={h.status} />
+                    <span className="shrink-0 flex items-center gap-1.5">
+                      {unseenFeedback && <UnreadBadge />}
+                      <StatusBadge status={h.status} />
+                    </span>
                   </div>
                   {h.teacherFeedback && (
                     <p className="mt-2 text-sm text-muted-foreground leading-relaxed border-l-2 border-primary/30 pl-3 whitespace-pre-wrap line-clamp-2">

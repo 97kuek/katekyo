@@ -8,6 +8,8 @@ import { buttonVariants } from "@/components/ui/button"
 import { TEST_TYPE_LABELS } from "@/lib/test-types"
 import { TreePine, Trophy, Video, MapPin, MessageSquareText } from "lucide-react"
 import { LessonLogCard } from "./lesson-log-card"
+import { StatusBadge } from "@/components/homework/status-badge"
+import { UnreadBadge } from "@/components/ui/unread-badge"
 
 function Sk({ className }: { className?: string }) {
   return <div className={`animate-pulse rounded bg-muted ${className ?? ""}`} />
@@ -452,29 +454,24 @@ async function StudentFeedbackSection({ userId }: { userId: string }) {
         先生からのフィードバック（{feedbacks.length}件）
       </h2>
       <div className="space-y-2">
-        {feedbacks.map((h) => {
-          const rejected = h.status === "rejected"
-          return (
-            <Link
-              key={h.id}
-              href={`/homework/${h.id}`}
-              className={`block rounded-lg border p-4 transition-colors hover:opacity-90 ${
-                rejected ? "border-destructive/30 bg-destructive/5" : "border-primary/30 bg-primary/5"
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                <span className="text-base shrink-0">{rejected ? "🔁" : "✅"}</span>
-                <p className="text-sm font-medium truncate">{h.title}</p>
-                <span className="ml-auto shrink-0 rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold text-primary-foreground">
-                  NEW
-                </span>
-              </div>
-              <p className="mt-1.5 text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap line-clamp-2">
-                {h.teacherFeedback}
-              </p>
-            </Link>
-          )
-        })}
+        {feedbacks.map((h) => (
+          <Link
+            key={h.id}
+            href={`/homework/${h.id}`}
+            className="block rounded-lg border border-primary/30 bg-primary/5 p-4 transition-colors hover:bg-primary/10"
+          >
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-medium truncate">{h.title}</p>
+              <span className="ml-auto shrink-0 flex items-center gap-1.5">
+                <StatusBadge status={h.status} />
+                <UnreadBadge />
+              </span>
+            </div>
+            <p className="mt-1.5 text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap line-clamp-2">
+              {h.teacherFeedback}
+            </p>
+          </Link>
+        ))}
       </div>
     </section>
   )
@@ -693,7 +690,7 @@ async function StudentRecentLogs({ userId }: { userId: string }) {
     },
     orderBy: { date: "desc" },
     take: 5,
-    select: { id: true, date: true, lessonLog: true, subjectIds: true },
+    select: { id: true, date: true, lessonLog: true, subjectIds: true, lessonLogSeenAt: true },
   })
   if (lessons.length === 0) return null
 
@@ -703,19 +700,30 @@ async function StudentRecentLogs({ userId }: { userId: string }) {
   })
   const subjectMap = new Map(subjects.map((s) => [s.id, s.name]))
 
+  // 未読を先頭に（同グループ内は新しい順を維持）
+  const sorted = [...lessons].sort(
+    (a, b) => Number(a.lessonLogSeenAt !== null) - Number(b.lessonLogSeenAt !== null)
+  )
+  const unreadCount = lessons.filter((l) => l.lessonLogSeenAt === null).length
+
   return (
     <section className="space-y-3">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold">授業ログ</h2>
+        <h2 className="text-sm font-semibold">
+          授業ログ
+          {unreadCount > 0 && <span className="ml-1.5 text-xs font-medium text-primary">未読{unreadCount}件</span>}
+        </h2>
         <Link href="/calendar" className="text-xs text-muted-foreground hover:underline">カレンダー</Link>
       </div>
       <div className="space-y-2">
-        {lessons.map((l) => {
+        {sorted.map((l) => {
           const subjectNames = l.subjectIds.map((id) => subjectMap.get(id)).filter(Boolean) as string[]
           const dateStr = l.date.toLocaleDateString("ja-JP", { month: "short", day: "numeric", weekday: "short" })
           return (
             <LessonLogCard
               key={l.id}
+              lessonId={l.id}
+              unread={l.lessonLogSeenAt === null}
               date={dateStr}
               subjectNames={subjectNames}
               log={l.lessonLog!}
