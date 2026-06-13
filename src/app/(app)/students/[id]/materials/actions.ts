@@ -26,7 +26,7 @@ export async function createMaterial(
   if (!result.success) return { error: result.error.issues[0].message }
 
   const { studentId, name, note } = result.data
-  const subjectIds = formData.getAll("subjectId") as string[]
+  const subjectIds = formData.getAll("subjectIds") as string[]
 
   const student = await db.student.findFirst({
     where: { id: studentId, teacherId: session.user.id },

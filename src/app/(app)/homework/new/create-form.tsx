@@ -17,6 +17,7 @@ type Student = {
 }
 
 type Material = { id: string; name: string }
+type Subject = { id: string; name: string }
 
 const tomorrowISO = () => {
   const d = new Date()
@@ -27,9 +28,11 @@ const tomorrowISO = () => {
 export default function CreateHomeworkForm({
   students,
   materialsByStudent,
+  subjects,
 }: {
   students: Student[]
   materialsByStudent: Record<string, Material[]>
+  subjects: Subject[]
 }) {
   const [state, action, isPending] = useActionState(createHomework, { error: "" })
   const singleStudent = students.length === 1 ? students[0] : null
@@ -111,8 +114,21 @@ export default function CreateHomeworkForm({
           )}
         </div>
       )}
+      {subjects.length > 0 && (
+        <div className="space-y-2">
+          <Label>科目タグ（任意・複数選択可）</Label>
+          <div className="flex flex-wrap gap-3">
+            {subjects.map((s) => (
+              <label key={s.id} className="flex items-center gap-1.5 cursor-pointer">
+                <input type="checkbox" name="subjectIds" value={s.id} className="accent-primary" />
+                <span className="text-sm">{s.name}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
       <div className="flex items-center gap-2">
-        <input type="checkbox" name="requiresPhoto" id="requiresPhoto" value="1" className="rounded" />
+        <input type="checkbox" name="requiresPhoto" id="requiresPhoto" value="1" className="accent-primary" />
         <Label htmlFor="requiresPhoto" className="text-sm font-normal cursor-pointer">
           写真提出を必須にする
         </Label>

@@ -3,6 +3,7 @@
 import { useActionState } from "react"
 import { createMaterial } from "./actions"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 
 type Subject = { id: string; name: string }
 
@@ -13,17 +14,8 @@ export function AddMaterialForm({ studentId, subjects }: { studentId: string; su
     <form action={action} className="space-y-3">
       <input type="hidden" name="studentId" value={studentId} />
       <div className="flex gap-2 flex-wrap">
-        <input
-          name="name"
-          required
-          placeholder="教材名（例: チャート式数学）"
-          className="flex-1 min-w-[200px] h-9 rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        />
-        <input
-          name="note"
-          placeholder="メモ（任意）"
-          className="flex-1 min-w-[160px] h-9 rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        />
+        <Input name="name" required placeholder="教材名（例: チャート式数学）" className="flex-1 min-w-[200px]" />
+        <Input name="note" placeholder="メモ（任意）" className="flex-1 min-w-[160px]" />
       </div>
       {subjects.length > 0 && (
         <div className="space-y-1.5">
@@ -31,7 +23,7 @@ export function AddMaterialForm({ studentId, subjects }: { studentId: string; su
           <div className="flex flex-wrap gap-2">
             {subjects.map((s) => (
               <label key={s.id} className="inline-flex items-center gap-1.5 cursor-pointer">
-                <input type="checkbox" name="subjectId" value={s.id} className="rounded" />
+                <input type="checkbox" name="subjectIds" value={s.id} className="accent-primary" />
                 <span className="text-xs">{s.name}</span>
               </label>
             ))}

@@ -38,6 +38,7 @@ export async function createHomework(
   }
 
   const { studentId, title, description, dueDate, materialId, requiresPhoto } = result.data
+  const subjectIds = formData.getAll("subjectIds") as string[]
 
   const student = await db.student.findFirst({
     where: { id: studentId, teacherId: session.user.id },
@@ -63,7 +64,7 @@ export async function createHomework(
       title,
       description: description || null,
       dueDate: new Date(dueDate),
-      subjectIds: [],
+      subjectIds,
       materialId: materialId || null,
       requiresPhoto: requiresPhoto === "1",
     },

@@ -65,7 +65,7 @@ export function EditSubjectTags({
               type="checkbox"
               checked={selected.has(s.id)}
               onChange={() => toggle(s.id)}
-              className="rounded"
+              className="accent-primary"
             />
             <span className="text-xs">{s.name}</span>
           </label>
