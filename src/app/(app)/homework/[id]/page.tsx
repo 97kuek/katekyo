@@ -6,7 +6,7 @@ import { buttonVariants } from "@/components/ui/button"
 import { StatusBadge } from "@/components/homework/status-badge"
 import { DeleteHomeworkButton } from "./delete-homework-button"
 import { CancelSubmissionButton } from "@/app/(app)/homework/cancel-button"
-import { relativeDeadline, deadlineColorClass } from "@/lib/date-utils"
+import { relativeDeadline, deadlineColorClass, formatDate } from "@/lib/date-utils"
 import { ExtendDeadlineButton } from "./extend-deadline"
 import { AlertCircle } from "lucide-react"
 import { DifficultyBars } from "@/components/homework/difficulty-bars"
@@ -125,9 +125,9 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
             )}
           </div>
           <div className="text-sm sm:text-right sm:shrink-0">
-            <p className="text-muted-foreground">作成: {homework.createdAt.toLocaleDateString("ja-JP")}</p>
+            <p className="text-muted-foreground">作成: {formatDate(homework.createdAt)}</p>
             <p className={`mt-0.5 ${deadlineColorClass(homework.dueDate)}`}>
-              期限: {homework.dueDate.toLocaleDateString("ja-JP")}
+              期限: {formatDate(homework.dueDate)}
               <span className="ml-1 text-xs">（{relativeDeadline(homework.dueDate)}）</span>
             </p>
           </div>

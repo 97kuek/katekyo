@@ -5,6 +5,7 @@ import Link from "next/link"
 import { buttonVariants } from "@/components/ui/button"
 import { revokeInvite } from "./actions"
 import { CopyInviteLink } from "./copy-link"
+import { formatDate } from "@/lib/date-utils"
 
 export default async function InvitesPage() {
   const session = await auth()
@@ -65,10 +66,10 @@ export default async function InvitesPage() {
                     <td className="px-4 py-3 font-medium">{i.name}</td>
                     <td className="px-4 py-3 text-muted-foreground">{i.grade}</td>
                     <td className="px-4 py-3 text-muted-foreground">
-                      {i.expiresAt.toLocaleDateString("ja-JP")}
+                      {formatDate(i.expiresAt)}
                     </td>
                     <td className="px-4 py-3 text-muted-foreground">
-                      {i.createdAt.toLocaleDateString("ja-JP")}
+                      {formatDate(i.createdAt)}
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-3">
@@ -111,7 +112,7 @@ export default async function InvitesPage() {
                     <td className="px-4 py-3 font-medium">{i.name}</td>
                     <td className="px-4 py-3 text-muted-foreground">{i.grade}</td>
                     <td className="px-4 py-3 text-destructive">
-                      {i.expiresAt.toLocaleDateString("ja-JP")}
+                      {formatDate(i.expiresAt)}
                     </td>
                     <td className="px-4 py-3 text-right">
                       <form action={revokeInvite}>
@@ -150,7 +151,7 @@ export default async function InvitesPage() {
                     <td className="px-4 py-3 font-medium">{i.name}</td>
                     <td className="px-4 py-3 text-muted-foreground">{i.grade}</td>
                     <td className="px-4 py-3 text-muted-foreground">
-                      {i.usedAt!.toLocaleDateString("ja-JP")}
+                      {formatDate(i.usedAt!)}
                     </td>
                   </tr>
                 ))}

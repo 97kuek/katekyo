@@ -4,6 +4,7 @@ import { db } from "@/lib/db"
 import Link from "next/link"
 import ReviewForm from "./review-form"
 import { DifficultyBars } from "@/components/homework/difficulty-bars"
+import { formatDate } from "@/lib/date-utils"
 
 export default async function ReviewHomeworkPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -31,7 +32,7 @@ export default async function ReviewHomeworkPage({ params }: { params: Promise<{
             <h2 className="font-semibold text-lg mt-0.5">{homework.title}</h2>
           </div>
           <span className="text-xs text-muted-foreground shrink-0">
-            期限: {homework.dueDate.toLocaleDateString("ja-JP")}
+            期限: {formatDate(homework.dueDate)}
           </span>
         </div>
 

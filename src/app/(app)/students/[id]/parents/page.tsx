@@ -4,6 +4,7 @@ import { db } from "@/lib/db"
 import Link from "next/link"
 import { buttonVariants } from "@/components/ui/button"
 import { UnlinkParentButton } from "./unlink-button"
+import { formatDate } from "@/lib/date-utils"
 
 export default async function StudentParentsPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
@@ -59,7 +60,7 @@ export default async function StudentParentsPage({ params }: { params: Promise<{
                   <p className="text-sm font-medium">{parent.name}</p>
                   <p className="text-xs text-muted-foreground">{parent.email}</p>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    登録日: {parent.createdAt.toLocaleDateString("ja-JP")}
+                    登録日: {formatDate(parent.createdAt)}
                   </p>
                 </div>
                 <UnlinkParentButton
@@ -81,7 +82,7 @@ export default async function StudentParentsPage({ params }: { params: Promise<{
             {pendingInvites.map((inv) => (
               <div key={inv.id} className="px-4 py-3">
                 <p className="text-xs text-muted-foreground">
-                  有効期限: {inv.expiresAt.toLocaleDateString("ja-JP")}
+                  有効期限: {formatDate(inv.expiresAt)}
                   {inv.email && ` · ${inv.email}`}
                 </p>
               </div>

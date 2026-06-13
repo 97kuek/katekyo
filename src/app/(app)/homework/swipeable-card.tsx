@@ -5,7 +5,7 @@ import Link from "next/link"
 import { Pencil, Trash2 } from "lucide-react"
 import { deleteHomework } from "@/app/(app)/homework/[id]/actions"
 import { StatusBadge } from "@/components/homework/status-badge"
-import { deadlineColorClass, relativeDeadline } from "@/lib/date-utils"
+import { deadlineColorClass, relativeDeadline, formatDate } from "@/lib/date-utils"
 import { haptic } from "@/lib/haptic"
 import { SwipeableRow } from "@/components/ui/swipeable-row"
 
@@ -83,7 +83,7 @@ export function SwipeableHomeworkCard({
           <StatusBadge status={status} />
         </div>
         <p className={`text-xs mt-2 ${status === "assigned" || status === "rejected" ? relColor : "text-muted-foreground"}`}>
-          期限: {dueDate.toLocaleDateString("ja-JP")}
+          期限: {formatDate(dueDate)}
           {(status === "assigned" || status === "rejected") && <span className="ml-1.5">（{relLabel}）</span>}
         </p>
       </Link>

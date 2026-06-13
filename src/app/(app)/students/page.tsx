@@ -6,6 +6,7 @@ import { ChevronRight } from "lucide-react"
 import { buttonVariants } from "@/components/ui/button"
 import { StudentSort } from "./student-sort"
 import { StudentRow } from "./student-row"
+import { formatDate } from "@/lib/date-utils"
 
 export default async function StudentsPage({
   searchParams,
@@ -86,7 +87,7 @@ export default async function StudentsPage({
                     <td className="px-4 py-3 font-medium">{s.user.name}</td>
                     <td className="hidden lg:table-cell px-4 py-3 text-muted-foreground">{s.user.email}</td>
                     <td className="px-4 py-3">{s.grade}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{s.createdAt.toLocaleDateString("ja-JP")}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{formatDate(s.createdAt)}</td>
                     <td className="px-4 py-3 text-muted-foreground">
                       <ChevronRight className="h-4 w-4" />
                     </td>

@@ -4,6 +4,7 @@ import { db } from "@/lib/db"
 import Link from "next/link"
 import SubmitForm from "./submit-form"
 import { StatusBadge } from "@/components/homework/status-badge"
+import { formatDate } from "@/lib/date-utils"
 
 export default async function SubmitHomeworkPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -32,7 +33,7 @@ export default async function SubmitHomeworkPage({ params }: { params: Promise<{
           <StatusBadge status={homework.status} />
         </div>
         <p className="text-sm text-muted-foreground">
-          期限: {homework.dueDate.toLocaleDateString("ja-JP")}
+          期限: {formatDate(homework.dueDate)}
         </p>
         {homework.description && (
           <p className="text-sm text-muted-foreground whitespace-pre-wrap">{homework.description}</p>

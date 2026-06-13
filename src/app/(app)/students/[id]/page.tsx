@@ -9,6 +9,7 @@ import { UpdateStudentRatesForm } from "../update-student-rates-form"
 import { ViewAsButton } from "../view-as-button"
 import { ResetPasswordButton } from "../reset-password-button"
 import { DeleteStudentButton } from "../delete-student-button"
+import { formatDate } from "@/lib/date-utils"
 
 export default async function StudentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
@@ -81,7 +82,7 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
           </div>
           <div className="flex items-center justify-between gap-4">
             <span className="text-muted-foreground">登録日</span>
-            <span>{student.createdAt.toLocaleDateString("ja-JP")}</span>
+            <span>{formatDate(student.createdAt)}</span>
           </div>
           <div className="flex items-center justify-between gap-4">
             <span className="text-muted-foreground">学年</span>

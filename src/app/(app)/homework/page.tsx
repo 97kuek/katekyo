@@ -10,7 +10,7 @@ import { UnreadBadge } from "@/components/ui/unread-badge"
 import { CancelSubmissionButton } from "./cancel-button"
 import { HomeworkFilter } from "./homework-filter"
 import { BulkApproveSection } from "./bulk-approve-section"
-import { relativeDeadline, deadlineColorClass } from "@/lib/date-utils"
+import { relativeDeadline, deadlineColorClass, formatDate } from "@/lib/date-utils"
 import { SwipeableHomeworkCard } from "./swipeable-card"
 
 function SubjectTags({ ids, map }: { ids: string[]; map: Map<string, string> }) {
@@ -165,7 +165,7 @@ async function TeacherHomeworkPage({
                       </td>
                       <td className="px-4 py-3 text-muted-foreground">{h.student.user.name}</td>
                       <td className="px-4 py-3">
-                        <p className="text-muted-foreground">{h.dueDate.toLocaleDateString("ja-JP")}</p>
+                        <p className="text-muted-foreground">{formatDate(h.dueDate)}</p>
                         {(h.status === "assigned" || h.status === "rejected") && (
                           <p className={`text-xs ${relColor}`}>{relLabel}</p>
                         )}
@@ -272,7 +272,7 @@ async function ParentHomeworkPage({ parentId, studentIdFilter }: { parentId: str
                   <StatusBadge status={h.status} />
                 </div>
                 <p className={`text-xs mt-1.5 ${h.status === "assigned" || h.status === "rejected" ? relColor : "text-muted-foreground"}`}>
-                  期限: {h.dueDate.toLocaleDateString("ja-JP")}
+                  期限: {formatDate(h.dueDate)}
                   {(h.status === "assigned" || h.status === "rejected") && <span className="ml-1.5">（{relLabel}）</span>}
                 </p>
               </Link>
@@ -322,7 +322,7 @@ async function StudentHomeworkPage({ userId }: { userId: string }) {
                       <StatusBadge status={h.status} />
                     </div>
                     <p className={`text-sm mt-0.5 ${relColor}`}>
-                      期限: {h.dueDate.toLocaleDateString("ja-JP")}
+                      期限: {formatDate(h.dueDate)}
                       <span className="ml-1.5 text-xs">（{relLabel}）</span>
                     </p>
                     <SubjectTags ids={h.subjectIds} map={subjectMap} />
@@ -357,7 +357,7 @@ async function StudentHomeworkPage({ userId }: { userId: string }) {
                 <div className="min-w-0">
                   <p className="font-medium truncate">{h.title}</p>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    提出済み {h.submittedAt?.toLocaleDateString("ja-JP")}
+                    提出済み {h.submittedAt && formatDate(h.submittedAt)}
                   </p>
                   <SubjectTags ids={h.subjectIds} map={subjectMap} />
                 </div>
@@ -388,7 +388,7 @@ async function StudentHomeworkPage({ userId }: { userId: string }) {
                     <div className="min-w-0">
                       <p className="font-medium truncate">{h.title}</p>
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        期限: {h.dueDate.toLocaleDateString("ja-JP")}
+                        期限: {formatDate(h.dueDate)}
                       </p>
                       <SubjectTags ids={h.subjectIds} map={subjectMap} />
                     </div>
