@@ -79,7 +79,7 @@ async function TeacherSummaryCards({ teacherId }: { teacherId: string }) {
     db.homework.count({ where: { teacherId, status: "submitted" } }),
     db.student.count({ where: { teacherId } }),
     db.gradeRecord.count({ where: { teacherId, createdAt: { gte: monthStart } } }),
-    db.homework.count({ where: { teacherId, status: "assigned", dueDate: { lt: now } } }),
+    db.homework.count({ where: { teacherId, status: { in: ["assigned", "rejected"] }, dueDate: { lt: now } } }),
   ])
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -793,7 +793,7 @@ async function ParentStudentList({ parentId }: { parentId: string }) {
       {links.map(({ student }) => {
         const totalHw = student.homeworks.length
         const approvedHw = student.homeworks.filter((h) => h.status === "approved").length
-        const pendingHw = student.homeworks.filter((h) => h.status === "assigned").length
+        const pendingHw = student.homeworks.filter((h) => h.status === "assigned" || h.status === "rejected").length
         const pct = totalHw > 0 ? Math.round((approvedHw / totalHw) * 100) : null
         const nextLesson = student.lessons[0]
         const latestGrade = student.grades[0]

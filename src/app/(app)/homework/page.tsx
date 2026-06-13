@@ -124,7 +124,7 @@ async function TeacherHomeworkPage({
           {/* モバイル: スワイプカード */}
           <div className="md:hidden space-y-2">
             {others.map((h) => {
-              const overdue = h.dueDate < now && h.status === "assigned"
+              const overdue = h.dueDate < now && (h.status === "assigned" || h.status === "rejected")
               const subjectNames = h.subjectIds.map((sid) => subjectMap.get(sid)).filter(Boolean) as string[]
               return (
                 <SwipeableHomeworkCard
@@ -153,7 +153,7 @@ async function TeacherHomeworkPage({
               </thead>
               <tbody className="divide-y">
                 {others.map((h) => {
-                  const overdue = h.dueDate < now && h.status === "assigned"
+                  const overdue = h.dueDate < now && (h.status === "assigned" || h.status === "rejected")
                   const relLabel = relativeDeadline(h.dueDate)
                   const relColor = deadlineColorClass(h.dueDate)
                   return (
@@ -165,7 +165,7 @@ async function TeacherHomeworkPage({
                       <td className="px-4 py-3 text-muted-foreground">{h.student.user.name}</td>
                       <td className="px-4 py-3">
                         <p className="text-muted-foreground">{h.dueDate.toLocaleDateString("ja-JP")}</p>
-                        {h.status === "assigned" && (
+                        {(h.status === "assigned" || h.status === "rejected") && (
                           <p className={`text-xs ${relColor}`}>{relLabel}</p>
                         )}
                       </td>
@@ -254,7 +254,7 @@ async function ParentHomeworkPage({ parentId, studentIdFilter }: { parentId: str
       ) : (
         <div className="space-y-2">
           {homeworks.map((h) => {
-            const overdue = h.dueDate < now && h.status === "assigned"
+            const overdue = h.dueDate < now && (h.status === "assigned" || h.status === "rejected")
             const relLabel = relativeDeadline(h.dueDate)
             const relColor = deadlineColorClass(h.dueDate)
             return (
@@ -270,9 +270,9 @@ async function ParentHomeworkPage({ parentId, studentIdFilter }: { parentId: str
                   </div>
                   <StatusBadge status={h.status} />
                 </div>
-                <p className={`text-xs mt-1.5 ${h.status === "assigned" ? relColor : "text-muted-foreground"}`}>
+                <p className={`text-xs mt-1.5 ${h.status === "assigned" || h.status === "rejected" ? relColor : "text-muted-foreground"}`}>
                   期限: {h.dueDate.toLocaleDateString("ja-JP")}
-                  {h.status === "assigned" && <span className="ml-1.5">（{relLabel}）</span>}
+                  {(h.status === "assigned" || h.status === "rejected") && <span className="ml-1.5">（{relLabel}）</span>}
                 </p>
               </Link>
             )

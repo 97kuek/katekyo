@@ -82,9 +82,9 @@ export function SwipeableHomeworkCard({
           </div>
           <StatusBadge status={status} />
         </div>
-        <p className={`text-xs mt-2 ${status === "assigned" ? relColor : "text-muted-foreground"}`}>
+        <p className={`text-xs mt-2 ${status === "assigned" || status === "rejected" ? relColor : "text-muted-foreground"}`}>
           期限: {dueDate.toLocaleDateString("ja-JP")}
-          {status === "assigned" && <span className="ml-1.5">（{relLabel}）</span>}
+          {(status === "assigned" || status === "rejected") && <span className="ml-1.5">（{relLabel}）</span>}
         </p>
       </Link>
     </SwipeableRow>
