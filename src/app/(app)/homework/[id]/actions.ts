@@ -130,7 +130,12 @@ export async function reviewHomework(
 
   await db.homework.update({
     where: { id },
-    data: { status: action, teacherFeedback: feedback ?? null, reviewedAt: new Date() },
+    data: {
+      status: action,
+      teacherFeedback: feedback ?? null,
+      reviewedAt: new Date(),
+      feedbackSeenAt: null,
+    },
   })
 
   await db.homeworkEvent.create({
@@ -142,17 +147,19 @@ export async function reviewHomework(
     },
   })
 
-  if (action === "rejected") {
+  // 差し戻し時、または承認でもフィードバックがある場合は生徒へ通知
+  if (action === "rejected" || feedback) {
     const studentUser = await db.student.findUnique({
       where: { id: homework.studentId },
       include: { user: { select: { lineUserId: true } } },
     })
     if (studentUser?.user.lineUserId) {
       const baseUrl = process.env.NEXTAUTH_URL ?? ""
-      await sendLineMessage(
-        studentUser.user.lineUserId,
-        `🔁 宿題が差し戻されました\n\n「${homework.title}」が差し戻されました。\n\nフィードバック：\n${feedback ?? "（なし）"}\n\n${baseUrl}/homework/${id}`
-      )
+      const message =
+        action === "rejected"
+          ? `🔁 宿題が差し戻されました\n\n「${homework.title}」が差し戻されました。\n\nフィードバック：\n${feedback ?? "（なし）"}\n\n${baseUrl}/homework/${id}`
+          : `✅ 宿題が承認されました\n\n「${homework.title}」が承認されました。\n\n先生からのコメント：\n${feedback}\n\n${baseUrl}/homework/${id}`
+      await sendLineMessage(studentUser.user.lineUserId, message)
     }
   }
 
@@ -165,6 +172,21 @@ export async function reviewHomework(
   }
 
   redirect("/homework?toast=reviewed")
+}
+
+export async function markFeedbackSeen(homeworkId: string) {
+  const session = await auth()
+  if (!session || session.user.role !== "student") return
+
+  const student = await db.student.findUnique({ where: { userId: session.user.id } })
+  if (!student) return
+
+  await db.homework.updateMany({
+    where: { id: homeworkId, studentId: student.id, feedbackSeenAt: null },
+    data: { feedbackSeenAt: new Date() },
+  })
+
+  revalidatePath("/dashboard")
 }
 
 export async function cancelSubmission(formData: FormData) {

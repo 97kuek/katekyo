@@ -202,6 +202,7 @@ model Homework {
   photoUrl         String?
   submittedAt      DateTime?      @db.Timestamptz(3)
   reviewedAt       DateTime?      @db.Timestamptz(3)
+  feedbackSeenAt   DateTime?      @db.Timestamptz(3)
   createdAt        DateTime       @default(now()) @db.Timestamptz(3)
 
   student  Student          @relation(fields: [studentId], references: [id], onDelete: Cascade)

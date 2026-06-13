@@ -6,7 +6,7 @@ import Link from "next/link"
 import { Suspense } from "react"
 import { buttonVariants } from "@/components/ui/button"
 import { TEST_TYPE_LABELS } from "@/lib/test-types"
-import { TreePine, Trophy, Video, MapPin } from "lucide-react"
+import { TreePine, Trophy, Video, MapPin, MessageSquareText } from "lucide-react"
 import { LessonLogCard } from "./lesson-log-card"
 
 function Sk({ className }: { className?: string }) {
@@ -380,6 +380,10 @@ async function GradeTrendsSection({ teacherId }: { teacherId: string }) {
 function StudentDashboard({ userId }: { userId: string }) {
   return (
     <div className="space-y-6">
+      <Suspense fallback={null}>
+        <StudentFeedbackSection userId={userId} />
+      </Suspense>
+
       <Suspense fallback={
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           {[...Array(4)].map((_, i) => (
@@ -421,6 +425,58 @@ function StudentDashboard({ userId }: { userId: string }) {
         <StudentParentInvitePrompt userId={userId} />
       </Suspense>
     </div>
+  )
+}
+
+async function StudentFeedbackSection({ userId }: { userId: string }) {
+  const student = await getStudentByUserId(userId)
+  if (!student) return null
+
+  const feedbacks = await db.homework.findMany({
+    where: {
+      studentId: student.id,
+      teacherFeedback: { not: null },
+      feedbackSeenAt: null,
+      status: { in: ["approved", "rejected"] },
+    },
+    orderBy: { reviewedAt: "desc" },
+    take: 5,
+    select: { id: true, title: true, teacherFeedback: true, status: true },
+  })
+  if (feedbacks.length === 0) return null
+
+  return (
+    <section className="space-y-3">
+      <h2 className="text-sm font-semibold flex items-center gap-1.5">
+        <MessageSquareText className="h-4 w-4 text-primary" />
+        先生からのフィードバック（{feedbacks.length}件）
+      </h2>
+      <div className="space-y-2">
+        {feedbacks.map((h) => {
+          const rejected = h.status === "rejected"
+          return (
+            <Link
+              key={h.id}
+              href={`/homework/${h.id}`}
+              className={`block rounded-lg border p-4 transition-colors hover:opacity-90 ${
+                rejected ? "border-destructive/30 bg-destructive/5" : "border-primary/30 bg-primary/5"
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-base shrink-0">{rejected ? "🔁" : "✅"}</span>
+                <p className="text-sm font-medium truncate">{h.title}</p>
+                <span className="ml-auto shrink-0 rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold text-primary-foreground">
+                  NEW
+                </span>
+              </div>
+              <p className="mt-1.5 text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap line-clamp-2">
+                {h.teacherFeedback}
+              </p>
+            </Link>
+          )
+        })}
+      </div>
+    </section>
   )
 }
 

@@ -10,6 +10,7 @@ import { relativeDeadline, deadlineColorClass } from "@/lib/date-utils"
 import { ExtendDeadlineButton } from "./extend-deadline"
 import { AlertCircle } from "lucide-react"
 import { DifficultyBars } from "@/components/homework/difficulty-bars"
+import { MarkFeedbackSeen } from "./mark-feedback-seen"
 
 const DIFFICULTY_LABELS: Record<number, { label: string; color: string }> = {
   1: { label: "かんたん",    color: "text-primary bg-primary/10" },
@@ -70,8 +71,13 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
       : null,
   ])
 
+  const isStudent = !isTeacher && !isParent
+  const hasUnseenFeedback =
+    isStudent && !!homework.teacherFeedback && homework.feedbackSeenAt === null
+
   return (
     <div className="max-w-2xl mx-auto space-y-6">
+      {hasUnseenFeedback && <MarkFeedbackSeen homeworkId={homework.id} />}
       <div className="flex items-center justify-between gap-2">
         <Link href="/homework" className="text-sm text-muted-foreground hover:underline">
           ← 宿題一覧に戻る
