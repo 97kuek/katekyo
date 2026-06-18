@@ -135,4 +135,5 @@
 | [docs/data-models.md](docs/data-models.md) | Prisma モデル全定義 |
 | [docs/requirements.md](docs/requirements.md) | 機能要件・ビジネスロジック |
 | [docs/api-spec.md](docs/api-spec.md) | Server Actions・Route Handlers 一覧 |
-| [docs/development.md](docs/development.md) | 開発環境セットアップ・トラブルシューティング |
+| [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) | 開発環境セットアップ・ブランチ戦略・AI エージェント運用 |
+| [AGENTS.md](AGENTS.md) | Codex / Claude Code 共通のエージェント作業指示 |
