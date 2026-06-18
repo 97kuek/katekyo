@@ -8,6 +8,17 @@ const password = process.env.UI_AUDIT_PASSWORD ?? "codex-ui-audit-password"
 
 const routes = ["/dashboard", "/students", "/homework", "/grades", "/calendar", "/billing", "/settings"]
 
+async function acceptTermsIfShown(page: Page) {
+  const dialog = page.getByRole("dialog", { name: "利用規約への同意" })
+  await dialog.waitFor({ state: "visible", timeout: 5_000 }).catch(() => {})
+
+  if (await dialog.isVisible().catch(() => false)) {
+    await dialog.locator('input[type="checkbox"]').check({ force: true })
+    await dialog.getByRole("button", { name: "同意してはじめる" }).click()
+    await expect(dialog).toBeHidden({ timeout: 30_000 })
+  }
+}
+
 async function login(page: Page) {
   await page.goto(`${baseURL}/register`, { waitUntil: "domcontentloaded" })
   await page.getByLabel("名前").fill("Codex UI Audit")
@@ -21,13 +32,7 @@ async function login(page: Page) {
   await page.getByRole("button", { name: "ログイン" }).click()
 
   await expect(page).toHaveURL(/\/dashboard/, { timeout: 30_000 })
-
-  const termsDialog = page.getByRole("heading", { name: "利用規約への同意" })
-  if (await termsDialog.isVisible().catch(() => false)) {
-    await page.locator('input[type="checkbox"]').check({ force: true })
-    await page.getByRole("button", { name: "同意してはじめる" }).click()
-    await expect(termsDialog).toBeHidden({ timeout: 30_000 })
-  }
+  await acceptTermsIfShown(page)
 }
 
 async function findHorizontalOverflow(page: Page) {
@@ -65,6 +70,7 @@ test.describe("responsive UI audit", () => {
     for (const route of routes) {
       await page.goto(`${baseURL}${route}`, { waitUntil: "domcontentloaded" })
       await page.waitForLoadState("networkidle", { timeout: 30_000 }).catch(() => {})
+      await acceptTermsIfShown(page)
       await page.screenshot({
         path: testInfo.outputPath(`${testInfo.project.name}-${route.replaceAll("/", "_") || "root"}.png`),
         fullPage: true,

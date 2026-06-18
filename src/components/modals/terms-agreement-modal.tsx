@@ -23,9 +23,14 @@ export function TermsAgreementModal({ show }: { show: boolean }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 px-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-[calc(env(safe-area-inset-top)+0.75rem)] sm:items-center sm:px-4 sm:py-6">
-      <div className="flex max-h-full w-full max-w-md flex-col overflow-hidden rounded-lg border border-border bg-card shadow-xl">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="terms-agreement-title"
+        className="flex max-h-full w-full max-w-md flex-col overflow-hidden rounded-lg border border-border bg-card shadow-xl"
+      >
         <div className="shrink-0 px-5 pt-5 sm:px-6 sm:pt-6">
-          <h2 className="text-lg font-bold text-foreground">利用規約への同意</h2>
+          <h2 id="terms-agreement-title" className="text-lg font-bold text-foreground">利用規約への同意</h2>
           <p className="text-sm text-muted-foreground mt-1">
             katekyoをご利用いただく前に、以下をご確認ください。
           </p>
