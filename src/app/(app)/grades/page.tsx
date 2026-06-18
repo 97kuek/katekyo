@@ -142,10 +142,10 @@ async function TeacherGradesPage({
   return (
     <div className="space-y-3">
       <div className="space-y-2">
-        <div className="flex items-center gap-2">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] sm:items-center">
           <GradeStudentFilter students={students} />
           <GradeSubjectFilter subjects={subjects} />
-          <Link href="/grades/new" className={buttonVariants({ size: "sm", className: "ml-auto shrink-0" })}>
+          <Link href="/grades/new" className={buttonVariants({ size: "sm", className: "w-full justify-center sm:w-auto sm:shrink-0" })}>
             成績を記録
           </Link>
         </div>
@@ -171,7 +171,7 @@ async function TeacherGradesPage({
       ) : (
         <>
           {/* モバイル: カード表示 */}
-          <div className="md:hidden space-y-2">
+          <div className="lg:hidden space-y-2">
             {grades.map((g, i) => (
               <GradeSwipeRow key={g.id} gradeId={g.id}>
                 <div className="space-y-2">
@@ -207,7 +207,7 @@ async function TeacherGradesPage({
             ))}
           </div>
           {/* デスクトップ: テーブル表示 */}
-          <div className="hidden md:block rounded-lg border bg-card overflow-hidden overflow-x-auto">
+          <div className="hidden lg:block rounded-lg border bg-card overflow-hidden overflow-x-auto">
             <table className="w-full text-sm min-w-[780px]">
               <thead className="border-b bg-muted">
                 <tr>
