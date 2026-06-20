@@ -101,7 +101,7 @@ async function TeacherGradesPage({
       include: { student: { include: { user: { select: { name: true } } } } },
       orderBy: { date: "desc" },
     }),
-    db.subject.findMany({ where: { teacherId }, select: { id: true, name: true } }),
+    db.subject.findMany({ where: { teacherId }, select: { id: true, name: true, color: true } }),
     db.student.findMany({
       where: { teacherId },
       include: { user: { select: { name: true } } },
@@ -263,7 +263,7 @@ async function StudentGradesPage({ userId }: { userId: string }) {
 
   const [grades, subjects] = await Promise.all([
     db.gradeRecord.findMany({ where: { studentId: student.id }, orderBy: { date: "desc" } }),
-    db.subject.findMany({ where: { teacherId: student.teacherId }, select: { id: true, name: true } }),
+    db.subject.findMany({ where: { teacherId: student.teacherId }, select: { id: true, name: true, color: true } }),
   ])
 
   const subjectMap = new Map(subjects.map((s) => [s.id, s.name]))
@@ -427,7 +427,7 @@ async function ParentGradesPage({
 
   const teacherId = links.find((l) => l.studentId === effectiveStudentId)?.teacherId
   const subjects = teacherId
-    ? await db.subject.findMany({ where: { teacherId }, select: { id: true, name: true } })
+    ? await db.subject.findMany({ where: { teacherId }, select: { id: true, name: true, color: true } })
     : []
   const subjectMap = new Map(subjects.map((s) => [s.id, s.name]))
 

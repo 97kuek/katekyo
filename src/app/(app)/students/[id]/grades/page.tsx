@@ -54,7 +54,7 @@ export default async function StudentGradesPage({ params }: { params: Promise<{ 
     }),
     db.subject.findMany({
       where: { teacherId: session.user.id },
-      select: { id: true, name: true },
+      select: { id: true, name: true, color: true },
     }),
   ])
 

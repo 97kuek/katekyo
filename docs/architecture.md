@@ -157,7 +157,7 @@ prisma/
 ## モバイル操作・safe-area
 
 - **safe-area 対応**: `viewport` に `viewportFit: "cover"` を設定。ボトムナビは `pb-[env(safe-area-inset-bottom)]`、main の下余白も safe-area を加味（iPhone のホームインジケーターに被らない）
-- **スワイプ操作**（`components/ui/swipeable-row.tsx`）: 宿題一覧・成績一覧のモバイルカードを左スワイプで編集/削除を露出。左端まで振り切ると `onFullSwipe`（削除）を実行。Pointer Events + `touch-action: pan-y`、`haptic` で触覚フィードバック。閉じている間は右端に控えめなシェブロンでスワイプ可能を示唆
+- **スワイプ操作**（`components/ui/swipeable-row.tsx`）: 宿題一覧・成績一覧のモバイルカードを左スワイプで編集/削除を露出。露出トレイは**ニュートラル背景（`bg-muted`）に統一**し、編集=`text-muted-foreground`／削除=`text-destructive` のアイコン+極小ラベルで色のみ差別化（パステル薄塗りは使わない）。左端まで振り切ると `onFullSwipe`（削除）を実行し、その間は赤一色スラブ＋「離して削除」を表示（opacity の二段階アームは廃止）。Pointer Events + `touch-action: pan-y`、`haptic` で触覚フィードバック。閉じている間は右端に控えめなシェブロンでスワイプ可能を示唆
 - **スティッキー送信ボタン**（`components/ui/sticky-form-actions.tsx`）: 長いフォームの送信ボタンをモバイルで画面下部（ボトムナビの上）に固定。同じ高さのスペーサーで最後の入力欄が隠れないようにする。デスクトップでは通常フロー
 - **プルダウン更新**（`components/layout/pull-to-refresh.tsx`）: `<main>` 最上部から引くと `router.refresh()`
 - **ボトムナビ**: アクティブ項目は上部にインジケーターバー + アイコン拡大。タップで `active:opacity-60`

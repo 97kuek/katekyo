@@ -8,11 +8,11 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
 } from "recharts"
 import { Button } from "@/components/ui/button"
 import { TEST_TYPE_OPTIONS } from "@/lib/test-types"
+import { FALLBACK_LINE_COLORS } from "@/lib/subject-colors"
 
 type Grade = {
   id: string
@@ -26,16 +26,7 @@ type Grade = {
   subjectIds: string[]
 }
 
-type Subject = { id: string; name: string }
-
-const LINE_COLORS = [
-  "var(--primary)",
-  "var(--chart-1)",
-  "var(--chart-3)",
-  "var(--chart-4)",
-  "var(--chart-5)",
-  "var(--chart-2)",
-]
+type Subject = { id: string; name: string; color?: string | null }
 
 function computeValue(g: Grade, mode: "score" | "deviation"): number | null {
   if (mode === "score") {
@@ -74,6 +65,9 @@ export default function GradeChart({
 
   const usedSubjectIds = Array.from(new Set(sorted.flatMap((g) => g.subjectIds)))
   const subjectMap = new Map(subjects.map((s) => [s.id, s.name]))
+  const colorMap = new Map(subjects.map((s) => [s.id, s.color ?? null]))
+  const colorOf = (sid: string, i: number) =>
+    colorMap.get(sid) ?? FALLBACK_LINE_COLORS[i % FALLBACK_LINE_COLORS.length]
   const hasSubjects = usedSubjectIds.length > 0
 
   const allDates = Array.from(new Set(sorted.map((g) => g.date)))
@@ -107,6 +101,11 @@ export default function GradeChart({
   })
 
   if (!hasScore && !hasDeviation) return null
+
+  // 長期記録に備えた横スクロール: データ点が多いとき1点あたり幅を確保
+  const POINT_W = 56
+  const needScroll = chartData.length > 7
+  const innerWidth = needScroll ? chartData.length * POINT_W + 48 : undefined
 
   return (
     <div className="rounded-lg border bg-card p-4 space-y-3">
@@ -154,6 +153,9 @@ export default function GradeChart({
       {chartData.length === 0 ? (
         <p className="text-sm text-muted-foreground text-center py-6">該当するデータがありません</p>
       ) : (
+        <>
+        <div className={needScroll ? "overflow-x-auto overscroll-x-contain -mx-1 px-1" : ""}>
+        <div style={needScroll ? { width: innerWidth } : undefined}>
         <ResponsiveContainer width="100%" height={200}>
           <LineChart data={chartData} margin={{ top: 4, right: 10, left: -20, bottom: 28 }}>
             <CartesianGrid strokeDasharray="3 3" />
@@ -182,17 +184,6 @@ export default function GradeChart({
                 return mode === "score" ? [`${value}%`, label] : [`偏差値 ${value}`, label]
               }}
             />
-            {hasSubjects && (
-              <Legend
-                formatter={(v) => subjectMap.get(v) ?? v}
-                onClick={(data) => {
-                  const key = data.dataKey as string
-                  setActiveSubject((prev) => (prev === key ? null : key))
-                }}
-                wrapperStyle={{ cursor: "pointer", fontSize: 11 }}
-              />
-            )}
-
             {hasSubjects
               ? usedSubjectIds.map((sid, i) => {
                   const dimmed = activeSubject !== null && activeSubject !== sid
@@ -201,7 +192,7 @@ export default function GradeChart({
                       key={sid}
                       type="monotone"
                       dataKey={sid}
-                      stroke={LINE_COLORS[i % LINE_COLORS.length]}
+                      stroke={colorOf(sid, i)}
                       strokeWidth={dimmed ? 1 : 2.5}
                       strokeOpacity={dimmed ? 0.2 : 1}
                       dot={{ r: dimmed ? 2 : 4 }}
@@ -229,7 +220,7 @@ export default function GradeChart({
                       key={`avg_${sid}`}
                       type="monotone"
                       dataKey={`avg_${sid}`}
-                      stroke={LINE_COLORS[i % LINE_COLORS.length]}
+                      stroke={colorOf(sid, i)}
                       strokeWidth={1}
                       strokeOpacity={dimmed ? 0.15 : 0.6}
                       strokeDasharray="4 4"
@@ -252,6 +243,30 @@ export default function GradeChart({
               )}
           </LineChart>
         </ResponsiveContainer>
+        </div>
+        </div>
+        {hasSubjects && (
+          <div className="flex gap-1.5 overflow-x-auto overscroll-x-contain pt-1 -mx-1 px-1">
+            {usedSubjectIds.map((sid, i) => {
+              const active = activeSubject === sid
+              const dimmed = activeSubject !== null && !active
+              return (
+                <button
+                  key={sid}
+                  type="button"
+                  onClick={() => setActiveSubject((prev) => (prev === sid ? null : sid))}
+                  className={`flex items-center gap-1.5 shrink-0 rounded-full border px-2.5 py-1 text-xs transition-colors ${
+                    active ? "border-foreground/30 bg-muted" : "border-border bg-card"
+                  } ${dimmed ? "opacity-40" : ""}`}
+                >
+                  <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: colorOf(sid, i) }} />
+                  {subjectMap.get(sid) ?? sid}
+                </button>
+              )
+            })}
+          </div>
+        )}
+        </>
       )}
     </div>
   )

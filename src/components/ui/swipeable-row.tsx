@@ -23,7 +23,7 @@ type Props = {
  */
 export function SwipeableRow({
   actions,
-  actionWidth = 130,
+  actionWidth = 112,
   onFullSwipe,
   className,
   children,
@@ -51,7 +51,10 @@ export function SwipeableRow({
     didSwipe.current = false
     startX.current = e.clientX
     baseOffset.current = offset
-    ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
+    // アクティブでないポインタ id だと setPointerCapture が NotFoundError を投げるためガードする
+    try {
+      ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
+    } catch {}
   }
 
   function handlePointerMove(e: React.PointerEvent<HTMLDivElement>) {
@@ -117,13 +120,9 @@ export function SwipeableRow({
 
   return (
     <div ref={containerRef} className="relative rounded-lg overflow-hidden">
-      <div className="absolute inset-y-0 right-0 flex" style={{ width: revealWidth }}>
+      <div className="absolute inset-y-0 right-0 flex bg-muted" style={{ width: revealWidth }}>
         {showFull ? (
-          <div
-            className={`flex-1 flex items-center justify-end gap-2 pr-5 text-sm font-medium transition-colors ${
-              fullArmed ? "bg-destructive text-destructive-foreground" : "bg-destructive/60 text-destructive-foreground"
-            }`}
-          >
+          <div className="flex-1 flex items-center justify-end gap-2 pr-5 text-sm font-medium bg-destructive text-destructive-foreground">
             <Trash2 className="h-5 w-5" />
             {fullArmed && <span>離して削除</span>}
           </div>

@@ -41,25 +41,26 @@ export function SwipeableHomeworkCard({
   return (
     <SwipeableRow
       className={isOverdue ? "border-destructive/40" : ""}
+      actionWidth={canEdit ? 112 : 64}
       onFullSwipe={handleDelete}
       actions={
         <>
           {canEdit && (
             <Link
               href={`/homework/${id}/edit`}
-              className="flex-1 flex flex-col items-center justify-center gap-1 bg-primary/15 text-primary text-xs font-medium hover:bg-primary/25 transition-colors"
+              className="flex-1 flex flex-col items-center justify-center gap-1 text-muted-foreground text-[11px] font-medium hover:text-foreground transition-colors"
               onClick={() => haptic.tap()}
             >
-              <Pencil className="h-4 w-4" />
+              <Pencil className="h-[18px] w-[18px]" />
               編集
             </Link>
           )}
           <button
             onClick={handleDelete}
             disabled={isPending}
-            className={`flex flex-col items-center justify-center gap-1 bg-destructive/15 text-destructive text-xs font-medium hover:bg-destructive/25 transition-colors disabled:opacity-50 ${canEdit ? "flex-1" : "w-full"}`}
+            className={`flex flex-col items-center justify-center gap-1 text-destructive text-[11px] font-medium transition-opacity hover:opacity-70 disabled:opacity-50 ${canEdit ? "flex-1 border-l border-border/60" : "w-full"}`}
           >
-            <Trash2 className="h-4 w-4" />
+            <Trash2 className="h-[18px] w-[18px]" />
             {isPending ? "…" : "削除"}
           </button>
         </>

@@ -4,9 +4,11 @@ import { db } from "@/lib/db"
 import { auth } from "@/lib/auth"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
+import { isValidSubjectColor } from "@/lib/subject-colors"
 
 const schema = z.object({
   name: z.string().min(1, "科目名を入力してください").max(50, "科目名は50文字以内で入力してください"),
+  color: z.string().refine(isValidSubjectColor, "無効な色です").optional().nullable(),
 })
 
 export async function createSubject(
@@ -18,17 +20,21 @@ export async function createSubject(
     return { error: "権限がありません", success: false }
   }
 
-  const result = schema.safeParse({ name: formData.get("name") })
+  const rawColor = formData.get("color")
+  const result = schema.safeParse({
+    name: formData.get("name"),
+    color: rawColor ? String(rawColor) : null,
+  })
   if (!result.success) return { error: result.error.issues[0].message, success: false }
 
-  const { name } = result.data
+  const { name, color } = result.data
 
   const existing = await db.subject.findFirst({
     where: { name, teacherId: session.user.id },
   })
   if (existing) return { error: "この科目名は既に存在します", success: false }
 
-  await db.subject.create({ data: { name, teacherId: session.user.id } })
+  await db.subject.create({ data: { name, color: color ?? null, teacherId: session.user.id } })
   revalidatePath("/settings")
   return { error: "", success: true }
 }
@@ -40,4 +46,21 @@ export async function deleteSubject(formData: FormData) {
   const id = formData.get("id") as string
   await db.subject.deleteMany({ where: { id, teacherId: session.user.id } })
   revalidatePath("/settings")
+}
+
+export async function updateSubjectColor(formData: FormData) {
+  const session = await auth()
+  if (!session || session.user.role !== "teacher") return
+
+  const id = formData.get("id") as string
+  const rawColor = formData.get("color")
+  const color = rawColor ? String(rawColor) : null
+  if (color !== null && !isValidSubjectColor(color)) return
+
+  await db.subject.updateMany({
+    where: { id, teacherId: session.user.id },
+    data: { color },
+  })
+  revalidatePath("/settings")
+  revalidatePath("/grades")
 }
