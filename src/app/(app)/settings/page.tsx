@@ -7,6 +7,7 @@ import { NameForm } from "../profile/name-form"
 import { PasswordForm } from "../profile/password-form"
 import SubjectForm from "../subjects/subject-form"
 import { DeleteSubjectButton } from "../subjects/delete-button"
+import { SubjectColorEditor } from "../subjects/subject-color-editor"
 
 export default async function SettingsPage() {
   const session = await auth()
@@ -69,8 +70,8 @@ export default async function SettingsPage() {
               {subjects.length > 0 ? (
                 <div className="border-t pt-4 space-y-2">
                   {subjects.map((s) => (
-                    <div key={s.id} className="flex items-center justify-between gap-3 py-1.5">
-                      <span className="text-sm font-medium">{s.name}</span>
+                    <div key={s.id} className="relative flex items-center justify-between gap-3 py-1.5">
+                      <SubjectColorEditor id={s.id} name={s.name} color={s.color} />
                       <DeleteSubjectButton id={s.id} />
                     </div>
                   ))}

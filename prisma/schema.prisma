@@ -176,6 +176,7 @@ model ParentInviteToken {
 model Subject {
   id        String   @id @default(uuid())
   name      String
+  color     String?
   teacherId String
   createdAt DateTime @default(now()) @db.Timestamptz(3)
 

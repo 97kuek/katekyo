@@ -13,12 +13,11 @@ export default function Icon() {
         alignItems: "center",
         justifyContent: "center",
         background: "#2e743a",
-        borderRadius: 44,
       }}
     >
       <svg
-        width="136"
-        height="136"
+        width="116"
+        height="116"
         viewBox="0 0 24 24"
         fill="none"
         stroke="white"

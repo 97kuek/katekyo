@@ -13,12 +13,11 @@ export default function AppleIcon() {
         alignItems: "center",
         justifyContent: "center",
         background: "#2e743a",
-        borderRadius: 40,
       }}
     >
       <svg
-        width="130"
-        height="130"
+        width="110"
+        height="110"
         viewBox="0 0 24 24"
         fill="none"
         stroke="white"

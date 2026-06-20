@@ -275,6 +275,7 @@ Subject {
   id        String
   teacherId String
   name      String
+  color     String?   # 成績グラフの線色。src/lib/subject-colors.ts のスウォッチから選択（null=未設定でローテーション色にフォールバック）
   createdAt DateTime
 
   @@unique([name, teacherId])
