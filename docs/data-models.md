@@ -135,6 +135,7 @@ Lesson {
   travelExpense   Int?        # 交通費（円）。online の場合は 0 に強制
   completedAt     DateTime?   # 完了確定日時。null = 未完了（請求対象外）
   qstashMessageId String?     # QStash メッセージ ID（授業前リマインダーキャンセル用）
+  reminderSentAt  DateTime?   # Meet リマインダー配信済み時刻（cron/QStash の二重送信防止）
   createdAt       DateTime
 }
 ```

@@ -162,7 +162,7 @@ type ExamEvent = {
   studentName?: string
 }
 
-type Student = { id: string; grade: string; user: { name: string }; defaultHourlyRate?: number | null; defaultTravelExpense?: number | null; defaultSubjectIds?: string[] | null }
+type Student = { id: string; grade: string; user: { name: string }; defaultHourlyRate?: number | null; defaultTravelExpense?: number | null; defaultDurationMin?: number | null; defaultSubjectIds?: string[] | null }
 
 type Props = {
   lessons: Lesson[]
