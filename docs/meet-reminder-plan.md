@@ -165,3 +165,23 @@ export const POST = verifySignatureAppRouter(async (req) => {
 - `meetLink` が後から変更されても、Webhook 到達時に DB から最新値を取得するので問題なし
 - 授業を `offline → online` に変更した場合も QStash を新規予約する
 - 授業を `online → offline` に変更した場合は既存 QStash メッセージをキャンセル
+
+---
+
+## 安定化（cron セーフティネット） — 2026-06 追記
+
+QStash の per-lesson 予約は「一度きり配信」で、失敗すると復旧せず不安定だった（issue #2）。
+そこで開始10分前後のオンライン授業を定期スキャンして配信する自己修復エンドポイントを追加した。
+
+- エンドポイント: `GET|POST /api/cron/lesson-reminder`（`Authorization: Bearer CRON_SECRET`）
+  - `now+2分〜now+13分` に始まる `type=online` / `completedAt=null` / `reminderSentAt=null` の授業を対象
+  - `Lesson.reminderSentAt` で QStash Webhook 経路と冪等共存（二重送信しない）
+- 起動方法（プラン別）:
+  - **Vercel Pro**: `vercel.json` に `{ "path": "/api/cron/lesson-reminder", "schedule": "*/5 * * * *" }` を追加
+  - **Vercel Hobby**（cron 最大2個・1日1回の制限）: QStash Schedule を使う。デプロイ後に一度だけ実行:
+    ```bash
+    curl -X POST https://<your-domain>/api/qstash/setup-reminder-schedule \
+      -H "Authorization: Bearer <CRON_SECRET>"
+    ```
+    `*/5 * * * *` の QStash Schedule が作成され、`Authorization` ヘッダ付きで上記エンドポイントを叩く。
+    再実行しても同一 destination の既存スケジュールを削除してから作り直すため重複しない。

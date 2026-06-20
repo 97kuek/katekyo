@@ -55,14 +55,17 @@ src/
     ├── cron/
     │   ├── cleanup-homework/ # 宿題・招待トークン削除（毎日 Vercel Cron）
     │   ├── line-daily/       # LINE 週次通知（毎週日曜 Vercel Cron）
+    │   ├── lesson-reminder/  # オンライン授業10分前の Meet リンク配信（5分毎ポーリング・冪等セーフティネット。GET/POST、Bearer CRON_SECRET 認証。Hobby は QStash Schedule、Pro は Vercel Cron で起動）
     │   ├── line-monthly/     # LINE 月次通知（手動実行のみ・Cron 無効）
     │   └── annual-cleanup/   # 年次データ削除（手動実行のみ・Cron 無効）
     ├── line/
     │   ├── webhook/          # LINE Bot Webhook（メッセージ受信・連携処理）
     │   ├── setup-rich-menus/ # リッチメニュー作成（初回一回限り）
     │   └── apply-rich-menus/ # 既存ユーザーへのリッチメニュー一括適用
+    ├── qstash/
+    │   └── setup-reminder-schedule/ # 授業リマインダー用 QStash Schedule を作成（初回一回限り・Hobby向け）
     └── webhooks/
-        └── lesson-reminder/  # QStash Webhook: 授業前リマインダー送信
+        └── lesson-reminder/  # QStash Webhook: 授業前リマインダー送信（cron と reminderSentAt で冪等共存）
 prisma/
 └── schema.prisma
 ```

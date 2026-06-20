@@ -87,6 +87,7 @@ export async function updateStudentRates(
   })
 
   revalidatePath("/students")
+  revalidatePath("/calendar")
   return { error: "", success: true }
 }
 

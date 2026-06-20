@@ -273,6 +273,7 @@ model Lesson {
   travelExpense   Int?
   completedAt     DateTime?  @db.Timestamptz(3)
   qstashMessageId String?
+  reminderSentAt  DateTime?  @db.Timestamptz(3)
   createdAt       DateTime   @default(now()) @db.Timestamptz(3)
 
   teacher User    @relation("TeacherLessons", fields: [teacherId], references: [id], onDelete: Cascade)

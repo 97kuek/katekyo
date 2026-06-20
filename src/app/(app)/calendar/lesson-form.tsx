@@ -24,27 +24,38 @@ type Subject = { id: string; name: string }
 export function LessonForm({ students, defaultDate, subjects }: { students: Student[]; defaultDate: string; subjects: Subject[] }) {
   const [state, action, isPending] = useActionState(createLesson, { error: "" })
   const [open, setOpen] = useState(false)
+  const [studentId, setStudentId] = useState(students[0]?.id ?? "")
   const [duration, setDuration] = useState("60")
   const [hourlyRate, setHourlyRate] = useState("")
   const [travelExpense, setTravelExpense] = useState("")
   const [lessonType, setLessonType] = useState<"online" | "offline">("online")
   const [selectedSubjectIds, setSelectedSubjectIds] = useState<string[]>([])
 
-  useEffect(() => {
-    const saved = localStorage.getItem(DURATION_KEY)
-    if (students.length === 1) {
-      const s = students[0]
-      setHourlyRate(s.defaultHourlyRate != null ? String(s.defaultHourlyRate) : "")
-      setTravelExpense(s.defaultTravelExpense != null ? String(s.defaultTravelExpense) : "")
-      setSelectedSubjectIds(s.defaultSubjectIds ?? [])
-      if (s.defaultDurationMin != null) {
-        setDuration(String(s.defaultDurationMin))
-      } else if (saved) {
-        setDuration(saved)
-      }
-    } else if (saved) {
-      setDuration(saved)
+  // 生徒のデフォルト（時給・交通費・授業時間・科目）をフォームに反映する。
+  // null のデフォルトは前の生徒の値を引きずらないよう明示的にクリアする。
+  function applyStudentDefaults(s: Student) {
+    setHourlyRate(s.defaultHourlyRate != null ? String(s.defaultHourlyRate) : "")
+    setTravelExpense(s.defaultTravelExpense != null ? String(s.defaultTravelExpense) : "")
+    setSelectedSubjectIds(s.defaultSubjectIds ?? [])
+    if (s.defaultDurationMin != null) {
+      setDuration(String(s.defaultDurationMin))
+    } else {
+      const saved = localStorage.getItem(DURATION_KEY)
+      if (saved) setDuration(saved)
     }
+  }
+
+  // 生徒数に関わらず、フォーム表示時は先頭の生徒のデフォルトを自動反映する。
+  useEffect(() => {
+    const first = students[0]
+    if (first) {
+      setStudentId(first.id)
+      applyStudentDefaults(first)
+    } else {
+      const saved = localStorage.getItem(DURATION_KEY)
+      if (saved) setDuration(saved)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [students])
 
   useEffect(() => {
@@ -54,14 +65,9 @@ export function LessonForm({ students, defaultDate, subjects }: { students: Stud
   }, [state.timestamp])
 
   function handleStudentChange(e: React.ChangeEvent<HTMLSelectElement>) {
+    setStudentId(e.target.value)
     const student = students.find((s) => s.id === e.target.value)
-    if (!student) return
-    if (student.defaultHourlyRate != null) setHourlyRate(String(student.defaultHourlyRate))
-    if (student.defaultTravelExpense != null) setTravelExpense(String(student.defaultTravelExpense))
-    setSelectedSubjectIds(student.defaultSubjectIds ?? [])
-    if (student.defaultDurationMin != null) {
-      setDuration(String(student.defaultDurationMin))
-    }
+    if (student) applyStudentDefaults(student)
   }
 
   function handleDurationChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -97,10 +103,10 @@ export function LessonForm({ students, defaultDate, subjects }: { students: Stud
               id="studentId"
               name="studentId"
               required
+              value={studentId}
               onChange={handleStudentChange}
               className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
-              <option value="">選択してください</option>
               {students.map((s) => (
                 <option key={s.id} value={s.id}>
                   {s.user.name}（{s.grade}）
