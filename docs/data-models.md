@@ -2,24 +2,36 @@
 
 定義元: `prisma/schema.prisma`
 
+## テナント分離の原則
+
+このアプリは **1先生 = 1テナント** のマルチテナント構造。すべてのデータは `teacherId`（= `session.user.id`）で完全分離される。
+
+- Prisma は `DATABASE_URL`（service role 相当）で接続するため、PostgreSQL RLS はバイパスされる。テナント分離はアプリケーション層の責任。
+- Prisma クエリには **必ず** `teacherId` または `studentId`（= 確認済み自分の studentId）の絞り込みを含める。
+- `findFirst({ where: { id } })` のみのクエリは**禁止**（テナント漏洩防止）。
+
+---
+
 ## モデル一覧
 
 ### User
 
+ロールに関わらず全ユーザーを格納する単一テーブル。
+
 ```prisma
 User {
-  id            String
-  name          String
-  email         String   @unique
-  password      String   # bcrypt ハッシュ
-  role          Role     # "teacher" | "student" | "parent"
-  lineUserId    String?  @unique  # LINE 連携後に設定
-  meetLink      String?           # Google Meet 固定 URL（先生のみ使用）
-  agreedToTermsAt DateTime?
-  createdAt     DateTime
+  id              String    @id @default(uuid())
+  email           String    @unique
+  name            String
+  role            Role                        # "teacher" | "student" | "parent"
+  password        String                      # bcrypt ハッシュ（コスト係数 12）
+  lineUserId      String?   @unique           # LINE 連携後に設定。null = 未連携
+  meetLink        String?                     # Google Meet 固定 URL（先生のみ使用）
+  agreedToTermsAt DateTime? @db.Timestamptz(3)
+  createdAt       DateTime  @default(now()) @db.Timestamptz(3)
 
   # teacher relations
-  students            Student[]         # role=teacher のみ（担当生徒）
+  students            Student[]
   inviteTokens        InviteToken[]
   subjects            Subject[]
   homeworksGiven      Homework[]
@@ -30,212 +42,285 @@ User {
   monthlyPayments     MonthlyPayment[]
 
   # student relation
-  studentProfile Student?          # role=student のみ
+  studentProfile Student?                     # role=student のみ存在
 
   # parent relations
-  parentLinks        ParentStudent[]   # role=parent のみ（紐づけた生徒一覧）
-  teacherParentLinks ParentStudent[]   # role=teacher のみ（自テナントの保護者リンク）
+  parentLinks        ParentStudent[]           # role=parent のみ（紐づけた生徒一覧）
+  teacherParentLinks ParentStudent[]           # role=teacher のみ（自テナントの保護者リンク）
   parentInviteTokens ParentInviteToken[]
 
   lineLinkToken  LineLinkToken?
 }
 ```
 
+**注意点:**
+- `role` によって使われるリレーションが異なる。teacher は `students`/`homeworksGiven` など、student は `studentProfile`、parent は `parentLinks` を主に使う。
+- `password` は bcrypt ハッシュのみ保存。生パスワードをどこにも記録しない。
+
+---
+
 ### Student
+
+`User(role=student)` のプロフィール拡張テーブル。1:1 対応。
 
 ```prisma
 Student {
-  id                   String
-  userId               String   @unique
-  teacherId            String
-  grade                String   # GRADE_OPTIONS の値（例: "中学1年"）
-  gardenGeneration     Int      @default(1)  # 森が満開リセットされた世代数
-  defaultHourlyRate    Int?     # 授業登録時のデフォルト時給
-  defaultTravelExpense Int?     # 授業登録時のデフォルト交通費
-  defaultDurationMin   Int?     # 授業登録時のデフォルト所要時間（分）
-  defaultSubjectIds    String[] @default([])  # 授業登録時のデフォルト科目タグ
-  createdAt            DateTime
+  id                   String   @id @default(uuid())
+  userId               String   @unique                 # User.id（1:1）
+  teacherId            String                           # テナントキー（必須）
+  grade                String                           # GRADE_OPTIONS の値（例: "中学1年"）
+  gardenGeneration     Int      @default(1)             # 学習の森が満開リセットされた世代数
+  defaultHourlyRate    Int?                             # 授業登録時のデフォルト時給（円）
+  defaultTravelExpense Int?                             # 授業登録時のデフォルト交通費（円）
+  defaultDurationMin   Int?                             # 授業登録時のデフォルト所要時間（分）
+  defaultSubjectIds    String[] @default([])            # 授業登録時のデフォルト科目 Subject.id[]
+  createdAt            DateTime @default(now()) @db.Timestamptz(3)
 
-  # Relations
-  user        User
-  teacher     User              @relation("TeacherStudents")
-  homeworks   Homework[]
-  grades      GradeRecord[]
-  lessons     Lesson[]
-  materials   StudentMaterial[]
-  gardenItems GardenItem[]
-  examEvents  ExamEvent[]
-  monthlyPayments MonthlyPayment[]
-  parentLinks          ParentStudent[]     # この生徒に紐づく保護者リンク
-  parentInviteTokens   ParentInviteToken[] # この生徒向けに発行された招待トークン
+  @@index([teacherId])
 }
 ```
 
-### Homework
+---
+
+### Homework（宿題）
 
 ```prisma
 Homework {
-  id              String
-  teacherId       String
-  studentId       String
-  title           String
-  description     String?
-  dueDate         DateTime
-  status          HomeworkStatus  # assigned | submitted | approved | rejected
-  subjectIds      String[]        # Subject.id の配列
-  materialId      String?         # StudentMaterial.id
-  requiresPhoto   Boolean         @default(false)  # 写真提出を必須にするか
-  photoUrl        String?         # Supabase Storage の公開 URL
-  studentNote     String?         # 生徒からのコメント
-  difficultyRating Int?           # 難易度評価（1=かんたん 2=ふつう 3=むずかしい）
-  teacherFeedback String?
-  submittedAt     DateTime?
-  reviewedAt      DateTime?
-  createdAt       DateTime
+  id               String         @id @default(uuid())
+  teacherId        String                               # テナントキー
+  studentId        String
+  title            String
+  description      String?
+  dueDate          DateTime       @db.Timestamptz(3)
+  subjectIds       String[]                             # Subject.id の配列
+  materialId       String?                              # StudentMaterial.id
+  status           HomeworkStatus @default(assigned)    # 状態遷移は下記参照
+  studentNote      String?                              # 生徒からの提出コメント
+  difficultyRating Int?                                 # 難易度評価（1=かんたん 2=ふつう 3=むずかしい）
+  teacherFeedback  String?                              # 先生からのフィードバック
+  requiresPhoto    Boolean        @default(false)       # 写真提出を必須にするか
+  photoUrl         String?                              # Supabase Storage の公開 URL
+  submittedAt      DateTime?      @db.Timestamptz(3)
+  reviewedAt       DateTime?      @db.Timestamptz(3)
+  feedbackSeenAt   DateTime?      @db.Timestamptz(3)   # 生徒がフィードバックを確認した日時
+  createdAt        DateTime       @default(now()) @db.Timestamptz(3)
 
-  # Relations
-  student  Student
-  material StudentMaterial?
-  events   HomeworkEvent[]
+  @@index([teacherId])
+  @@index([studentId, status])
+  @@index([teacherId, status])
+  @@index([dueDate])
 }
 ```
+
+**状態遷移:**
+
+```
+assigned ──[生徒が提出]──▶ submitted ──[先生が承認]──▶ approved
+    ▲                          │
+    │                     [先生が差し戻し]
+    │                          ▼
+    └──[生徒が提出取り消し]── rejected
+```
+
+- `assigned → submitted`: `submitHomework`（生徒のみ）
+- `submitted → approved / rejected`: `reviewHomework`（先生のみ）
+- `submitted → assigned`: `cancelSubmission`（生徒のみ、submitted 状態のみ）
+- `rejected → submitted`: `submitHomework` で再提出可能
+
+**feedbackSeenAt の用途:**
+`reviewHomework` 実行時にリセット（`null`）され、生徒が詳細ページを開くと `markFeedbackSeen` でセットされる。ダッシュボードの未読バッジ表示に使う。
+
+---
 
 ### HomeworkEvent（宿題やり取り履歴）
 
 ```prisma
 HomeworkEvent {
-  id         String
+  id         String            @id @default(uuid())
   homeworkId String
-  eventType  HomeworkEventType  # submitted | approved | rejected
-  actorName  String             # 操作者の表示名スナップショット
-  note       String?            # 差し戻し時の理由など
-  createdAt  DateTime
+  eventType  HomeworkEventType                          # submitted | approved | rejected
+  actorName  String                                     # 操作者の表示名スナップショット（User.name のコピー）
+  note       String?                                    # 差し戻し時のコメントなど
+  createdAt  DateTime          @default(now()) @db.Timestamptz(3)
 
-  # Relations
-  homework Homework
   @@index([homeworkId])
 }
 ```
+
+**注意:** `actorName` はユーザー名変更後も履歴が崩れないよう、作成時点のスナップショットを保存する。
+
+---
 
 ### Lesson（授業）
 
 ```prisma
 Lesson {
-  id              String
-  teacherId       String
+  id              String     @id @default(uuid())
+  teacherId       String                               # テナントキー
   studentId       String
-  date            DateTime
-  type            LessonType  # online | offline
-  durationMin     Int?        # 所要時間（分）
-  notes           String?     # 事前メモ
-  lessonLog       String?     # 授業後のログ（何を教えたか）
-  lessonLogPublic Boolean     # 授業ログを生徒に公開するか
-  subjectIds      String[]    # Subject.id の配列
-  hourlyRate      Int?        # 時給（円）
-  travelExpense   Int?        # 交通費（円）。online の場合は 0 に強制
-  completedAt     DateTime?   # 完了確定日時。null = 未完了（請求対象外）
-  qstashMessageId String?     # QStash メッセージ ID（授業前リマインダーキャンセル用）
-  reminderSentAt  DateTime?   # Meet リマインダー配信済み時刻（cron/QStash の二重送信防止）
-  createdAt       DateTime
+  date            DateTime   @db.Timestamptz(3)        # 授業の開始日時（JST で入力 → UTC 保存）
+  durationMin     Int?                                 # 所要時間（分）
+  type            LessonType @default(online)          # online | offline
+  notes           String?                              # 事前メモ（先生のみ閲覧）
+  lessonLog       String?                              # 授業後のログ（何を教えたか）
+  lessonLogPublic Boolean    @default(false)           # 授業ログを生徒に公開するか
+  lessonLogSeenAt DateTime?  @db.Timestamptz(3)        # 生徒が授業ログを確認した日時
+  subjectIds      String[]   @default([])              # Subject.id の配列
+  hourlyRate      Int?                                 # 時給（円）
+  travelExpense   Int?                                 # 交通費（円）。online の場合は 0 に強制
+  completedAt     DateTime?  @db.Timestamptz(3)        # 完了確定日時。null = 未完了（請求対象外）
+  qstashMessageId String?                              # QStash メッセージ ID（リマインダーキャンセル用）
+  reminderSentAt  DateTime?  @db.Timestamptz(3)        # リマインダー配信済み時刻（二重送信防止）
+  createdAt       DateTime   @default(now()) @db.Timestamptz(3)
+
+  @@index([teacherId])
+  @@index([studentId])
+  @@index([teacherId, date])
+  @@index([studentId, date])
 }
 ```
+
+**請求対象の条件:** `completedAt IS NOT NULL`。`/api/billing/export` および請求ページで使われる。
+
+---
 
 ### GradeRecord（成績）
 
 ```prisma
 GradeRecord {
-  id            String
-  teacherId     String
+  id            String   @id @default(uuid())
+  teacherId     String                               # テナントキー
   studentId     String
   testName      String
-  testType      TestType  # mock | exam | quiz | other
-  date          DateTime
+  testType      TestType @default(other)             # mock | exam | quiz | other
+  date          DateTime @db.Timestamptz(3)
   subjectIds    String[]
-  score         Int?
-  maxScore      Int?
-  rank          Int?
-  totalStudents Int?
-  deviation     Float?
-  avgScore      Int?
-  teacherRating Int?      # 主観評価（1–5）。現在 UI 非使用・廃止予定（列は残存）
+  score         Int?                                 # 得点
+  maxScore      Int?                                 # 満点
+  rank          Int?                                 # 順位
+  totalStudents Int?                                 # 受験者数
+  deviation     Float?                               # 偏差値
+  avgScore      Int?                                 # 平均点
+  teacherRating Int?                                 # 主観評価（1–5）※現在 UI 非使用・廃止予定（列は残存）
   comment       String?
-  createdAt     DateTime
+  createdAt     DateTime @default(now()) @db.Timestamptz(3)
+
+  @@index([teacherId])
+  @@index([studentId])
+  @@index([teacherId, testType])
+  @@index([date])
 }
 ```
+
+**GardenItem への連携:** `createGradeRecord` 実行時、得点データがあれば `plantGardenItem` を呼ぶ。判定ロジックは `src/lib/garden/` 参照。
+
+---
+
+### ExamEvent（テスト予定日）
+
+```prisma
+ExamEvent {
+  id        String    @id @default(uuid())
+  teacherId String                                   # テナントキー
+  studentId String
+  name      String
+  testType  TestType  @default(exam)
+  date      DateTime  @db.Timestamptz(3)             # 試験開始日
+  endDate   DateTime? @db.Timestamptz(3)             # 試験期間の終了日（任意）
+  createdAt DateTime  @default(now()) @db.Timestamptz(3)
+
+  @@index([teacherId])
+  @@index([studentId])
+  @@index([date])
+  @@index([teacherId, date])
+}
+```
+
+---
 
 ### GardenItem（学習の森アイテム）
 
 ```prisma
 GardenItem {
-  id        String
+  id        String         @id @default(uuid())
   studentId String
-  itemType  GardenItemType  # 下記 enum 参照
-  x         Int             # 0–7（グリッド座標）
-  y         Int             # 0–7
-  createdAt DateTime
+  itemType  GardenItemType
+  x         Int                                      # 0–7（グリッド座標）
+  y         Int                                      # 0–7
+  createdAt DateTime       @default(now()) @db.Timestamptz(3)
 
-  @@unique([studentId, x, y])  # 同座標に2つ置けない
+  @@unique([studentId, x, y])                        # 同座標に2つ置けない
+  @@index([studentId])
 }
 ```
+
+**アイテム付与ロジック（`src/lib/garden/`）:**
+- 宿題承認時: `plantForHomeworkApproval` を呼ぶ。差し戻し歴あり → `cherry` / `big_tree` 等レアアイテム、なし → 通常 or `mushroom`（≈5%）
+- 成績登録時: 得点率・偏差値に応じてアイテムランクが変わる
+- グリッド満杯（64マス）で `gardenGeneration` をインクリメントし全アイテムをリセット
+
+---
 
 ### StudentMaterial（生徒の使用教材）
 
 ```prisma
 StudentMaterial {
-  id         String
+  id         String   @id @default(uuid())
   studentId  String
-  teacherId  String
+  teacherId  String                                   # テナントキー
   name       String
   note       String?
-  subjectIds String[]  @default([])  # 紐づく科目タグ
-  createdAt  DateTime
+  subjectIds String[] @default([])                   # 紐づく科目タグ
+  createdAt  DateTime @default(now()) @db.Timestamptz(3)
 
-  # Relations（宿題から materialId で参照される）
-  homeworks  Homework[]
+  homeworks  Homework[]                               # この教材を参照している宿題
+
+  @@index([studentId])
+  @@index([teacherId])
 }
 ```
 
-### InviteToken（招待トークン）
+---
+
+### Subject（科目タグ）
+
+```prisma
+Subject {
+  id        String   @id @default(uuid())
+  teacherId String                                   # テナントキー
+  name      String
+  color     String?                                  # 成績グラフの線色。src/lib/subject-colors.ts のスウォッチから選択（null = ローテーション色）
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+
+  @@unique([name, teacherId])
+  @@index([teacherId])
+}
+```
+
+`Homework.subjectIds`・`Lesson.subjectIds`・`GradeRecord.subjectIds` などは `Subject.id` の UUID 配列として格納する（PostgreSQL `TEXT[]`）。JOINではなくアプリ側でルックアップする設計。
+
+---
+
+### InviteToken（生徒招待トークン）
 
 ```prisma
 InviteToken {
-  id        String
+  id        String    @id @default(uuid())
   teacherId String
-  token     String   @unique
-  name      String
-  email     String?
-  grade     String
-  expiresAt DateTime  # 7日後
-  usedAt    DateTime? # 使用済みの場合に記録
-  createdAt DateTime
+  token     String    @unique @default(uuid())       # URL に埋め込む UUID トークン
+  name      String                                   # 招待する生徒の名前（事前入力用）
+  email     String?                                  # 任意。特定メアドに制限したい場合のメモ
+  grade     String                                   # GRADE_OPTIONS の値（事前入力用）
+  usedAt    DateTime?                                # 使用済みの場合に記録
+  expiresAt DateTime                                 # 発行から7日後
+  createdAt DateTime  @default(now()) @db.Timestamptz(3)
+
+  @@index([teacherId])
+  @@index([expiresAt])                               # cron によるクリーンアップ用
 }
 ```
 
-### LineLinkToken（LINE 連携トークン）
-
-```prisma
-LineLinkToken {
-  id        String
-  userId    String   @unique
-  token     String   @unique  # 6桁数字（10分有効）
-  expiresAt DateTime
-  createdAt DateTime
-}
-```
-
-### ParentStudent（保護者–生徒 中間テーブル）
-
-```prisma
-ParentStudent {
-  id        String
-  parentId  String
-  studentId String
-  teacherId String           # テナント分離用
-  createdAt DateTime
-
-  @@unique([parentId, studentId])
-}
-```
+---
 
 ### ParentInviteToken（保護者招待トークン）
 
@@ -243,66 +328,90 @@ ParentStudent {
 
 ```prisma
 ParentInviteToken {
-  id        String
+  id        String    @id @default(uuid())
+  teacherId String
+  studentId String                                   # 招待先の生徒
   token     String    @unique @default(uuid())
-  teacherId String
-  studentId String
-  email     String?   # 任意。特定メアドに招待したい場合のメモ
-  usedAt    DateTime? # 使用済みの場合に記録
-  expiresAt DateTime  # 7日後
-  createdAt DateTime
+  email     String?                                  # 任意。特定メアドに招待したい場合のメモ
+  usedAt    DateTime?
+  expiresAt DateTime                                 # 発行から7日後
+  createdAt DateTime  @default(now()) @db.Timestamptz(3)
+
+  @@index([token])
+  @@index([studentId])
+  @@index([teacherId])
 }
 ```
 
-### ExamEvent（テスト予定日）
+---
+
+### ParentStudent（保護者–生徒 中間テーブル）
 
 ```prisma
-ExamEvent {
-  id        String
-  teacherId String
-  studentId String
-  name      String
-  testType  TestType  # mock | exam | quiz | other
-  date      DateTime
-  endDate   DateTime?  # 試験期間の終了日（任意）
-  createdAt DateTime
+ParentStudent {
+  id        String   @id @default(uuid())
+  parentId  String                                   # User.id (role=parent)
+  studentId String                                   # Student.id
+  teacherId String                                   # テナントキー（権限確認用）
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+
+  @@unique([parentId, studentId])
+  @@index([parentId])
+  @@index([studentId])
+  @@index([teacherId])
 }
 ```
 
-### Subject（科目タグ）
+**保護者招待フロー:**
+1. 先生 or 生徒が `ParentInviteToken` を発行
+2. 保護者がトークン URL を開く
+3. 未登録 → `acceptParentInvite`: User(role=parent) 作成 + ParentStudent 作成をトランザクションで実行
+4. 登録済み → `linkExistingParent`: ParentStudent レコードを追加するだけ
+
+---
+
+### LineLinkToken（LINE 連携トークン）
 
 ```prisma
-Subject {
-  id        String
-  teacherId String
-  name      String
-  color     String?   # 成績グラフの線色。src/lib/subject-colors.ts のスウォッチから選択（null=未設定でローテーション色にフォールバック）
-  createdAt DateTime
+LineLinkToken {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  token     String   @unique                         # 6桁数字（10分有効）
+  expiresAt DateTime @db.Timestamptz(3)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
 
-  @@unique([name, teacherId])
+  @@index([token])
 }
 ```
+
+---
 
 ### MonthlyPayment（月次支払い記録）
 
 ```prisma
 MonthlyPayment {
-  id        String
+  id        String    @id @default(uuid())
   teacherId String
   studentId String
   year      Int
   month     Int
-  dueDate   DateTime?  # 支払い期限（任意）。先生が任意の日付を設定できる
-  paidAt    DateTime?  # 入金日。null = 未払い。markAsPaid で設定、markAsUnpaid で null に戻す
-  createdAt DateTime
+  dueDate   DateTime? @db.Timestamptz(3)            # 支払い期限（任意）
+  paidAt    DateTime? @db.Timestamptz(3)            # 入金日。null = 未払い
+  createdAt DateTime  @default(now()) @db.Timestamptz(3)
 
   @@unique([teacherId, studentId, year, month])
+  @@index([teacherId])
+  @@index([studentId])
 }
 ```
 
+**ビジネスロジック:**
 - レコードは「支払い期限設定」または「入金確認」どちらのタイミングでも作成される
 - `paidAt != null` が入金済みの判定条件（レコード存在だけでは入金済みにならない）
-- `dueDate` が設定されているレコードは `markAsUnpaid` 時に削除せず `paidAt: null` にリセットする
+- `markAsUnpaid` 時: `dueDate` が設定されている場合は `paidAt: null` にリセット、ない場合はレコード削除
+- `setPaymentDueDate` で期限クリア（空文字送信）かつ未払いの場合もレコード削除
+
+---
 
 ## Enum
 
@@ -314,7 +423,7 @@ enum Role {
 }
 
 enum HomeworkStatus {
-  assigned   # 未提出
+  assigned   # 未提出（初期値）
   submitted  # 提出済み（先生承認待ち）
   approved   # 承認済み
   rejected   # 差し戻し
@@ -336,25 +445,60 @@ enum GardenItemType {
   tree      # 通常の木
   bush      # 茂み
   flower    # 花
-  cherry    # 桜（90%以上 or 偏差値65+）
-  big_tree  # 大木（80%以上 or 偏差値60+）
+  cherry    # 桜（高得点 or 偏差値65+）
+  big_tree  # 大木（好成績 or 偏差値60+）
   bamboo    # 竹（満点 or 偏差値70+）
   mushroom  # キノコ（宿題承認時 ≈5% ランダム）
 }
+
+enum HomeworkEventType {
+  submitted
+  approved
+  rejected
+}
 ```
+
+---
+
+## インデックス設計方針
+
+- テナントキー（`teacherId`）は単独インデックス必須（管理画面の一覧取得に多用）
+- 複合インデックスは「よく一緒に使われる絞り込み条件」に追加:
+  - `Homework(studentId, status)`: 生徒が自分の宿題を status で絞る
+  - `Homework(teacherId, status)`: 先生が未提出・提出済みを絞る
+  - `Lesson(teacherId, date)`: カレンダー表示（先生視点）
+  - `Lesson(studentId, date)`: カレンダー表示（生徒視点）
+  - `ExamEvent(teacherId, date)`: カレンダーへの試験予定表示
+  - `GradeRecord(teacherId, testType)`: テスト種別フィルタ
+- `expiresAt` インデックス（`InviteToken`）: cron でのバッチ削除用
+
+---
 
 ## データアクセス原則
 
-- Prisma クエリには必ず `teacherId` または `studentId` の絞り込みを含める
-- `findFirst({ where: { id } })` だけの取得は禁止（データ漏洩防止）
-- `teacher` は自分の生徒のデータのみ参照・操作可能
-- `student` は自分のデータのみ参照可能（Lesson 作成・削除不可）
+```typescript
+// ✅ 正しい: teacherId でテナント境界を保証
+const homework = await db.homework.findFirst({
+  where: { id, teacherId: session.user.id },
+})
 
-## 学年選択肢
+// ✅ 正しい: studentId が自分のものであることを事前確認してから
+const student = await db.student.findUnique({ where: { userId: session.user.id } })
+const homework = await db.homework.findFirst({
+  where: { id, studentId: student.id },
+})
 
-`src/lib/grades.ts` の `GRADE_OPTIONS` を使用。フリーテキスト入力不可。
+// ❌ 禁止: id だけのクエリは別テナントのデータを取得できてしまう
+const homework = await db.homework.findFirst({ where: { id } })
+```
 
-## テスト種別
+**N+1 防止のパターン:**
+- 一覧取得時は `include` / `select` でリレーションをまとめて取得する
+- 一括承認 (`bulkApproveHomework`) など複数レコードを処理する場合は `findMany` でまとめて取得し、`updateMany` / `createMany` でまとめて更新する
 
-`src/lib/test-types.ts` の `TEST_TYPE_OPTIONS`（`[value, label][]`）と `TEST_TYPE_LABELS`（`Record<string, string>`）を使用。
-値: `mock`（模試）/ `exam`（定期テスト）/ `quiz`（小テスト）/ `other`（その他）
+---
+
+## 定数
+
+- **学年選択肢**: `src/lib/grades.ts` の `GRADE_OPTIONS`（フリーテキスト入力不可）
+- **テスト種別**: `src/lib/test-types.ts` の `TEST_TYPE_OPTIONS`（`[value, label][]`）と `TEST_TYPE_LABELS`（`Record<string, string>`）

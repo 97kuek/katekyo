@@ -282,6 +282,7 @@ model Lesson {
   @@index([teacherId])
   @@index([studentId])
   @@index([teacherId, date])
+  @@index([studentId, date])
 }
 
 model ExamEvent {
@@ -300,6 +301,7 @@ model ExamEvent {
   @@index([teacherId])
   @@index([studentId])
   @@index([date])
+  @@index([teacherId, date])
 }
 
 model GardenItem {
