@@ -157,6 +157,222 @@ prisma/
 - テーブルは `overflow-hidden overflow-x-auto` + `min-w-[Xpx]` でモバイル対応
 - main の padding: `p-4 md:p-6 pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-6`（ボトムナビ + iOS ホームインジケーター分の余白）
 
+## CSR / SSR / SSG の使い分け
+
+### 基本方針
+
+Next.js App Router では **Server Component がデフォルト**。`"use client"` は必要最小限のコンポーネントにのみ付与する。
+
+| レンダリング方式 | 使う場面 | 例 |
+|---|---|---|
+| **SSR（Server Component）** | DB アクセス・認証・初期データ取得 | `page.tsx`、`layout.tsx`（ほぼ全ページ） |
+| **CSR（Client Component）** | インタラクション・ブラウザ API・状態管理 | フォーム・フィルター・チャート・スワイプ |
+| **SSG（Static）** | 変化しないコンテンツ | 現状未使用（全データが動的テナントのため） |
+
+### `"use client"` を付ける条件（どれか1つ以上を満たす場合のみ）
+
+```
+✅ useState / useReducer / useRef を使う
+✅ useEffect / useLayoutEffect を使う
+✅ useActionState / useTransition / useFormStatus を使う
+✅ useRouter / usePathname / useSearchParams を使う
+✅ ブラウザ API（navigator, window, document）を使う
+✅ イベントハンドラ（onClick, onChange 等）が必要
+✅ Recharts などクライアント専用ライブラリを使う
+```
+
+### よくある誤用パターン（禁止）
+
+```typescript
+// ❌ インタラクションがないのに "use client" を付ける
+"use client"
+export function StaticCard({ title }: { title: string }) {
+  return <div>{title}</div>  // ← Server Component で書ける
+}
+
+// ✅ 正しくは Server Component のまま
+export function StaticCard({ title }: { title: string }) {
+  return <div>{title}</div>
+}
+```
+
+### データフェッチの流れ
+
+```
+page.tsx (Server Component)
+  └── async/await + db.xxx.findMany()   ← サーバー側でデータ取得
+        └── <ClientComponent data={data} />  ← シリアライズ可能なデータを props で渡す
+              └── useState で UI 状態管理
+```
+
+`page.tsx` から `db` を直接 import してよい。クライアントコンポーネントに db や auth を渡す必要はなく、Server Actions 経由でサーバー側処理を行う。
+
+### Suspense / loading.tsx
+
+各ルートに `loading.tsx` を配置してストリーミング SSR を有効化する。スケルトン UI は `loading.tsx` に書く。
+
+```
+/(app)/homework/
+  ├── page.tsx        ← データフェッチ（async）
+  └── loading.tsx     ← スケルトン（即時表示）
+```
+
+`page.tsx` 内で並列データフェッチが必要な場合は `<Suspense>` で個別に囲む（ダッシュボードの各セクション参照）。
+
+---
+
+## サーバー/クライアント分離
+
+### 責務の境界
+
+| 場所 | やること | やらないこと |
+|---|---|---|
+| **Server Component** | DB クエリ、auth()、秘密情報の使用 | useState、ブラウザ API |
+| **Server Action** | 認証チェック、Zod 検証、DB 書き込み | DOM 操作、クライアント状態 |
+| **Client Component** | UI 状態管理、イベント処理、Server Action の呼び出し | db の直接 import、auth() の呼び出し |
+
+### クライアントコンポーネントへの禁止事項
+
+```typescript
+// ❌ 禁止: クライアントコンポーネントが db を直接触る
+"use client"
+import { db } from "@/lib/db"  // ← これは絶対禁止
+
+// ❌ 禁止: クライアントコンポーネントが auth() を呼ぶ
+"use client"
+import { auth } from "@/lib/auth"
+const session = await auth()  // ← サーバー側の処理
+```
+
+### Server Action の呼び出しパターン
+
+```typescript
+// パターン1: form action（最もシンプル）
+<form action={createHomework}>
+  <input name="title" />
+  <button type="submit">作成</button>
+</form>
+
+// パターン2: useActionState（エラー表示・ローディング状態が必要な場合）
+const [state, action, isPending] = useActionState(serverAction, { error: "" })
+<form action={action}>
+  {state.error && <p>{state.error}</p>}
+</form>
+
+// パターン3: useTransition（ボタンクリック等、フォームでない場合）
+const [isPending, startTransition] = useTransition()
+<button onClick={() => startTransition(() => deleteAction(id))}>削除</button>
+```
+
+### Server Action のセキュリティチェックリスト
+
+実装順序を必ず守る:
+
+```typescript
+"use server"
+
+export async function someAction(formData: FormData) {
+  // 1. 認証確認
+  const session = await auth()
+  if (!session) return { error: "認証が必要です" }
+
+  // 2. ロール確認（必要な場合）
+  if (session.user.role !== "teacher") return { error: "権限がありません" }
+
+  // 3. Zod バリデーション
+  const parsed = schema.safeParse(Object.fromEntries(formData))
+  if (!parsed.success) return { error: parsed.error.issues[0].message }
+
+  // 4. テナント絞り込みを含む DB クエリ
+  const record = await db.homework.findFirst({
+    where: { id: parsed.data.id, teacherId: session.user.id },
+  })
+  if (!record) return { error: "見つかりません" }
+
+  // 5. 書き込み
+  await db.homework.update({ where: { id: parsed.data.id }, data: { ... } })
+}
+```
+
+---
+
+## API 設計
+
+### Route Handler vs Server Action の使い分け
+
+| 方式 | 使う場面 | 命名規則 |
+|---|---|---|
+| **Server Action** | フォーム送信・ボタン操作（アプリ内部の CRUD） | 動詞（RPC スタイル）: `createHomework`, `deleteLesson` |
+| **Route Handler** | 外部サービスの Webhook・Cron・CSV ダウンロード | 名詞+リソース: `/api/billing/export`, `/api/line/webhook` |
+
+Server Actions は REST API ではなく **RPC（Remote Procedure Call）** として設計されているため、動詞命名が正しい。`createHomework` のような名前は Next.js の慣例通り。
+
+Route Handlers は外部からアクセスされるため REST の原則に従い、パスは名詞ベース・HTTP メソッドで操作を表現する。
+
+### Route Handler 一覧
+
+| パス | メソッド | 用途 | 認証 |
+|---|---|---|---|
+| `/api/auth/[...nextauth]` | GET/POST | NextAuth | – |
+| `/api/billing/export` | GET | 請求 CSV ダウンロード | teacher セッション |
+| `/api/cron/cleanup-homework` | GET | 期限切れデータ削除 | `CRON_SECRET` |
+| `/api/cron/line-daily` | GET | LINE 週次通知 | `CRON_SECRET` |
+| `/api/cron/lesson-reminder` | GET/POST | 授業リマインダー（冪等） | `CRON_SECRET` |
+| `/api/line/webhook` | POST | LINE Bot 受信 | LINE 署名検証 |
+| `/api/webhooks/lesson-reminder` | POST | QStash からの授業通知 | QStash 署名検証 |
+
+---
+
+## テスト戦略
+
+### テスト構成
+
+| 種別 | ツール | 対象 | ファイル場所 |
+|---|---|---|---|
+| **ユニットテスト** | Vitest | 純粋関数・Zod スキーマ | `src/lib/*.test.ts` |
+| **E2E テスト** | Playwright | UI フロー・ページ遷移 | `tools/*.spec.ts` |
+
+DB・外部 API に依存するコード（Server Actions・Route Handlers）はユニットテストではなく E2E テストでカバーする。
+
+### ユニットテスト対象の選定基準
+
+```
+✅ テスト対象: 純粋関数（入力 → 出力が決定論的）
+  - src/lib/garden/utils.ts  → scoreToGardenItemType
+  - src/lib/date-utils.ts    → relativeDeadline, deadlineColorClass, formatDate
+  - src/lib/validation.test.ts → Zod スキーマのバリデーションルール
+
+❌ ユニットテスト対象外: DB・外部 API 依存
+  - src/lib/garden/actions.ts  → DB クエリあり → E2E でカバー
+  - src/lib/line.ts            → LINE API → E2E or 手動確認
+  - src/app/**/actions.ts      → auth + DB → E2E でカバー
+```
+
+### コマンド
+
+```bash
+npm test                  # ユニットテスト一回実行（CI 向け）
+npm run test:watch        # ウォッチモード（開発中）
+npm run test:coverage     # カバレッジレポート生成
+npx playwright test       # E2E テスト実行
+```
+
+### 新しいユニットテストを書く場所
+
+純粋関数を `src/lib/` に追加した場合、同ディレクトリに `*.test.ts` を作成する。
+
+```
+src/lib/
+  ├── garden/
+  │   ├── utils.ts
+  │   └── utils.test.ts    ← ここ
+  ├── date-utils.ts
+  ├── date-utils.test.ts   ← ここ
+  └── validation.test.ts   ← Zod スキーマのテスト
+```
+
+---
+
 ## モバイル操作・safe-area
 
 - **safe-area 対応**: `viewport` に `viewportFit: "cover"` を設定。ボトムナビは `pb-[env(safe-area-inset-bottom)]`、main の下余白も safe-area を加味（iPhone のホームインジケーターに被らない）
