@@ -9,14 +9,15 @@
 
 | ファイル | 内容 |
 | --- | --- |
-| [README.md](README.md) | プロダクト概要・デモアカウント・機能一覧 |
-| [docs/architecture.md](docs/architecture.md) | ディレクトリ構成・ページ一覧・レスポンシブ設計 |
-| [docs/DESIGN.md](docs/DESIGN.md) | カラートークン・ボタン・レイアウト規則 |
-| [docs/data-models.md](docs/data-models.md) | Prisma スキーマ・Enum・クエリ原則 |
-| [docs/requirements.md](docs/requirements.md) | 機能要件・ビジネスロジック |
-| [docs/api-spec.md](docs/api-spec.md) | Server Actions・Route Handlers |
+| [README.md](README.md) | プロダクト概要・デモアカウント・機能一覧・技術スタック |
+| [docs/usecases.md](docs/usecases.md) | ロール別ユースケース一覧（先生・生徒・保護者の利用シナリオ） |
+| [docs/requirements.md](docs/requirements.md) | 実装上のルール・制約・ビジネスロジック |
+| [docs/architecture.md](docs/architecture.md) | ディレクトリ構成・ページ一覧・CSR/SSR/SSG方針・テスト戦略・レスポンシブ設計 |
+| [docs/data-models.md](docs/data-models.md) | Prisma スキーマ・Enum・インデックス設計・テナント分離・クエリ原則 |
+| [docs/api-spec.md](docs/api-spec.md) | Server Actions・Route Handlers・Zod バリデーション |
+| [docs/DESIGN.md](docs/DESIGN.md) | カラートークン・ボタン・フォーム・レイアウト・アニメーション規則 |
 | [docs/parent-account-spec.md](docs/parent-account-spec.md) | 保護者アカウント（招待フロー・ページ構成・セキュリティ設計） |
-| [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) | セットアップ・開発運用・環境変数・ブランチ戦略 |
+| [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) | セットアップ・開発運用・テストコマンド・環境変数・ブランチ戦略 |
 | [docs/line-notification-plan.md](docs/line-notification-plan.md) | LINE 通知実装計画 |
 | [docs/meet-reminder-plan.md](docs/meet-reminder-plan.md) | Google Meet リマインダー実装計画 |
 | [todo.md](todo.md) | バックログ |
