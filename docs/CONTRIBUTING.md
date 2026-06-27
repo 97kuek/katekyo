@@ -121,7 +121,7 @@ npx prisma migrate dev
 npm run dev
 ```
 
-> **注意**: `db push` はマイグレーション履歴（`prisma/migrations/`）を更新しない。本番環境では `migrate deploy` の代わりに `db push` を使う場合は Vercel の Build Command に `prisma db push --accept-data-loss` を追加すること。
+> **注意**: `db push` はマイグレーション履歴（`prisma/migrations/`）を更新しない。スキーマのドリフト解消や開発初期のみ使用し、本番環境では `prisma migrate deploy` を使うこと。Vercel の Build Command は `prisma generate && next build` のままにする。
 
 ## 年次データクリーンアップ（手動実行）
 
@@ -155,6 +155,9 @@ npm run dev            # 開発サーバー（Turbopack）
 npm run build          # 本番ビルド（prisma generate 込み）
 npm run lint           # ESLint チェック
 npx tsc --noEmit       # 型チェック
+npm test               # ユニットテスト一回実行（CI 向け）
+npm run test:watch     # ユニットテストをウォッチモードで実行（開発中）
+npm run test:coverage  # カバレッジレポート生成
 npx prisma studio      # DB GUI ブラウザで確認
 npx prisma migrate dev --name <name>  # マイグレーション作成（→ /migrate）
 ```
