@@ -6,16 +6,16 @@ import { Pencil, Trash2 } from "lucide-react"
 import { deleteHomework } from "@/app/(app)/homework/[id]/actions"
 import { StatusBadge } from "@/components/homework/status-badge"
 import { deadlineColorClass, relativeDeadline, formatDate } from "@/lib/date-utils"
+import { isPendingStatus } from "@/lib/homework-status"
 import { haptic } from "@/lib/haptic"
 import { SwipeableRow } from "@/components/ui/swipeable-row"
-
-type Status = "assigned" | "submitted" | "approved" | "rejected"
+import type { HomeworkStatus } from "@/generated/prisma/enums"
 
 type Props = {
   id: string
   title: string
   studentName: string
-  status: Status
+  status: HomeworkStatus
   dueDateStr: string
   subjectNames: string[]
   isOverdue: boolean
@@ -26,7 +26,7 @@ export function SwipeableHomeworkCard({
 }: Props) {
   const [isPending, startTransition] = useTransition()
 
-  const canEdit = status === "assigned" || status === "rejected"
+  const canEdit = isPendingStatus(status)
   const dueDate = new Date(dueDateStr)
   const relLabel = relativeDeadline(dueDate)
   const relColor = deadlineColorClass(dueDate)
@@ -83,9 +83,9 @@ export function SwipeableHomeworkCard({
           </div>
           <StatusBadge status={status} />
         </div>
-        <p className={`text-xs mt-2 ${status === "assigned" || status === "rejected" ? relColor : "text-muted-foreground"}`}>
+        <p className={`text-xs mt-2 ${canEdit ? relColor : "text-muted-foreground"}`}>
           期限: {formatDate(dueDate)}
-          {(status === "assigned" || status === "rejected") && <span className="ml-1.5">（{relLabel}）</span>}
+          {canEdit && <span className="ml-1.5">（{relLabel}）</span>}
         </p>
       </Link>
     </SwipeableRow>

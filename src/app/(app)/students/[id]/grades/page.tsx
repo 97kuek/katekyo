@@ -5,20 +5,9 @@ import Link from "next/link"
 import { buttonVariants } from "@/components/ui/button"
 import GradeChart from "@/app/(app)/grades/grade-chart"
 import GradeRadar from "@/app/(app)/grades/grade-radar"
-
-function SubjectTags({ ids, map }: { ids: string[]; map: Map<string, string> }) {
-  const names = ids.map((id) => map.get(id)).filter(Boolean) as string[]
-  if (names.length === 0) return null
-  return (
-    <div className="flex flex-wrap gap-1 mt-1">
-      {names.map((name) => (
-        <span key={name} className="text-xs bg-primary/10 text-primary rounded-full px-2 py-0.5">
-          {name}
-        </span>
-      ))}
-    </div>
-  )
-}
+import { SubjectTags } from "@/components/ui/subject-tags"
+import { getSubjectsByTeacherId, buildSubjectMap } from "@/lib/queries"
+import { formatDate } from "@/lib/date-utils"
 
 function DiffBadge({ diff }: { diff: number | null }) {
   if (diff == null || Math.abs(diff) < 0.5) return null
@@ -52,10 +41,7 @@ export default async function StudentGradesPage({ params }: { params: Promise<{ 
       where: { id, teacherId: session.user.id },
       include: { user: { select: { name: true } } },
     }),
-    db.subject.findMany({
-      where: { teacherId: session.user.id },
-      select: { id: true, name: true, color: true },
-    }),
+    getSubjectsByTeacherId(session.user.id),
   ])
 
   if (!student) notFound()
@@ -65,7 +51,7 @@ export default async function StudentGradesPage({ params }: { params: Promise<{ 
     orderBy: { date: "desc" },
   })
 
-  const subjectMap = new Map(subjects.map((s) => [s.id, s.name]))
+  const subjectMap = buildSubjectMap(subjects)
 
   const chartGrades = grades.map((g) => ({
     id: g.id,
@@ -123,7 +109,7 @@ export default async function StudentGradesPage({ params }: { params: Promise<{ 
                 <div className="min-w-0">
                   <p className="font-medium truncate">{g.testName}</p>
                   <SubjectTags ids={g.subjectIds} map={subjectMap} />
-                  <p className="text-xs text-muted-foreground mt-1">{g.date.toLocaleDateString("ja-JP")}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{formatDate(g.date)}</p>
                 </div>
                 <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
                   {g.score != null && (
@@ -165,7 +151,7 @@ export default async function StudentGradesPage({ params }: { params: Promise<{ 
                       <p className="font-medium">{g.testName}</p>
                       <SubjectTags ids={g.subjectIds} map={subjectMap} />
                     </td>
-                    <td className="px-4 py-3 text-muted-foreground">{g.date.toLocaleDateString("ja-JP")}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{formatDate(g.date)}</td>
                     <td className="px-4 py-3">
                       {g.score != null ? (g.maxScore != null ? `${g.score}/${g.maxScore}` : g.score) : "-"}
                       <DiffBadge diff={prevDiff[i]} />

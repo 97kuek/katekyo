@@ -5,6 +5,7 @@ import Link from "next/link"
 import SubmitForm from "./submit-form"
 import { StatusBadge } from "@/components/homework/status-badge"
 import { formatDate } from "@/lib/date-utils"
+import { isPendingStatus } from "@/lib/homework-status"
 
 export default async function SubmitHomeworkPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -19,7 +20,7 @@ export default async function SubmitHomeworkPage({ params }: { params: Promise<{
   })
 
   if (!homework) notFound()
-  if (!["assigned", "rejected"].includes(homework.status)) redirect("/homework")
+  if (!isPendingStatus(homework.status)) redirect("/homework")
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">

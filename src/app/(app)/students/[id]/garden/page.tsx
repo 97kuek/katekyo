@@ -4,7 +4,8 @@ import { db } from "@/lib/db"
 import Link from "next/link"
 import GardenCanvas from "@/app/(app)/garden/garden-canvas"
 import { TreePine, Trophy } from "lucide-react"
-import type { GardenItemType } from "@/lib/garden/utils"
+import { GARDEN_CAPACITY } from "@/lib/garden/utils"
+import { getGardenState } from "@/lib/queries"
 
 export default async function StudentGardenPage({
   params,
@@ -21,35 +22,8 @@ export default async function StudentGardenPage({
   })
   if (!student) notFound()
 
-  const now = new Date()
-  const [rawItems, overdueCount] = await Promise.all([
-    db.gardenItem.findMany({
-      where: { studentId: id },
-      select: { x: true, y: true, itemType: true, createdAt: true },
-      orderBy: { createdAt: "asc" },
-    }),
-    db.homework.count({
-      where: {
-        studentId: id,
-        OR: [
-          { status: "assigned", dueDate: { lt: now } },
-          { status: "rejected" },
-        ],
-      },
-    }),
-  ])
-
-  const witheredCount = Math.min(overdueCount, rawItems.length)
-  const items = rawItems.map((item, i) => ({
-    x: item.x,
-    y: item.y,
-    itemType: item.itemType as GardenItemType,
-    withered: i < witheredCount,
-  }))
-
-  const total = items.length
-  const max = 64
-  const isFull = total >= max
+  const { items, total, witheredCount, overdueCount, isFull } = await getGardenState(id)
+  const max = GARDEN_CAPACITY
   const generation = student.gardenGeneration
 
   return (

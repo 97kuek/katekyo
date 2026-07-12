@@ -1,5 +1,11 @@
 export type GardenItemType = "tree" | "bush" | "flower" | "cherry" | "big_tree" | "bamboo" | "mushroom"
 
+/** 学習の森のグリッドは 8×8 = 64 マス */
+export const GARDEN_GRID_SIZE = 8
+export const GARDEN_CAPACITY = GARDEN_GRID_SIZE * GARDEN_GRID_SIZE
+/** お祝い演出を出す植物数 */
+export const GARDEN_MILESTONES = [10, 25, 50] as const
+
 export function scoreToGardenItemType(
   score: number | null,
   maxScore: number | null,

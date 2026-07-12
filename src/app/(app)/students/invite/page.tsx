@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState, useState, useEffect } from "react"
+import { useActionState, useState } from "react"
 import { createInvite } from "./actions"
 import { Button } from "@/components/ui/button"
 import { buttonVariants } from "@/components/ui/button"
@@ -14,12 +14,9 @@ import Link from "next/link"
 export default function InvitePage() {
   const [state, action, isPending] = useActionState(createInvite, { error: "", token: null })
   const [copied, setCopied] = useState(false)
-  const [origin, setOrigin] = useState("")
 
-  useEffect(() => {
-    setOrigin(window.location.origin)
-  }, [])
-
+  // トークンはクライアント側のアクション完了後にのみ存在するため window を直接参照できる
+  const origin = typeof window !== "undefined" ? window.location.origin : ""
   const inviteUrl = state.token ? `${origin}/invite/${state.token}` : null
 
   async function copyUrl() {

@@ -5,6 +5,8 @@ export default defineConfig({
   test: {
     environment: "node",
     globals: true,
+    // tools/ 配下は Playwright のスペックなので Vitest では実行しない
+    include: ["src/**/*.test.ts"],
     coverage: {
       provider: "v8",
       include: ["src/lib/**/*.ts"],

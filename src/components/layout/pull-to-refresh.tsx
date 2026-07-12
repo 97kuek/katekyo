@@ -20,6 +20,8 @@ export function PullToRefresh({ children }: { children: ReactNode }) {
   const crossed = useRef(false)
   const [pull, setPull] = useState(0)
   const [refreshing, setRefreshing] = useState(false)
+  // transition の切り替えはレンダーで参照するため ref ではなく state で持つ
+  const [touching, setTouching] = useState(false)
 
   function onTouchStart(e: React.TouchEvent) {
     if (refreshing) return
@@ -27,9 +29,11 @@ export function PullToRefresh({ children }: { children: ReactNode }) {
     if (scroller && scroller.scrollTop <= 0) {
       startY.current = e.touches[0].clientY
       active.current = true
+      setTouching(true)
       crossed.current = false
     } else {
       active.current = false
+      setTouching(false)
     }
   }
 
@@ -53,6 +57,7 @@ export function PullToRefresh({ children }: { children: ReactNode }) {
   function onTouchEnd() {
     if (!active.current) return
     active.current = false
+    setTouching(false)
     if (pull >= THRESHOLD && !refreshing) {
       setRefreshing(true)
       setPull(THRESHOLD)
@@ -91,7 +96,7 @@ export function PullToRefresh({ children }: { children: ReactNode }) {
         style={{
           // アイドル時は transform を付けない（sticky 要素の containing block を壊さないため）
           transform: pull > 0 ? `translateY(${pull}px)` : undefined,
-          transition: active.current ? "none" : "transform 0.25s ease-out",
+          transition: touching ? "none" : "transform 0.25s ease-out",
         }}
       >
         {children}

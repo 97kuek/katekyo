@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
+import { PENDING_STATUSES } from "@/lib/homework-status"
 import { sendLineMessage } from "@/lib/line"
 
 export async function GET(req: NextRequest) {
@@ -21,28 +22,29 @@ export async function GET(req: NextRequest) {
     include: { user: { select: { lineUserId: true, name: true } } },
   })
 
+  // 全生徒分の対象宿題を一括取得し、生徒ごとにグルーピング（N+1回避）
+  const pendingHomeworks = await db.homework.findMany({
+    where: {
+      studentId: { in: students.map((s) => s.id) },
+      status: { in: PENDING_STATUSES },
+      dueDate: { lte: todayEnd },
+    },
+    select: { studentId: true, title: true, dueDate: true },
+    orderBy: { dueDate: "asc" },
+  })
+  const homeworksByStudent = new Map<string, typeof pendingHomeworks>()
+  for (const hw of pendingHomeworks) {
+    const list = homeworksByStudent.get(hw.studentId) ?? []
+    list.push(hw)
+    homeworksByStudent.set(hw.studentId, list)
+  }
+
   let sentStudent = 0
   for (const student of students) {
     const lineUserId = student.user.lineUserId!
-
-    const [todayDue, overdue] = await Promise.all([
-      db.homework.findMany({
-        where: {
-          studentId: student.id,
-          status: { in: ["assigned", "rejected"] },
-          dueDate: { gte: todayStart, lte: todayEnd },
-        },
-        select: { title: true },
-      }),
-      db.homework.findMany({
-        where: {
-          studentId: student.id,
-          status: { in: ["assigned", "rejected"] },
-          dueDate: { lt: todayStart },
-        },
-        select: { title: true, dueDate: true },
-      }),
-    ])
+    const homeworks = homeworksByStudent.get(student.id) ?? []
+    const todayDue = homeworks.filter((h) => h.dueDate >= todayStart)
+    const overdue = homeworks.filter((h) => h.dueDate < todayStart)
 
     if (todayDue.length === 0 && overdue.length === 0) continue
 
@@ -81,18 +83,25 @@ export async function GET(req: NextRequest) {
       select: { id: true, lineUserId: true },
     })
 
-    for (const teacher of teachers) {
-      const uncompleted = await db.lesson.findMany({
-        where: {
-          teacherId: teacher.id,
-          completedAt: null,
-          date: { lt: oneDayAgo },
-        },
-        include: { student: { include: { user: { select: { name: true } } } } },
-        orderBy: { date: "asc" },
-        take: 10,
-      })
+    // 全先生分の未完了授業を一括取得し、先生ごとにグルーピング（N+1回避）
+    const uncompletedLessons = await db.lesson.findMany({
+      where: {
+        teacherId: { in: teachers.map((t) => t.id) },
+        completedAt: null,
+        date: { lt: oneDayAgo },
+      },
+      include: { student: { include: { user: { select: { name: true } } } } },
+      orderBy: { date: "asc" },
+    })
+    const lessonsByTeacher = new Map<string, typeof uncompletedLessons>()
+    for (const lesson of uncompletedLessons) {
+      const list = lessonsByTeacher.get(lesson.teacherId) ?? []
+      if (list.length < 10) list.push(lesson)
+      lessonsByTeacher.set(lesson.teacherId, list)
+    }
 
+    for (const teacher of teachers) {
+      const uncompleted = lessonsByTeacher.get(teacher.id) ?? []
       if (uncompleted.length === 0) continue
 
       const lines = ["📋 未完了の授業があります\n"]

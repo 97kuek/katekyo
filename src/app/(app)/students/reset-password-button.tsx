@@ -1,16 +1,19 @@
 "use client"
 
-import { useState, useActionState, useEffect } from "react"
+import { useState, useActionState } from "react"
 import { resetStudentPassword } from "./actions"
 import { Button } from "@/components/ui/button"
 
 export function ResetPasswordButton({ studentId }: { studentId: string }) {
   const [open, setOpen] = useState(false)
-  const [state, action, isPending] = useActionState(resetStudentPassword, { error: "", success: false })
-
-  useEffect(() => {
-    if (state.success) setOpen(false)
-  }, [state.success])
+  const [state, action, isPending] = useActionState(
+    async (prev: { error: string; success: boolean }, formData: FormData) => {
+      const result = await resetStudentPassword(prev, formData)
+      if (result.success) setOpen(false)
+      return result
+    },
+    { error: "", success: false }
+  )
 
   if (!open) {
     return (

@@ -2,13 +2,11 @@
 
 import { useActionState } from "react"
 import { updateGradeRecord } from "../actions"
+import { GradeFormFields } from "../../grade-form-fields"
 import { Button } from "@/components/ui/button"
 import { StickyFormActions } from "@/components/ui/sticky-form-actions"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Select } from "@/components/ui/select"
-import { TEST_TYPE_OPTIONS } from "@/lib/test-types"
 
 type Grade = {
   id: string
@@ -46,115 +44,29 @@ export default function EditGradeForm({
       )}
       <p className="text-xs text-muted-foreground"><span className="text-destructive font-medium">*</span> は必須項目です</p>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="col-span-2 space-y-2">
-          <Label>生徒</Label>
-          <Input value={grade.student.user.name} disabled className="bg-muted" />
-        </div>
-
-        <div className="col-span-2 space-y-2">
-          <Label htmlFor="testType">テスト種別 <span className="text-destructive">*</span></Label>
-          <Select
-            id="testType"
-            name="testType"
-            defaultValue={grade.testType}
-          >
-            {TEST_TYPE_OPTIONS.map(([value, label]) => (
-              <option key={value} value={value}>{label}</option>
-            ))}
-          </Select>
-        </div>
-
-        <div className="col-span-2 space-y-2">
-          <Label htmlFor="testName">テスト名 <span className="text-destructive">*</span></Label>
-          <Input id="testName" name="testName" required defaultValue={grade.testName} />
-        </div>
-
-        <div className="col-span-2 space-y-2">
-          <Label htmlFor="date">実施日 <span className="text-destructive">*</span></Label>
-          <Input
-            id="date"
-            name="date"
-            type="date"
-            required
-            defaultValue={grade.date.toISOString().split("T")[0]}
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="score">得点 <span className="text-xs text-muted-foreground font-normal">（任意）</span></Label>
-          <Input id="score" name="score" type="number" min="0" defaultValue={grade.score ?? ""} />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="maxScore">満点 <span className="text-xs text-muted-foreground font-normal">（任意）</span></Label>
-          <Input id="maxScore" name="maxScore" type="number" min="1" defaultValue={grade.maxScore ?? ""} />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="rank">順位 <span className="text-xs text-muted-foreground font-normal">（任意）</span></Label>
-          <Input id="rank" name="rank" type="number" min="1" defaultValue={grade.rank ?? ""} />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="totalStudents">受験者数 <span className="text-xs text-muted-foreground font-normal">（任意）</span></Label>
-          <Input id="totalStudents" name="totalStudents" type="number" min="1" defaultValue={grade.totalStudents ?? ""} />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="deviation">偏差値 <span className="text-xs text-muted-foreground font-normal">（任意）</span></Label>
-          <Input
-            id="deviation"
-            name="deviation"
-            type="number"
-            step="0.1"
-            min="0"
-            max="100"
-            defaultValue={grade.deviation ?? ""}
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="avgScore">クラス平均点 <span className="text-xs text-muted-foreground font-normal">（任意）</span></Label>
-          <Input
-            id="avgScore"
-            name="avgScore"
-            type="number"
-            min="0"
-            defaultValue={grade.avgScore ?? ""}
-          />
-        </div>
-
-      </div>
-
-      {subjects.length > 0 && (
-        <div className="space-y-2">
-          <Label>科目タグ <span className="text-xs text-muted-foreground font-normal">（任意・複数選択可）</span></Label>
-          <div className="flex flex-wrap gap-3">
-            {subjects.map((s) => (
-              <label key={s.id} className="flex items-center gap-1.5 cursor-pointer">
-                <input
-                  type="checkbox"
-                  name="subjectIds"
-                  value={s.id}
-                  defaultChecked={grade.subjectIds.includes(s.id)}
-                  className="accent-primary"
-                />
-                <span className="text-sm">{s.name}</span>
-              </label>
-            ))}
+      <GradeFormFields
+        subjects={subjects}
+        defaultValues={{
+          testType: grade.testType,
+          testName: grade.testName,
+          date: grade.date.toISOString().split("T")[0],
+          score: grade.score ?? "",
+          maxScore: grade.maxScore ?? "",
+          rank: grade.rank ?? "",
+          totalStudents: grade.totalStudents ?? "",
+          deviation: grade.deviation ?? "",
+          avgScore: grade.avgScore ?? "",
+          subjectIds: grade.subjectIds,
+          comment: grade.comment ?? "",
+        }}
+        mode="edit"
+        studentField={(
+          <div className="col-span-2 space-y-2">
+            <Label>生徒</Label>
+            <Input value={grade.student.user.name} disabled className="bg-muted" />
           </div>
-        </div>
-      )}
-
-      <div className="space-y-2">
-        <Label htmlFor="comment">コメント <span className="text-xs text-muted-foreground font-normal">（任意）</span></Label>
-        <Textarea
-          id="comment"
-          name="comment"
-          rows={3}
-          defaultValue={grade.comment ?? ""}
-          className="resize-none"
-        />
-      </div>
+        )}
+      />
 
       <StickyFormActions>
         <Button type="submit" className="w-full md:w-auto" disabled={isPending}>

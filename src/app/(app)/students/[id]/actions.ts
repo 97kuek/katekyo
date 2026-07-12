@@ -1,7 +1,7 @@
 "use server"
 
-import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
+import { requireTeacher } from "@/lib/action-guards"
 import { redirect } from "next/navigation"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
@@ -13,8 +13,8 @@ const schema = z.object({
 })
 
 export async function updateStudentGrade(formData: FormData) {
-  const session = await auth()
-  if (!session || session.user.role !== "teacher") redirect("/dashboard")
+  const teacher = await requireTeacher()
+  if (!teacher) redirect("/dashboard")
 
   const result = schema.safeParse({
     studentId: formData.get("studentId"),
@@ -25,7 +25,7 @@ export async function updateStudentGrade(formData: FormData) {
   const { studentId, grade } = result.data
 
   await db.student.updateMany({
-    where: { id: studentId, teacherId: session.user.id },
+    where: { id: studentId, teacherId: teacher.teacherId },
     data: { grade },
   })
 

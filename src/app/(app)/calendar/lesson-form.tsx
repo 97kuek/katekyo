@@ -22,8 +22,18 @@ type Student = {
 type Subject = { id: string; name: string }
 
 export function LessonForm({ students, defaultDate, subjects }: { students: Student[]; defaultDate: string; subjects: Subject[] }) {
-  const [state, action, isPending] = useActionState(createLesson, { error: "" })
   const [open, setOpen] = useState(false)
+  const [state, action, isPending] = useActionState(
+    async (prev: { error: string; timestamp?: number }, formData: FormData) => {
+      const result = await createLesson(prev, formData)
+      if (result.timestamp) {
+        setOpen(false)
+        toast.success("授業を追加しました")
+      }
+      return result
+    },
+    { error: "" }
+  )
   const [studentId, setStudentId] = useState(students[0]?.id ?? "")
   const [duration, setDuration] = useState("60")
   const [hourlyRate, setHourlyRate] = useState("")
@@ -46,23 +56,20 @@ export function LessonForm({ students, defaultDate, subjects }: { students: Stud
   }
 
   // 生徒数に関わらず、フォーム表示時は先頭の生徒のデフォルトを自動反映する。
+  // localStorage（クライアント専用ストア）をハイドレーション後に読む必要があるため effect で行う。
   useEffect(() => {
     const first = students[0]
     if (first) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setStudentId(first.id)
       applyStudentDefaults(first)
     } else {
       const saved = localStorage.getItem(DURATION_KEY)
+       
       if (saved) setDuration(saved)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [students])
-
-  useEffect(() => {
-    if (!state.timestamp) return
-    setOpen(false)
-    toast.success("授業を追加しました")
-  }, [state.timestamp])
 
   function handleStudentChange(e: React.ChangeEvent<HTMLSelectElement>) {
     setStudentId(e.target.value)

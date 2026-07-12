@@ -1,4 +1,4 @@
-import { createHmac } from "crypto"
+import { createHmac, timingSafeEqual } from "crypto"
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { sendLineMessage, linkRichMenuToUser } from "@/lib/line"
@@ -6,8 +6,9 @@ import { sendLineMessage, linkRichMenuToUser } from "@/lib/line"
 function verifySignature(body: string, signature: string): boolean {
   const secret = process.env.LINE_CHANNEL_SECRET
   if (!secret) return false
-  const hash = createHmac("SHA256", secret).update(body).digest("base64")
-  return hash === signature
+  const hash = createHmac("SHA256", secret).update(body).digest()
+  const provided = Buffer.from(signature, "base64")
+  return hash.length === provided.length && timingSafeEqual(hash, provided)
 }
 
 export async function POST(req: NextRequest) {
@@ -48,11 +49,13 @@ export async function POST(req: NextRequest) {
           continue
         }
 
-        await db.user.update({
-          where: { id: linkToken.userId },
-          data: { lineUserId },
-        })
-        await db.lineLinkToken.delete({ where: { id: linkToken.id } })
+        await db.$transaction([
+          db.user.update({
+            where: { id: linkToken.userId },
+            data: { lineUserId },
+          }),
+          db.lineLinkToken.delete({ where: { id: linkToken.id } }),
+        ])
 
         const richMenuId = linkToken.user.role === "teacher"
           ? process.env.LINE_RICH_MENU_TEACHER_ID

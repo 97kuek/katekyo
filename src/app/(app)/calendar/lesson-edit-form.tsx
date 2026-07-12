@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState, useEffect, useState } from "react"
+import { useActionState, useState } from "react"
 import { toast } from "sonner"
 import { updateLesson } from "./actions"
 import { Button } from "@/components/ui/button"
@@ -34,14 +34,18 @@ function toTimeStr(d: Date) {
 }
 
 export function LessonEditForm({ lesson, onClose, subjects }: { lesson: Lesson; onClose: () => void; subjects: Subject[] }) {
-  const [state, action, isPending] = useActionState(updateLesson, { error: "" })
   const [lessonType, setLessonType] = useState<"online" | "offline">(lesson.type)
-
-  useEffect(() => {
-    if (!state.timestamp) return
-    onClose()
-    toast.success("授業を更新しました")
-  }, [state.timestamp])
+  const [state, action, isPending] = useActionState(
+    async (prev: { error: string; timestamp?: number }, formData: FormData) => {
+      const result = await updateLesson(prev, formData)
+      if (result.timestamp) {
+        onClose()
+        toast.success("授業を更新しました")
+      }
+      return result
+    },
+    { error: "" }
+  )
 
   return (
     <form action={action} className="mt-3 space-y-3 border-t pt-3">

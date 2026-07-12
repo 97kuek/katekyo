@@ -1,9 +1,27 @@
 "use server"
 
+import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import bcrypt from "bcryptjs"
 import { redirect } from "next/navigation"
 import { z } from "zod"
+
+const INVALID_INVITE_ERROR = "招待リンクが無効または期限切れです"
+
+/**
+ * トークンを使用済みにする。usedAt が null の場合のみ成功する
+ * （同時リクエストによる二重使用を防ぐため、チェックと更新をアトミックに行う）。
+ */
+async function consumeInviteToken(
+  tx: Pick<typeof db, "parentInviteToken">,
+  inviteId: string
+): Promise<boolean> {
+  const consumed = await tx.parentInviteToken.updateMany({
+    where: { id: inviteId, usedAt: null },
+    data: { usedAt: new Date() },
+  })
+  return consumed.count === 1
+}
 
 const schema = z.object({
   token: z.string().min(1),
@@ -32,7 +50,7 @@ export async function acceptParentInvite(
     include: { student: { select: { teacherId: true } } },
   })
   if (!invite || invite.usedAt || invite.expiresAt < new Date()) {
-    return { error: "招待リンクが無効または期限切れです" }
+    return { error: INVALID_INVITE_ERROR }
   }
 
   const existingUser = await db.user.findUnique({ where: { email } })
@@ -45,29 +63,38 @@ export async function acceptParentInvite(
 
   const hashed = await bcrypt.hash(password, 10)
 
-  await db.$transaction(async (tx) => {
-    const user = await tx.user.create({
-      data: { email, name, password: hashed, role: "parent" },
+  try {
+    await db.$transaction(async (tx) => {
+      if (!(await consumeInviteToken(tx, invite.id))) {
+        throw new Error(INVALID_INVITE_ERROR)
+      }
+      const user = await tx.user.create({
+        data: { email, name, password: hashed, role: "parent" },
+      })
+      await tx.parentStudent.create({
+        data: { parentId: user.id, studentId: invite.studentId, teacherId: invite.student.teacherId },
+      })
     })
-    await tx.parentStudent.create({
-      data: { parentId: user.id, studentId: invite.studentId, teacherId: invite.student.teacherId },
-    })
-    await tx.parentInviteToken.update({
-      where: { id: invite.id },
-      data: { usedAt: new Date() },
-    })
-  })
+  } catch {
+    return { error: INVALID_INVITE_ERROR }
+  }
 
   redirect("/login?invited=1")
 }
 
-export async function linkExistingParent(token: string, parentId: string): Promise<{ error: string }> {
+export async function linkExistingParent(token: string): Promise<{ error: string }> {
+  const session = await auth()
+  if (!session || session.user.role !== "parent") {
+    return { error: "権限がありません" }
+  }
+  const parentId = session.user.id
+
   const invite = await db.parentInviteToken.findUnique({
     where: { token },
     include: { student: { select: { teacherId: true } } },
   })
   if (!invite || invite.usedAt || invite.expiresAt < new Date()) {
-    return { error: "招待リンクが無効または期限切れです" }
+    return { error: INVALID_INVITE_ERROR }
   }
 
   const existing = await db.parentStudent.findUnique({
@@ -77,15 +104,18 @@ export async function linkExistingParent(token: string, parentId: string): Promi
     redirect("/dashboard")
   }
 
-  await db.$transaction(async (tx) => {
-    await tx.parentStudent.create({
-      data: { parentId, studentId: invite.studentId, teacherId: invite.student.teacherId },
+  try {
+    await db.$transaction(async (tx) => {
+      if (!(await consumeInviteToken(tx, invite.id))) {
+        throw new Error(INVALID_INVITE_ERROR)
+      }
+      await tx.parentStudent.create({
+        data: { parentId, studentId: invite.studentId, teacherId: invite.student.teacherId },
+      })
     })
-    await tx.parentInviteToken.update({
-      where: { id: invite.id },
-      data: { usedAt: new Date() },
-    })
-  })
+  } catch {
+    return { error: INVALID_INVITE_ERROR }
+  }
 
   redirect("/dashboard")
 }

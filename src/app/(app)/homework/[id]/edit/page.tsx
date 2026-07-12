@@ -3,6 +3,7 @@ import { redirect, notFound } from "next/navigation"
 import { db } from "@/lib/db"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { isPendingStatus } from "@/lib/homework-status"
 import EditHomeworkForm from "./edit-form"
 
 export default async function EditHomeworkPage({ params }: { params: Promise<{ id: string }> }) {
@@ -19,7 +20,7 @@ export default async function EditHomeworkPage({ params }: { params: Promise<{ i
   ])
 
   if (!homework) notFound()
-  if (!["assigned", "rejected"].includes(homework.status)) redirect(`/homework/${id}`)
+  if (!isPendingStatus(homework.status)) redirect(`/homework/${id}`)
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">

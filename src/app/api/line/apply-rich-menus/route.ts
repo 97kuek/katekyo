@@ -30,7 +30,11 @@ export async function POST(req: NextRequest) {
       const menuId = u.role === "teacher" ? teacherMenuId : studentMenuId
       try {
         await linkRichMenuToUser(u.lineUserId!, menuId)
-        u.role === "teacher" ? teacher++ : student++
+        if (u.role === "teacher") {
+          teacher++
+        } else {
+          student++
+        }
       } catch {
         failed++
       }

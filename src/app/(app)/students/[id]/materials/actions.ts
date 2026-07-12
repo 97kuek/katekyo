@@ -1,7 +1,7 @@
 "use server"
 
 import { db } from "@/lib/db"
-import { auth } from "@/lib/auth"
+import { requireTeacher } from "@/lib/action-guards"
 import { z } from "zod"
 import { revalidatePath } from "next/cache"
 
@@ -15,8 +15,8 @@ export async function createMaterial(
   _prevState: { error: string },
   formData: FormData
 ): Promise<{ error: string }> {
-  const session = await auth()
-  if (!session || session.user.role !== "teacher") return { error: "権限がありません" }
+  const teacher = await requireTeacher()
+  if (!teacher) return { error: "権限がありません" }
 
   const result = createSchema.safeParse({
     studentId: formData.get("studentId"),
@@ -29,12 +29,12 @@ export async function createMaterial(
   const subjectIds = formData.getAll("subjectIds") as string[]
 
   const student = await db.student.findFirst({
-    where: { id: studentId, teacherId: session.user.id },
+    where: { id: studentId, teacherId: teacher.teacherId },
   })
   if (!student) return { error: "生徒が見つかりません" }
 
   await db.studentMaterial.create({
-    data: { studentId, teacherId: session.user.id, name, note: note ?? null, subjectIds },
+    data: { studentId, teacherId: teacher.teacherId, name, note: note ?? null, subjectIds },
   })
 
   revalidatePath(`/students/${studentId}/materials`)
@@ -42,11 +42,11 @@ export async function createMaterial(
 }
 
 export async function deleteMaterial(materialId: string, studentId: string): Promise<{ error: string }> {
-  const session = await auth()
-  if (!session || session.user.role !== "teacher") return { error: "権限がありません" }
+  const teacher = await requireTeacher()
+  if (!teacher) return { error: "権限がありません" }
 
   await db.studentMaterial.deleteMany({
-    where: { id: materialId, teacherId: session.user.id },
+    where: { id: materialId, teacherId: teacher.teacherId },
   })
 
   revalidatePath(`/students/${studentId}/materials`)
@@ -58,11 +58,11 @@ export async function updateMaterialSubjects(
   studentId: string,
   subjectIds: string[]
 ): Promise<{ error: string }> {
-  const session = await auth()
-  if (!session || session.user.role !== "teacher") return { error: "権限がありません" }
+  const teacher = await requireTeacher()
+  if (!teacher) return { error: "権限がありません" }
 
   const material = await db.studentMaterial.findFirst({
-    where: { id: materialId, teacherId: session.user.id, studentId },
+    where: { id: materialId, teacherId: teacher.teacherId, studentId },
   })
   if (!material) return { error: "教材が見つかりません" }
 

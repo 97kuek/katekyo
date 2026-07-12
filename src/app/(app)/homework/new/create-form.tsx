@@ -4,11 +4,9 @@ import { useActionState, useState } from "react"
 import { createHomework } from "./actions"
 import { Button } from "@/components/ui/button"
 import { StickyFormActions } from "@/components/ui/sticky-form-actions"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import { Select } from "@/components/ui/select"
-import Link from "next/link"
+import { HomeworkCoreFields, SubjectCheckboxes } from "../homework-form-fields"
 
 type Student = {
   id: string
@@ -37,8 +35,6 @@ export default function CreateHomeworkForm({
   const [state, action, isPending] = useActionState(createHomework, { error: "" })
   const singleStudent = students.length === 1 ? students[0] : null
   const [selectedStudentId, setSelectedStudentId] = useState(singleStudent?.id ?? "")
-  const [title, setTitle] = useState("")
-  const [description, setDescription] = useState("")
 
   const materials = selectedStudentId ? (materialsByStudent[selectedStudentId] ?? []) : []
 
@@ -72,26 +68,7 @@ export default function CreateHomeworkForm({
           </Select>
         )}
       </div>
-      <div className="space-y-2">
-        <Label htmlFor="title">タイトル <span className="text-destructive">*</span></Label>
-        <Input id="title" name="title" required placeholder="例: 英単語50問" autoFocus
-          value={title} onChange={(e) => setTitle(e.target.value)} />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="description">内容（任意）</Label>
-        <Textarea
-          id="description"
-          name="description"
-          rows={3}
-          className="resize-none"
-          placeholder="詳細な指示があれば入力してください"
-          value={description} onChange={(e) => setDescription(e.target.value)}
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="dueDate">期限 <span className="text-destructive">*</span></Label>
-        <Input id="dueDate" name="dueDate" type="date" required defaultValue={tomorrowISO()} />
-      </div>
+      <HomeworkCoreFields mode="create" defaults={{ dueDate: tomorrowISO() }} />
       {selectedStudentId && (
         <div className="space-y-2">
           <Label htmlFor="materialId">使用教材（任意）</Label>
@@ -114,19 +91,7 @@ export default function CreateHomeworkForm({
           )}
         </div>
       )}
-      {subjects.length > 0 && (
-        <div className="space-y-2">
-          <Label>科目タグ（任意・複数選択可）</Label>
-          <div className="flex flex-wrap gap-3">
-            {subjects.map((s) => (
-              <label key={s.id} className="flex items-center gap-1.5 cursor-pointer">
-                <input type="checkbox" name="subjectIds" value={s.id} className="accent-primary" />
-                <span className="text-sm">{s.name}</span>
-              </label>
-            ))}
-          </div>
-        </div>
-      )}
+      <SubjectCheckboxes label="科目タグ（任意・複数選択可）" subjects={subjects} />
       <div className="flex items-center gap-2">
         <input type="checkbox" name="requiresPhoto" id="requiresPhoto" value="1" className="accent-primary" />
         <Label htmlFor="requiresPhoto" className="text-sm font-normal cursor-pointer">

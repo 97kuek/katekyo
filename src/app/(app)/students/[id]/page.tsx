@@ -10,6 +10,7 @@ import { ViewAsButton } from "../view-as-button"
 import { ResetPasswordButton } from "../reset-password-button"
 import { DeleteStudentButton } from "../delete-student-button"
 import { formatDate } from "@/lib/date-utils"
+import { GARDEN_CAPACITY } from "@/lib/garden/utils"
 
 export default async function StudentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
@@ -45,7 +46,7 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
     }),
   ])
 
-  const isFull = gardenCount >= 64
+  const isFull = gardenCount >= GARDEN_CAPACITY
   const isWithered = problemCount > 0 && gardenCount > 0
 
   const navLinks = [

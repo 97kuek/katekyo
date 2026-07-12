@@ -1,16 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
-
-function calcFee(
-  durationMin: number | null,
-  hourlyRate: number | null,
-  travelExpense: number | null
-) {
-  const lessonFee =
-    durationMin && hourlyRate ? Math.round((durationMin / 60) * hourlyRate) : 0
-  return { lessonFee, total: lessonFee + (travelExpense ?? 0) }
-}
+import { calcFeeBreakdown } from "@/lib/billing"
 
 export async function GET(req: NextRequest) {
   const session = await auth()
@@ -61,7 +52,7 @@ export async function GET(req: NextRequest) {
       hour: "2-digit",
       minute: "2-digit",
     })
-    const { lessonFee, total } = calcFee(l.durationMin, l.hourlyRate, l.travelExpense)
+    const { lessonFee, total } = calcFeeBreakdown(l)
     const hasFee = l.hourlyRate != null || l.travelExpense != null
     return [
       l.student.user.name,

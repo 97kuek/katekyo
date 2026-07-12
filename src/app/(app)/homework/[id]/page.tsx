@@ -7,6 +7,7 @@ import { StatusBadge } from "@/components/homework/status-badge"
 import { DeleteHomeworkButton } from "./delete-homework-button"
 import { CancelSubmissionButton } from "@/app/(app)/homework/cancel-button"
 import { relativeDeadline, deadlineColorClass, formatDate } from "@/lib/date-utils"
+import { isPendingStatus, HOMEWORK_EVENT_LABELS } from "@/lib/homework-status"
 import { ExtendDeadlineButton } from "./extend-deadline"
 import { AlertCircle } from "lucide-react"
 import { DifficultyBars } from "@/components/homework/difficulty-bars"
@@ -84,7 +85,7 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
         </Link>
         {isTeacher && (
           <div className="flex gap-2 shrink-0">
-            {["assigned", "rejected"].includes(homework.status) && (
+            {isPendingStatus(homework.status) && (
               <Link
                 href={`/homework/${id}/edit`}
                 className={buttonVariants({ variant: "ghost", size: "xs" })}
@@ -216,10 +217,11 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
             {homework.events.map((ev) => {
               const config =
                 ev.eventType === "approved"
-                  ? { icon: "✅", label: "承認", color: "text-primary" }
+                  ? { icon: "✅", color: "text-primary" }
                   : ev.eventType === "rejected"
-                  ? { icon: "🔁", label: "差し戻し", color: "text-destructive" }
-                  : { icon: "📬", label: "提出", color: "text-primary" }
+                  ? { icon: "🔁", color: "text-destructive" }
+                  : { icon: "📬", color: "text-primary" }
+              const label = HOMEWORK_EVENT_LABELS[ev.eventType]
               return (
                 <li key={ev.id} className="ml-4">
                   <span className="absolute -left-1.5 flex h-3 w-3 items-center justify-center">
@@ -227,7 +229,7 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
                   </span>
                   <div className="flex items-baseline gap-2 flex-wrap">
                     <span className={`text-xs font-semibold ${config.color}`}>
-                      {config.icon} {config.label}
+                      {config.icon} {label}
                     </span>
                     <span className="text-xs text-muted-foreground">{ev.actorName}</span>
                     <span className="text-xs text-muted-foreground">
@@ -246,7 +248,7 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
 
       {!isParent && (
         <div className="flex flex-col sm:flex-row gap-3">
-          {!isTeacher && ["assigned", "rejected"].includes(homework.status) && (
+          {!isTeacher && isPendingStatus(homework.status) && (
             <Link href={`/homework/${id}/submit`} className={buttonVariants({ className: "justify-center" })}>
               提出する
             </Link>

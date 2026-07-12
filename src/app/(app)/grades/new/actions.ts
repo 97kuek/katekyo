@@ -1,7 +1,7 @@
 "use server"
 
 import { db } from "@/lib/db"
-import { auth } from "@/lib/auth"
+import { requireTeacher } from "@/lib/action-guards"
 import { redirect } from "next/navigation"
 import { z } from "zod"
 import { plantGardenItem } from "@/lib/garden/actions"
@@ -32,8 +32,8 @@ export async function createGradeRecord(
   _prevState: { error: string },
   formData: FormData
 ): Promise<{ error: string }> {
-  const session = await auth()
-  if (!session || session.user.role !== "teacher") {
+  const teacher = await requireTeacher()
+  if (!teacher) {
     return { error: "権限がありません" }
   }
 
@@ -48,7 +48,7 @@ export async function createGradeRecord(
   const { studentId, testName, date, testType } = result.data
 
   const student = await db.student.findFirst({
-    where: { id: studentId, teacherId: session.user.id },
+    where: { id: studentId, teacherId: teacher.teacherId },
   })
   if (!student) return { error: "指定された生徒が見つかりません" }
 
@@ -60,7 +60,7 @@ export async function createGradeRecord(
 
   await db.gradeRecord.create({
     data: {
-      teacherId: session.user.id,
+      teacherId: teacher.teacherId,
       studentId,
       testName,
       testType,

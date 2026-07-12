@@ -1,7 +1,7 @@
 "use server"
 
-import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
+import { requireTeacher } from "@/lib/action-guards"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
 
@@ -9,8 +9,8 @@ export async function unlinkParent(
   _prevState: { error: string },
   formData: FormData
 ): Promise<{ error: string }> {
-  const session = await auth()
-  if (!session || session.user.role !== "teacher") return { error: "権限がありません" }
+  const teacher = await requireTeacher()
+  if (!teacher) return { error: "権限がありません" }
 
   const schema = z.object({
     parentId: z.string().min(1),
@@ -26,7 +26,7 @@ export async function unlinkParent(
 
   // 先生のテナント確認
   const link = await db.parentStudent.findFirst({
-    where: { parentId, studentId, teacherId: session.user.id },
+    where: { parentId, studentId, teacherId: teacher.teacherId },
   })
   if (!link) return { error: "対象が見つかりません" }
 

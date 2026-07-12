@@ -1,18 +1,18 @@
 "use server"
 
 import { cookies } from "next/headers"
-import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
+import { requireTeacher } from "@/lib/action-guards"
 import { redirect } from "next/navigation"
 
 const COOKIE_NAME = "katekyo_view_as"
 
 export async function startViewingAs(studentId: string) {
-  const session = await auth()
-  if (!session || session.user.role !== "teacher") return
+  const teacher = await requireTeacher()
+  if (!teacher) return
 
   const student = await db.student.findFirst({
-    where: { id: studentId, teacherId: session.user.id },
+    where: { id: studentId, teacherId: teacher.teacherId },
     select: { id: true },
   })
   if (!student) return

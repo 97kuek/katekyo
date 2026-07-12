@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState, useState, useEffect } from "react"
+import { useActionState, useState } from "react"
 import { createParentInviteAsStudent } from "./actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -12,10 +12,9 @@ import { buttonVariants } from "@/components/ui/button"
 export default function CreateParentInvitePage() {
   const [state, action, isPending] = useActionState(createParentInviteAsStudent, { error: "", token: null })
   const [copied, setCopied] = useState(false)
-  const [origin, setOrigin] = useState("")
 
-  useEffect(() => { setOrigin(window.location.origin) }, [])
-
+  // トークンはクライアント側のアクション完了後にのみ存在するため window を直接参照できる
+  const origin = typeof window !== "undefined" ? window.location.origin : ""
   const inviteUrl = state.token ? `${origin}/parent-invite/${state.token}` : null
 
   async function copyUrl() {

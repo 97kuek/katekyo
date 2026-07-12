@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
+import { calcFeeBreakdown } from "@/lib/billing"
+import { formatCurrency } from "@/lib/format"
 import { sendLineMessage } from "@/lib/line"
 
 export async function GET(req: NextRequest) {
@@ -35,6 +37,20 @@ export async function GET(req: NextRequest) {
     },
   })
 
+  // 全生徒分の当月宿題数を一括集計（先生×生徒のネストしたN+1回避）
+  const allStudentIds = teachers.flatMap((t) => t.students.map((s) => s.id))
+  const homeworkCounts = await db.homework.groupBy({
+    by: ["studentId"],
+    where: {
+      studentId: { in: allStudentIds },
+      createdAt: { gte: prevMonth, lte: prevMonthEnd },
+    },
+    _count: { _all: true },
+  })
+  const homeworkCountByStudent = new Map(
+    homeworkCounts.map((c) => [c.studentId, c._count._all])
+  )
+
   for (const teacher of teachers) {
     if (!teacher.lineUserId || teacher.students.length === 0) continue
 
@@ -46,32 +62,21 @@ export async function GET(req: NextRequest) {
       if (lessons.length === 0) continue
 
       const totalMin = lessons.reduce((s, l) => s + (l.durationMin ?? 0), 0)
-      const amount = lessons.reduce((s, l) => {
-        const fee = l.durationMin && l.hourlyRate
-          ? Math.round((l.durationMin / 60) * l.hourlyRate)
-          : 0
-        const travel = l.type === "online" ? 0 : (l.travelExpense ?? 0)
-        return s + fee + travel
-      }, 0)
+      const amount = lessons.reduce((s, l) => s + calcFeeBreakdown(l).total, 0)
       totalAmount += amount
 
       const approvedCount = student.homeworks.length
-      const totalHomework = await db.homework.count({
-        where: {
-          studentId: student.id,
-          createdAt: { gte: prevMonth, lte: prevMonthEnd },
-        },
-      })
+      const totalHomework = homeworkCountByStudent.get(student.id) ?? 0
       const rate = totalHomework > 0 ? Math.round((approvedCount / totalHomework) * 100) : 0
 
       lines.push(`\n▶ ${student.user.name}`)
       lines.push(`　授業: ${lessons.length}回 / ${totalMin}分`)
-      lines.push(`　請求: ¥${amount.toLocaleString()}`)
+      lines.push(`　請求: ${formatCurrency(amount)}`)
       if (totalHomework > 0) lines.push(`　宿題承認率: ${rate}%`)
     }
 
     lines.push(`\n─────────`)
-    lines.push(`合計請求額: ¥${totalAmount.toLocaleString()}`)
+    lines.push(`合計請求額: ${formatCurrency(totalAmount)}`)
 
     await sendLineMessage(teacher.lineUserId, lines.join("\n"))
   }
