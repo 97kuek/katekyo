@@ -273,8 +273,8 @@ model Lesson {
   teacher User    @relation("TeacherLessons", fields: [teacherId], references: [id], onDelete: Cascade)
   student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
-  @@index([studentId])
   @@index([teacherId, date])
+  @@index([studentId, date])
 }
 
 model ExamEvent {
@@ -290,9 +290,9 @@ model ExamEvent {
   student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
   teacher User    @relation("TeacherExamEvents", fields: [teacherId], references: [id], onDelete: Cascade)
 
-  @@index([teacherId])
   @@index([studentId])
   @@index([date])
+  @@index([teacherId, date])
 }
 
 model GardenItem {

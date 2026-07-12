@@ -11,129 +11,349 @@ if (!session) return { error: "認証が必要です" }
 if (session.user.role !== "teacher") return { error: "権限がありません" }
 ```
 
+**redirect vs return の使い分け:**
+- フォーム送信系（`useActionState` で状態を受け取る）→ `return { error: "..." }`
+- ボタン直接実行系（エラー表示が不要）→ 認証失敗時は `redirect("/dashboard")`
+
+---
+
 ## Server Actions 一覧
 
 ### 宿題（Homework）
 
-| ファイル | Action | 概要 |
+#### `homework/new/actions.ts`
+
+| Action | ロール | 概要 |
 | --- | --- | --- |
-| `homework/new/actions.ts` | `createHomework` | 宿題作成。`requiresPhoto` フラグ対応。Zod バリデーション、teacherId 自動付与 |
-| `homework/[id]/actions.ts` | `submitHomework` | 提出（生徒のみ）。写真は Supabase Storage へアップロード。`HomeworkEvent(submitted)` を記録 |
-| `homework/[id]/actions.ts` | `reviewHomework` | 承認 / 差し戻し（先生のみ）。`action: "approved" \| "rejected"` で切り替え。`HomeworkEvent` を記録（差し戻し時のみ note あり） |
-| `homework/[id]/edit-actions.ts` | `updateHomework` | 宿題編集（assigned/rejected のみ） |
-| `homework/[id]/edit-actions.ts` | `extendDueDate` | 期限延長（先生のみ） |
-| `homework/[id]/edit-actions.ts` | `deleteHomework` | 宿題削除（先生のみ） |
-| `homework/[id]/cancel-actions.ts` | `cancelSubmission` | 提出取り消し（生徒・submitted 状態のみ） |
-| `homework/bulk-actions.ts` | `bulkApproveHomework` | 複数宿題の一括承認（先生のみ） |
+| `createHomework` | teacher | 宿題作成 |
+
+```typescript
+// 入力（FormData）
+{
+  studentId: string (uuid)
+  title: string (1–100文字)
+  description?: string
+  dueDate: string (datetime)
+  subjectIds: string[] (getAll)
+  materialId?: string (uuid)
+  requiresPhoto?: "on"
+}
+// 返り値
+{ error: string }  // 成功時 redirect("/homework")
+```
+
+#### `homework/[id]/actions.ts`
+
+| Action | ロール | 概要 |
+| --- | --- | --- |
+| `submitHomework` | student | 宿題提出。写真は Supabase Storage へアップロード（最大 5MB） |
+| `reviewHomework` | teacher | 承認 / 差し戻し。`HomeworkEvent` を記録。LINE 通知あり |
+| `markFeedbackSeen` | student | フィードバック既読マーク（`feedbackSeenAt` をセット） |
+| `cancelSubmission` | student | 提出取り消し（submitted 状態のみ）。`status → assigned` |
+| `updateHomework` | teacher | 宿題編集（assigned / rejected 状態のみ） |
+| `extendDueDate` | teacher | 期限延長 |
+| `deleteHomework` | teacher | 宿題削除 |
+
+```typescript
+// submitHomework 入力
+{
+  id: string (uuid)
+  note?: string
+  difficultyRating?: 1 | 2 | 3
+  photo?: File (image/*, max 5MB)
+}
+// 返り値: { error: string }  成功時 redirect("/homework?toast=submitted")
+
+// reviewHomework 入力
+{
+  id: string (uuid)
+  action: "approved" | "rejected"
+  feedback?: string
+}
+// 返り値: { error: string }  成功時 redirect("/homework?toast=reviewed")
+
+// extendDueDate 入力
+{ id: string, dueDate: string }
+// 返り値: { error: string; success: boolean }
+```
+
+#### `homework/actions.ts`
+
+| Action | ロール | 概要 |
+| --- | --- | --- |
+| `bulkApproveHomework` | teacher | 複数宿題の一括承認。`HomeworkEvent(approved)` を `createMany` でまとめて記録。LINE 通知・GardenItem 付与も実行 |
+
+```typescript
+// 入力
+bulkApproveHomework(ids: string[]): Promise<{ error: string; approved: number }>
+```
+
+---
 
 ### 授業（Lesson）
 
-| ファイル | Action | 概要 |
+#### `calendar/actions.ts`
+
+| Action | ロール | 概要 |
 | --- | --- | --- |
-| `calendar/actions.ts` | `createLesson` | 授業作成。週次繰り返し対応（最大52週）。QStash スケジューリングは try-catch で囲む |
-| `calendar/actions.ts` | `updateLesson` | 授業更新。online の場合 travelExpense を 0 に強制。QStash を再予約 |
-| `calendar/actions.ts` | `deleteLesson` | 授業削除（先生のみ）。QStash をキャンセル |
-| `calendar/actions.ts` | `completeLesson` | 授業完了確定。`completedAt` に現在時刻をセット（先生のみ・未完了のみ） |
-| `calendar/actions.ts` | `uncompleteLesson` | 授業完了取り消し |
-| `calendar/actions.ts` | `createHomeworkFromCalendar` | カレンダー画面から直接宿題を作成（先生のみ） |
+| `createLesson` | teacher | 授業作成。週次繰り返し対応（最大52週分を一括 create）。online の場合 QStash でリマインダー予約 |
+| `updateLesson` | teacher | 授業更新。online の場合 `travelExpense` を 0 に強制。QStash を再予約 |
+| `deleteLesson` | teacher | 授業削除。QStash をキャンセル |
+| `completeLesson` | teacher | 授業完了確定。`completedAt` に現在時刻をセット（未完了のみ） |
+| `uncompleteLesson` | teacher | 授業完了取り消し（`completedAt → null`） |
+| `createHomeworkFromCalendar` | teacher | カレンダー画面から直接宿題を作成 |
+| `createExamEvent` | teacher | テスト日登録 |
+| `deleteExamEvent` | teacher | テスト日削除 |
 
-### 設定（Settings）
+```typescript
+// createLesson 入力（FormData）
+{
+  studentId: string (uuid)
+  date: string ("YYYY-MM-DD")
+  time: string ("HH:MM")
+  type: "online" | "offline"
+  durationMin?: string
+  notes?: string
+  hourlyRate?: number (int, min 0)
+  travelExpense?: number (int, min 0)   # online の場合は 0 に強制
+  subjectIds: string[] (getAll)
+  repeatWeeks?: string   # "0"=繰り返しなし, "1"–"52"=週次繰り返し回数
+}
+// 返り値: { error: string; timestamp?: number }
+// 成功時 timestamp を返し、クライアントで useEffect によりモーダルを閉じる
+```
 
-| ファイル | Action | 概要 |
-| --- | --- | --- |
-| `settings/actions.ts` | `generateLinkToken` | LINE 連携用 6 桁トークン発行（10 分有効） |
-| `settings/actions.ts` | `unlinkLine` | LINE 連携解除。リッチメニューを解除してから `lineUserId` を null に |
-| `settings/actions.ts` | `saveMeetLink` | Google Meet 固定 URL を保存（先生のみ。空文字で削除） |
-
-### テスト予定（ExamEvent）
-
-| ファイル | Action | 概要 |
-| --- | --- | --- |
-| `calendar/actions.ts` | `createExamEvent` | テスト日登録 |
-| `calendar/actions.ts` | `deleteExamEvent` | テスト日削除 |
+---
 
 ### 成績（GradeRecord）
 
-| ファイル | Action | 概要 |
+#### `grades/new/actions.ts`
+
+| Action | ロール | 概要 |
 | --- | --- | --- |
-| `grades/new/actions.ts` | `createGradeRecord` | 成績登録。数値データがあれば `plantGardenItem` も呼ぶ |
-| `grades/[id]/edit-actions.ts` | `updateGradeRecord` | 成績編集 |
-| `grades/[id]/edit-actions.ts` | `deleteGradeRecord` | 成績削除 |
+| `createGradeRecord` | teacher | 成績登録。数値データがあれば `plantGardenItem` も呼ぶ |
+
+#### `grades/[id]/actions.ts`
+
+| Action | ロール | 概要 |
+| --- | --- | --- |
+| `updateGradeRecord` | teacher | 成績編集 |
+| `deleteGradeRecord` | teacher | 成績削除。成功時 `redirect("/grades?toast=deleted")` |
+
+```typescript
+// updateGradeRecord 入力（FormData）
+{
+  id: string (uuid)
+  testName: string (min 1)
+  date: string
+  testType: "mock" | "exam" | "quiz" | "other"
+  subjectIds: string[] (getAll)
+  score?: number (int)
+  maxScore?: number (int)
+  avgScore?: number (int)
+  rank?: number (int)
+  totalStudents?: number (int)
+  deviation?: number (float)
+  teacherRating?: number (int 1–5)
+  comment?: string
+}
+// 返り値: { error: string }  成功時 redirect("/grades?toast=saved")
+```
+
+---
 
 ### 生徒（Student）
 
-| ファイル | Action | 概要 |
+#### `students/invite/actions.ts`
+
+| Action | ロール | 概要 |
 | --- | --- | --- |
-| `students/invite/actions.ts` | `createInvite` | 招待トークン生成（7日有効） |
-| `students/invites/actions.ts` | `revokeInvite` | 招待トークン無効化（削除） |
-| `students/[id]/actions.ts` | `updateStudentGrade` | 学年変更 |
-| `students/actions.ts` | `resetStudentPassword` | 生徒のパスワードリセット |
-| `students/actions.ts` | `updateStudentRates` | 授業デフォルト値（時給・交通費・時間・科目）の更新 |
-| `students/actions.ts` | `deleteStudent` | 生徒削除。Supabase Storage の宿題写真を先に削除してから `db.user.delete`（DB は cascade） |
+| `createInvite` | teacher | 招待トークン生成（7日有効） |
+
+#### `students/invites/actions.ts`
+
+| Action | ロール | 概要 |
+| --- | --- | --- |
+| `revokeInvite` | teacher | 招待トークン無効化（削除） |
+
+#### `students/[id]/actions.ts`
+
+| Action | ロール | 概要 |
+| --- | --- | --- |
+| `updateStudentGrade` | teacher | 学年変更 |
+
+#### `students/actions.ts`
+
+| Action | ロール | 概要 |
+| --- | --- | --- |
+| `resetStudentPassword` | teacher | 生徒のパスワードリセット（bcrypt コスト係数 12） |
+| `updateStudentRates` | teacher | 授業デフォルト値（時給・交通費・時間・科目）の更新 |
+| `deleteStudent` | teacher | 生徒削除。Supabase Storage の宿題写真を先に削除してから `db.user.delete`（DB は cascade） |
+
+```typescript
+// resetStudentPassword 入力
+{ studentId: string, password: string (min 8文字) }
+// 返り値: { error: string; success: boolean }
+
+// updateStudentRates 入力（FormData）
+{
+  studentId: string
+  defaultHourlyRate?: number (int, min 0)
+  defaultTravelExpense?: number (int, min 0)
+  defaultDurationHours?: number (min 0.5)    # 分ではなく時間単位で受け取り、分に変換
+  defaultSubjectIds: string[] (getAll)
+}
+// 返り値: { error: string; success: boolean }
+```
+
+---
 
 ### 保護者（Parent）
 
-| ファイル | Action | 概要 |
+#### `students/[id]/invite-parent/actions.ts`
+
+| Action | ロール | 概要 |
 | --- | --- | --- |
-| `students/[id]/invite-parent/actions.ts` | `createParentInvite` | 先生が保護者招待トークンを生成（teacherId + studentId で作成、7日有効） |
-| `students/[id]/parents/actions.ts` | `unlinkParent` | 保護者と生徒のリンクを解除（teacherId 所有確認後に ParentStudent を削除） |
-| `(auth)/parent-invite/[token]/actions.ts` | `acceptParentInvite` | トークン検証 → User(role: parent)作成 + ParentStudent作成 をトランザクションで実行 → `/dashboard` へ |
-| `(auth)/parent-invite/[token]/actions.ts` | `linkExistingParent` | ログイン済み保護者がトークンを踏んだ場合: ParentStudent レコードを追加するだけ |
-| `(app)/parent-invite/create/actions.ts` | `createParentInviteAsStudent` | 生徒が保護者招待リンクを生成（studentProfile から teacherId を取得して ParentInviteToken を作成） |
+| `createParentInvite` | teacher | 保護者招待トークン生成（teacherId + studentId で作成、7日有効） |
+
+#### `students/[id]/parents/actions.ts`
+
+| Action | ロール | 概要 |
+| --- | --- | --- |
+| `unlinkParent` | teacher | 保護者と生徒のリンクを解除（teacherId 所有確認後に ParentStudent を削除） |
+
+#### `(auth)/parent-invite/[token]/actions.ts`
+
+| Action | ロール | 概要 |
+| --- | --- | --- |
+| `acceptParentInvite` | 未ログイン | トークン検証 → `User(role=parent)` 作成 + `ParentStudent` 作成をトランザクションで実行 → `/dashboard` へ |
+| `linkExistingParent` | parent | ログイン済み保護者がトークンを踏んだ場合: `ParentStudent` レコードを追加するだけ |
+
+#### `(app)/parent-invite/create/actions.ts`
+
+| Action | ロール | 概要 |
+| --- | --- | --- |
+| `createParentInviteAsStudent` | student | 生徒が保護者招待リンクを生成（`studentProfile` から `teacherId` を取得して `ParentInviteToken` を作成） |
+
+---
 
 ### 教材（StudentMaterial）
 
-| ファイル | Action | 概要 |
+#### `students/[id]/materials/actions.ts`
+
+| Action | ロール | 概要 |
 | --- | --- | --- |
-| `students/[id]/materials/actions.ts` | `createMaterial` | 教材登録（名前・メモ・科目タグ） |
-| `students/[id]/materials/actions.ts` | `deleteMaterial` | 教材削除 |
-| `students/[id]/materials/actions.ts` | `updateMaterialSubjects` | 教材の科目タグをインライン編集 |
+| `createMaterial` | teacher | 教材登録（名前・メモ・科目タグ） |
+| `deleteMaterial` | teacher | 教材削除 |
+| `updateMaterialSubjects` | teacher | 教材の科目タグをインライン編集 |
+
+---
+
+### 設定（Settings）
+
+#### `settings/actions.ts`
+
+| Action | ロール | 概要 |
+| --- | --- | --- |
+| `generateLinkToken` | teacher / student | LINE 連携用 6 桁トークン発行（10 分有効） |
+| `unlinkLine` | teacher / student | LINE 連携解除。リッチメニューを解除してから `lineUserId` を null に |
+| `saveMeetLink` | teacher | Google Meet 固定 URL を保存（空文字で削除） |
+
+---
 
 ### プロフィール（Profile）
 
-| ファイル | Action | 概要 |
+#### `profile/actions.ts`
+
+| Action | ロール | 概要 |
 | --- | --- | --- |
-| `profile/actions.ts` | `updateName` | 表示名変更（両ロール共通） |
-| `profile/actions.ts` | `updatePassword` | パスワード変更（現在のパスワード確認あり） |
+| `updateName` | 全ロール | 表示名変更 |
+| `updatePassword` | 全ロール | パスワード変更（現在のパスワード確認あり） |
+
+---
 
 ### 請求（Billing）
 
-| ファイル | Action | 概要 |
+#### `billing/actions.ts`
+
+| Action | ロール | 概要 |
 | --- | --- | --- |
-| `billing/actions.ts` | `markAsPaid` | 月次支払いを入金済みに設定（先生のみ）。`paidAt: new Date()` をセット |
-| `billing/actions.ts` | `markAsUnpaid` | 月次支払いを未払いに戻す（先生のみ）。`dueDate` が設定されている場合は `paidAt: null` のみ変更、ない場合はレコード削除 |
-| `billing/actions.ts` | `setPaymentDueDate` | 支払い期限を設定・更新・クリア（先生のみ）。`dueDate` フォームフィールドが空の場合は期限をクリア（未払い時はレコード削除） |
+| `markAsPaid` | teacher | 月次支払いを入金済みに設定（`paidAt: new Date()`） |
+| `markAsUnpaid` | teacher | 月次支払いを未払いに戻す。`dueDate` が設定されている場合は `paidAt: null` のみ変更、ない場合はレコード削除 |
+| `setPaymentDueDate` | teacher | 支払い期限を設定・更新・クリア。空文字送信かつ未払いの場合はレコード削除 |
 
-### 利用規約（Terms）
+```typescript
+// markAsPaid / markAsUnpaid / setPaymentDueDate 入力（FormData）
+{
+  studentId: string
+  year: string (数値)
+  month: string (数値)
+  dueDate?: string ("YYYY-MM-DD" または空文字)  # setPaymentDueDate のみ
+}
+// 返り値: void（revalidatePath("/billing")）
+```
 
-| ファイル | Action | 概要 |
+---
+
+### ダッシュボード（Dashboard）
+
+#### `dashboard/actions.ts`
+
+| Action | ロール | 概要 |
 | --- | --- | --- |
-| `terms-actions.ts` | `agreeToTerms` | 利用規約への同意を記録（`agreedToTermsAt` に現在時刻をセット） |
+| `markLessonLogSeen` | student | 授業ログを既読マーク（`lessonLogSeenAt: new Date()`）。revalidate しないのでクライアント側即時更新 |
 
-### 科目タグ（Subject）
+```typescript
+markLessonLogSeen(lessonId: string): Promise<void>
+```
 
-| ファイル | Action | 概要 |
-| --- | --- | --- |
-| `subjects/actions.ts` | `createSubject` | 科目タグ作成（設定ページから呼び出し） |
-| `subjects/actions.ts` | `deleteSubject` | 科目タグ削除（設定ページから呼び出し） |
+---
 
 ### 学習の森（Garden）
 
-| ファイル | Action | 概要 |
+#### `lib/garden/actions.ts`（または `lib/garden.ts`）
+
+| Action | ロール | 概要 |
 | --- | --- | --- |
-| `lib/garden.ts` | `plantGardenItem` | 植物をDBに追加。満開時は gardenGeneration をインクリメントしてリセット |
+| `plantGardenItem` | internal | 植物を DB に追加。グリッド満杯時は `gardenGeneration` をインクリメントして全アイテムをリセット |
+| `plantForHomeworkApproval` | internal | 宿題承認時に呼ぶ。差し戻し歴の有無でアイテムランクを変える |
+
+---
+
+### 科目タグ（Subject）
+
+#### `subjects/actions.ts`
+
+| Action | ロール | 概要 |
+| --- | --- | --- |
+| `createSubject` | teacher | 科目タグ作成 |
+| `deleteSubject` | teacher | 科目タグ削除 |
+
+---
+
+### 利用規約（Terms）
+
+#### `terms-actions.ts`
+
+| Action | ロール | 概要 |
+| --- | --- | --- |
+| `agreeToTerms` | 全ロール | 利用規約への同意を記録（`agreedToTermsAt: new Date()`） |
+
+---
 
 ## Route Handlers
 
-| パス | メソッド | 概要 |
-| --- | --- | --- |
-| `/api/auth/[...nextauth]` | GET/POST | NextAuth ハンドラ |
-| `/api/billing/export` | GET | 請求CSVエクスポート（先生のみ）。`?year=&month=` で月指定。UTF-8 BOM付きでExcel対応。列: 生徒名/日付/開始時刻/種別/所要時間/時給/交通費/授業料/合計 |
-| `/api/cron/cleanup-homework` | GET | Vercel Cron: 古い宿題・招待トークン削除（毎日 18:00 UTC） |
-| `/api/cron/line-daily` | GET | Vercel Cron: LINE 週次通知（毎週日曜 23:00 UTC） |
-| `/api/webhooks/lesson-reminder` | POST | QStash Webhook: オンライン授業 10 分前に生徒の LINE へ Meet リンクを送信。署名検証あり |
-| `/api/line/setup-rich-menus` | POST | 一回限り: LINE リッチメニュー作成（先生・生徒用）。`Authorization: Bearer CRON_SECRET` 必須 |
-| `/api/line/apply-rich-menus` | POST | 一回限り: LINE 連携済み既存ユーザー全員にリッチメニューを一括適用。`Authorization: Bearer CRON_SECRET` 必須 |
+| パス | メソッド | 認証 | 概要 |
+| --- | --- | --- | --- |
+| `/api/auth/[...nextauth]` | GET/POST | – | NextAuth ハンドラ |
+| `/api/billing/export` | GET | teacher セッション | 請求 CSV エクスポート。`?year=&month=` で月指定。UTF-8 BOM 付き（Excel 対応）。列: 生徒名 / 日付 / 開始時刻 / 種別 / 所要時間 / 時給 / 交通費 / 授業料 / 合計 |
+| `/api/cron/cleanup-homework` | GET | `CRON_SECRET` Header | Vercel Cron: 古い宿題・期限切れ招待トークン削除（毎日 18:00 UTC） |
+| `/api/cron/line-daily` | GET | `CRON_SECRET` Header | Vercel Cron: LINE 週次通知（毎週日曜 23:00 UTC） |
+| `/api/webhooks/lesson-reminder` | POST | QStash 署名検証 | オンライン授業 10 分前に生徒の LINE へ Meet リンクを送信 |
+| `/api/line/setup-rich-menus` | POST | `Authorization: Bearer CRON_SECRET` | 一回限り: LINE リッチメニュー作成（先生・生徒用） |
+| `/api/line/apply-rich-menus` | POST | `Authorization: Bearer CRON_SECRET` | 一回限り: LINE 連携済み既存ユーザー全員にリッチメニューを一括適用 |
+
+---
 
 ## Supabase Storage
 
@@ -146,8 +366,10 @@ uploadHomeworkPhoto(file: File, homeworkId: string): Promise<string | null>
 // → 公開 URL を返す。Homework.photoUrl に保存する
 
 deleteHomeworkPhoto(url: string): Promise<void>
-// → URL から Storage パスを解析して削除。生徒削除時に呼び出す
+// → URL から Storage パスを解析して削除。生徒削除時・写真再アップ時に呼び出す
 ```
+
+---
 
 ## lib/line.ts — LINE ヘルパー関数
 
@@ -164,6 +386,8 @@ unlinkRichMenuFromUser(lineUserId: string): Promise<void>
 // LINE 連携解除時に呼び出す
 ```
 
+---
+
 ## Zod バリデーション規則
 
 すべての Server Action でリクエストを Zod スキーマでバリデーションする。
@@ -176,8 +400,10 @@ const schema = z.object({
   studentId: z.string().uuid(),
 })
 const parsed = schema.safeParse(Object.fromEntries(formData))
-if (!parsed.success) return { error: "入力が正しくありません" }
+if (!parsed.success) return { error: parsed.error.issues[0].message }
 ```
+
+---
 
 ## useActionState パターン
 
@@ -186,6 +412,37 @@ if (!parsed.success) return { error: "入力が正しくありません" }
 const [state, action, isPending] = useActionState(serverAction, { error: "" })
 
 // Server Action の返り値
-return { error: "..." }        // エラー時
-return { error: "", timestamp: Date.now() }  // 成功時（useEffect でモーダルを閉じる等）
+return { error: "..." }                          // エラー時
+return { error: "", timestamp: Date.now() }      // 成功時（useEffect でモーダルを閉じる等）
+```
+
+---
+
+## テナント分離チェックリスト
+
+Server Action を実装する際は以下の順序を必ず守る:
+
+1. `await auth()` でセッション取得 → null なら即 return / redirect
+2. ロールチェック（必要な場合）
+3. Zod バリデーション
+4. DB クエリに `teacherId: session.user.id`（先生）または `studentId: student.id`（生徒、要事前確認）を含める
+5. `id` だけの `findFirst` は禁止
+
+```typescript
+// ✅ 正しい実装例
+export async function updateHomework(_prev: State, formData: FormData) {
+  const session = await auth()
+  if (!session || session.user.role !== "teacher") return { error: "権限がありません" }
+
+  const parsed = schema.safeParse(Object.fromEntries(formData))
+  if (!parsed.success) return { error: parsed.error.issues[0].message }
+
+  const existing = await db.homework.findFirst({
+    where: { id: parsed.data.id, teacherId: session.user.id },  // ← テナント境界
+  })
+  if (!existing) return { error: "宿題が見つかりません" }
+
+  await db.homework.update({ where: { id: parsed.data.id }, data: { ... } })
+  redirect(`/homework/${parsed.data.id}`)
+}
 ```

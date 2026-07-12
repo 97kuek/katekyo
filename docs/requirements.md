@@ -1,97 +1,133 @@
 # 機能要件・ビジネスロジック
 
+ユーザー視点の利用シナリオは [docs/usecases.md](usecases.md) を参照。  
+このドキュメントは実装上のルール・制約・ビジネスロジックを記述する。
+
+---
+
 ## 認証・認可
 
-- NextAuth.js v5 でセッション管理
-- ロール: `teacher`（先生）/ `student`（生徒）/ `parent`（保護者・閲覧専用）
-- 全 Server Action・Route Handler でセッションを確認する
-- 権限チェックは必ずサーバー側で行う。クライアント側のロール判定は UI 表示制御のみ
-- 保護者ロールのアクセス制御: `proxy.ts` の `PARENT_ALLOWED` ホワイトリストで `/dashboard`, `/grades`, `/calendar`, `/billing`, `/settings`, `/help`, `/parent-invite`, `/homework`, `/garden` のみ許可
+### ロールと権限
+
+| ロール | できること | できないこと |
+|---|---|---|
+| `teacher` | 全データの CRUD、生徒招待、請求管理 | 他テナントへのアクセス |
+| `student` | 自分の宿題提出・閲覧、成績・授業・森の閲覧 | 授業の作成・削除、他生徒データへのアクセス |
+| `parent` | 担当生徒の全データ閲覧のみ | 書き込み操作全般 |
+
+- 認証: NextAuth.js v5（Credentials プロバイダー、bcrypt コスト係数 12）
+- セッション確認はすべての Server Action・Route Handler でサーバー側で行う
+- **クライアント側のロール判定は UI 表示制御のみ**（認可はサーバー側が唯一の砦）
+
+### 保護者のアクセス制御
+
+`src/middleware.ts` の `PARENT_ALLOWED` ホワイトリストで以下のパスのみ許可:
+
+```
+/dashboard, /grades, /calendar, /billing, /settings, /help,
+/parent-invite, /homework, /garden
+```
+
+### テナント分離
+
+- すべての DB クエリに `teacherId: session.user.id` を含める（詳細は [data-models.md](data-models.md)）
+- `id` のみを条件とする `findFirst` は禁止
+
+---
 
 ## 招待フロー
 
-1. 先生が `/students/invite` で生徒名・メール・学年を入力 → 招待トークン生成（7日有効）
-2. 生徒が招待リンクを開き、名前・メール・学年を確認後パスワードを設定してアカウント作成
-3. ログイン済みの状態で招待リンクを開くと先にログアウトするよう促す
-4. 検証: `usedAt` が null かつ `expiresAt` が未来であること必ず確認する
+### 生徒招待
+
+1. 先生が生徒名・学年を入力 → `InviteToken` を生成（7日有効、UUID トークン）
+2. 生徒が招待リンクを開き、メールアドレス・パスワードを設定して `User(role=student)` + `Student` を作成
+3. ログイン済みの状態で招待リンクを開いた場合はログアウトを促す
+
+**検証ルール:** `usedAt = null` かつ `expiresAt > 現在時刻` であることを確認する。
+
+### 保護者招待
+
+1. 先生 または 生徒が `ParentInviteToken` を発行（7日有効）
+2. 保護者がリンクを開く:
+   - **未登録 →** `acceptParentInvite`: `User(role=parent)` 作成 + `ParentStudent` 作成をトランザクションで実行
+   - **登録済み →** `linkExistingParent`: `ParentStudent` レコードを追加するだけ
+3. 完了後 `/dashboard` へリダイレクト
+
+---
 
 ## 宿題管理
 
 ### ステータス遷移
 
-```text
-assigned ─► submitted ─► approved
-    ▲              └────► rejected
-    └─────────────────────────────
-         (生徒が再提出で assigned に戻る)
+```
+assigned ──[生徒が提出]──▶ submitted ──[先生が承認]──▶ approved
+    ▲                          │
+    │                     [先生が差し戻し]
+    │                          ▼
+    └──[生徒が提出取り消し]── rejected
 ```
 
-- `submitted` にできるのは生徒本人かつ `assigned` or `rejected` 状態のみ
-- `approved` / `rejected` にできるのは担当の先生のみ
-- 先生が編集できるのは `assigned` or `rejected` 状態の宿題のみ
+| 操作 | 実行者 | 条件 |
+|---|---|---|
+| `submitted` にする | 生徒のみ | `status=assigned` or `status=rejected` |
+| `approved` / `rejected` にする | 先生のみ | `status=submitted` |
+| 提出取り消し（`assigned` に戻す） | 生徒のみ | `status=submitted` |
+| 編集 | 先生のみ | `status=assigned` or `status=rejected` |
 
 ### 写真提出
 
-- 生徒が提出時に宿題の**代表的なページを1枚だけ**撮影して添付できる
-- **ブラウザ側で圧縮してからアップロード**（Canvas API・最大辺 1200px・JPEG 78%品質）。典型的な 5MB スマホ写真が 100〜300KB 程度に圧縮される
-- 圧縮処理中はスピナーを表示し、完了まで提出ボタンを無効化
-- 圧縮済みファイルを Supabase Storage の `homework-photos` バケット（Public）へサーバーサイドでアップロード
-- URL は `Homework.photoUrl` に保存
-- アップロードヘルパー: `src/lib/supabase-storage.ts`
-- `requiresPhoto = true` の宿題は写真がないと提出ボタンが無効化される
+- 生徒が提出時にノートの写真（代表ページ1枚）を添付できる
+- **ブラウザ上で圧縮してからアップロード**（Canvas API・最大辺 1200px・JPEG 78%品質）
+  - 典型的な 5MB スマホ写真 → 100〜300KB 程度に圧縮
+- 圧縮処理中はスピナー表示、完了まで提出ボタンを無効化
+- Supabase Storage の `homework-photos` バケット（Public）にサーバーサイドでアップロード
+- `requiresPhoto = true` の宿題は写真がないと提出ボタンが無効化
 
-### 写真提出必須オプション
+### フィードバック既読管理
 
-- 先生が宿題作成時に「写真提出を必須にする」を設定できる（`Homework.requiresPhoto`）
-- 生徒の提出フォームで必須バッジを表示し、写真なしでは提出不可
+- 先生が `reviewHomework` を実行すると `Homework.feedbackSeenAt` を `null` にリセット
+- 生徒が詳細ページを開くと `markFeedbackSeen` で `feedbackSeenAt = 現在時刻` をセット
+- ダッシュボードの未読バッジ表示に使用
 
-## 使用教材管理
-
-- 先生が生徒ごとに使用教材（`StudentMaterial`）を登録
-  - 教材名・メモ・科目タグ（複数選択）を設定
-  - 登録後に科目タグをインライン編集可能
-- 生徒は `/materials` で自分に登録された教材一覧を閲覧（参照のみ）
-- 宿題作成時に教材を1つ紐づけられる
-
-### 教材写真の先生への送信
-
-**廃止済み（2026年5月）**。代替手段として Google Drive 等の共有リンクを使うことを推奨。
+---
 
 ## 授業（Lesson）管理
 
-- 先生がカレンダーから登録：日時・生徒・オンライン/対面・所要時間・メモ（事前）・授業ログ（事後）
-- 時給（hourlyRate）と交通費（travelExpense）を記録可能
-- **オンライン授業は交通費を強制的に 0 に設定**（server action 側で `effectiveTravelExpense = type === "online" ? 0 : travelExpense`）
-- 週次繰り返し登録（最大52週）：QStash スケジューリングは try-catch で囲み、失敗しても授業は保存される
-- 生徒は自分の授業のみ閲覧可（作成・削除不可）
+### 作成・更新ルール
 
-### 授業前リマインダー・Meet 参加
+- **オンライン授業は交通費を強制的に 0** に設定（Server Action 内で `travelExpense = type === "online" ? 0 : travelExpense`）
+- 週次繰り返し登録: 最大52週まで一括作成
+- QStash スケジューリングは `try-catch` で囲み、失敗しても授業レコードは保存する
 
-- 先生が設定ページで Google Meet の固定 URL（パーソナルルーム）を登録（取得手順を UI 内に掲載）
-- オンライン授業を登録すると、開始 10 分前に生徒の LINE へ Meet リンクを自動送信
-- スケジューリングは Upstash QStash を使用（Vercel Hobby プランでも動作）
-- 授業変更・削除時は QStash メッセージをキャンセルして再予約
-- 先生の `meetLink` が未設定、または生徒が LINE 未連携の場合は LINE 通知をスキップ
-- **カレンダーの授業カード**（先生・生徒とも）と**「次の授業」バナー**から Meet に直接参加できるボタンを表示
+### 完了フロー
+
+- `completeLesson` で `completedAt = 現在時刻` をセット
+- **`completedAt != null` の授業のみ請求対象**
+- 未完了の過去授業がある場合、ダッシュボードとカレンダーにオレンジバナーで促す
+
+### カレンダー表示の色分け
+
+| 状態 | 色 |
+|---|---|
+| 未来の授業 | 青背景 |
+| 過去・未完了 | 青背景 + 「完了」ボタン |
+| 完了済み | 緑背景 + 「✓ 完了」バッジ |
+
+### 授業前リマインダー
+
+- オンライン授業登録時に Upstash QStash で授業開始10分前のリマインダーをスケジュール
+- 先生の `meetLink` が未設定、または生徒が LINE 未連携の場合は通知をスキップ
+- 授業変更・削除時は `cancelReminderMessage` で既存メッセージをキャンセル後に再スケジュール
+- `Lesson.reminderSentAt` で Cron と QStash の二重送信を防止
 - 詳細: [docs/meet-reminder-plan.md](meet-reminder-plan.md)
 
-### 授業完了フロー
-
-1. 先生がカレンダーで授業日より前の、未完了授業に「完了」ボタンを押す
-2. `completeLesson` Server Action が `completedAt` に現在時刻をセット
-3. `completedAt != null` の授業のみ請求管理に反映される
-4. 未完了授業がある場合、ダッシュボードとカレンダーに促しバナーを表示
-
-カレンダー表示:
-
-- 未完了（過去）: 青背景 + 「完了」ボタン表示
-- 完了済み: 緑背景 + 「✓ 完了」バッジ
-- 未来の授業: 青背景、完了ボタンなし
+---
 
 ## 請求管理（Billing）
 
+### 授業料の計算式
+
 ```typescript
-// src/app/(app)/billing/page.tsx
 function calcFee(durationMin, hourlyRate, travelExpense) {
   if (!hourlyRate && !travelExpense) return null
   const lessonFee = durationMin && hourlyRate
@@ -101,119 +137,158 @@ function calcFee(durationMin, hourlyRate, travelExpense) {
 }
 ```
 
-- **`completedAt != null` の授業のみ集計対象**（未完了授業は除外）
-- 月別ナビ（URL `?year=YYYY&month=MM`）
-- 月の合計：完了授業回数・合計時間・合計金額
-- 生徒別に授業一覧と費用内訳を表示
-- 未完了授業がある月はオレンジ色の警告バナーを表示
+- 時給・交通費が両方とも未設定の場合は金額を表示しない（`null`）
+- **`completedAt != null` の授業のみ集計対象**
 
-### 支払い期限・入金状況管理
+### 支払いステータス管理
 
-- 先生は生徒ごと・月ごとに**支払い期限**を任意設定できる（`MonthlyPayment.dueDate`）
-  - デフォルトは月末（UI上の表示のみ）
-  - 別日指定したい場合はカレンダー入力で設定
-- 入金状態は `paidAt != null` で判定
-  - 「入金確認」ボタン → `markAsPaid`（`paidAt` をセット）
-  - チェック済みバッジ再クリック → `markAsUnpaid`（`paidAt: null`、`dueDate` があればレコード保持）
-- 期限超過かつ未払いの場合は期限日を赤字で警告表示
+| 状態 | 条件 |
+|---|---|
+| 未払い | `MonthlyPayment` レコードなし or `paidAt = null` |
+| 入金済み | `paidAt != null` |
+| 期限設定あり | `dueDate != null` |
+
+**`markAsUnpaid` の挙動:**
+- `dueDate` が設定されている → `paidAt = null` にリセット（レコード保持）
+- `dueDate` が未設定 → レコードを削除
+
+**`setPaymentDueDate` で空文字を送信した場合（期限クリア）:**
+- 未払いの場合 → レコードを削除
+- 入金済みの場合 → `dueDate = null` に更新（`paidAt` は保持）
+
+### CSV エクスポート
+
+`GET /api/billing/export?year=YYYY&month=MM`
+
+- UTF-8 BOM 付き（Excel で文字化けしない）
+- 列: 生徒名 / 日付 / 開始時刻 / 種別 / 所要時間 / 時給 / 交通費 / 授業料 / 合計
+
+---
 
 ## 科目タグ（Subject）管理
 
-- 先生が `/settings` の「タグ管理」セクションで科目タグを追加・削除
-- タグは宿題・成績・授業・教材に付与できる
-- `@@unique([name, teacherId])` で同名タグの重複登録を防止
+- 先生が `/settings` の「タグ管理」セクションで追加・削除
+- タグは宿題・成績・授業・教材に複数付与できる
+- `@@unique([name, teacherId])` で同一テナント内の重複登録を防止
+- `Homework.subjectIds`・`Lesson.subjectIds` 等は `Subject.id` の UUID 配列（PostgreSQL `TEXT[]`）として格納
+
+---
 
 ## 成績（GradeRecord）管理
 
-- `testType`: mock / exam / quiz / other の4択
-- 先生の成績一覧: URL `?type=mock` 等でサーバーサイドフィルタリング
-- 生徒の成績グラフ: 複数種別が存在する場合のみ種別フィルタを表示（クライアントサイド）
-- **推移グラフ（折れ線）**: 点数（%）と偏差値の切り替え表示（Recharts `LineChart`）。線色はデザイントークン（`--primary` / `--chart-*`）
-- **科目別レーダーチャート**（`grades/grade-radar.tsx`）: 同じテスト名でグループ化し、科目を軸に得点%（無ければ偏差値）を表示。科目が3つ以上揃ったテストのみ対象、複数あればセレクタで切替
-- 成績登録時に数値データがある場合、スコアに応じた植物が森に育つ
-- **主観評価（`teacherRating`）の入力・表示は廃止**（DB 列は残存するが UI 非使用）
+### 種別
+
+`TestType`: `mock`（模試）/ `exam`（定期テスト）/ `quiz`（小テスト）/ `other`（その他）
+
+### 表示
+
+- **先生の成績一覧:** `?type=mock` 等でサーバーサイドフィルタリング
+- **生徒の成績グラフ:** 複数種別が存在する場合のみ種別フィルタを表示（クライアントサイド）
+- **折れ線グラフ:** 点数（%）と偏差値の切り替え（Recharts `LineChart`）
+- **レーダーチャート:** 同じテスト名でグループ化し、科目を軸に得点%（なければ偏差値）を表示。科目3つ以上のテストのみ対象
+
+### 廃止済み
+
+- **主観評価（`teacherRating`）**: UI 非使用・廃止済み。DB 列は残存
+
+---
 
 ## 学習の森（Garden）
 
-生徒の学習努力をアイソメトリックな森として可視化するゲーム要素。
-
 ### 植物が育つ条件
 
-`src/lib/garden.ts` の `plantGardenItem` Server Action で制御。
-
-| トリガー | 種別選択ロジック |
-| --- | --- |
-| 宿題承認 | ランダム選択（tree 38% / bush 29% / flower 28% / mushroom ≈5%） |
-| 成績（点数）100% | bamboo（竹） |
-| 成績（点数）90%+ | cherry（桜） |
-| 成績（点数）80%+ | big_tree（大木） |
-| 成績（点数）60-79% | bush（茂み） |
-| 成績（点数）<60% | flower（花） |
-| 成績（偏差値）70+ | bamboo |
-| 成績（偏差値）65+ | cherry |
-| 成績（偏差値）60+ | tree |
-| 成績（偏差値）50-59 | bush |
-| 成績（偏差値）<50 | flower |
+| トリガー | アイテム |
+|---|---|
+| 宿題承認（通常） | ランダム: tree 38% / bush 29% / flower 28% / mushroom ≈5% |
+| 宿題承認（5回ごと） | `big_tree`（固定） |
+| 成績 得点率 100% | `bamboo` |
+| 成績 得点率 90%+ | `cherry` |
+| 成績 得点率 80%+ | `tree` |
+| 成績 得点率 60–79% | `bush` |
+| 成績 得点率 60% 未満 | `flower` |
+| 成績 偏差値 70+ | `bamboo` |
+| 成績 偏差値 65+ | `cherry` |
+| 成績 偏差値 60+ | `tree` |
+| 成績 偏差値 50–59 | `bush` |
+| 成績 偏差値 50 未満 | `flower` |
 | 数値データなし | 植わらない |
 
-`src/lib/garden-utils.ts` の `scoreToGardenItemType()` で種別を決定。
+得点と偏差値が両方ある場合は得点を優先（`scoreToGardenItemType` の判定ロジック）。  
+差し戻し歴がある宿題を承認した場合は植物が育たない（`plantForHomeworkApproval`）。  
+遅延提出（`submittedAt > dueDate`）の宿題を承認した場合も植物が育たない。
 
-### 枯れロジック（DB 変更なし・動的計算）
+### 枯れロジック（DB 変更なし・描画時に動的計算）
 
 - 枯れ数 = `rejected` 件数 + 期限切れ `assigned` 件数
-- 枯れ数だけ古い順に植物を「枯れ表示」（WiltedTree / WiltedBush / etc.）
-- 生徒が提出（submitted）にすると即回復
-
-### 宿題ステータスと森の連動
-
-| 宿題の状態 | 森への影響 |
-| --- | --- |
-| approved | 植物が1つ育つ |
-| rejected | 古い植物1つが枯れ（提出で回復） |
-| assigned + 期限切れ | 古い植物1つが枯れ（提出で回復） |
-| submitted | 影響なし |
+- 枯れ数だけ古い順に植物を「枯れ表示」（WiltedTree 等）
+- 提出（`submitted`）にすると即回復
 
 ### グリッド仕様
 
-- 8×8 = 最大64アイテム、座標は `@@unique([studentId, x, y])`
-- 満開（64個）到達で `gardenGeneration` がインクリメントされリセット
+- 8×8 = 最大64アイテム
+- `@@unique([studentId, x, y])` で同座標への重複配置を防止
+- 64個で満杯 → `gardenGeneration` をインクリメントし全アイテムを削除してリセット
 
-### アクセス
+---
 
-- 生徒: `/garden`（自分の森）
-- 先生: `/students/[id]/garden`（担当生徒の森・閲覧のみ）
+## 使用教材（StudentMaterial）管理
 
-## テスト予定日（ExamEvent）
+- 先生が生徒ごとに教材を登録（教材名・メモ・科目タグ）
+- 生徒は `/materials` で閲覧のみ
+- 宿題作成時に教材を1つ紐づけられる（`Homework.materialId`）
+- 教材の科目タグはインライン編集可能
 
-- 先生がカレンダーの日付をクリックして登録
-- 生徒ダッシュボードの「直近のテスト」と「今後7日の期限」に反映
+---
+
+## LINE 通知
+
+### 通知タイミング
+
+| イベント | 宛先 |
+|---|---|
+| 宿題提出 | 先生 |
+| 宿題承認 | 生徒 |
+| 宿題差し戻し + フィードバック | 生徒 |
+| 毎週日曜（週次リマインド） | 未提出・期限切れ宿題がある生徒 |
+| 授業開始10分前（Meet リンク） | 生徒 |
+
+- `lineUserId = null` のユーザーはすべてスキップ（`sendLineMessage` が内部でチェック）
+- 詳細: [docs/line-notification-plan.md](line-notification-plan.md)
+
+---
 
 ## 自動クリーンアップ（Vercel Cron）
 
-認証: すべての Cron エンドポイントで `Authorization: Bearer {CRON_SECRET}` ヘッダーが必須（小文字 `authorization`）。
+認証: `Authorization: Bearer {CRON_SECRET}` ヘッダーが必須。  
 設定ファイル: `vercel.json`
 
-| エンドポイント | スケジュール | 内容 |
-| --- | --- | --- |
-| `GET /api/cron/cleanup-homework` | 毎日 18:00 UTC（03:00 JST） | 古い宿題・招待トークンを削除 |
-| `GET /api/cron/line-daily` | 毎週日曜 23:00 UTC（月曜 08:00 JST） | LINE 週次通知送信 |
+| エンドポイント | スケジュール | 処理内容 |
+|---|---|---|
+| `GET /api/cron/cleanup-homework` | 毎日 18:00 UTC | 承認済み宿題（`dueDate` から7日超過）・期限切れ招待トークンを削除 |
+| `GET /api/cron/line-daily` | 毎週日曜 23:00 UTC | 未提出・期限切れ宿題がある生徒に LINE 週次リマインド送信 |
 
-> **注意**: Vercel Hobby プランは Cron を 2 本まで。`line-monthly` と `annual-cleanup` は削除済み。
+> **注意:** Vercel Hobby プランは Cron が2本まで。`line-monthly` と `annual-cleanup` Cron は無効化済み。
 
-### cleanup-homework の対象
+### cleanup-homework の削除対象
 
-1. `status = "approved"` かつ `dueDate` から7日以上経過した宿題
-2. 未使用かつ `expiresAt` から7日以上経過した招待トークン
-3. 使用済みかつ `usedAt` から **7日以上**経過した招待トークン
+1. `status=approved` かつ `dueDate` から7日以上経過した宿題
+2. 未使用（`usedAt=null`）かつ `expiresAt` から7日以上経過した `InviteToken`
+3. 使用済み（`usedAt!=null`）かつ `usedAt` から7日以上経過した `InviteToken`
 
 ### 年次データクリーンアップ（手動実行）
 
-annual-cleanup Cron は削除済み。必要な場合は Supabase SQL エディタで以下を実行する。
+毎年4月ごろ、Supabase ダッシュボードの SQL Editor で実行:
 
 ```sql
--- 実行前年度の4月1日以前のデータを削除（例: 2026年実行 → 2025-04-01 より前を削除）
-DELETE FROM "Lesson"       WHERE date       < '2025-04-01';
-DELETE FROM "GradeRecord"  WHERE date       < '2025-04-01';
-DELETE FROM "Homework"     WHERE "dueDate"  < '2025-04-01';
-DELETE FROM "ExamEvent"    WHERE date       < '2025-04-01';
+DO $$
+DECLARE
+  cutoff TIMESTAMP := (DATE_TRUNC('year', NOW()) - INTERVAL '1 year' + INTERVAL '3 months');
+BEGIN
+  DELETE FROM "Lesson"      WHERE date < cutoff;
+  DELETE FROM "GradeRecord" WHERE date < cutoff;
+  DELETE FROM "Homework"    WHERE "dueDate" < cutoff;
+  DELETE FROM "ExamEvent"   WHERE date < cutoff;
+END $$;
 ```
+
+> **注意:** 実行前に `SELECT COUNT(*)` で件数を確認してから削除すること。
