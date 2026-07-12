@@ -1,7 +1,7 @@
 "use server"
 
-import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
+import { requireTeacher } from "@/lib/action-guards"
 import { redirect } from "next/navigation"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
@@ -17,8 +17,8 @@ export async function resetStudentPassword(
   _prevState: { error: string; success: boolean },
   formData: FormData
 ): Promise<{ error: string; success: boolean }> {
-  const session = await auth()
-  if (!session || session.user.role !== "teacher") return { error: "権限がありません", success: false }
+  const teacher = await requireTeacher()
+  if (!teacher) return { error: "権限がありません", success: false }
 
   const result = resetSchema.safeParse({
     studentId: formData.get("studentId"),
@@ -29,7 +29,7 @@ export async function resetStudentPassword(
   const { studentId, password } = result.data
 
   const student = await db.student.findFirst({
-    where: { id: studentId, teacherId: session.user.id },
+    where: { id: studentId, teacherId: teacher.teacherId },
     select: { userId: true },
   })
   if (!student) return { error: "生徒が見つかりません", success: false }
@@ -55,8 +55,8 @@ export async function updateStudentRates(
   _prevState: { error: string; success: boolean },
   formData: FormData
 ): Promise<{ error: string; success: boolean }> {
-  const session = await auth()
-  if (!session || session.user.role !== "teacher") return { error: "権限がありません", success: false }
+  const teacher = await requireTeacher()
+  if (!teacher) return { error: "権限がありません", success: false }
 
   const raw = {
     studentId: formData.get("studentId"),
@@ -70,7 +70,7 @@ export async function updateStudentRates(
   const { studentId, defaultHourlyRate, defaultTravelExpense, defaultDurationHours } = result.data
 
   const student = await db.student.findFirst({
-    where: { id: studentId, teacherId: session.user.id },
+    where: { id: studentId, teacherId: teacher.teacherId },
   })
   if (!student) return { error: "生徒が見つかりません", success: false }
 
@@ -92,14 +92,14 @@ export async function updateStudentRates(
 }
 
 export async function deleteStudent(formData: FormData) {
-  const session = await auth()
-  if (!session || session.user.role !== "teacher") redirect("/dashboard")
+  const teacher = await requireTeacher()
+  if (!teacher) redirect("/dashboard")
 
   const studentId = formData.get("studentId") as string
   if (!studentId) return
 
   const student = await db.student.findUnique({
-    where: { id: studentId, teacherId: session.user.id },
+    where: { id: studentId, teacherId: teacher.teacherId },
     select: { userId: true },
   })
   if (!student) return

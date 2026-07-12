@@ -89,8 +89,6 @@ model LineLinkToken {
   createdAt DateTime @default(now()) @db.Timestamptz(3)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([token])
 }
 
 model Student {
@@ -150,7 +148,6 @@ model ParentStudent {
   teacher User    @relation("TeacherParentLinks", fields: [teacherId], references: [id])
 
   @@unique([parentId, studentId])
-  @@index([parentId])
   @@index([studentId])
   @@index([teacherId])
 }
@@ -168,7 +165,6 @@ model ParentInviteToken {
   teacher User    @relation(fields: [teacherId], references: [id], onDelete: Cascade)
   student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
-  @@index([token])
   @@index([studentId])
   @@index([teacherId])
 }
@@ -211,7 +207,6 @@ model Homework {
   material StudentMaterial? @relation(fields: [materialId], references: [id], onDelete: SetNull)
   events   HomeworkEvent[]
 
-  @@index([teacherId])
   @@index([studentId, status])
   @@index([teacherId, status])
   @@index([dueDate])
@@ -251,7 +246,6 @@ model GradeRecord {
   student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
   teacher User    @relation("TeacherGrades", fields: [teacherId], references: [id], onDelete: Cascade)
 
-  @@index([teacherId])
   @@index([studentId])
   @@index([teacherId, testType])
   @@index([date])
@@ -279,7 +273,6 @@ model Lesson {
   teacher User    @relation("TeacherLessons", fields: [teacherId], references: [id], onDelete: Cascade)
   student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
-  @@index([teacherId])
   @@index([studentId])
   @@index([teacherId, date])
 }
@@ -313,7 +306,6 @@ model GardenItem {
   student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   @@unique([studentId, x, y])
-  @@index([studentId])
 }
 
 model StudentMaterial {
@@ -347,6 +339,5 @@ model MonthlyPayment {
   student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   @@unique([teacherId, studentId, year, month])
-  @@index([teacherId])
   @@index([studentId])
 }

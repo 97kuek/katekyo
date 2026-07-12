@@ -591,12 +591,17 @@ type Item = { x: number; y: number; itemType: GardenItemType; withered: boolean 
 
 export default function GardenCanvas({ items, milestone }: { items: Item[]; milestone?: number }) {
   const [showSparkle, setShowSparkle] = useState(!!milestone)
+  // milestone が変わったらレンダー中に derived state として再同期する
+  // （effect 内の同期 setState を避ける React 推奨パターン）
+  const [prevMilestone, setPrevMilestone] = useState(milestone)
+  if (milestone !== prevMilestone) {
+    setPrevMilestone(milestone)
+    setShowSparkle(!!milestone)
+  }
   useEffect(() => {
-    if (milestone) {
-      setShowSparkle(true)
-      const t = setTimeout(() => setShowSparkle(false), 4000)
-      return () => clearTimeout(t)
-    }
+    if (!milestone) return
+    const t = setTimeout(() => setShowSparkle(false), 4000)
+    return () => clearTimeout(t)
   }, [milestone])
 
   const season = getSeason()

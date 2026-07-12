@@ -1,10 +1,10 @@
 import { redirect } from "next/navigation"
 import { getViewingContext } from "@/lib/view-as"
 import { db } from "@/lib/db"
-import { getStudentByUserId } from "@/lib/queries"
+import { getStudentByUserId, getGardenState } from "@/lib/queries"
 import GardenCanvas from "./garden-canvas"
 import { TreePine, Trophy, Star } from "lucide-react"
-import type { GardenItemType } from "@/lib/garden/utils"
+import { GARDEN_CAPACITY } from "@/lib/garden/utils"
 
 export default async function GardenPage({
   searchParams,
@@ -24,36 +24,9 @@ export default async function GardenPage({
   const student = await getStudentByUserId(ctx.effectiveUserId)
   if (!student) redirect("/dashboard")
 
-  const now = new Date()
-  const [rawItems, overdueCount] = await Promise.all([
-    db.gardenItem.findMany({
-      where: { studentId: student.id },
-      select: { x: true, y: true, itemType: true, createdAt: true },
-      orderBy: { createdAt: "asc" },
-    }),
-    db.homework.count({
-      where: {
-        studentId: student.id,
-        OR: [
-          { status: "assigned", dueDate: { lt: now } },
-          { status: "rejected" },
-        ],
-      },
-    }),
-  ])
-
-  const witheredCount = Math.min(overdueCount, rawItems.length)
-  const items = rawItems.map((item, i) => ({
-    x: item.x,
-    y: item.y,
-    itemType: item.itemType as GardenItemType,
-    withered: i < witheredCount,
-  }))
-
-  const total = items.length
-  const max = 64
-  const isFull = total >= max
-  const milestone = [10, 25, 50].includes(total) ? total : undefined
+  const { items, total, witheredCount, overdueCount, isFull, milestone } =
+    await getGardenState(student.id)
+  const max = GARDEN_CAPACITY
   const generation = student.gardenGeneration
 
   return (
@@ -196,36 +169,9 @@ async function ParentGardenPage({
 
   const student = links.find((l) => l.studentId === effectiveStudentId)!.student
 
-  const now = new Date()
-  const [rawItems, overdueCount] = await Promise.all([
-    db.gardenItem.findMany({
-      where: { studentId: effectiveStudentId },
-      select: { x: true, y: true, itemType: true, createdAt: true },
-      orderBy: { createdAt: "asc" },
-    }),
-    db.homework.count({
-      where: {
-        studentId: effectiveStudentId,
-        OR: [
-          { status: "assigned", dueDate: { lt: now } },
-          { status: "rejected" },
-        ],
-      },
-    }),
-  ])
-
-  const witheredCount = Math.min(overdueCount, rawItems.length)
-  const items = rawItems.map((item, i) => ({
-    x: item.x,
-    y: item.y,
-    itemType: item.itemType as GardenItemType,
-    withered: i < witheredCount,
-  }))
-
-  const total = items.length
-  const max = 64
-  const isFull = total >= max
-  const milestone = [10, 25, 50].includes(total) ? total : undefined
+  const { items, total, witheredCount, isFull, milestone } =
+    await getGardenState(effectiveStudentId)
+  const max = GARDEN_CAPACITY
   const generation = student.gardenGeneration
 
   return (

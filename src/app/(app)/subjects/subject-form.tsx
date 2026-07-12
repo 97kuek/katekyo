@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState, useEffect, useRef, useState } from "react"
+import { useActionState, useRef, useState } from "react"
 import { Check } from "lucide-react"
 import { createSubject } from "./actions"
 import { Button } from "@/components/ui/button"
@@ -9,16 +9,19 @@ import { Label } from "@/components/ui/label"
 import { SUBJECT_COLORS } from "@/lib/subject-colors"
 
 export default function SubjectForm() {
-  const [state, action, isPending] = useActionState(createSubject, { error: "", success: false })
   const formRef = useRef<HTMLFormElement>(null)
   const [color, setColor] = useState<string>(SUBJECT_COLORS[0])
-
-  useEffect(() => {
-    if (state.success) {
-      formRef.current?.reset()
-      setColor(SUBJECT_COLORS[0])
-    }
-  }, [state.success])
+  const [state, action, isPending] = useActionState(
+    async (prev: { error: string; success: boolean }, formData: FormData) => {
+      const result = await createSubject(prev, formData)
+      if (result.success) {
+        formRef.current?.reset()
+        setColor(SUBJECT_COLORS[0])
+      }
+      return result
+    },
+    { error: "", success: false }
+  )
 
   return (
     <form ref={formRef} action={action} className="space-y-3">

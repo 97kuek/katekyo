@@ -3,12 +3,8 @@ import { redirect } from "next/navigation"
 import { db } from "@/lib/db"
 import { markAsPaid, markAsUnpaid, setPaymentDueDate } from "./actions"
 import { buttonVariants } from "@/components/ui/button"
-
-function calcFee(durationMin: number | null, hourlyRate: number | null, travelExpense: number | null): number | null {
-  if (!hourlyRate && !travelExpense) return null
-  const lessonFee = durationMin && hourlyRate ? Math.round((durationMin / 60) * hourlyRate) : 0
-  return lessonFee + (travelExpense ?? 0)
-}
+import { calcFee } from "@/lib/billing"
+import { formatCurrency } from "@/lib/format"
 
 function dueDateLabel(dueDate: Date | null, isPaid: boolean): { text: string; className: string } | null {
   if (!dueDate) return null
@@ -78,7 +74,7 @@ export default async function BillingPage({
   const nextMonth = month === 11 ? 1 : month + 2
 
   const grandTotal = completedLessons.reduce((sum, l) => {
-    const fee = calcFee(l.durationMin, l.hourlyRate, l.travelExpense)
+    const fee = calcFee(l)
     return fee != null ? sum + fee : sum
   }, 0)
 
@@ -150,7 +146,7 @@ export default async function BillingPage({
             {hasFeeData && (
               <div className="rounded-lg border bg-card p-4 col-span-2 sm:col-span-1">
                 <p className="text-xs text-muted-foreground">合計金額（目安）</p>
-                <p className="text-2xl font-bold mt-1">¥{grandTotal.toLocaleString()}</p>
+                <p className="text-2xl font-bold mt-1">{formatCurrency(grandTotal)}</p>
               </div>
             )}
           </div>
@@ -158,7 +154,7 @@ export default async function BillingPage({
           {/* Per-student breakdown */}
           {Array.from(studentMap.entries()).map(([sid, { name, lessons: sLessons }]) => {
             const studentTotal = sLessons.reduce((sum, l) => {
-              const fee = calcFee(l.durationMin, l.hourlyRate, l.travelExpense)
+              const fee = calcFee(l)
               return fee != null ? sum + fee : sum
             }, 0)
             const studentMin = sLessons.reduce((sum, l) => sum + (l.durationMin ?? 0), 0)
@@ -188,7 +184,7 @@ export default async function BillingPage({
                       )}
                     </div>
                     <div className="text-right shrink-0">
-                      {hasStudentFee && <p className="font-semibold text-sm">¥{studentTotal.toLocaleString()}</p>}
+                      {hasStudentFee && <p className="font-semibold text-sm">{formatCurrency(studentTotal)}</p>}
                       <p className="text-muted-foreground text-xs">{sLessons.length}回 · {Math.floor(studentMin / 60)}h{studentMin % 60 > 0 ? `${studentMin % 60}m` : ""}</p>
                     </div>
                   </div>
@@ -224,7 +220,7 @@ export default async function BillingPage({
                 </div>
                 <div className="divide-y">
                   {sLessons.map((l) => {
-                    const fee = calcFee(l.durationMin, l.hourlyRate, l.travelExpense)
+                    const fee = calcFee(l)
                     const dateLabel = l.date.toLocaleDateString("ja-JP", { timeZone: "Asia/Tokyo", month: "numeric", day: "numeric", weekday: "short" })
                     const timeStr = l.date.toLocaleTimeString("ja-JP", { timeZone: "Asia/Tokyo", hour: "2-digit", minute: "2-digit" })
                     return (
@@ -236,15 +232,15 @@ export default async function BillingPage({
                           <p className="text-xs text-muted-foreground mt-0.5">
                             {l.type === "online" ? "オンライン" : "対面"}
                             {l.durationMin ? ` · ${l.durationMin}分` : ""}
-                            {l.hourlyRate ? ` · 時給¥${l.hourlyRate.toLocaleString()}` : ""}
-                            {l.travelExpense != null && l.travelExpense > 0 ? ` · 交通費¥${l.travelExpense.toLocaleString()}` : ""}
+                            {l.hourlyRate ? ` · 時給${formatCurrency(l.hourlyRate)}` : ""}
+                            {l.travelExpense != null && l.travelExpense > 0 ? ` · 交通費${formatCurrency(l.travelExpense)}` : ""}
                           </p>
                           {l.lessonLog && (
                             <p className="text-xs text-warning mt-0.5 line-clamp-1">📝 {l.lessonLog}</p>
                           )}
                         </div>
                         {fee != null && (
-                          <p className="font-medium shrink-0">¥{fee.toLocaleString()}</p>
+                          <p className="font-medium shrink-0">{formatCurrency(fee)}</p>
                         )}
                       </div>
                     )
@@ -332,7 +328,7 @@ async function ParentBillingPage({
             const paymentRecord = paidMap.get(sid)
             const isPaid = paymentRecord?.paidAt != null
             const studentTotal = sLessons.reduce((sum, l) => {
-              const fee = calcFee(l.durationMin, l.hourlyRate, l.travelExpense)
+              const fee = calcFee(l)
               return fee != null ? sum + fee : sum
             }, 0)
             const hasFee = sLessons.some((l) => l.hourlyRate != null)
@@ -350,12 +346,12 @@ async function ParentBillingPage({
                     )}
                   </div>
                   {hasFee && (
-                    <span className="text-sm font-semibold">¥{studentTotal.toLocaleString()}</span>
+                    <span className="text-sm font-semibold">{formatCurrency(studentTotal)}</span>
                   )}
                 </div>
                 <div className="divide-y">
                   {sLessons.map((l) => {
-                    const fee = calcFee(l.durationMin, l.hourlyRate, l.travelExpense)
+                    const fee = calcFee(l)
                     const dateLabel = l.date.toLocaleDateString("ja-JP", { timeZone: "Asia/Tokyo", month: "numeric", day: "numeric", weekday: "short" })
                     const timeStr = l.date.toLocaleTimeString("ja-JP", { timeZone: "Asia/Tokyo", hour: "2-digit", minute: "2-digit" })
                     return (
@@ -367,7 +363,7 @@ async function ParentBillingPage({
                             {l.durationMin ? ` · ${l.durationMin}分` : ""}
                           </p>
                         </div>
-                        {fee != null && <p className="font-medium shrink-0">¥{fee.toLocaleString()}</p>}
+                        {fee != null && <p className="font-medium shrink-0">{formatCurrency(fee)}</p>}
                       </div>
                     )
                   })}

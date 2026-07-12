@@ -27,9 +27,11 @@ export async function acceptInvite(
 
   const { token, email, password } = result.data
 
+  const INVALID_INVITE_ERROR = "招待リンクが無効または期限切れです"
+
   const invite = await db.inviteToken.findUnique({ where: { token } })
   if (!invite || invite.usedAt || invite.expiresAt < new Date()) {
-    return { error: "招待リンクが無効または期限切れです" }
+    return { error: INVALID_INVITE_ERROR }
   }
 
   const existingUser = await db.user.findUnique({ where: { email } })
@@ -39,18 +41,26 @@ export async function acceptInvite(
 
   const hashed = await bcrypt.hash(password, 10)
 
-  await db.$transaction(async (tx) => {
-    const user = await tx.user.create({
-      data: { email, name: invite.name, password: hashed, role: "student" },
+  try {
+    await db.$transaction(async (tx) => {
+      // usedAt が null の場合のみ使用済みにする（同時リクエストによる二重使用防止）
+      const consumed = await tx.inviteToken.updateMany({
+        where: { id: invite.id, usedAt: null },
+        data: { usedAt: new Date() },
+      })
+      if (consumed.count !== 1) {
+        throw new Error(INVALID_INVITE_ERROR)
+      }
+      const user = await tx.user.create({
+        data: { email, name: invite.name, password: hashed, role: "student" },
+      })
+      await tx.student.create({
+        data: { userId: user.id, teacherId: invite.teacherId, grade: invite.grade },
+      })
     })
-    await tx.student.create({
-      data: { userId: user.id, teacherId: invite.teacherId, grade: invite.grade },
-    })
-    await tx.inviteToken.update({
-      where: { id: invite.id },
-      data: { usedAt: new Date() },
-    })
-  })
+  } catch {
+    return { error: INVALID_INVITE_ERROR }
+  }
 
   redirect("/login?invited=1")
 }

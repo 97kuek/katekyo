@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation"
 import { getViewingContext } from "@/lib/view-as"
 import { db } from "@/lib/db"
-import { getStudentByUserId } from "@/lib/queries"
+import { getStudentByUserId, getSubjectsByTeacherId, buildSubjectMap } from "@/lib/queries"
 import Link from "next/link"
 import { buttonVariants } from "@/components/ui/button"
 import { Plus } from "lucide-react"
@@ -11,21 +11,9 @@ import { CancelSubmissionButton } from "./cancel-button"
 import { HomeworkFilter } from "./homework-filter"
 import { BulkApproveSection } from "./bulk-approve-section"
 import { relativeDeadline, deadlineColorClass, formatDate } from "@/lib/date-utils"
+import { isPendingStatus } from "@/lib/homework-status"
+import { SubjectTags } from "@/components/ui/subject-tags"
 import { SwipeableHomeworkCard } from "./swipeable-card"
-
-function SubjectTags({ ids, map }: { ids: string[]; map: Map<string, string> }) {
-  const names = ids.map((id) => map.get(id)).filter(Boolean) as string[]
-  if (names.length === 0) return null
-  return (
-    <div className="flex flex-wrap gap-1 mt-1.5">
-      {names.map((name) => (
-        <span key={name} className="text-xs bg-muted text-foreground rounded-full px-2 py-0.5">
-          {name}
-        </span>
-      ))}
-    </div>
-  )
-}
 
 export default async function HomeworkPage({
   searchParams,
@@ -93,7 +81,7 @@ async function TeacherHomeworkPage({
       include: { student: { include: { user: { select: { name: true } } } } },
       orderBy,
     }),
-    db.subject.findMany({ where: { teacherId }, select: { id: true, name: true } }),
+    getSubjectsByTeacherId(teacherId),
     db.student.findMany({
       where: { teacherId },
       include: { user: { select: { name: true } } },
@@ -101,7 +89,7 @@ async function TeacherHomeworkPage({
     }),
   ])
 
-  const subjectMap = new Map(subjects.map((s) => [s.id, s.name]))
+  const subjectMap = buildSubjectMap(subjects)
   const now = new Date()
   const submitted = homeworks.filter((h) => h.status === "submitted")
   const others = homeworks.filter((h) => h.status !== "submitted")
@@ -125,7 +113,7 @@ async function TeacherHomeworkPage({
           {/* モバイル: スワイプカード */}
           <div className="md:hidden space-y-2">
             {others.map((h) => {
-              const overdue = h.dueDate < now && (h.status === "assigned" || h.status === "rejected")
+              const overdue = h.dueDate < now && (isPendingStatus(h.status))
               const subjectNames = h.subjectIds.map((sid) => subjectMap.get(sid)).filter(Boolean) as string[]
               return (
                 <SwipeableHomeworkCard
@@ -154,7 +142,7 @@ async function TeacherHomeworkPage({
               </thead>
               <tbody className="divide-y">
                 {others.map((h) => {
-                  const overdue = h.dueDate < now && (h.status === "assigned" || h.status === "rejected")
+                  const overdue = h.dueDate < now && (isPendingStatus(h.status))
                   const relLabel = relativeDeadline(h.dueDate)
                   const relColor = deadlineColorClass(h.dueDate)
                   return (
@@ -166,7 +154,7 @@ async function TeacherHomeworkPage({
                       <td className="px-4 py-3 text-muted-foreground">{h.student.user.name}</td>
                       <td className="px-4 py-3">
                         <p className="text-muted-foreground">{formatDate(h.dueDate)}</p>
-                        {(h.status === "assigned" || h.status === "rejected") && (
+                        {(isPendingStatus(h.status)) && (
                           <p className={`text-xs ${relColor}`}>{relLabel}</p>
                         )}
                       </td>
@@ -222,10 +210,8 @@ async function ParentHomeworkPage({ parentId, studentIdFilter }: { parentId: str
   })
 
   const teacherId = links.find((l) => l.studentId === effectiveStudentId)?.teacherId
-  const subjects = teacherId
-    ? await db.subject.findMany({ where: { teacherId }, select: { id: true, name: true } })
-    : []
-  const subjectMap = new Map(subjects.map((s) => [s.id, s.name]))
+  const subjects = teacherId ? await getSubjectsByTeacherId(teacherId) : []
+  const subjectMap = buildSubjectMap(subjects)
   const now = new Date()
 
   return (
@@ -255,7 +241,7 @@ async function ParentHomeworkPage({ parentId, studentIdFilter }: { parentId: str
       ) : (
         <div className="space-y-2">
           {homeworks.map((h) => {
-            const overdue = h.dueDate < now && (h.status === "assigned" || h.status === "rejected")
+            const overdue = h.dueDate < now && (isPendingStatus(h.status))
             const relLabel = relativeDeadline(h.dueDate)
             const relColor = deadlineColorClass(h.dueDate)
             return (
@@ -271,9 +257,9 @@ async function ParentHomeworkPage({ parentId, studentIdFilter }: { parentId: str
                   </div>
                   <StatusBadge status={h.status} />
                 </div>
-                <p className={`text-xs mt-1.5 ${h.status === "assigned" || h.status === "rejected" ? relColor : "text-muted-foreground"}`}>
+                <p className={`text-xs mt-1.5 ${isPendingStatus(h.status) ? relColor : "text-muted-foreground"}`}>
                   期限: {formatDate(h.dueDate)}
-                  {(h.status === "assigned" || h.status === "rejected") && <span className="ml-1.5">（{relLabel}）</span>}
+                  {(isPendingStatus(h.status)) && <span className="ml-1.5">（{relLabel}）</span>}
                 </p>
               </Link>
             )
@@ -290,12 +276,12 @@ async function StudentHomeworkPage({ userId }: { userId: string }) {
 
   const [homeworks, subjects] = await Promise.all([
     db.homework.findMany({ where: { studentId: student.id }, orderBy: { dueDate: "asc" } }),
-    db.subject.findMany({ where: { teacherId: student.teacherId }, select: { id: true, name: true } }),
+    getSubjectsByTeacherId(student.teacherId),
   ])
 
-  const subjectMap = new Map(subjects.map((s) => [s.id, s.name]))
+  const subjectMap = buildSubjectMap(subjects)
   const now = new Date()
-  const active = homeworks.filter((h) => h.status === "assigned" || h.status === "rejected")
+  const active = homeworks.filter((h) => isPendingStatus(h.status))
   const submitted = homeworks.filter((h) => h.status === "submitted")
   const approvedAll = homeworks.filter((h) => h.status === "approved")
   const approved = approvedAll.slice(0, 5)

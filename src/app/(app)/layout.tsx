@@ -12,6 +12,7 @@ import { ViewAsBanner } from "@/components/view-as-banner"
 import { PageContent } from "@/components/layout/page-content"
 import { PullToRefresh } from "@/components/layout/pull-to-refresh"
 import { db } from "@/lib/db"
+import { PENDING_STATUSES } from "@/lib/homework-status"
 import type { NotificationData } from "@/lib/changelog"
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
@@ -22,17 +23,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const effectiveRole = ctx?.effectiveRole ?? session.user.role
   const effectiveUserId = ctx?.effectiveUserId ?? session.user.id
 
-  const jstNow = new Date(Date.now() + 9 * 60 * 60 * 1000)
-  const todayStr = jstNow.toISOString().slice(0, 10)
-  const todayStart = new Date(todayStr + "T00:00:00+09:00")
-  const todayEnd = new Date(todayStr + "T23:59:59.999+09:00")
-
   const [user, notificationData] = await Promise.all([
     db.user.findUnique({
       where: { id: session.user.id },
       select: { agreedToTermsAt: true },
     }),
-    fetchNotifications(effectiveUserId, effectiveRole, todayStart, todayEnd),
+    fetchNotifications(effectiveUserId, effectiveRole),
   ])
   const needsAgreement = !user?.agreedToTermsAt
 
@@ -68,10 +64,14 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
 async function fetchNotifications(
   userId: string,
-  role: string,
-  todayStart: Date,
-  todayEnd: Date
+  role: string
 ): Promise<NotificationData> {
+  // JST の「今日」の範囲（サーバーが UTC でも日本時間で判定する）
+  const jstNow = new Date(Date.now() + 9 * 60 * 60 * 1000)
+  const todayStr = jstNow.toISOString().slice(0, 10)
+  const todayStart = new Date(todayStr + "T00:00:00+09:00")
+  const todayEnd = new Date(todayStr + "T23:59:59.999+09:00")
+
   if (role === "teacher") {
     const [pendingHomework, lessons] = await Promise.all([
       db.homework.findMany({
@@ -124,7 +124,7 @@ async function fetchNotifications(
     db.homework.findMany({
       where: {
         studentId: student.id,
-        status: { in: ["assigned", "rejected"] },
+        status: { in: PENDING_STATUSES },
         dueDate: { lte: todayEnd },
       },
       select: { id: true, title: true, dueDate: true },

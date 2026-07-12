@@ -1,7 +1,7 @@
 "use server"
 
 import { db } from "@/lib/db"
-import { auth } from "@/lib/auth"
+import { requireTeacher } from "@/lib/action-guards"
 import { z } from "zod"
 import { GRADE_OPTIONS } from "@/lib/grades"
 
@@ -14,8 +14,8 @@ export async function createInvite(
   _prevState: { error: string; token: string | null },
   formData: FormData
 ): Promise<{ error: string; token: string | null }> {
-  const session = await auth()
-  if (!session || session.user.role !== "teacher") {
+  const teacher = await requireTeacher()
+  if (!teacher) {
     return { error: "権限がありません", token: null }
   }
 
@@ -31,14 +31,14 @@ export async function createInvite(
   const { name, grade } = result.data
 
   await db.inviteToken.deleteMany({
-    where: { teacherId: session.user.id, expiresAt: { lt: new Date() }, usedAt: null },
+    where: { teacherId: teacher.teacherId, expiresAt: { lt: new Date() }, usedAt: null },
   })
 
   const expiresAt = new Date()
   expiresAt.setDate(expiresAt.getDate() + 7)
 
   const invite = await db.inviteToken.create({
-    data: { teacherId: session.user.id, name, grade, expiresAt },
+    data: { teacherId: teacher.teacherId, name, grade, expiresAt },
   })
 
   return { error: "", token: invite.token }

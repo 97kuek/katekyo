@@ -1,16 +1,19 @@
 "use client"
 
-import { useState, useActionState, useEffect } from "react"
+import { useState, useActionState } from "react"
 import { extendDueDate } from "./actions"
 import { Button } from "@/components/ui/button"
 
 export function ExtendDeadlineButton({ homeworkId, currentDueDate }: { homeworkId: string; currentDueDate: string }) {
   const [open, setOpen] = useState(false)
-  const [state, action, isPending] = useActionState(extendDueDate, { error: "", success: false })
-
-  useEffect(() => {
-    if (state.success) setOpen(false)
-  }, [state.success])
+  const [state, action, isPending] = useActionState(
+    async (prev: { error: string; success: boolean }, formData: FormData) => {
+      const result = await extendDueDate(prev, formData)
+      if (result.success) setOpen(false)
+      return result
+    },
+    { error: "", success: false }
+  )
 
   if (!open) {
     return (

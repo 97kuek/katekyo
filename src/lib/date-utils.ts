@@ -39,6 +39,26 @@ export function formatDate(d: Date): string {
   return d.toLocaleDateString("ja-JP", { timeZone: JST })
 }
 
+/** 日付を JST で "M/D" 表示 */
+export function formatShortDate(d: Date): string {
+  return d.toLocaleDateString("ja-JP", { timeZone: JST, month: "numeric", day: "numeric" })
+}
+
+/** 日付を JST で "M月D日（曜）" 表示 */
+export function formatDateWithWeekday(d: Date): string {
+  return d.toLocaleDateString("ja-JP", {
+    timeZone: JST,
+    month: "long",
+    day: "numeric",
+    weekday: "short",
+  })
+}
+
+/** 時刻を JST で "HH:MM" 表示 */
+export function formatTime(d: Date): string {
+  return d.toLocaleTimeString("ja-JP", { timeZone: JST, hour: "2-digit", minute: "2-digit" })
+}
+
 /** 日時を JST で表示 */
 export function formatDateTime(
   d: Date,

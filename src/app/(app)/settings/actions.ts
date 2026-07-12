@@ -2,6 +2,7 @@
 
 import { auth, signOut } from "@/lib/auth"
 import { db } from "@/lib/db"
+import { requireTeacher } from "@/lib/action-guards"
 import { z } from "zod"
 import { unlinkRichMenuFromUser } from "@/lib/line"
 
@@ -58,14 +59,14 @@ export async function saveMeetLink(
   _prevState: { error?: string; success?: boolean },
   formData: FormData
 ): Promise<{ error?: string; success?: boolean }> {
-  const session = await auth()
-  if (!session || session.user.role !== "teacher") return { error: "権限がありません" }
+  const teacher = await requireTeacher()
+  if (!teacher) return { error: "権限がありません" }
 
   const result = meetLinkSchema.safeParse({ meetLink: formData.get("meetLink") })
   if (!result.success) return { error: result.error.issues[0].message }
 
   await db.user.update({
-    where: { id: session.user.id },
+    where: { id: teacher.teacherId },
     data: { meetLink: result.data.meetLink || null },
   })
 

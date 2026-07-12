@@ -20,7 +20,9 @@ export default function ChangelogBell({ notificationData }: { notificationData: 
   const [open, setOpen] = useState(false)
   const panelRef = useRef<HTMLDivElement>(null)
 
+  // localStorage（クライアント専用ストア）をハイドレーション後に読む必要があるため effect で行う
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setHasUnread(localStorage.getItem(STORAGE_KEY) !== LATEST_CHANGELOG_ID)
   }, [])
 

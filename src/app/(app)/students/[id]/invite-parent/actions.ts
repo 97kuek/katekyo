@@ -1,7 +1,7 @@
 "use server"
 
-import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
+import { requireTeacher } from "@/lib/action-guards"
 import { z } from "zod"
 
 const schema = z.object({
@@ -13,8 +13,8 @@ export async function createParentInvite(
   _prevState: { error: string; token: string | null },
   formData: FormData
 ): Promise<{ error: string; token: string | null }> {
-  const session = await auth()
-  if (!session || session.user.role !== "teacher") return { error: "権限がありません", token: null }
+  const teacher = await requireTeacher()
+  if (!teacher) return { error: "権限がありません", token: null }
 
   const raw = {
     studentId: formData.get("studentId") as string,
@@ -27,13 +27,13 @@ export async function createParentInvite(
 
   // 先生の生徒か確認
   const student = await db.student.findFirst({
-    where: { id: studentId, teacherId: session.user.id },
+    where: { id: studentId, teacherId: teacher.teacherId },
   })
   if (!student) return { error: "生徒が見つかりません", token: null }
 
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
   const invite = await db.parentInviteToken.create({
-    data: { teacherId: session.user.id, studentId, email: email || null, expiresAt },
+    data: { teacherId: teacher.teacherId, studentId, email: email || null, expiresAt },
   })
 
   return { error: "", token: invite.token }

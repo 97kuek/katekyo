@@ -31,6 +31,8 @@ export function SwipeableRow({
   const [offset, setOffset] = useState(0)
   const [isOpen, setIsOpen] = useState(false)
   const [fullArmed, setFullArmed] = useState(false)
+  // transition の切り替えはレンダーで参照するため ref ではなく state で持つ
+  const [dragging, setDragging] = useState(false)
 
   const containerRef = useRef<HTMLDivElement>(null)
   const startX = useRef(0)
@@ -48,6 +50,7 @@ export function SwipeableRow({
 
   function handlePointerDown(e: React.PointerEvent<HTMLDivElement>) {
     isDragging.current = true
+    setDragging(true)
     didSwipe.current = false
     startX.current = e.clientX
     baseOffset.current = offset
@@ -75,6 +78,7 @@ export function SwipeableRow({
   function handlePointerUp() {
     if (!isDragging.current) return
     isDragging.current = false
+    setDragging(false)
     if (onFullSwipe && -offset >= fullThreshold()) {
       haptic.error()
       setOffset(0)
@@ -113,7 +117,7 @@ export function SwipeableRow({
 
   const cardStyle = {
     transform: `translateX(${offset}px)`,
-    transition: isDragging.current ? "none" : "transform 0.2s ease-out",
+    transition: dragging ? "none" : "transform 0.2s ease-out",
     touchAction: "pan-y" as const,
     willChange: "transform",
   }

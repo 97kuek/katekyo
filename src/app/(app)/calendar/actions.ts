@@ -1,7 +1,7 @@
 "use server"
 
-import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
+import { requireTeacher } from "@/lib/action-guards"
 import { redirect } from "next/navigation"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
@@ -24,8 +24,8 @@ export async function createLesson(
   _prevState: { error: string; timestamp?: number },
   formData: FormData
 ): Promise<{ error: string; timestamp?: number }> {
-  const session = await auth()
-  if (!session || session.user.role !== "teacher") return { error: "権限がありません" }
+  const teacherGuard = await requireTeacher()
+  if (!teacherGuard) return { error: "権限がありません" }
 
   const result = createSchema.safeParse({
     studentId: formData.get("studentId"),
@@ -42,7 +42,7 @@ export async function createLesson(
 
   const { studentId, date, time, type, durationMin, notes, hourlyRate, travelExpense, repeatWeeks } = result.data
 
-  const student = await db.student.findFirst({ where: { id: studentId, teacherId: session.user.id } })
+  const student = await db.student.findFirst({ where: { id: studentId, teacherId: teacherGuard.teacherId } })
   if (!student) return { error: "生徒が見つかりません" }
 
   const baseTime = new Date(`${date}T${time}:00+09:00`)
@@ -57,14 +57,15 @@ export async function createLesson(
   const subjectIds = formData.getAll("subjectIds") as string[]
 
   const teacher = type === "online"
-    ? await db.user.findUnique({ where: { id: session.user.id }, select: { meetLink: true } })
+    ? await db.user.findUnique({ where: { id: teacherGuard.teacherId }, select: { meetLink: true } })
     : null
 
-  const lessons = await Promise.all(
+  // 反復登録の途中失敗で一部だけ作成されないよう、全件を1トランザクションで作成する
+  const lessons = await db.$transaction(
     dates.map((dateTime) =>
       db.lesson.create({
         data: {
-          teacherId: session.user.id,
+          teacherId: teacherGuard.teacherId,
           studentId,
           date: dateTime,
           type,
@@ -113,8 +114,8 @@ export async function updateLesson(
   _prevState: { error: string; timestamp?: number },
   formData: FormData
 ): Promise<{ error: string; timestamp?: number }> {
-  const session = await auth()
-  if (!session || session.user.role !== "teacher") return { error: "権限がありません" }
+  const teacherGuard = await requireTeacher()
+  if (!teacherGuard) return { error: "権限がありません" }
 
   const result = updateSchema.safeParse({
     lessonId: formData.get("lessonId"),
@@ -136,7 +137,7 @@ export async function updateLesson(
   const newDate = new Date(`${date}T${time}:00+09:00`)
 
   const existing = await db.lesson.findFirst({
-    where: { id: lessonId, teacherId: session.user.id },
+    where: { id: lessonId, teacherId: teacherGuard.teacherId },
     select: { qstashMessageId: true, lessonLog: true },
   })
   if (!existing) return { error: "授業が見つかりません" }
@@ -166,7 +167,7 @@ export async function updateLesson(
   })
 
   if (type === "online") {
-    const teacher = await db.user.findUnique({ where: { id: session.user.id }, select: { meetLink: true } })
+    const teacher = await db.user.findUnique({ where: { id: teacherGuard.teacherId }, select: { meetLink: true } })
     if (teacher?.meetLink) {
       const messageId = await scheduleReminderMessage(updated.id, updated.date)
       if (messageId) {
@@ -180,34 +181,34 @@ export async function updateLesson(
 }
 
 export async function deleteLesson(formData: FormData) {
-  const session = await auth()
-  if (!session || session.user.role !== "teacher") redirect("/dashboard")
+  const teacher = await requireTeacher()
+  if (!teacher) redirect("/dashboard")
 
   const lessonId = formData.get("lessonId") as string
   if (!lessonId) return
 
   const lesson = await db.lesson.findFirst({
-    where: { id: lessonId, teacherId: session.user.id },
+    where: { id: lessonId, teacherId: teacher.teacherId },
     select: { qstashMessageId: true },
   })
   if (lesson?.qstashMessageId) {
     await cancelReminderMessage(lesson.qstashMessageId)
   }
 
-  await db.lesson.deleteMany({ where: { id: lessonId, teacherId: session.user.id } })
+  await db.lesson.deleteMany({ where: { id: lessonId, teacherId: teacher.teacherId } })
   revalidatePath("/calendar")
 }
 
 export async function completeLesson(formData: FormData) {
-  const session = await auth()
-  if (!session || session.user.role !== "teacher") redirect("/dashboard")
+  const teacher = await requireTeacher()
+  if (!teacher) redirect("/dashboard")
 
   const lessonId = formData.get("lessonId") as string
   if (!lessonId) return
   const lessonLog = (formData.get("lessonLog") as string) || null
 
   await db.lesson.updateMany({
-    where: { id: lessonId, teacherId: session.user.id, completedAt: null },
+    where: { id: lessonId, teacherId: teacher.teacherId, completedAt: null },
     data: { completedAt: new Date(), ...(lessonLog ? { lessonLog } : {}) },
   })
   revalidatePath("/calendar")
@@ -216,14 +217,14 @@ export async function completeLesson(formData: FormData) {
 }
 
 export async function uncompleteLesson(formData: FormData) {
-  const session = await auth()
-  if (!session || session.user.role !== "teacher") redirect("/dashboard")
+  const teacher = await requireTeacher()
+  if (!teacher) redirect("/dashboard")
 
   const lessonId = formData.get("lessonId") as string
   if (!lessonId) return
 
   await db.lesson.updateMany({
-    where: { id: lessonId, teacherId: session.user.id },
+    where: { id: lessonId, teacherId: teacher.teacherId },
     data: { completedAt: null },
   })
   revalidatePath("/calendar")
@@ -243,8 +244,8 @@ export async function createExamEvent(
   _prevState: { error: string; timestamp?: number },
   formData: FormData
 ): Promise<{ error: string; timestamp?: number }> {
-  const session = await auth()
-  if (!session || session.user.role !== "teacher") return { error: "権限がありません" }
+  const teacher = await requireTeacher()
+  if (!teacher) return { error: "権限がありません" }
 
   const result = examEventSchema.safeParse({
     studentId: formData.get("studentId"),
@@ -257,12 +258,12 @@ export async function createExamEvent(
 
   const { studentId, date, endDate, name, testType } = result.data
 
-  const student = await db.student.findFirst({ where: { id: studentId, teacherId: session.user.id } })
+  const student = await db.student.findFirst({ where: { id: studentId, teacherId: teacher.teacherId } })
   if (!student) return { error: "生徒が見つかりません" }
 
   await db.examEvent.create({
     data: {
-      teacherId: session.user.id,
+      teacherId: teacher.teacherId,
       studentId,
       date: new Date(`${date}T00:00:00+09:00`),
       endDate: endDate ? new Date(`${endDate}T00:00:00+09:00`) : null,
@@ -277,13 +278,13 @@ export async function createExamEvent(
 }
 
 export async function deleteExamEvent(formData: FormData) {
-  const session = await auth()
-  if (!session || session.user.role !== "teacher") redirect("/dashboard")
+  const teacher = await requireTeacher()
+  if (!teacher) redirect("/dashboard")
 
   const examEventId = formData.get("examEventId") as string
   if (!examEventId) return
 
-  await db.examEvent.deleteMany({ where: { id: examEventId, teacherId: session.user.id } })
+  await db.examEvent.deleteMany({ where: { id: examEventId, teacherId: teacher.teacherId } })
   revalidatePath("/calendar")
   revalidatePath("/dashboard")
 }
@@ -298,8 +299,8 @@ export async function createHomeworkFromCalendar(
   _prevState: { error: string; timestamp?: number },
   formData: FormData
 ): Promise<{ error: string; timestamp?: number }> {
-  const session = await auth()
-  if (!session || session.user.role !== "teacher") return { error: "権限がありません" }
+  const teacher = await requireTeacher()
+  if (!teacher) return { error: "権限がありません" }
 
   const result = calendarHomeworkSchema.safeParse({
     studentId: formData.get("studentId"),
@@ -310,14 +311,14 @@ export async function createHomeworkFromCalendar(
 
   const { studentId, title, dueDate } = result.data
   const student = await db.student.findFirst({
-    where: { id: studentId, teacherId: session.user.id },
+    where: { id: studentId, teacherId: teacher.teacherId },
     include: { user: { select: { lineUserId: true } } },
   })
   if (!student) return { error: "生徒が見つかりません" }
 
   const homework = await db.homework.create({
     data: {
-      teacherId: session.user.id,
+      teacherId: teacher.teacherId,
       studentId,
       title,
       dueDate: new Date(`${dueDate}T00:00:00+09:00`),

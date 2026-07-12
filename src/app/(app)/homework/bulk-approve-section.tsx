@@ -5,7 +5,7 @@ import Link from "next/link"
 import { Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import { Button, buttonVariants } from "@/components/ui/button"
-import { SubjectTagsList } from "./subject-tags"
+import { SubjectTags } from "@/components/ui/subject-tags"
 import { bulkApproveHomework } from "./actions"
 import { haptic } from "@/lib/haptic"
 
@@ -38,7 +38,11 @@ export function BulkApproveSection({
     haptic.tap()
     setSelected((prev) => {
       const next = new Set(prev)
-      next.has(id) ? next.delete(id) : next.add(id)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        next.add(id)
+      }
       return next
     })
   }
@@ -94,7 +98,7 @@ export function BulkApproveSection({
                 <div className="min-w-0">
                   <p className="font-medium truncate">{h.title}</p>
                   <p className="text-sm text-muted-foreground mt-0.5">{h.student.user.name}</p>
-                  <SubjectTagsList ids={h.subjectIds} map={subjectMap} />
+                  <SubjectTags ids={h.subjectIds} map={subjectMap} className="mt-1.5" />
                   {h.studentNote && (
                     <p className="text-sm text-muted-foreground mt-2 border-l-2 pl-3">{h.studentNote}</p>
                   )}

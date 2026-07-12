@@ -1,7 +1,9 @@
 import { redirect } from "next/navigation"
 import { getViewingContext } from "@/lib/view-as"
 import { db } from "@/lib/db"
-import { getStudentByUserId } from "@/lib/queries"
+import { getStudentByUserId, getSubjectsByTeacherId, buildSubjectMap } from "@/lib/queries"
+import { formatDate } from "@/lib/date-utils"
+import { SubjectTags } from "@/components/ui/subject-tags"
 import Link from "next/link"
 import { buttonVariants } from "@/components/ui/button"
 import GradeChart from "./grade-chart"
@@ -12,20 +14,6 @@ import { GradeTypeFilter } from "./grade-type-filter"
 import { GradeStudentFilter } from "./grade-student-filter"
 import { GradeSubjectFilter } from "./grade-subject-filter"
 import { TEST_TYPE_LABELS } from "@/lib/test-types"
-
-function SubjectTags({ ids, map }: { ids: string[]; map: Map<string, string> }) {
-  const names = ids.map((id) => map.get(id)).filter(Boolean) as string[]
-  if (names.length === 0) return null
-  return (
-    <div className="flex flex-wrap gap-1 mt-1">
-      {names.map((name) => (
-        <span key={name} className="text-xs bg-muted text-foreground rounded-full px-2 py-0.5">
-          {name}
-        </span>
-      ))}
-    </div>
-  )
-}
 
 const TEST_TYPE_BADGE: Record<string, string> = {
   mock:  "bg-muted text-foreground",
@@ -101,7 +89,7 @@ async function TeacherGradesPage({
       include: { student: { include: { user: { select: { name: true } } } } },
       orderBy: { date: "desc" },
     }),
-    db.subject.findMany({ where: { teacherId }, select: { id: true, name: true, color: true } }),
+    getSubjectsByTeacherId(teacherId),
     db.student.findMany({
       where: { teacherId },
       include: { user: { select: { name: true } } },
@@ -109,7 +97,7 @@ async function TeacherGradesPage({
     }),
   ])
 
-  const subjectMap = new Map(subjects.map((s) => [s.id, s.name]))
+  const subjectMap = buildSubjectMap(subjects)
 
   // 前回比計算（生徒別・日付降順で並んでいるので index+1 が前回）
   const prevIndexByStudent = new Map<string, number>()
@@ -180,7 +168,7 @@ async function TeacherGradesPage({
                       <p className="font-medium truncate">{g.testName}</p>
                       <SubjectTags ids={g.subjectIds} map={subjectMap} />
                       <p className="text-xs text-muted-foreground mt-1">
-                        {g.student.user.name} · {g.date.toLocaleDateString("ja-JP")}
+                        {g.student.user.name} · {formatDate(g.date)}
                       </p>
                     </div>
                     <span className={`text-xs rounded-full px-2 py-0.5 shrink-0 ${TEST_TYPE_BADGE[g.testType] ?? TEST_TYPE_BADGE.other}`}>
@@ -235,7 +223,7 @@ async function TeacherGradesPage({
                       <SubjectTags ids={g.subjectIds} map={subjectMap} />
                     </td>
                     <td className="px-4 py-3 text-muted-foreground">{g.student.user.name}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{g.date.toLocaleDateString("ja-JP")}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{formatDate(g.date)}</td>
                     <td className="px-4 py-3">
                       {g.score != null ? (g.maxScore != null ? `${g.score}/${g.maxScore}` : g.score) : "-"}
                       <DiffBadge diff={prevDiff[i]} />
@@ -263,10 +251,10 @@ async function StudentGradesPage({ userId }: { userId: string }) {
 
   const [grades, subjects] = await Promise.all([
     db.gradeRecord.findMany({ where: { studentId: student.id }, orderBy: { date: "desc" } }),
-    db.subject.findMany({ where: { teacherId: student.teacherId }, select: { id: true, name: true, color: true } }),
+    getSubjectsByTeacherId(student.teacherId),
   ])
 
-  const subjectMap = new Map(subjects.map((s) => [s.id, s.name]))
+  const subjectMap = buildSubjectMap(subjects)
 
   const chartGrades = grades.map((g) => ({
     id: g.id,
@@ -313,7 +301,7 @@ async function StudentGradesPage({ userId }: { userId: string }) {
                   <div className="min-w-0">
                     <p className="font-medium truncate">{g.testName}</p>
                     <SubjectTags ids={g.subjectIds} map={subjectMap} />
-                    <p className="text-xs text-muted-foreground mt-1">{g.date.toLocaleDateString("ja-JP")}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{formatDate(g.date)}</p>
                   </div>
                   <span className={`text-xs rounded-full px-2 py-0.5 shrink-0 ${TEST_TYPE_BADGE[g.testType] ?? TEST_TYPE_BADGE.other}`}>
                     {TEST_TYPE_LABELS[g.testType as keyof typeof TEST_TYPE_LABELS] ?? g.testType}
@@ -365,7 +353,7 @@ async function StudentGradesPage({ userId }: { userId: string }) {
                         {TEST_TYPE_LABELS[g.testType as keyof typeof TEST_TYPE_LABELS] ?? g.testType}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-muted-foreground">{g.date.toLocaleDateString("ja-JP")}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{formatDate(g.date)}</td>
                     <td className="px-4 py-3">
                       {g.score != null ? (g.maxScore != null ? `${g.score}/${g.maxScore}` : g.score) : "-"}
                       <DiffBadge diff={prevDiff[i]} />
@@ -426,10 +414,8 @@ async function ParentGradesPage({
   })
 
   const teacherId = links.find((l) => l.studentId === effectiveStudentId)?.teacherId
-  const subjects = teacherId
-    ? await db.subject.findMany({ where: { teacherId }, select: { id: true, name: true, color: true } })
-    : []
-  const subjectMap = new Map(subjects.map((s) => [s.id, s.name]))
+  const subjects = teacherId ? await getSubjectsByTeacherId(teacherId) : []
+  const subjectMap = buildSubjectMap(subjects)
 
   const chartGrades = grades.map((g) => ({
     id: g.id,
@@ -486,7 +472,7 @@ async function ParentGradesPage({
                   <div className="min-w-0">
                     <p className="font-medium truncate">{g.testName}</p>
                     <SubjectTags ids={g.subjectIds} map={subjectMap} />
-                    <p className="text-xs text-muted-foreground mt-1">{g.date.toLocaleDateString("ja-JP")}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{formatDate(g.date)}</p>
                   </div>
                   <span className={`text-xs rounded-full px-2 py-0.5 shrink-0 ${TEST_TYPE_BADGE[g.testType] ?? TEST_TYPE_BADGE.other}`}>
                     {TEST_TYPE_LABELS[g.testType as keyof typeof TEST_TYPE_LABELS] ?? g.testType}
@@ -528,7 +514,7 @@ async function ParentGradesPage({
                         {TEST_TYPE_LABELS[g.testType as keyof typeof TEST_TYPE_LABELS] ?? g.testType}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-muted-foreground">{g.date.toLocaleDateString("ja-JP")}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{formatDate(g.date)}</td>
                     <td className="px-4 py-3">
                       {g.score != null ? (g.maxScore != null ? `${g.score}/${g.maxScore}` : g.score) : "-"}
                       <DiffBadge diff={prevDiff[i]} />

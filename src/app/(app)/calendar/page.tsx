@@ -2,6 +2,7 @@ import { redirect } from "next/navigation"
 import { getViewingContext } from "@/lib/view-as"
 import { db } from "@/lib/db"
 import { getStudentByUserId } from "@/lib/queries"
+import { PENDING_STATUSES } from "@/lib/homework-status"
 import CalendarView from "./calendar-view"
 
 export default async function CalendarPage() {
@@ -96,7 +97,7 @@ export default async function CalendarPage() {
         orderBy: { date: "asc" },
       }),
       db.homework.findMany({
-        where: { studentId: { in: studentIds }, status: { in: ["assigned", "rejected"] }, dueDate: { gte: monthStart, lte: monthEnd } },
+        where: { studentId: { in: studentIds }, status: { in: PENDING_STATUSES }, dueDate: { gte: monthStart, lte: monthEnd } },
         include: { student: { include: { user: { select: { name: true } } } } },
         orderBy: { dueDate: "asc" },
       }),
@@ -137,7 +138,7 @@ export default async function CalendarPage() {
       orderBy: { date: "asc" },
     }),
     db.homework.findMany({
-      where: { studentId: student.id, status: { in: ["assigned", "rejected"] }, dueDate: { gte: monthStart, lte: monthEnd } },
+      where: { studentId: student.id, status: { in: PENDING_STATUSES }, dueDate: { gte: monthStart, lte: monthEnd } },
       include: { student: { include: { user: { select: { name: true } } } } },
       orderBy: { dueDate: "asc" },
     }),

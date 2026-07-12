@@ -1,21 +1,21 @@
 "use server"
 
-import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
+import { requireTeacher } from "@/lib/action-guards"
 import { revalidatePath } from "next/cache"
 import { plantForHomeworkApproval } from "@/lib/garden/actions"
 import { sendLineMessage } from "@/lib/line"
 
 export async function bulkApproveHomework(ids: string[]): Promise<{ error: string; approved: number }> {
-  const session = await auth()
-  if (!session || session.user.role !== "teacher") return { error: "権限がありません", approved: 0 }
+  const teacher = await requireTeacher()
+  if (!teacher) return { error: "権限がありません", approved: 0 }
 
   if (!ids.length) return { error: "", approved: 0 }
 
   const homeworks = await db.homework.findMany({
     where: {
       id: { in: ids },
-      teacherId: session.user.id,
+      teacherId: teacher.teacherId,
       status: "submitted",
     },
     include: {
@@ -37,7 +37,7 @@ export async function bulkApproveHomework(ids: string[]): Promise<{ error: strin
     data: homeworks.map((h) => ({
       homeworkId: h.id,
       eventType: "approved" as const,
-      actorName: session.user.name ?? "",
+      actorName: teacher.session.user.name ?? "",
       note: null,
     })),
   })

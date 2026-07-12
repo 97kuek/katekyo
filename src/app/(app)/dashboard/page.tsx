@@ -1,19 +1,18 @@
 import { redirect } from "next/navigation"
 import { getViewingContext } from "@/lib/view-as"
 import { db } from "@/lib/db"
-import { getStudentByUserId } from "@/lib/queries"
+import { getStudentByUserId, getSubjectsByTeacherId, buildSubjectMap } from "@/lib/queries"
 import Link from "next/link"
 import { Suspense } from "react"
 import { buttonVariants } from "@/components/ui/button"
 import { TEST_TYPE_LABELS } from "@/lib/test-types"
+import { PENDING_STATUSES, isPendingStatus, HOMEWORK_STATUS_CONFIG } from "@/lib/homework-status"
+import { GARDEN_CAPACITY } from "@/lib/garden/utils"
 import { TreePine, Trophy, Video, MapPin, MessageSquareText } from "lucide-react"
 import { LessonLogCard } from "./lesson-log-card"
 import { StatusBadge } from "@/components/homework/status-badge"
 import { UnreadBadge } from "@/components/ui/unread-badge"
-
-function Sk({ className }: { className?: string }) {
-  return <div className={`animate-pulse rounded bg-muted ${className ?? ""}`} />
-}
+import { Skeleton as Sk } from "@/components/ui/skeleton"
 
 export default async function DashboardPage() {
   const ctx = await getViewingContext()
@@ -81,7 +80,7 @@ async function TeacherSummaryCards({ teacherId }: { teacherId: string }) {
     db.homework.count({ where: { teacherId, status: "submitted" } }),
     db.student.count({ where: { teacherId } }),
     db.gradeRecord.count({ where: { teacherId, createdAt: { gte: monthStart } } }),
-    db.homework.count({ where: { teacherId, status: { in: ["assigned", "rejected"] }, dueDate: { lt: now } } }),
+    db.homework.count({ where: { teacherId, status: { in: PENDING_STATUSES }, dueDate: { lt: now } } }),
   ])
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -160,7 +159,7 @@ async function TeacherUpcomingSection({ teacherId }: { teacherId: string }) {
       orderBy: { date: "asc" }, take: 5,
     }),
     db.homework.findMany({
-      where: { teacherId, status: { in: ["assigned", "rejected"] }, dueDate: { gte: now, lte: weekEnd } },
+      where: { teacherId, status: { in: PENDING_STATUSES }, dueDate: { gte: now, lte: weekEnd } },
       include: { student: { include: { user: { select: { name: true } } } } },
       orderBy: { dueDate: "asc" }, take: 5,
     }),
@@ -244,12 +243,10 @@ async function HomeworkStatusSection({ teacherId }: { teacherId: string }) {
     approved: "bg-primary/15 text-primary",
     rejected: "bg-destructive/10 text-destructive",
   }
-  const statusItems = [
-    { key: "assigned" as StatusKey, label: "未提出" },
-    { key: "submitted" as StatusKey, label: "提出済" },
-    { key: "approved" as StatusKey, label: "承認済" },
-    { key: "rejected" as StatusKey, label: "差戻し" },
-  ]
+  // ラベルは共通定数から取得（「提出済」「差戻し」等の表記ゆれ防止）
+  const statusItems = (["assigned", "submitted", "approved", "rejected"] as StatusKey[]).map(
+    (key) => ({ key, label: HOMEWORK_STATUS_CONFIG[key].label })
+  )
 
   return (
     <section className="space-y-3">
@@ -488,8 +485,8 @@ async function StudentSummaryCards({ userId }: { userId: string }) {
 
   const now = new Date()
   const [incompleteCount, overdueCount, submittedCount] = await Promise.all([
-    db.homework.count({ where: { studentId: student.id, status: { in: ["assigned", "rejected"] } } }),
-    db.homework.count({ where: { studentId: student.id, status: { in: ["assigned", "rejected"] }, dueDate: { lt: now } } }),
+    db.homework.count({ where: { studentId: student.id, status: { in: PENDING_STATUSES } } }),
+    db.homework.count({ where: { studentId: student.id, status: { in: PENDING_STATUSES }, dueDate: { lt: now } } }),
     db.homework.count({ where: { studentId: student.id, status: "submitted" } }),
   ])
 
@@ -514,7 +511,7 @@ async function StudentUpcomingSection({ userId }: { userId: string }) {
       orderBy: { date: "asc" }, take: 3,
     }),
     db.homework.findMany({
-      where: { studentId: student.id, status: { in: ["assigned", "rejected"] }, dueDate: { gte: now, lte: weekEnd } },
+      where: { studentId: student.id, status: { in: PENDING_STATUSES }, dueDate: { gte: now, lte: weekEnd } },
       orderBy: { dueDate: "asc" }, take: 5,
     }),
   ])
@@ -630,7 +627,7 @@ async function StudentGardenPreview({ userId }: { userId: string }) {
   if (!student) return null
 
   const count = await db.gardenItem.count({ where: { studentId: student.id } })
-  const max = 64
+  const max = GARDEN_CAPACITY
   const pct = Math.round((count / max) * 100)
   const isFull = count >= max
   const generation = student.gardenGeneration
@@ -694,11 +691,8 @@ async function StudentRecentLogs({ userId }: { userId: string }) {
   })
   if (lessons.length === 0) return null
 
-  const subjects = await db.subject.findMany({
-    where: { teacherId: student.teacherId },
-    select: { id: true, name: true },
-  })
-  const subjectMap = new Map(subjects.map((s) => [s.id, s.name]))
+  const subjects = await getSubjectsByTeacherId(student.teacherId)
+  const subjectMap = buildSubjectMap(subjects)
 
   // 未読を先頭に（同グループ内は新しい順を維持）
   const sorted = [...lessons].sort(
@@ -801,7 +795,7 @@ async function ParentStudentList({ parentId }: { parentId: string }) {
       {links.map(({ student }) => {
         const totalHw = student.homeworks.length
         const approvedHw = student.homeworks.filter((h) => h.status === "approved").length
-        const pendingHw = student.homeworks.filter((h) => h.status === "assigned" || h.status === "rejected").length
+        const pendingHw = student.homeworks.filter((h) => isPendingStatus(h.status)).length
         const pct = totalHw > 0 ? Math.round((approvedHw / totalHw) * 100) : null
         const nextLesson = student.lessons[0]
         const latestGrade = student.grades[0]

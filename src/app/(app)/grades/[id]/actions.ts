@@ -1,7 +1,7 @@
 "use server"
 
-import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
+import { requireTeacher } from "@/lib/action-guards"
 import { redirect } from "next/navigation"
 import { z } from "zod"
 
@@ -30,8 +30,8 @@ export async function updateGradeRecord(
   _prevState: { error: string },
   formData: FormData
 ): Promise<{ error: string }> {
-  const session = await auth()
-  if (!session || session.user.role !== "teacher") return { error: "権限がありません" }
+  const teacher = await requireTeacher()
+  if (!teacher) return { error: "権限がありません" }
 
   const result = schema.safeParse({
     id: formData.get("id"),
@@ -44,7 +44,7 @@ export async function updateGradeRecord(
   const { id, testName, date, testType } = result.data
   const subjectIds = formData.getAll("subjectIds") as string[]
 
-  const existing = await db.gradeRecord.findFirst({ where: { id, teacherId: session.user.id } })
+  const existing = await db.gradeRecord.findFirst({ where: { id, teacherId: teacher.teacherId } })
   if (!existing) return { error: "成績記録が見つかりません" }
 
   await db.gradeRecord.update({
@@ -69,12 +69,12 @@ export async function updateGradeRecord(
 }
 
 export async function deleteGradeRecord(formData: FormData) {
-  const session = await auth()
-  if (!session || session.user.role !== "teacher") redirect("/dashboard")
+  const teacher = await requireTeacher()
+  if (!teacher) redirect("/dashboard")
 
   const gradeId = formData.get("gradeId") as string
   if (!gradeId) return
 
-  await db.gradeRecord.deleteMany({ where: { id: gradeId, teacherId: session.user.id } })
+  await db.gradeRecord.deleteMany({ where: { id: gradeId, teacherId: teacher.teacherId } })
   redirect("/grades?toast=deleted")
 }

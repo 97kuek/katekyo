@@ -44,7 +44,7 @@ export default async function ParentInvitePage({ params }: { params: Promise<{ t
           <form
             action={async () => {
               "use server"
-              await linkExistingParent(token, session.user.id)
+              await linkExistingParent(token)
             }}
           >
             <button type="submit" className={buttonVariants()}>

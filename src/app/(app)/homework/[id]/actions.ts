@@ -1,11 +1,13 @@
 "use server"
 
 import { db } from "@/lib/db"
+import { requireTeacher, requireStudent } from "@/lib/action-guards"
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import { uploadHomeworkPhoto } from "@/lib/supabase-storage"
+import { isPendingStatus } from "@/lib/homework-status"
 import { plantForHomeworkApproval } from "@/lib/garden/actions"
 import { sendLineMessage } from "@/lib/line"
 
@@ -42,7 +44,7 @@ export async function submitHomework(
     where: { id, studentId: student.id },
   })
   if (!homework) return { error: "宿題が見つかりません" }
-  if (!["assigned", "rejected"].includes(homework.status)) {
+  if (!isPendingStatus(homework.status)) {
     return { error: "この宿題は提出できません" }
   }
 
@@ -106,8 +108,8 @@ export async function reviewHomework(
   _prevState: { error: string },
   formData: FormData
 ): Promise<{ error: string }> {
-  const session = await auth()
-  if (!session || session.user.role !== "teacher") {
+  const teacher = await requireTeacher()
+  if (!teacher) {
     return { error: "権限がありません" }
   }
 
@@ -121,7 +123,7 @@ export async function reviewHomework(
   const { id, action, feedback } = result.data
 
   const homework = await db.homework.findFirst({
-    where: { id, teacherId: session.user.id },
+    where: { id, teacherId: teacher.teacherId },
   })
   if (!homework) return { error: "宿題が見つかりません" }
   if (homework.status !== "submitted") {
@@ -142,7 +144,7 @@ export async function reviewHomework(
     data: {
       homeworkId: id,
       eventType: action,
-      actorName: session.user.name ?? "",
+      actorName: teacher.session.user.name ?? "",
       note: action === "rejected" ? (feedback ?? null) : null,
     },
   })
@@ -179,14 +181,11 @@ export async function reviewHomework(
 }
 
 export async function markFeedbackSeen(homeworkId: string) {
-  const session = await auth()
-  if (!session || session.user.role !== "student") return
-
-  const student = await db.student.findUnique({ where: { userId: session.user.id } })
-  if (!student) return
+  const guard = await requireStudent()
+  if (!guard) return
 
   await db.homework.updateMany({
-    where: { id: homeworkId, studentId: student.id, feedbackSeenAt: null },
+    where: { id: homeworkId, studentId: guard.student.id, feedbackSeenAt: null },
     data: { feedbackSeenAt: new Date() },
   })
 
@@ -194,17 +193,14 @@ export async function markFeedbackSeen(homeworkId: string) {
 }
 
 export async function cancelSubmission(formData: FormData) {
-  const session = await auth()
-  if (!session || session.user.role !== "student") redirect("/dashboard")
+  const guard = await requireStudent()
+  if (!guard) redirect("/dashboard")
 
   const homeworkId = formData.get("homeworkId") as string
   if (!homeworkId) return
 
-  const student = await db.student.findUnique({ where: { userId: session.user.id } })
-  if (!student) redirect("/dashboard")
-
   const homework = await db.homework.findFirst({
-    where: { id: homeworkId, studentId: student.id, status: "submitted" },
+    where: { id: homeworkId, studentId: guard.student.id, status: "submitted" },
   })
   if (!homework) return
 
@@ -228,8 +224,8 @@ export async function updateHomework(
   _prevState: { error: string },
   formData: FormData
 ): Promise<{ error: string }> {
-  const session = await auth()
-  if (!session || session.user.role !== "teacher") return { error: "権限がありません" }
+  const teacher = await requireTeacher()
+  if (!teacher) return { error: "権限がありません" }
 
   const result = editSchema.safeParse({
     id: formData.get("id"),
@@ -243,7 +239,7 @@ export async function updateHomework(
 
   const subjectIds = formData.getAll("subjectIds") as string[]
 
-  const existing = await db.homework.findFirst({ where: { id, teacherId: session.user.id } })
+  const existing = await db.homework.findFirst({ where: { id, teacherId: teacher.teacherId } })
   if (!existing) return { error: "宿題が見つかりません" }
 
   await db.homework.update({
@@ -263,8 +259,8 @@ export async function extendDueDate(
   _prevState: { error: string; success: boolean },
   formData: FormData
 ): Promise<{ error: string; success: boolean }> {
-  const session = await auth()
-  if (!session || session.user.role !== "teacher") return { error: "権限がありません", success: false }
+  const teacher = await requireTeacher()
+  if (!teacher) return { error: "権限がありません", success: false }
 
   const result = extendSchema.safeParse({
     id: formData.get("id"),
@@ -274,7 +270,7 @@ export async function extendDueDate(
 
   const { id, dueDate } = result.data
 
-  const existing = await db.homework.findFirst({ where: { id, teacherId: session.user.id } })
+  const existing = await db.homework.findFirst({ where: { id, teacherId: teacher.teacherId } })
   if (!existing) return { error: "宿題が見つかりません", success: false }
 
   await db.homework.update({
@@ -287,13 +283,13 @@ export async function extendDueDate(
 }
 
 export async function deleteHomework(formData: FormData) {
-  const session = await auth()
-  if (!session || session.user.role !== "teacher") redirect("/dashboard")
+  const teacher = await requireTeacher()
+  if (!teacher) redirect("/dashboard")
 
   const homeworkId = formData.get("homeworkId") as string
   if (!homeworkId) return
 
-  await db.homework.deleteMany({ where: { id: homeworkId, teacherId: session.user.id } })
+  await db.homework.deleteMany({ where: { id: homeworkId, teacherId: teacher.teacherId } })
   revalidatePath("/homework")
   redirect("/homework")
 }

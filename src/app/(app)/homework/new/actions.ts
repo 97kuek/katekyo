@@ -1,7 +1,7 @@
 "use server"
 
 import { db } from "@/lib/db"
-import { auth } from "@/lib/auth"
+import { requireTeacher } from "@/lib/action-guards"
 import { redirect } from "next/navigation"
 import { z } from "zod"
 import { sendLineMessage } from "@/lib/line"
@@ -19,8 +19,8 @@ export async function createHomework(
   _prevState: { error: string },
   formData: FormData
 ): Promise<{ error: string }> {
-  const session = await auth()
-  if (!session || session.user.role !== "teacher") {
+  const teacher = await requireTeacher()
+  if (!teacher) {
     return { error: "権限がありません" }
   }
 
@@ -41,7 +41,7 @@ export async function createHomework(
   const subjectIds = formData.getAll("subjectIds") as string[]
 
   const student = await db.student.findFirst({
-    where: { id: studentId, teacherId: session.user.id },
+    where: { id: studentId, teacherId: teacher.teacherId },
     include: { user: { select: { lineUserId: true } } },
   })
   if (!student) {
@@ -50,7 +50,7 @@ export async function createHomework(
 
   if (materialId) {
     const material = await db.studentMaterial.findFirst({
-      where: { id: materialId, teacherId: session.user.id },
+      where: { id: materialId, teacherId: teacher.teacherId },
     })
     if (!material) {
       return { error: "指定された教材が見つかりません" }
@@ -59,7 +59,7 @@ export async function createHomework(
 
   const homework = await db.homework.create({
     data: {
-      teacherId: session.user.id,
+      teacherId: teacher.teacherId,
       studentId,
       title,
       description: description || null,
