@@ -43,6 +43,13 @@ async function handle(req: NextRequest) {
     const meetLink = lesson.teacher.meetLink
     if (!meetLink) continue
 
+    const claimedAt = new Date()
+    const claimed = await db.lesson.updateMany({
+      where: { id: lesson.id, reminderSentAt: null },
+      data: { reminderSentAt: claimedAt },
+    })
+    if (claimed.count !== 1) continue
+
     const studentName = lesson.student.user.name
     const sends: Promise<void>[] = []
 
@@ -64,7 +71,6 @@ async function handle(req: NextRequest) {
       await Promise.all(sends)
       sent++
     }
-    await db.lesson.update({ where: { id: lesson.id }, data: { reminderSentAt: new Date() } })
   }
 
   return NextResponse.json({ ok: true, scanned: lessons.length, sent })

@@ -46,3 +46,4 @@ playwright-report/
 
 # Local rendering tools
 plantuml.jar
+docs/diagrams/*.png

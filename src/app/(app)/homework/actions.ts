@@ -26,15 +26,31 @@ export async function bulkApproveHomework(ids: string[]): Promise<{ error: strin
   if (!homeworks.length) return { error: "", approved: 0 }
 
   const now = new Date()
-  await db.homework.updateMany({
-    where: { id: { in: homeworks.map((h) => h.id) } },
-    // コメント無しの承認なので、過去の差し戻しコメントが残らないようクリアする
-    data: { status: "approved", reviewedAt: now, teacherFeedback: null, feedbackSeenAt: null },
+  const studentIds = Array.from(new Set(homeworks.map((h) => h.studentId)))
+  const priorApprovedCounts = await db.homework.groupBy({
+    by: ["studentId"],
+    where: { teacherId: teacher.teacherId, studentId: { in: studentIds }, status: "approved" },
+    _count: { _all: true },
   })
+  const approvedCountByStudent = new Map(
+    priorApprovedCounts.map((row) => [row.studentId, row._count._all])
+  )
+
+  const approvedHomeworks: typeof homeworks = []
+  for (const homework of homeworks) {
+    const updated = await db.homework.updateMany({
+      where: { id: homework.id, teacherId: teacher.teacherId, status: "submitted" },
+      // コメント無しの承認なので、過去の差し戻しコメントが残らないようクリアする
+      data: { status: "approved", reviewedAt: now, teacherFeedback: null, feedbackSeenAt: null },
+    })
+    if (updated.count === 1) approvedHomeworks.push(homework)
+  }
+
+  if (!approvedHomeworks.length) return { error: "", approved: 0 }
 
   // 詳細ページの「やり取り履歴」に承認イベントを残す
   await db.homeworkEvent.createMany({
-    data: homeworks.map((h) => ({
+    data: approvedHomeworks.map((h) => ({
       homeworkId: h.id,
       eventType: "approved" as const,
       actorName: teacher.session.user.name ?? "",
@@ -44,26 +60,35 @@ export async function bulkApproveHomework(ids: string[]): Promise<{ error: strin
 
   // 差し戻し履歴を一括取得してN+1を回避
   const rejectedEvents = await db.homeworkEvent.findMany({
-    where: { homeworkId: { in: homeworks.map((h) => h.id) }, eventType: "rejected" },
+    where: { homeworkId: { in: approvedHomeworks.map((h) => h.id) }, eventType: "rejected" },
     select: { homeworkId: true },
   })
   const rejectedHomeworkIds = new Set(rejectedEvents.map((e) => e.homeworkId))
 
   const baseUrl = process.env.NEXTAUTH_URL ?? ""
 
-  await Promise.all(
-    homeworks.map(async (homework) => {
-      const lineUserId = homework.student.user.lineUserId
-      if (lineUserId) {
-        await sendLineMessage(
-          lineUserId,
-          `✅ 宿題が承認されました\n\n「${homework.title}」が承認されました！\n森に植物が1つ育ちました 🌱\n${baseUrl}/homework/${homework.id}`
-        )
-      }
-      await plantForHomeworkApproval(homework, rejectedHomeworkIds.has(homework.id))
-    })
-  )
+  for (const homework of approvedHomeworks.sort((a, b) => {
+    const aTime = a.submittedAt?.getTime() ?? a.createdAt.getTime()
+    const bTime = b.submittedAt?.getTime() ?? b.createdAt.getTime()
+    return a.studentId.localeCompare(b.studentId) || aTime - bTime || a.id.localeCompare(b.id)
+  })) {
+    const nextApprovedCount = (approvedCountByStudent.get(homework.studentId) ?? 0) + 1
+    approvedCountByStudent.set(homework.studentId, nextApprovedCount)
+
+    await Promise.all([
+      (async () => {
+        const lineUserId = homework.student.user.lineUserId
+        if (lineUserId) {
+          await sendLineMessage(
+            lineUserId,
+            `✅ 宿題が承認されました\n\n「${homework.title}」が承認されました！\n森に植物が1つ育ちました 🌱\n${baseUrl}/homework/${homework.id}`
+          )
+        }
+      })(),
+      plantForHomeworkApproval(homework, rejectedHomeworkIds.has(homework.id), nextApprovedCount),
+    ])
+  }
 
   revalidatePath("/homework")
-  return { error: "", approved: homeworks.length }
+  return { error: "", approved: approvedHomeworks.length }
 }

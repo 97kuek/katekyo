@@ -79,7 +79,7 @@ export default async function BillingPage({
   }, 0)
 
   const totalMinutes = completedLessons.reduce((sum, l) => sum + (l.durationMin ?? 0), 0)
-  const hasFeeData = completedLessons.some((l) => l.hourlyRate != null)
+  const hasFeeData = completedLessons.some((l) => calcFee(l) != null)
 
   // 月の最終日（デフォルト期限表示用）
   const defaultDueDateStr = new Date(year, month + 1, 0).toLocaleDateString("ja-JP", { month: "numeric", day: "numeric" })
@@ -158,7 +158,7 @@ export default async function BillingPage({
               return fee != null ? sum + fee : sum
             }, 0)
             const studentMin = sLessons.reduce((sum, l) => sum + (l.durationMin ?? 0), 0)
-            const hasStudentFee = sLessons.some((l) => l.hourlyRate != null)
+            const hasStudentFee = sLessons.some((l) => calcFee(l) != null)
             const paymentRecord = paidMap.get(sid)
             const isPaid = paymentRecord?.paidAt != null
             const dueDateInfo = dueDateLabel(paymentRecord?.dueDate ?? null, isPaid)
@@ -344,7 +344,7 @@ async function ParentBillingPage({
               const fee = calcFee(l)
               return fee != null ? sum + fee : sum
             }, 0)
-            const hasFee = sLessons.some((l) => l.hourlyRate != null)
+            const hasFee = sLessons.some((l) => calcFee(l) != null)
             const dueDateInfo = dueDateLabel(paymentRecord?.dueDate ?? null, isPaid)
             return (
               <div key={sid} className="rounded-lg border bg-card overflow-hidden">

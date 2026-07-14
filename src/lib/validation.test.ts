@@ -1,58 +1,28 @@
-/**
- * Server Action で使われる Zod バリデーション規則のテスト。
- * スキーマは各 actions.ts にインラインで定義されているため、
- * ここでは同等のスキーマを宣言してエッジケースを検証する。
- */
-import { describe, it, expect } from "vitest"
-import { z } from "zod"
+import { describe, expect, it } from "vitest"
 import { GRADE_OPTIONS } from "./grades"
+import {
+  createHomeworkSchema,
+  createLessonSchema,
+  resetPasswordSchema,
+  submitHomeworkSchema,
+  testTypeSchema,
+} from "./validation"
 
-// --- createHomework スキーマ相当 ---
-const createHomeworkSchema = z.object({
-  studentId: z.string().uuid(),
-  title: z.string().min(1, "タイトルを入力してください"),
-  dueDate: z.string().min(1, "期限を設定してください"),
-})
-
-// --- submitHomework スキーマ相当 ---
-const submitHomeworkSchema = z.object({
-  id: z.string().min(1),
-  note: z.string().optional(),
-  difficultyRating: z.coerce.number().int().min(1).max(3).optional(),
-})
-
-// --- createLesson スキーマ相当 ---
-const createLessonSchema = z.object({
-  studentId: z.string().min(1, "生徒を選択してください"),
-  date: z.string().min(1, "日付を入力してください"),
-  time: z.string().min(1, "時刻を入力してください"),
-  type: z.enum(["online", "offline"]),
-  repeatWeeks: z.string().optional(),
-})
-
-// --- resetStudentPassword スキーマ相当 ---
-const resetPasswordSchema = z.object({
-  studentId: z.string().min(1),
-  password: z.string().min(8, "パスワードは8文字以上にしてください"),
-})
-
-// --- TestType スキーマ相当 ---
 const TEST_TYPES = ["mock", "exam", "quiz", "other"] as const
-const testTypeSchema = z.enum(TEST_TYPES).default("other")
 
 describe("createHomeworkSchema", () => {
   it("正常なデータはパースを通過する", () => {
     const result = createHomeworkSchema.safeParse({
-      studentId: "550e8400-e29b-41d4-a716-446655440000",
+      studentId: "student-1",
       title: "数学ドリル p.10-15",
       dueDate: "2024-01-20",
     })
     expect(result.success).toBe(true)
   })
 
-  it("studentId が UUID でない場合はエラー", () => {
+  it("studentId が空文字の場合はエラー", () => {
     const result = createHomeworkSchema.safeParse({
-      studentId: "not-a-uuid",
+      studentId: "",
       title: "数学ドリル",
       dueDate: "2024-01-20",
     })
@@ -61,7 +31,7 @@ describe("createHomeworkSchema", () => {
 
   it("title が空文字の場合はエラー", () => {
     const result = createHomeworkSchema.safeParse({
-      studentId: "550e8400-e29b-41d4-a716-446655440000",
+      studentId: "student-1",
       title: "",
       dueDate: "2024-01-20",
     })
@@ -73,7 +43,7 @@ describe("createHomeworkSchema", () => {
 
   it("dueDate が空文字の場合はエラー", () => {
     const result = createHomeworkSchema.safeParse({
-      studentId: "550e8400-e29b-41d4-a716-446655440000",
+      studentId: "student-1",
       title: "数学ドリル",
       dueDate: "",
     })
@@ -87,7 +57,7 @@ describe("submitHomeworkSchema", () => {
     expect(result.success).toBe(true)
   })
 
-  it("difficultyRating は 1–3 のみ許可", () => {
+  it("difficultyRating は 1-3 のみ許可", () => {
     expect(submitHomeworkSchema.safeParse({ id: "abc", difficultyRating: "1" }).success).toBe(true)
     expect(submitHomeworkSchema.safeParse({ id: "abc", difficultyRating: "3" }).success).toBe(true)
     expect(submitHomeworkSchema.safeParse({ id: "abc", difficultyRating: "0" }).success).toBe(false)
@@ -152,7 +122,7 @@ describe("testTypeSchema", () => {
 })
 
 describe("GRADE_OPTIONS", () => {
-  it("小学1年〜高校3年・浪人・その他 の14種類を含む", () => {
+  it("小学1年-高校3年・浪人・その他 の14種類を含む", () => {
     expect(GRADE_OPTIONS).toHaveLength(14)
     expect(GRADE_OPTIONS).toContain("小学1年")
     expect(GRADE_OPTIONS).toContain("高校3年")

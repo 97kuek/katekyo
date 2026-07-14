@@ -3,17 +3,8 @@
 import { db } from "@/lib/db"
 import { requireTeacher } from "@/lib/action-guards"
 import { redirect } from "next/navigation"
-import { z } from "zod"
 import { sendLineMessage } from "@/lib/line"
-
-const schema = z.object({
-  studentId: z.string().min(1, "生徒を選択してください"),
-  title: z.string().min(1, "タイトルを入力してください"),
-  description: z.string().optional(),
-  dueDate: z.string().min(1, "期限を設定してください"),
-  materialId: z.string().optional(),
-  requiresPhoto: z.string().optional(),
-})
+import { createHomeworkSchema } from "@/lib/validation"
 
 export async function createHomework(
   _prevState: { error: string },
@@ -24,7 +15,7 @@ export async function createHomework(
     return { error: "権限がありません" }
   }
 
-  const result = schema.safeParse({
+  const result = createHomeworkSchema.safeParse({
     studentId: formData.get("studentId"),
     title: formData.get("title"),
     description: formData.get("description") || undefined,
@@ -50,7 +41,7 @@ export async function createHomework(
 
   if (materialId) {
     const material = await db.studentMaterial.findFirst({
-      where: { id: materialId, teacherId: teacher.teacherId },
+      where: { id: materialId, teacherId: teacher.teacherId, studentId },
     })
     if (!material) {
       return { error: "指定された教材が見つかりません" }

@@ -7,18 +7,7 @@ import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import { scheduleReminderMessage, cancelReminderMessage } from "@/lib/qstash"
 import { sendLineMessage } from "@/lib/line"
-
-const createSchema = z.object({
-  studentId: z.string().min(1, "生徒を選択してください"),
-  date: z.string().min(1, "日付を入力してください"),
-  time: z.string().min(1, "時刻を入力してください"),
-  type: z.enum(["online", "offline"]),
-  durationMin: z.string().optional(),
-  notes: z.string().optional(),
-  hourlyRate: z.coerce.number().int().min(0).optional(),
-  travelExpense: z.coerce.number().int().min(0).optional(),
-  repeatWeeks: z.string().optional(),
-})
+import { createLessonSchema } from "@/lib/validation"
 
 export async function createLesson(
   _prevState: { error: string; timestamp?: number },
@@ -27,7 +16,7 @@ export async function createLesson(
   const teacherGuard = await requireTeacher()
   if (!teacherGuard) return { error: "権限がありません" }
 
-  const result = createSchema.safeParse({
+  const result = createLessonSchema.safeParse({
     studentId: formData.get("studentId"),
     date: formData.get("date"),
     time: formData.get("time"),
@@ -339,4 +328,3 @@ export async function createHomeworkFromCalendar(
   revalidatePath("/homework")
   return { error: "", timestamp: Date.now() }
 }
-

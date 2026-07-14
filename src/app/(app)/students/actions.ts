@@ -7,11 +7,7 @@ import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import bcrypt from "bcryptjs"
 import { deleteHomeworkPhoto } from "@/lib/supabase-storage"
-
-const resetSchema = z.object({
-  studentId: z.string().min(1),
-  password: z.string().min(8, "パスワードは8文字以上にしてください"),
-})
+import { resetPasswordSchema } from "@/lib/validation"
 
 export async function resetStudentPassword(
   _prevState: { error: string; success: boolean },
@@ -20,7 +16,7 @@ export async function resetStudentPassword(
   const teacher = await requireTeacher()
   if (!teacher) return { error: "権限がありません", success: false }
 
-  const result = resetSchema.safeParse({
+  const result = resetPasswordSchema.safeParse({
     studentId: formData.get("studentId"),
     password: formData.get("password"),
   })

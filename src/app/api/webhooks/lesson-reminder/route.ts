@@ -19,8 +19,12 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
     return new Response("skipped: no lesson or no meetLink", { status: 200 })
   }
 
-  // cron セーフティネットと二重送信しないよう冪等化
-  if (lesson.reminderSentAt) {
+  // cron セーフティネットと二重送信しないよう、送信前に処理権を確保する
+  const claimed = await db.lesson.updateMany({
+    where: { id: lesson.id, reminderSentAt: null },
+    data: { reminderSentAt: new Date() },
+  })
+  if (claimed.count !== 1) {
     return new Response("skipped: already reminded", { status: 200 })
   }
 
@@ -50,7 +54,6 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
   }
 
   await Promise.all(sends)
-  await db.lesson.update({ where: { id: lesson.id }, data: { reminderSentAt: new Date() } })
 
   return new Response("ok", { status: 200 })
 })

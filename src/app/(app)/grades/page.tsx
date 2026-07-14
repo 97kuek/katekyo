@@ -43,6 +43,37 @@ function VsAvg({ score, avgScore }: { score: number | null; avgScore: number | n
   )
 }
 
+type GradeComparable = {
+  studentId?: string
+  score: number | null
+  maxScore: number | null
+  deviation: number | null
+}
+
+function gradeComparableValue(grade: GradeComparable): number | null {
+  if (grade.score != null && grade.maxScore != null) return (grade.score / grade.maxScore) * 100
+  return grade.score ?? grade.deviation
+}
+
+function calcGradeDiff(current: GradeComparable, previous: GradeComparable): number | null {
+  const cur = gradeComparableValue(current)
+  const pre = gradeComparableValue(previous)
+  return cur != null && pre != null ? cur - pre : null
+}
+
+function previousDiffs<T extends GradeComparable>(grades: T[], keyForGrade?: (grade: T) => string): Array<number | null> {
+  const diffs: Array<number | null> = Array.from({ length: grades.length }, () => null)
+  const olderByKey = new Map<string, T>()
+  for (let i = grades.length - 1; i >= 0; i--) {
+    const grade = grades[i]
+    const key = keyForGrade?.(grade) ?? "__all__"
+    const previous = olderByKey.get(key)
+    diffs[i] = previous ? calcGradeDiff(grade, previous) : null
+    olderByKey.set(key, grade)
+  }
+  return diffs
+}
+
 export default async function GradesPage({
   searchParams,
 }: {
@@ -99,21 +130,7 @@ async function TeacherGradesPage({
 
   const subjectMap = buildSubjectMap(subjects)
 
-  // 前回比計算（生徒別・日付降順で並んでいるので index+1 が前回）
-  const prevIndexByStudent = new Map<string, number>()
-  const prevDiff = grades.map((g) => {
-    const prevIdx = prevIndexByStudent.get(g.studentId)
-    prevIndexByStudent.set(g.studentId, grades.indexOf(g))
-    if (prevIdx == null) return null
-    const prev = grades[prevIdx]
-    const cur =
-      g.score != null && g.maxScore != null ? (g.score / g.maxScore) * 100 : g.score ?? g.deviation
-    const pre =
-      prev.score != null && prev.maxScore != null
-        ? (prev.score / prev.maxScore) * 100
-        : prev.score ?? prev.deviation
-    return cur != null && pre != null ? cur - pre : null
-  })
+  const prevDiff = previousDiffs(grades, (g) => g.studentId)
 
   const chartGrades = studentIdFilter ? grades.map((g) => ({
     id: g.id,
@@ -268,18 +285,7 @@ async function StudentGradesPage({ userId }: { userId: string }) {
     subjectIds: g.subjectIds,
   }))
 
-  // 前回比
-  const prevDiff = grades.map((g, i) => {
-    const prev = grades[i + 1]
-    if (!prev) return null
-    const cur =
-      g.score != null && g.maxScore != null ? (g.score / g.maxScore) * 100 : g.score ?? g.deviation
-    const pre =
-      prev.score != null && prev.maxScore != null
-        ? (prev.score / prev.maxScore) * 100
-        : prev.score ?? prev.deviation
-    return cur != null && pre != null ? cur - pre : null
-  })
+  const prevDiff = previousDiffs(grades)
 
   return (
     <div className="space-y-3">
@@ -429,13 +435,7 @@ async function ParentGradesPage({
     subjectIds: g.subjectIds,
   }))
 
-  const prevDiff = grades.map((g, i) => {
-    const prev = grades[i + 1]
-    if (!prev) return null
-    const cur = g.score != null && g.maxScore != null ? (g.score / g.maxScore) * 100 : g.deviation
-    const pre = prev.score != null && prev.maxScore != null ? (prev.score / prev.maxScore) * 100 : prev.deviation
-    return cur != null && pre != null ? cur - pre : null
-  })
+  const prevDiff = previousDiffs(grades)
 
   return (
     <div className="space-y-3">

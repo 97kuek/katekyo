@@ -6,18 +6,13 @@ import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
-import { uploadHomeworkPhoto } from "@/lib/supabase-storage"
+import { deleteHomeworkPhoto, uploadHomeworkPhoto } from "@/lib/supabase-storage"
 import { isPendingStatus } from "@/lib/homework-status"
 import { plantForHomeworkApproval } from "@/lib/garden/actions"
 import { sendLineMessage } from "@/lib/line"
+import { submitHomeworkSchema } from "@/lib/validation"
 
 const MAX_PHOTO_BYTES = 5 * 1024 * 1024
-
-const submitSchema = z.object({
-  id: z.string().min(1),
-  note: z.string().optional(),
-  difficultyRating: z.coerce.number().int().min(1).max(3).optional(),
-})
 
 export async function submitHomework(
   _prevState: { error: string },
@@ -28,7 +23,7 @@ export async function submitHomework(
     return { error: "権限がありません" }
   }
 
-  const result = submitSchema.safeParse({
+  const result = submitHomeworkSchema.safeParse({
     id: formData.get("id"),
     note: formData.get("note") || undefined,
     difficultyRating: formData.get("difficultyRating") || undefined,
@@ -49,9 +44,14 @@ export async function submitHomework(
   }
 
   const photoFile = formData.get("photo") as File | null
+  const hasNewPhoto = photoFile instanceof File && photoFile.size > 0
   let photoUrl: string | null = null
 
-  if (photoFile && photoFile.size > 0) {
+  if (homework.requiresPhoto && !hasNewPhoto) {
+    return { error: "写真の提出が必要です" }
+  }
+
+  if (hasNewPhoto) {
     if (photoFile.size > MAX_PHOTO_BYTES) return { error: "写真のサイズは5MB以内にしてください" }
     if (!photoFile.type.startsWith("image/")) return { error: "画像ファイルを選択してください" }
     try {
@@ -63,8 +63,8 @@ export async function submitHomework(
     if (!photoUrl) return { error: "写真のアップロードに失敗しました。もう一度お試しください。" }
   }
 
-  await db.homework.update({
-    where: { id },
+  const submitted = await db.homework.updateMany({
+    where: { id, studentId: student.id, status: homework.status },
     data: {
       status: "submitted",
       studentNote: note ?? null,
@@ -73,6 +73,7 @@ export async function submitHomework(
       submittedAt: new Date(),
     },
   })
+  if (submitted.count !== 1) return { error: "この宿題は提出できません" }
 
   await db.homeworkEvent.create({
     data: {
@@ -130,8 +131,8 @@ export async function reviewHomework(
     return { error: "提出済みの宿題のみ確認できます" }
   }
 
-  await db.homework.update({
-    where: { id },
+  const updated = await db.homework.updateMany({
+    where: { id, teacherId: teacher.teacherId, status: "submitted" },
     data: {
       status: action,
       teacherFeedback: feedback ?? null,
@@ -139,6 +140,9 @@ export async function reviewHomework(
       feedbackSeenAt: null,
     },
   })
+  if (updated.count !== 1) {
+    return { error: "この宿題はすでに確認済みです" }
+  }
 
   await db.homeworkEvent.create({
     data: {
@@ -204,9 +208,21 @@ export async function cancelSubmission(formData: FormData) {
   })
   if (!homework) return
 
-  await db.homework.update({
-    where: { id: homeworkId },
-    data: { status: "assigned", submittedAt: null, studentNote: null },
+  if (homework.photoUrl) {
+    await deleteHomeworkPhoto(homework.photoUrl).catch((err) => {
+      console.error("[cancelSubmission] photo delete failed:", err)
+    })
+  }
+
+  await db.homework.updateMany({
+    where: { id: homeworkId, studentId: guard.student.id, status: "submitted" },
+    data: {
+      status: "assigned",
+      submittedAt: null,
+      studentNote: null,
+      difficultyRating: null,
+      photoUrl: null,
+    },
   })
 
   revalidatePath("/homework")
@@ -293,4 +309,3 @@ export async function deleteHomework(formData: FormData) {
   revalidatePath("/homework")
   redirect("/homework")
 }
-

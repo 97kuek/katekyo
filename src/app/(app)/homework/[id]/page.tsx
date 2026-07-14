@@ -68,7 +68,14 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
       select: { id: true, name: true },
     }),
     homework.materialId
-      ? db.studentMaterial.findUnique({ where: { id: homework.materialId }, select: { name: true } })
+      ? db.studentMaterial.findFirst({
+          where: {
+            id: homework.materialId,
+            teacherId: homework.teacherId,
+            studentId: homework.studentId,
+          },
+          select: { name: true },
+        })
       : null,
   ])
 

@@ -6,14 +6,15 @@ import type { GardenItemType } from "./utils"
 
 export async function plantForHomeworkApproval(
   homework: { id: string; studentId: string; dueDate: Date; submittedAt: Date | null },
-  wasRejected: boolean
+  wasRejected: boolean,
+  approvedCountOverride?: number
 ): Promise<void> {
   const wasLate = homework.submittedAt != null && homework.submittedAt > homework.dueDate
   if (wasRejected || wasLate) return
   try {
-    const approvedCount = await db.homework.count({
+    const approvedCount = approvedCountOverride ?? (await db.homework.count({
       where: { studentId: homework.studentId, status: "approved" },
-    })
+    }))
     const forcedType: GardenItemType | undefined = approvedCount % 5 === 0 ? "big_tree" : undefined
     await plantGardenItem(homework.studentId, forcedType)
   } catch (err) {

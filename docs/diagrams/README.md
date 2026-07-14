@@ -11,10 +11,10 @@
 | `sequence-homework-submit.puml` | 生徒が宿題を提出するシーケンス図 |
 | `communication-homework-review.puml` | 先生が宿題をレビューするコミュニケーション図 |
 
-各 `.puml` から生成した `.svg` と `.png` も同じディレクトリに配置している。
+各 `.puml` から生成した `.svg` も同じディレクトリに配置している。PNG はローカル確認用の生成物として `.gitignore` 対象にする。
 
 レンダリング例:
 
 ```bash
-plantuml docs/diagrams/*.puml
+plantuml -tsvg docs/diagrams/*.puml
 ```
