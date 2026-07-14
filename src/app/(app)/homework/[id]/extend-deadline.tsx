@@ -3,6 +3,7 @@
 import { useState, useActionState } from "react"
 import { extendDueDate } from "./actions"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 
 export function ExtendDeadlineButton({ homeworkId, currentDueDate }: { homeworkId: string; currentDueDate: string }) {
   const [open, setOpen] = useState(false)
@@ -26,19 +27,19 @@ export function ExtendDeadlineButton({ homeworkId, currentDueDate }: { homeworkI
   return (
     <div className="rounded-lg border bg-card p-4 space-y-3">
       <p className="text-sm font-medium">期限を変更</p>
-      <form action={action} className="flex items-center gap-2 flex-wrap">
+      <form action={action} className="grid gap-2 sm:flex sm:items-center sm:flex-wrap">
         <input type="hidden" name="id" value={homeworkId} />
-        <input
+        <Input
           name="dueDate"
           type="date"
           required
           defaultValue={currentDueDate}
-          className="h-9 rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="sm:w-auto"
         />
-        <Button type="submit" size="sm" disabled={isPending}>
+        <Button type="submit" size="sm" disabled={isPending} className="h-10 sm:h-8">
           {isPending ? "更新中..." : "更新"}
         </Button>
-        <Button type="button" variant="outline" size="sm" onClick={() => setOpen(false)}>
+        <Button type="button" variant="outline" size="sm" className="h-10 sm:h-8" onClick={() => setOpen(false)}>
           キャンセル
         </Button>
       </form>

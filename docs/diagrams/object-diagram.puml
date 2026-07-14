@@ -1,0 +1,122 @@
+@startuml
+title katekyo オブジェクト図: 1先生テナントの具体例
+left to right direction
+skinparam objectAttributeIconSize 0
+
+object "teacherUser: User" as teacher {
+  id = "teacher-001"
+  role = teacher
+  name = "山田先生"
+  email = "teacher@example.com"
+  meetLink = "https://meet.google.com/abc-defg-hij"
+}
+
+object "studentUser: User" as studentUser {
+  id = "user-student-001"
+  role = student
+  name = "佐藤太郎"
+  email = "student@example.com"
+  lineUserId = "Uxxxx"
+}
+
+object "student: Student" as student {
+  id = "student-001"
+  userId = "user-student-001"
+  teacherId = "teacher-001"
+  grade = "中学1年"
+  gardenGeneration = 1
+}
+
+object "parentUser: User" as parentUser {
+  id = "parent-001"
+  role = parent
+  name = "佐藤保護者"
+  email = "parent@example.com"
+}
+
+object "parentLink: ParentStudent" as parentLink {
+  parentId = "parent-001"
+  studentId = "student-001"
+  teacherId = "teacher-001"
+}
+
+object "math: Subject" as math {
+  id = "subject-math"
+  teacherId = "teacher-001"
+  name = "数学"
+  color = "blue"
+}
+
+object "material: StudentMaterial" as material {
+  id = "material-001"
+  teacherId = "teacher-001"
+  studentId = "student-001"
+  name = "チャート式数学"
+  subjectIds = ["subject-math"]
+}
+
+object "homework: Homework" as homework {
+  id = "homework-001"
+  teacherId = "teacher-001"
+  studentId = "student-001"
+  title = "数学 p.30-35"
+  status = submitted
+  subjectIds = ["subject-math"]
+  materialId = "material-001"
+  requiresPhoto = true
+}
+
+object "submittedEvent: HomeworkEvent" as submittedEvent {
+  homeworkId = "homework-001"
+  eventType = submitted
+  actorName = "佐藤太郎"
+}
+
+object "lesson: Lesson" as lesson {
+  id = "lesson-001"
+  teacherId = "teacher-001"
+  studentId = "student-001"
+  type = online
+  durationMin = 60
+  hourlyRate = 3000
+  travelExpense = 0
+  completedAt = null
+}
+
+object "grade: GradeRecord" as grade {
+  id = "grade-001"
+  teacherId = "teacher-001"
+  studentId = "student-001"
+  testName = "1学期期末"
+  testType = exam
+  score = 82
+  maxScore = 100
+  subjectIds = ["subject-math"]
+}
+
+object "gardenItem: GardenItem" as gardenItem {
+  id = "garden-001"
+  studentId = "student-001"
+  itemType = tree
+  x = 2
+  y = 4
+}
+
+teacher -- student : owns tenant
+studentUser -- student : profile
+parentUser -- parentLink
+student -- parentLink
+teacher -- math
+student -- material
+math .. material
+student -- homework
+teacher -- homework
+material -- homework
+homework -- submittedEvent
+student -- lesson
+teacher -- lesson
+student -- grade
+teacher -- grade
+math .. grade
+student -- gardenItem
+@enduml

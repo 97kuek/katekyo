@@ -1,0 +1,46 @@
+@startuml
+title 宿題提出 シーケンス図
+autonumber
+
+actor "生徒" as Student
+participant "SubmitForm\n(Client Component)" as Form
+participant "compressImage\n(Canvas API)" as Compressor
+participant "submitHomework\n(Server Action)" as Action
+participant "NextAuth auth()" as Auth
+database "PostgreSQL\nPrisma" as DB
+collections "Supabase Storage" as Storage
+participant "LINE helper" as Line
+
+Student -> Form : /homework/{id}/submit を開く
+Student -> Form : 写真・コメント・難易度を入力
+alt 写真が選択された
+  Form -> Compressor : File を圧縮
+  Compressor --> Form : 圧縮済み JPEG File
+end
+
+Student -> Form : 「提出する」をタップ
+Form -> Action : FormData(id, note, difficultyRating, photo?)
+
+Action -> Auth : セッション確認
+Auth --> Action : session(role=student)
+
+Action -> DB : Student を userId で取得
+DB --> Action : student.id
+Action -> DB : Homework を id + studentId で取得
+DB --> Action : homework
+
+alt 写真必須だが photo なし
+  Action --> Form : { error: "写真を添付してください" }
+else 入力OK
+  opt photo あり
+    Action -> Storage : uploadHomeworkPhoto(file, homeworkId)
+    Storage --> Action : public photoUrl
+  end
+  Action -> DB : Homework を submitted に更新
+  Action -> DB : HomeworkEvent(submitted) を作成
+  opt 先生が LINE 連携済み
+    Action -> Line : 提出通知を送信
+  end
+  Action --> Student : redirect("/homework?toast=submitted")
+end
+@enduml

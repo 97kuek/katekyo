@@ -5,6 +5,14 @@ export default defineConfig({
   outputDir: "./test-results",
   workers: 1,
   reporter: "line",
+  webServer: process.env.PLAYWRIGHT_SKIP_WEB_SERVER
+    ? undefined
+    : {
+        command: process.platform === "win32" ? "npm.cmd run dev" : "npm run dev",
+        url: "http://localhost:3000/login",
+        reuseExistingServer: true,
+        timeout: 120_000,
+      },
   use: {
     baseURL: process.env.UI_AUDIT_BASE_URL ?? "http://localhost:3000",
     serviceWorkers: "block",
@@ -21,6 +29,14 @@ export default defineConfig({
       use: {
         ...devices["iPhone 13"],
         browserName: "chromium",
+      },
+    },
+    {
+      name: "Mobile 320",
+      use: {
+        ...devices["iPhone 13"],
+        browserName: "chromium",
+        viewport: { width: 320, height: 740 },
       },
     },
     {

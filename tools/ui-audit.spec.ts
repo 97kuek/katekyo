@@ -41,18 +41,59 @@ async function findHorizontalOverflow(page: Page) {
     const overflowing = Array.from(document.body.querySelectorAll<HTMLElement>("*"))
       .filter((el) => {
         const rect = el.getBoundingClientRect()
-        return rect.width > 0 && rect.right > viewportWidth + 1
+        return rect.width > 0 && (rect.right > viewportWidth + 1 || rect.left < -1)
       })
       .slice(0, 12)
       .map((el) => ({
         tag: el.tagName.toLowerCase(),
         className: String(el.className).slice(0, 160),
         text: (el.textContent ?? "").replace(/\s+/g, " ").trim().slice(0, 80),
+        left: Math.round(el.getBoundingClientRect().left),
         right: Math.round(el.getBoundingClientRect().right),
         viewportWidth,
       }))
 
     return overflowing
+  })
+}
+
+async function findCrampedMobileFormControls(page: Page) {
+  return await page.evaluate(() => {
+    if (document.documentElement.clientWidth >= 640) return []
+
+    const selector = [
+      'input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="file"])',
+      "textarea",
+      "select",
+    ].join(",")
+
+    return Array.from(document.querySelectorAll<HTMLElement>(selector))
+      .filter((el) => {
+        const rect = el.getBoundingClientRect()
+        const style = window.getComputedStyle(el)
+        return (
+          rect.width > 0 &&
+          rect.height > 0 &&
+          style.visibility !== "hidden" &&
+          style.display !== "none" &&
+          !el.closest("[aria-hidden='true']")
+        )
+      })
+      .map((el) => {
+        const rect = el.getBoundingClientRect()
+        const style = window.getComputedStyle(el)
+        return {
+          tag: el.tagName.toLowerCase(),
+          type: el.getAttribute("type"),
+          name: el.getAttribute("name"),
+          id: el.id,
+          className: String(el.className).slice(0, 160),
+          height: Math.round(rect.height),
+          fontSize: Number.parseFloat(style.fontSize),
+        }
+      })
+      .filter((control) => control.height < 40 || control.fontSize < 16)
+      .slice(0, 12)
   })
 }
 
@@ -78,6 +119,8 @@ test.describe("responsive UI audit", () => {
 
       const overflow = await findHorizontalOverflow(page)
       expect(overflow, `${route} has horizontal overflow`).toEqual([])
+      const crampedControls = await findCrampedMobileFormControls(page)
+      expect(crampedControls, `${route} has cramped mobile form controls`).toEqual([])
     }
 
     expect(consoleErrors).toEqual([])

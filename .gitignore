@@ -43,3 +43,6 @@ next-env.d.ts
 # Playwright
 test-results/
 playwright-report/
+
+# Local rendering tools
+plantuml.jar

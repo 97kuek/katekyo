@@ -2,6 +2,8 @@
 
 import { useRouter, useSearchParams } from "next/navigation"
 import { useTransition } from "react"
+import { Input } from "@/components/ui/input"
+import { Select } from "@/components/ui/select"
 
 type Student = { id: string; user: { name: string } }
 type Subject = { id: string; name: string }
@@ -46,27 +48,28 @@ export function HomeworkFilter({ students, subjects, children }: { students: Stu
   return (
     <div className={`space-y-2 transition-opacity duration-150 ${isPending ? "opacity-50 pointer-events-none" : ""}`}>
       <div className="flex items-center gap-2">
-        <input
+        <Input
           type="search"
           placeholder="タイトルで検索..."
           value={currentQ}
           onChange={(e) => update("q", e.target.value)}
-          className="h-9 flex-1 min-w-0 rounded-lg border border-input bg-background px-3 text-base md:text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="flex-1 md:h-9"
         />
         {children}
       </div>
 
       <div className="flex items-center gap-2 flex-wrap">
-        <select
+        <Select
           value={currentStudent}
           onChange={(e) => update("studentId", e.target.value)}
-          className="h-8 rounded-lg border border-input bg-background pl-2.5 pr-1.5 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          containerClassName="sm:w-auto"
+          className="md:h-8 md:text-xs"
         >
           <option value="">生徒: すべて</option>
           {students.map((s) => (
             <option key={s.id} value={s.id}>{s.user.name}</option>
           ))}
-        </select>
+        </Select>
 
         <div className="flex items-center gap-0.5 rounded-lg border border-input bg-background p-0.5 shrink-0">
           <button

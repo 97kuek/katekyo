@@ -1,0 +1,32 @@
+@startuml
+title 宿題レビュー コミュニケーション図
+left to right direction
+skinparam linetype ortho
+
+object "teacher: User" as Teacher
+object "ReviewForm" as ReviewForm
+object "reviewHomework\nServer Action" as Action
+object "auth()" as Auth
+object "Prisma DB" as DB
+object "Homework" as Homework
+object "HomeworkEvent" as Event
+object "Garden service" as Garden
+object "LINE helper" as Line
+object "student: User" as Student
+
+Teacher -- ReviewForm : 1. コメントと承認/差し戻しを送信
+ReviewForm -- Action : 2. FormData(id, action, feedback)
+Action -- Auth : 3. セッション/role確認
+Action -- DB : 4. id + teacherId + status=submitted で取得
+DB -- Homework : 4.1 対象宿題
+
+Action -- Homework : 5a. status=approved/rejected\nreviewedAt更新\nfeedbackSeenAt=null
+Action -- Event : 5b. submitted履歴に続く\napproved/rejected履歴作成
+
+Action -- Garden : 6a. 承認時だけ植物付与
+Garden -- DB : 6b. GardenItem 作成\n満杯なら世代更新
+
+Action -- Student : 7a. studentId から通知先取得
+Action -- Line : 7b. 承認/差し戻し通知
+Action -- ReviewForm : 8. redirect("/homework?toast=reviewed")
+@enduml

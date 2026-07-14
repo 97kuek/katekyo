@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState, useState, useRef } from "react"
+import { startTransition, useActionState, useState, useRef } from "react"
 import { submitHomework } from "../actions"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
@@ -77,7 +77,9 @@ export default function SubmitForm({ id, rejectedFeedback, requiresPhoto = false
     if (compressedFileRef.current) {
       formData.set("photo", compressedFileRef.current)
     }
-    dispatch(formData)
+    startTransition(() => {
+      dispatch(formData)
+    })
   }
 
   const isSubmitDisabled = isPending || isCompressing || (requiresPhoto && !preview)

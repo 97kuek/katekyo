@@ -3,9 +3,14 @@ import { ChevronDown } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
-function Select({ className, children, ...props }: React.ComponentProps<"select">) {
+function Select({
+  className,
+  containerClassName,
+  children,
+  ...props
+}: React.ComponentProps<"select"> & { containerClassName?: string }) {
   return (
-    <div className="relative w-full">
+    <div className={cn("relative w-full", containerClassName)}>
       <select
         data-slot="select"
         className={cn(

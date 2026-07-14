@@ -1,0 +1,260 @@
+@startuml
+title katekyo 主要ドメイン クラス図
+hide methods
+skinparam classAttributeIconSize 0
+
+enum Role {
+  teacher
+  student
+  parent
+}
+
+enum HomeworkStatus {
+  assigned
+  submitted
+  approved
+  rejected
+}
+
+enum LessonType {
+  online
+  offline
+}
+
+enum TestType {
+  mock
+  exam
+  quiz
+  other
+}
+
+enum GardenItemType {
+  tree
+  bush
+  flower
+  cherry
+  big_tree
+  bamboo
+  mushroom
+}
+
+enum HomeworkEventType {
+  submitted
+  approved
+  rejected
+}
+
+class User {
+  id: String
+  email: String
+  name: String
+  role: Role
+  password: String
+  lineUserId: String?
+  meetLink: String?
+  agreedToTermsAt: DateTime?
+  createdAt: DateTime
+}
+
+class Student {
+  id: String
+  userId: String
+  teacherId: String
+  grade: String
+  gardenGeneration: Int
+  defaultHourlyRate: Int?
+  defaultTravelExpense: Int?
+  defaultDurationMin: Int?
+  defaultSubjectIds: String[]
+  createdAt: DateTime
+}
+
+class Homework {
+  id: String
+  teacherId: String
+  studentId: String
+  title: String
+  description: String?
+  dueDate: DateTime
+  subjectIds: String[]
+  materialId: String?
+  status: HomeworkStatus
+  studentNote: String?
+  difficultyRating: Int?
+  teacherFeedback: String?
+  requiresPhoto: Boolean
+  photoUrl: String?
+  submittedAt: DateTime?
+  reviewedAt: DateTime?
+  feedbackSeenAt: DateTime?
+  createdAt: DateTime
+}
+
+class HomeworkEvent {
+  id: String
+  homeworkId: String
+  eventType: HomeworkEventType
+  actorName: String
+  note: String?
+  createdAt: DateTime
+}
+
+class Lesson {
+  id: String
+  teacherId: String
+  studentId: String
+  date: DateTime
+  durationMin: Int?
+  type: LessonType
+  notes: String?
+  lessonLog: String?
+  lessonLogPublic: Boolean
+  lessonLogSeenAt: DateTime?
+  subjectIds: String[]
+  hourlyRate: Int?
+  travelExpense: Int?
+  completedAt: DateTime?
+  qstashMessageId: String?
+  reminderSentAt: DateTime?
+  createdAt: DateTime
+}
+
+class GradeRecord {
+  id: String
+  teacherId: String
+  studentId: String
+  testName: String
+  testType: TestType
+  date: DateTime
+  subjectIds: String[]
+  score: Int?
+  maxScore: Int?
+  rank: Int?
+  totalStudents: Int?
+  deviation: Float?
+  avgScore: Int?
+  comment: String?
+  createdAt: DateTime
+}
+
+class ExamEvent {
+  id: String
+  teacherId: String
+  studentId: String
+  name: String
+  testType: TestType
+  date: DateTime
+  endDate: DateTime?
+  createdAt: DateTime
+}
+
+class GardenItem {
+  id: String
+  studentId: String
+  itemType: GardenItemType
+  x: Int
+  y: Int
+  createdAt: DateTime
+}
+
+class StudentMaterial {
+  id: String
+  teacherId: String
+  studentId: String
+  name: String
+  note: String?
+  subjectIds: String[]
+  createdAt: DateTime
+}
+
+class Subject {
+  id: String
+  teacherId: String
+  name: String
+  color: String?
+  createdAt: DateTime
+}
+
+class InviteToken {
+  id: String
+  teacherId: String
+  token: String
+  name: String
+  email: String?
+  grade: String
+  usedAt: DateTime?
+  expiresAt: DateTime
+  createdAt: DateTime
+}
+
+class ParentInviteToken {
+  id: String
+  teacherId: String
+  studentId: String
+  token: String
+  email: String?
+  usedAt: DateTime?
+  expiresAt: DateTime
+  createdAt: DateTime
+}
+
+class ParentStudent {
+  id: String
+  parentId: String
+  studentId: String
+  teacherId: String
+  createdAt: DateTime
+}
+
+class MonthlyPayment {
+  id: String
+  teacherId: String
+  studentId: String
+  year: Int
+  month: Int
+  dueDate: DateTime?
+  paidAt: DateTime?
+  createdAt: DateTime
+}
+
+class LineLinkToken {
+  id: String
+  userId: String
+  token: String
+  expiresAt: DateTime
+  createdAt: DateTime
+}
+
+User "1" -- "0..*" Student : teacherId
+User "1" -- "0..1" Student : userId
+User "1" -- "0..*" InviteToken : teacherId
+User "1" -- "0..*" Subject : teacherId
+User "1" -- "0..*" Homework : teacherId
+User "1" -- "0..*" Lesson : teacherId
+User "1" -- "0..*" GradeRecord : teacherId
+User "1" -- "0..*" ExamEvent : teacherId
+User "1" -- "0..*" StudentMaterial : teacherId
+User "1" -- "0..*" MonthlyPayment : teacherId
+User "1" -- "0..1" LineLinkToken : userId
+
+Student "1" -- "0..*" Homework
+Student "1" -- "0..*" Lesson
+Student "1" -- "0..*" GradeRecord
+Student "1" -- "0..*" ExamEvent
+Student "1" -- "0..*" GardenItem
+Student "1" -- "0..*" StudentMaterial
+Student "1" -- "0..*" MonthlyPayment
+Student "1" -- "0..*" ParentInviteToken
+
+Homework "1" -- "0..*" HomeworkEvent
+StudentMaterial "0..1" -- "0..*" Homework : materialId
+
+User "1" -- "0..*" ParentStudent : parentId
+Student "1" -- "0..*" ParentStudent
+User "1" -- "0..*" ParentStudent : teacherId
+
+Subject .. Homework : subjectIds
+Subject .. Lesson : subjectIds
+Subject .. GradeRecord : subjectIds
+Subject .. StudentMaterial : subjectIds
+@enduml

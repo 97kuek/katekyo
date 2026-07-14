@@ -1,0 +1,74 @@
+@startuml
+title katekyo ユースケース図
+left to right direction
+skinparam packageStyle rectangle
+
+actor "先生\n(teacher)" as Teacher
+actor "生徒\n(student)" as Student
+actor "保護者\n(parent)" as Parent
+actor "LINE Messaging API" as Line
+actor "Upstash QStash" as Qstash
+actor "Supabase Storage" as Storage
+
+rectangle "katekyo Web アプリ" {
+  usecase "生徒を招待する" as UCInviteStudent
+  usecase "保護者を招待する" as UCInviteParent
+  usecase "宿題を出す" as UCCreateHomework
+  usecase "宿題を提出する" as UCSubmitHomework
+  usecase "宿題を承認/差し戻す" as UCReviewHomework
+  usecase "宿題を一括承認する" as UCBulkApprove
+  usecase "授業を登録/更新する" as UCLesson
+  usecase "授業を完了確定する" as UCCompleteLesson
+  usecase "月次請求を確認する" as UCBilling
+  usecase "支払い期限/入金を管理する" as UCPayment
+  usecase "成績を登録する" as UCCreateGrade
+  usecase "成績推移を確認する" as UCViewGrades
+  usecase "学習の森を見る" as UCViewGarden
+  usecase "教材を管理する" as UCMaterials
+  usecase "テスト予定を登録する" as UCExamEvent
+  usecase "LINE と連携する" as UCLineLink
+  usecase "Meet リンクを設定する" as UCMeetLink
+  usecase "授業前リマインダーを送る" as UCMeetReminder
+  usecase "宿題写真を保存する" as UCPhoto
+}
+
+Teacher --> UCInviteStudent
+Teacher --> UCInviteParent
+Teacher --> UCCreateHomework
+Teacher --> UCReviewHomework
+Teacher --> UCBulkApprove
+Teacher --> UCLesson
+Teacher --> UCCompleteLesson
+Teacher --> UCBilling
+Teacher --> UCPayment
+Teacher --> UCCreateGrade
+Teacher --> UCViewGrades
+Teacher --> UCViewGarden
+Teacher --> UCMaterials
+Teacher --> UCExamEvent
+Teacher --> UCLineLink
+Teacher --> UCMeetLink
+
+Student --> UCSubmitHomework
+Student --> UCInviteParent
+Student --> UCViewGrades
+Student --> UCViewGarden
+Student --> UCLineLink
+
+Parent --> UCViewGrades
+Parent --> UCViewGarden
+Parent --> UCBilling
+
+UCSubmitHomework ..> UCPhoto : <<include>>
+UCReviewHomework ..> UCViewGarden : <<include>>\n承認時に植物付与
+UCBulkApprove ..> UCReviewHomework : <<include>>
+UCLesson ..> UCMeetReminder : <<extend>>\nonline + Meet設定 + LINE連携
+UCMeetReminder ..> UCMeetLink : <<include>>
+
+UCLineLink --> Line
+UCReviewHomework --> Line : 通知
+UCSubmitHomework --> Line : 通知
+UCMeetReminder --> Line
+UCMeetReminder --> Qstash
+UCPhoto --> Storage
+@enduml

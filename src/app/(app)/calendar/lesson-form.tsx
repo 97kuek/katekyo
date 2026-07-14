@@ -6,6 +6,7 @@ import { createLesson } from "./actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Select } from "@/components/ui/select"
 
 const DURATION_KEY = "lesson_default_duration"
 
@@ -106,31 +107,31 @@ export function LessonForm({ students, defaultDate, subjects }: { students: Stud
               <p className="text-sm py-2 px-3 rounded-md border bg-muted">{students[0].user.name}（{students[0].grade}）</p>
             </>
           ) : (
-            <select
+            <Select
               id="studentId"
               name="studentId"
               required
               value={studentId}
               onChange={handleStudentChange}
-              className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="md:h-9"
             >
               {students.map((s) => (
                 <option key={s.id} value={s.id}>
                   {s.user.name}（{s.grade}）
                 </option>
               ))}
-            </select>
+            </Select>
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="space-y-1.5 min-w-0">
             <Label htmlFor="date" className="text-xs font-medium">日付</Label>
-            <Input id="date" name="date" type="date" required defaultValue={defaultDate} className="h-9 text-sm" />
+            <Input id="date" name="date" type="date" required defaultValue={defaultDate} className="md:h-9" />
           </div>
           <div className="space-y-1.5 min-w-0">
             <Label htmlFor="time" className="text-xs font-medium">時刻</Label>
-            <Input id="time" name="time" type="time" required defaultValue="16:00" className="h-9 text-sm" />
+            <Input id="time" name="time" type="time" required defaultValue="16:00" className="md:h-9" />
           </div>
         </div>
 
@@ -159,26 +160,26 @@ export function LessonForm({ students, defaultDate, subjects }: { students: Stud
             min="1"
             value={duration}
             onChange={handleDurationChange}
-            className="h-9 text-sm"
+            className="md:h-9"
           />
         </div>
 
         <div className="space-y-1.5">
           <Label htmlFor="repeatWeeks" className="text-xs font-medium">繰り返し登録</Label>
-          <select
+          <Select
             id="repeatWeeks"
             name="repeatWeeks"
             defaultValue="0"
-            className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="md:h-9"
           >
             <option value="0">繰り返さない（1回のみ）</option>
             {[1,2,3,4,5,6,7,8,9,10,11,12].map((w) => (
               <option key={w} value={w}>計{w+1}回（今日 + {w}週後まで）</option>
             ))}
-          </select>
+          </Select>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="space-y-1.5">
             <Label htmlFor="hourlyRate" className="text-xs font-medium">時給（円・任意）</Label>
             <Input
@@ -189,7 +190,7 @@ export function LessonForm({ students, defaultDate, subjects }: { students: Stud
               placeholder="3000"
               value={hourlyRate}
               onChange={(e) => setHourlyRate(e.target.value)}
-              className="h-9 text-sm"
+              className="md:h-9"
             />
           </div>
           <div className="space-y-1.5">
@@ -203,7 +204,7 @@ export function LessonForm({ students, defaultDate, subjects }: { students: Stud
               disabled={lessonType === "online"}
               value={lessonType === "online" ? "" : travelExpense}
               onChange={(e) => setTravelExpense(e.target.value)}
-              className="h-9 text-sm disabled:bg-muted disabled:text-muted-foreground"
+              className="md:h-9 disabled:bg-muted disabled:text-muted-foreground"
             />
           </div>
         </div>
@@ -235,7 +236,7 @@ export function LessonForm({ students, defaultDate, subjects }: { students: Stud
 
         <div className="space-y-1.5">
           <Label htmlFor="notes" className="text-xs font-medium">メモ（任意）</Label>
-          <Input id="notes" name="notes" placeholder="事前メモ" className="h-9 text-sm" />
+          <Input id="notes" name="notes" placeholder="事前メモ" className="md:h-9" />
         </div>
 
         <div className="flex gap-2 pt-1">

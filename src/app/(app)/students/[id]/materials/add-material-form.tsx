@@ -13,9 +13,9 @@ export function AddMaterialForm({ studentId, subjects }: { studentId: string; su
   return (
     <form action={action} className="space-y-3">
       <input type="hidden" name="studentId" value={studentId} />
-      <div className="flex gap-2 flex-wrap">
-        <Input name="name" required placeholder="教材名（例: チャート式数学）" className="flex-1 min-w-[200px]" />
-        <Input name="note" placeholder="メモ（任意）" className="flex-1 min-w-[160px]" />
+      <div className="grid gap-2 sm:grid-cols-2">
+        <Input name="name" required placeholder="教材名（例: チャート式数学）" />
+        <Input name="note" placeholder="メモ（任意）" />
       </div>
       {subjects.length > 0 && (
         <div className="space-y-1.5">
@@ -30,7 +30,7 @@ export function AddMaterialForm({ studentId, subjects }: { studentId: string; su
           </div>
         </div>
       )}
-      <Button type="submit" disabled={isPending} size="sm">
+      <Button type="submit" disabled={isPending} size="sm" className="h-10 sm:h-8">
         {isPending ? "追加中..." : "追加"}
       </Button>
       {state.error && <p className="text-xs text-destructive">{state.error}</p>}

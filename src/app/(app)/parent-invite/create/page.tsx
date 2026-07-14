@@ -45,8 +45,8 @@ export default function CreateParentInvitePage() {
               </p>
               <div>
                 <Label>招待URL</Label>
-                <div className="flex gap-2 mt-1">
-                  <Input value={inviteUrl ?? ""} readOnly className="text-xs" />
+                <div className="grid gap-2 mt-1 sm:flex">
+                  <Input value={inviteUrl ?? ""} readOnly className="sm:text-xs" />
                   <Button type="button" variant="outline" onClick={copyUrl} className="shrink-0">
                     {copied ? "コピー済み" : "コピー"}
                   </Button>

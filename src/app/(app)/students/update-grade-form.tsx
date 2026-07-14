@@ -3,6 +3,8 @@
 import { useState } from "react"
 import { updateStudentGrade } from "./[id]/actions"
 import { GRADE_OPTIONS } from "@/lib/grades"
+import { Button } from "@/components/ui/button"
+import { Select } from "@/components/ui/select"
 
 type Props = { studentId: string; currentGrade: string }
 
@@ -27,22 +29,25 @@ export function UpdateGradeForm({ studentId, currentGrade }: Props) {
         await updateStudentGrade(fd)
         setOpen(false)
       }}
-      className="flex items-center gap-1"
+      className="grid gap-2 sm:flex sm:items-center sm:gap-1"
     >
       <input type="hidden" name="studentId" value={studentId} />
-      <select
+      <Select
         name="grade"
         defaultValue={currentGrade}
-        className="h-7 text-xs rounded border border-input bg-background px-1.5 focus:outline-none focus:ring-1 focus:ring-ring"
+        containerClassName="sm:w-auto"
+        className="md:h-7 md:text-xs"
       >
         {GRADE_OPTIONS.map((g) => (
           <option key={g} value={g}>{g}</option>
         ))}
-      </select>
-      <button type="submit" className="text-xs text-primary hover:underline">保存</button>
-      <button type="button" onClick={() => setOpen(false)} className="text-xs text-muted-foreground hover:underline">
+      </Select>
+      <Button type="submit" size="sm" className="h-10 sm:h-7">
+        保存
+      </Button>
+      <Button type="button" variant="ghost" size="sm" className="h-10 sm:h-7" onClick={() => setOpen(false)}>
         キャンセル
-      </button>
+      </Button>
     </form>
   )
 }

@@ -1,6 +1,7 @@
 "use client"
 
 import { useRouter, useSearchParams } from "next/navigation"
+import { Select } from "@/components/ui/select"
 
 type Student = { id: string; user: { name: string } }
 
@@ -20,10 +21,10 @@ export function GradeStudentFilter({ students }: { students: Student[] }) {
   }
 
   return (
-    <select
+    <Select
       value={current}
       onChange={(e) => setStudent(e.target.value)}
-      className="h-8 rounded-lg border border-input bg-background pl-2.5 pr-1.5 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      className="md:h-8 md:text-xs"
     >
       <option value="">生徒: すべて</option>
       {students.map((s) => (
@@ -31,6 +32,6 @@ export function GradeStudentFilter({ students }: { students: Student[] }) {
           {s.user.name}
         </option>
       ))}
-    </select>
+    </Select>
   )
 }

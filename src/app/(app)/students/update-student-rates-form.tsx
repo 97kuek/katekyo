@@ -2,6 +2,8 @@
 
 import { useActionState, useState } from "react"
 import { updateStudentRates } from "./actions"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 
 type Props = {
   studentId: string
@@ -45,34 +47,34 @@ export function UpdateStudentRatesForm({ studentId, defaultHourlyRate, defaultTr
         await action(fd)
         setOpen(false)
       }}
-      className="flex flex-wrap items-center gap-1.5"
+      className="grid gap-2 sm:flex sm:flex-wrap sm:items-center sm:gap-1.5"
     >
       <input type="hidden" name="studentId" value={studentId} />
       {state.error && <p className="w-full text-xs text-destructive">{state.error}</p>}
-      <input
+      <Input
         name="defaultHourlyRate"
         type="number"
         min="0"
         placeholder="時給（円）"
         defaultValue={defaultHourlyRate ?? ""}
-        className="h-7 w-24 rounded border border-input bg-background px-2 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
+        className="sm:h-7 sm:w-24 sm:text-xs"
       />
-      <input
+      <Input
         name="defaultTravelExpense"
         type="number"
         min="0"
         placeholder="交通費（円）"
         defaultValue={defaultTravelExpense ?? ""}
-        className="h-7 w-24 rounded border border-input bg-background px-2 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
+        className="sm:h-7 sm:w-24 sm:text-xs"
       />
-      <input
+      <Input
         name="defaultDurationHours"
         type="number"
         min="0.5"
         step="0.5"
         placeholder="授業時間（h）"
         defaultValue={defaultDurationMin != null ? defaultDurationMin / 60 : ""}
-        className="h-7 w-28 rounded border border-input bg-background px-2 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
+        className="sm:h-7 sm:w-28 sm:text-xs"
       />
       {subjects.length > 0 && (
         <div className="w-full flex flex-wrap gap-x-3 gap-y-1">
@@ -90,12 +92,12 @@ export function UpdateStudentRatesForm({ studentId, defaultHourlyRate, defaultTr
           ))}
         </div>
       )}
-      <button type="submit" disabled={isPending} className="text-xs text-primary hover:underline disabled:opacity-50">
+      <Button type="submit" disabled={isPending} size="sm" className="h-10 sm:h-7">
         保存
-      </button>
-      <button type="button" onClick={() => setOpen(false)} className="text-xs text-muted-foreground hover:underline">
+      </Button>
+      <Button type="button" variant="ghost" size="sm" className="h-10 sm:h-7" onClick={() => setOpen(false)}>
         キャンセル
-      </button>
+      </Button>
     </form>
   )
 }

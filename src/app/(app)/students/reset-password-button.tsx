@@ -3,6 +3,7 @@
 import { useState, useActionState } from "react"
 import { resetStudentPassword } from "./actions"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 
 export function ResetPasswordButton({ studentId }: { studentId: string }) {
   const [open, setOpen] = useState(false)
@@ -24,29 +25,30 @@ export function ResetPasswordButton({ studentId }: { studentId: string }) {
   }
 
   return (
-    <div className="flex items-center gap-1.5 flex-wrap">
-      <form action={action} className="flex items-center gap-1.5">
+    <div className="grid gap-2 sm:flex sm:items-center sm:gap-1.5 sm:flex-wrap">
+      <form action={action} className="grid gap-2 sm:flex sm:items-center sm:gap-1.5">
         <input type="hidden" name="studentId" value={studentId} />
-        <input
+        <Input
           name="password"
           type="password"
           placeholder="新パスワード(8文字以上)"
           minLength={8}
           required
-          className="h-7 w-36 rounded border border-input bg-background px-2 text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+          className="sm:h-7 sm:w-36 sm:text-xs"
         />
-        <button
+        <Button
           type="submit"
           disabled={isPending}
-          className="text-xs font-medium text-primary hover:text-primary/80 disabled:opacity-50"
+          size="sm"
+          className="h-10 sm:h-7"
         >
           {isPending ? "..." : "設定"}
-        </button>
+        </Button>
       </form>
       {state.error && <span className="text-xs text-destructive">{state.error}</span>}
-      <button onClick={() => setOpen(false)} className="text-xs text-muted-foreground hover:text-foreground">
+      <Button type="button" variant="ghost" size="sm" className="h-10 sm:h-7" onClick={() => setOpen(false)}>
         ✕
-      </button>
+      </Button>
     </div>
   )
 }

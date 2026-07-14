@@ -1,0 +1,71 @@
+@startuml
+title 宿題提出・レビュー アクティビティ図
+start
+
+partition "先生" {
+  :宿題作成フォームを開く;
+  :生徒・タイトル・期限・科目・写真必須を入力;
+}
+
+partition "システム" {
+  :セッション確認;
+  :Zod バリデーション;
+  :teacherId で生徒の所有確認;
+  :Homework(status=assigned) を作成;
+}
+
+partition "生徒" {
+  :宿題一覧/詳細を確認;
+  :提出フォームを開く;
+  if (写真提出が必須?) then (yes)
+    :写真を選択;
+    partition "ブラウザ" {
+      :Canvas で最大辺1200pxに圧縮;
+      :JPEG品質78%でFile化;
+    }
+  endif
+  :コメント/難易度を入力;
+  :提出する;
+}
+
+partition "システム" {
+  :セッション確認;
+  :studentId で宿題の所有確認;
+  if (写真必須かつ未添付?) then (yes)
+    :エラーを返す;
+    stop
+  endif
+  if (写真あり?) then (yes)
+    :Supabase Storage にアップロード;
+    :photoUrl を保存;
+  endif
+  :Homework を submitted に更新;
+  :HomeworkEvent(submitted) を作成;
+  :先生に LINE 通知;
+}
+
+partition "先生" {
+  :提出内容・写真・難易度を確認;
+  if (承認する?) then (approve)
+    :承認コメントを入力;
+  else (reject)
+    :差し戻し理由を入力;
+  endif
+}
+
+partition "システム" {
+  if (承認?) then (yes)
+    :Homework を approved に更新;
+    :HomeworkEvent(approved) を作成;
+    :GardenItem を付与;
+    :生徒に承認通知;
+  else (no)
+    :Homework を rejected に更新;
+    :HomeworkEvent(rejected) を作成;
+    :生徒に差し戻し通知;
+  endif
+  :feedbackSeenAt を null にする;
+}
+
+stop
+@enduml

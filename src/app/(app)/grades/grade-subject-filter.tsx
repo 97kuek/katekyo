@@ -1,6 +1,7 @@
 "use client"
 
 import { useRouter, useSearchParams } from "next/navigation"
+import { Select } from "@/components/ui/select"
 
 type Subject = { id: string; name: string }
 
@@ -22,10 +23,10 @@ export function GradeSubjectFilter({ subjects }: { subjects: Subject[] }) {
   if (subjects.length === 0) return null
 
   return (
-    <select
+    <Select
       value={current}
       onChange={(e) => setSubject(e.target.value)}
-      className="h-8 rounded-lg border border-input bg-background pl-2.5 pr-1.5 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      className="md:h-8 md:text-xs"
     >
       <option value="">科目: すべて</option>
       {subjects.map((s) => (
@@ -33,6 +34,6 @@ export function GradeSubjectFilter({ subjects }: { subjects: Subject[] }) {
           {s.name}
         </option>
       ))}
-    </select>
+    </Select>
   )
 }

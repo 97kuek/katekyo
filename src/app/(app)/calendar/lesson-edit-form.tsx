@@ -54,14 +54,14 @@ export function LessonEditForm({ lesson, onClose, subjects }: { lesson: Lesson; 
         <p className="text-xs text-destructive bg-destructive/10 p-2 rounded">{state.error}</p>
       )}
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div className="space-y-1.5 min-w-0">
           <Label className="text-xs font-medium">日付</Label>
-          <Input name="date" type="date" required defaultValue={toDateStr(lesson.date)} className="h-9 text-sm" />
+          <Input name="date" type="date" required defaultValue={toDateStr(lesson.date)} className="md:h-9" />
         </div>
         <div className="space-y-1.5 min-w-0">
           <Label className="text-xs font-medium">時刻</Label>
-          <Input name="time" type="time" required defaultValue={toTimeStr(lesson.date)} className="h-9 text-sm" />
+          <Input name="time" type="time" required defaultValue={toTimeStr(lesson.date)} className="md:h-9" />
         </div>
       </div>
 
@@ -81,14 +81,14 @@ export function LessonEditForm({ lesson, onClose, subjects }: { lesson: Lesson; 
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div className="space-y-1.5">
           <Label className="text-xs font-medium">時間（分）</Label>
-          <Input name="durationMin" type="number" min="1" defaultValue={lesson.durationMin ?? ""} className="h-9 text-sm" />
+          <Input name="durationMin" type="number" min="1" defaultValue={lesson.durationMin ?? ""} className="md:h-9" />
         </div>
         <div className="space-y-1.5">
           <Label className="text-xs font-medium">時給（円）</Label>
-          <Input name="hourlyRate" type="number" min="0" defaultValue={lesson.hourlyRate ?? ""} className="h-9 text-sm" />
+          <Input name="hourlyRate" type="number" min="0" defaultValue={lesson.hourlyRate ?? ""} className="md:h-9" />
         </div>
       </div>
 
@@ -100,13 +100,13 @@ export function LessonEditForm({ lesson, onClose, subjects }: { lesson: Lesson; 
           min="0"
           defaultValue={lessonType === "online" ? 0 : (lesson.travelExpense ?? "")}
           disabled={lessonType === "online"}
-          className="h-9 text-sm disabled:bg-muted disabled:text-muted-foreground"
+          className="md:h-9 disabled:bg-muted disabled:text-muted-foreground"
         />
       </div>
 
       <div className="space-y-1.5">
         <Label className="text-xs font-medium">メモ</Label>
-        <Input name="notes" defaultValue={lesson.notes ?? ""} className="h-9 text-sm" placeholder="事前メモ" />
+        <Input name="notes" defaultValue={lesson.notes ?? ""} className="md:h-9" placeholder="事前メモ" />
       </div>
 
       {subjects.length > 0 && (
@@ -149,11 +149,11 @@ export function LessonEditForm({ lesson, onClose, subjects }: { lesson: Lesson; 
         </label>
       </div>
 
-      <div className="flex gap-2 pt-1">
-        <Button type="submit" size="sm" disabled={isPending}>
+      <div className="grid gap-2 pt-1 sm:flex">
+        <Button type="submit" size="sm" disabled={isPending} className="h-10 sm:h-8">
           {isPending ? "保存中..." : "保存"}
         </Button>
-        <Button type="button" variant="outline" size="sm" onClick={onClose}>
+        <Button type="button" variant="outline" size="sm" className="h-10 sm:h-8" onClick={onClose}>
           キャンセル
         </Button>
       </div>

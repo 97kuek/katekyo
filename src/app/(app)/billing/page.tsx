@@ -172,7 +172,7 @@ export default async function BillingPage({
                   {/* 1行目: 名前・ステータス / 金額 */}
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-2 flex-wrap min-w-0">
-                      <p className="font-medium text-sm">{name}</p>
+                      <p className="font-medium text-sm break-words">{name}</p>
                       {isPaid && (
                         <span className="text-xs bg-primary/15 text-primary font-medium rounded-full px-2 py-0.5">入金済み</span>
                       )}
@@ -189,8 +189,8 @@ export default async function BillingPage({
                     </div>
                   </div>
                   {/* 2行目: 期限設定 / 入金確認 */}
-                  <div className="flex items-center gap-2">
-                    <form action={setPaymentDueDate} className="flex items-center gap-1.5">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                    <form action={setPaymentDueDate} className="flex w-full min-w-0 items-center gap-2 sm:w-auto">
                       <input type="hidden" name="studentId" value={sid} />
                       <input type="hidden" name="year" value={year} />
                       <input type="hidden" name="month" value={month + 1} />
@@ -199,19 +199,32 @@ export default async function BillingPage({
                         type="date"
                         name="dueDate"
                         defaultValue={currentDueDateValue}
-                        className="text-xs border border-input rounded-lg px-2 bg-background text-foreground h-7 w-32"
+                        className="h-11 min-w-0 flex-1 rounded-lg border border-input bg-background px-3 text-base text-foreground md:h-7 md:w-32 md:flex-none md:px-2 md:text-xs"
                       />
-                      <button type="submit" className={buttonVariants({ variant: "outline", size: "xs" })}>
+                      <button
+                        type="submit"
+                        className={buttonVariants({
+                          variant: "outline",
+                          size: "xs",
+                          className: "h-10 px-3 text-sm md:h-7 md:px-2.5 md:text-xs",
+                        })}
+                      >
                         設定
                       </button>
                     </form>
-                    <form action={isPaid ? markAsUnpaid : markAsPaid} className="ml-auto shrink-0">
+                    <form action={isPaid ? markAsUnpaid : markAsPaid} className="w-full shrink-0 sm:ml-auto sm:w-auto">
                       <input type="hidden" name="studentId" value={sid} />
                       <input type="hidden" name="year" value={year} />
                       <input type="hidden" name="month" value={month + 1} />
                       <button
                         type="submit"
-                        className={buttonVariants({ variant: isPaid ? "outline" : "default", size: "xs" }) + (isPaid ? " border-primary/30 text-primary bg-transparent" : "")}
+                        className={
+                          buttonVariants({
+                            variant: isPaid ? "outline" : "default",
+                            size: "xs",
+                            className: "h-10 w-full px-3 text-sm md:h-7 md:w-auto md:px-2.5 md:text-xs",
+                          }) + (isPaid ? " border-primary/30 text-primary bg-transparent" : "")
+                        }
                       >
                         {isPaid ? "✓ 入金済み" : "入金確認"}
                       </button>

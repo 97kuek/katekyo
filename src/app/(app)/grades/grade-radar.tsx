@@ -10,6 +10,7 @@ import {
   ResponsiveContainer,
   Tooltip,
 } from "recharts"
+import { Select } from "@/components/ui/select"
 
 type Grade = {
   id: string
@@ -70,17 +71,18 @@ export default function GradeRadar({ grades, subjects }: { grades: Grade[]; subj
       <div className="flex items-center justify-between gap-2">
         <p className="text-sm font-medium">科目バランス</p>
         {qualifying.length > 1 ? (
-          <select
+          <Select
             value={selected}
             onChange={(e) => setSelected(Number(e.target.value))}
-            className="h-8 rounded-lg border border-input bg-background pl-2.5 pr-1.5 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            containerClassName="min-w-0 max-w-44"
+            className="md:h-8 md:text-xs"
           >
             {qualifying.map((q, i) => (
               <option key={q.testName} value={i}>
                 {q.testName}
               </option>
             ))}
-          </select>
+          </Select>
         ) : (
           <span className="text-xs text-muted-foreground truncate">{current.testName}</span>
         )}

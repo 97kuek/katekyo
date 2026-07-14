@@ -70,19 +70,62 @@ async function assertNoHorizontalOverflow(page: Page, label: string) {
     return Array.from(document.body.querySelectorAll<HTMLElement>("*"))
       .filter((el) => {
         const rect = el.getBoundingClientRect()
-        return rect.width > 0 && rect.right > viewportWidth + 1
+        return rect.width > 0 && (rect.right > viewportWidth + 1 || rect.left < -1)
       })
       .slice(0, 8)
       .map((el) => ({
         tag: el.tagName.toLowerCase(),
         className: String(el.className).slice(0, 120),
         text: (el.textContent ?? "").replace(/\s+/g, " ").trim().slice(0, 60),
+        left: Math.round(el.getBoundingClientRect().left),
         right: Math.round(el.getBoundingClientRect().right),
         viewportWidth,
       }))
   })
 
   expect(overflow, `${label} has horizontal overflow`).toEqual([])
+}
+
+async function assertMobileFormControlsComfortable(page: Page, label: string) {
+  const issues = await page.evaluate(() => {
+    if (document.documentElement.clientWidth >= 640) return []
+
+    const selector = [
+      'input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="file"])',
+      "textarea",
+      "select",
+    ].join(",")
+
+    return Array.from(document.querySelectorAll<HTMLElement>(selector))
+      .filter((el) => {
+        const rect = el.getBoundingClientRect()
+        const style = window.getComputedStyle(el)
+        return (
+          rect.width > 0 &&
+          rect.height > 0 &&
+          style.visibility !== "hidden" &&
+          style.display !== "none" &&
+          !el.closest("[aria-hidden='true']")
+        )
+      })
+      .map((el) => {
+        const rect = el.getBoundingClientRect()
+        const style = window.getComputedStyle(el)
+        return {
+          tag: el.tagName.toLowerCase(),
+          type: el.getAttribute("type"),
+          name: el.getAttribute("name"),
+          id: el.id,
+          className: String(el.className).slice(0, 120),
+          height: Math.round(rect.height),
+          fontSize: Number.parseFloat(style.fontSize),
+        }
+      })
+      .filter((control) => control.height < 40 || control.fontSize < 16)
+      .slice(0, 12)
+  })
+
+  expect(issues, `${label} has cramped mobile form controls`).toEqual([])
 }
 
 async function assertMainControlUsable(page: Page, locatorName: string | RegExp) {
@@ -102,6 +145,7 @@ async function snapshotAndCheck(page: Page, testInfo: TestInfo, name: string) {
   await page.waitForLoadState("networkidle", { timeout: 30_000 }).catch(() => {})
   await acceptTermsIfShown(page)
   await assertNoHorizontalOverflow(page, name)
+  await assertMobileFormControlsComfortable(page, name)
   await page.screenshot({
     path: testInfo.outputPath(`${projectSlug(testInfo)}-${name}.png`),
     fullPage: true,
@@ -113,6 +157,7 @@ async function createInvite(page: Page, studentName: string) {
   await page.getByLabel("生徒の名前").fill(studentName)
   await page.getByLabel("学年").selectOption({ label: "中学1年" })
   await assertMainControlUsable(page, "招待リンクを生成")
+  await assertMobileFormControlsComfortable(page, "teacher-invite-form")
   await page.getByRole("button", { name: "招待リンクを生成" }).click()
   await expect(page.getByText("招待リンクが生成されました")).toBeVisible({ timeout: 30_000 })
   return await page.locator('input[readonly]').inputValue()
@@ -155,6 +200,7 @@ async function createHomework(page: Page, title: string, description: string, su
   await page.getByLabel(/期限/).fill(tomorrowISO())
   await page.getByLabel(subjectName).check()
   await assertMainControlUsable(page, "宿題を作成する")
+  await assertMobileFormControlsComfortable(page, "teacher-homework-form")
   await page.getByRole("button", { name: "宿題を作成する" }).click()
   await expect(page).toHaveURL(/\/homework/, { timeout: 30_000 })
   await expect(visibleText(page, title)).toBeVisible({ timeout: 30_000 })
@@ -168,6 +214,7 @@ async function createGrade(page: Page, testName: string, subjectName: string) {
   await page.getByLabel("満点").fill("100")
   await page.getByLabel(subjectName).check()
   await assertMainControlUsable(page, "成績を記録する")
+  await assertMobileFormControlsComfortable(page, "teacher-grade-form")
   await page.getByRole("button", { name: "成績を記録する" }).click()
   await expect(page).toHaveURL(/\/grades/, { timeout: 30_000 })
   await expect(visibleText(page, testName)).toBeVisible({ timeout: 30_000 })
@@ -181,12 +228,14 @@ async function createCalendarItems(page: Page, lessonNote: string, calendarHomew
   await page.getByLabel("時間（分）").fill("75")
   await page.getByLabel("交通費（円・任意）").fill("500")
   await page.getByLabel("メモ（任意）").fill(lessonNote)
+  await assertMobileFormControlsComfortable(page, "teacher-calendar-lesson-form")
   await page.getByRole("button", { name: "追加" }).first().click()
   await expect(page.getByText(lessonNote)).toBeVisible({ timeout: 30_000 })
 
   await page.getByRole("button", { name: "宿題を追加" }).click()
   const calendarHomeworkInput = page.getByPlaceholder("例: 数学 p.30-35")
   await calendarHomeworkInput.fill(calendarHomeworkTitle)
+  await assertMobileFormControlsComfortable(page, "teacher-calendar-homework-form")
   await calendarHomeworkInput.evaluate((input) => {
     if (!(input instanceof HTMLInputElement) || !input.form) {
       throw new Error("Calendar homework form was not found.")
@@ -198,6 +247,7 @@ async function createCalendarItems(page: Page, lessonNote: string, calendarHomew
   await page.getByRole("button", { name: "テストを追加" }).click()
   const examInput = page.getByPlaceholder("例: 英語期末テスト")
   await examInput.fill(examName)
+  await assertMobileFormControlsComfortable(page, "teacher-calendar-exam-form")
   await examInput.evaluate((input) => {
     if (!(input instanceof HTMLInputElement) || !input.form) {
       throw new Error("Calendar exam form was not found.")
@@ -224,6 +274,7 @@ async function submitHomework(page: Page, title: string) {
   await page.getByRole("button", { name: "ふつう" }).click()
   await page.getByLabel("先生へのコメント（任意）").fill("提出しました。UI flow comment.")
   await assertMainControlUsable(page, "提出する")
+  await assertMobileFormControlsComfortable(page, "student-submit-homework-form")
   await page.getByRole("button", { name: "提出する" }).last().click()
   await expect(page).toHaveURL(/\/homework/, { timeout: 30_000 })
   await expect(visibleText(page, title)).toBeVisible({ timeout: 30_000 })
@@ -236,6 +287,7 @@ async function approveHomework(page: Page, title: string) {
   await page.getByRole("link", { name: "確認する" }).first().click()
   await page.getByLabel("コメント（任意）").fill("確認しました。UI flow feedback.")
   await assertMainControlUsable(page, "承認する")
+  await assertMobileFormControlsComfortable(page, "teacher-review-homework-form")
   await page.getByRole("button", { name: "承認する" }).click()
   await expect(page).toHaveURL(/\/homework/, { timeout: 30_000 })
   await expect(visibleText(page, title)).toBeVisible({ timeout: 30_000 })

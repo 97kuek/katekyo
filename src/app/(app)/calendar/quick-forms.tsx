@@ -5,6 +5,8 @@ import { createExamEvent, completeLesson, createHomeworkFromCalendar } from "./a
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Select } from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
 import { TEST_TYPE_OPTIONS } from "@/lib/test-types"
 import { toast } from "sonner"
 import type { Student } from "./calendar-types"
@@ -26,13 +28,13 @@ export function CompleteLessonLogForm({ lessonId, onClose }: { lessonId: string;
   return (
     <div className="mt-2 pt-2 border-t space-y-2">
       <p className="text-xs font-medium text-primary">授業ログを残す（任意）</p>
-      <textarea
+      <Textarea
         value={log}
         onChange={(e) => setLog(e.target.value)}
         placeholder="今日の授業メモ..."
         rows={2}
         autoFocus
-        className="w-full text-xs rounded border border-input bg-background px-2 py-1.5 resize-none focus:outline-none focus:ring-1 focus:ring-ring"
+        className="min-h-20 resize-none md:min-h-14 md:text-xs"
       />
       <div className="flex gap-2">
         <Button
@@ -89,25 +91,25 @@ export function HomeworkForm({ students, defaultDate }: { students: Student[]; d
                 <p className="text-sm py-1.5 px-3 rounded-md border bg-muted">{students[0].user.name}（{students[0].grade}）</p>
               </>
             ) : (
-              <select
+              <Select
                 name="studentId"
                 required
-                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="md:h-9"
               >
                 <option value="">選択してください</option>
                 {students.map((s) => (
                   <option key={s.id} value={s.id}>{s.user.name}（{s.grade}）</option>
                 ))}
-              </select>
+              </Select>
             )}
           </div>
           <div className="space-y-1">
             <Label className="text-xs">タイトル</Label>
-            <Input name="title" placeholder="例: 数学 p.30-35" required className="h-9 text-sm" />
+            <Input name="title" placeholder="例: 数学 p.30-35" required className="md:h-9" />
           </div>
           <div className="space-y-1">
             <Label className="text-xs">期限</Label>
-            <Input name="dueDate" type="date" required defaultValue={defaultDate} className="h-9 text-sm" />
+            <Input name="dueDate" type="date" required defaultValue={defaultDate} className="md:h-9" />
           </div>
         </div>
         <div className="flex gap-2">
@@ -161,43 +163,43 @@ export function ExamEventForm({ students, defaultDate }: { students: Student[]; 
                 <p className="text-sm py-1.5 px-3 rounded-md border bg-muted">{students[0].user.name}（{students[0].grade}）</p>
               </>
             ) : (
-              <select
+              <Select
                 name="studentId"
                 required
-                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="md:h-9"
               >
                 <option value="">選択してください</option>
                 {students.map((s) => (
                   <option key={s.id} value={s.id}>{s.user.name}（{s.grade}）</option>
                 ))}
-              </select>
+              </Select>
             )}
           </div>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             <div className="space-y-1">
               <Label className="text-xs">開始日</Label>
-              <Input name="date" type="date" required defaultValue={defaultDate} className="h-9 text-sm" />
+              <Input name="date" type="date" required defaultValue={defaultDate} className="md:h-9" />
             </div>
             <div className="space-y-1">
               <Label className="text-xs">終了日（任意）</Label>
-              <Input name="endDate" type="date" className="h-9 text-sm" />
+              <Input name="endDate" type="date" className="md:h-9" />
             </div>
           </div>
           <div className="space-y-1">
             <Label className="text-xs">テスト名</Label>
-            <Input name="name" placeholder="例: 英語期末テスト" required className="h-9 text-sm" />
+            <Input name="name" placeholder="例: 英語期末テスト" required className="md:h-9" />
           </div>
           <div className="space-y-1">
             <Label className="text-xs">種別</Label>
-            <select
+            <Select
               name="testType"
               defaultValue="exam"
-              className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="md:h-9"
             >
               {TEST_TYPE_OPTIONS.map(([value, label]) => (
                 <option key={value} value={value}>{label}</option>
               ))}
-            </select>
+            </Select>
           </div>
         </div>
         <div className="flex gap-2">
