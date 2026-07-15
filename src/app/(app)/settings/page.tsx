@@ -1,7 +1,7 @@
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { redirect } from "next/navigation"
-import { LineSettings, MeetLinkSettings, DeleteParentAccountButton } from "./settings-client"
+import { GoogleAuthSettings, LineSettings, MeetLinkSettings, DeleteParentAccountButton } from "./settings-client"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { NameForm } from "../profile/name-form"
 import { PasswordForm } from "../profile/password-form"
@@ -18,7 +18,11 @@ export default async function SettingsPage() {
   const [user, subjects] = await Promise.all([
     db.user.findUnique({
       where: { id: session.user.id },
-      select: { lineUserId: true, meetLink: true },
+      select: {
+        lineUserId: true,
+        meetLink: true,
+        identityAccesses: { where: { identity: { provider: "google" } }, select: { id: true } },
+      },
     }),
     session.user.role === "teacher"
       ? db.subject.findMany({ where: { teacherId: session.user.id }, orderBy: { createdAt: "asc" } })
@@ -46,6 +50,7 @@ export default async function SettingsPage() {
             <PasswordForm />
           </CardContent>
         </Card>
+        <GoogleAuthSettings isLinked={Boolean(user?.identityAccesses.length)} />
       </section>
 
       {!isParent && (

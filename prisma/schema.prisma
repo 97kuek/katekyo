@@ -13,6 +13,15 @@ enum Role {
   parent
 }
 
+enum IdentityProvider {
+  google
+}
+
+enum ProfileAccessKind {
+  owner
+  guardian
+}
+
 enum HomeworkStatus {
   assigned
   submitted
@@ -60,15 +69,15 @@ model User {
   createdAt       DateTime  @default(now()) @db.Timestamptz(3)
 
   // teacher relations
-  students            Student[]           @relation("TeacherStudents")
-  inviteTokens        InviteToken[]
-  subjects            Subject[]
-  homeworksGiven      Homework[]          @relation("TeacherHomework")
-  gradesGiven         GradeRecord[]       @relation("TeacherGrades")
-  lessonsGiven        Lesson[]            @relation("TeacherLessons")
-  materialsGiven      StudentMaterial[]   @relation("TeacherMaterials")
-  examEventsGiven     ExamEvent[]         @relation("TeacherExamEvents")
-  monthlyPayments     MonthlyPayment[]    @relation("TeacherPayments")
+  students        Student[]         @relation("TeacherStudents")
+  inviteTokens    InviteToken[]
+  subjects        Subject[]
+  homeworksGiven  Homework[]        @relation("TeacherHomework")
+  gradesGiven     GradeRecord[]     @relation("TeacherGrades")
+  lessonsGiven    Lesson[]          @relation("TeacherLessons")
+  materialsGiven  StudentMaterial[] @relation("TeacherMaterials")
+  examEventsGiven ExamEvent[]       @relation("TeacherExamEvents")
+  monthlyPayments MonthlyPayment[]  @relation("TeacherPayments")
 
   // student relation
   studentProfile Student? @relation("StudentUser")
@@ -78,7 +87,65 @@ model User {
   teacherParentLinks ParentStudent[]     @relation("TeacherParentLinks")
   parentInviteTokens ParentInviteToken[]
 
-  lineLinkToken LineLinkToken?
+  lineLinkToken       LineLinkToken?
+  identityAccesses    IdentityAccess[]
+  identityLinkIntents IdentityLinkIntent[]
+}
+
+// 外部IdPの本人情報。メールアドレスではなく providerSubject (Google sub) を識別子にする。
+model AuthIdentity {
+  id              String           @id @default(uuid())
+  provider        IdentityProvider
+  providerSubject String
+  emailAtLink     String?
+  emailVerified   Boolean          @default(false)
+  lastLoginAt     DateTime?        @db.Timestamptz(3)
+  createdAt       DateTime         @default(now()) @db.Timestamptz(3)
+  updatedAt       DateTime         @updatedAt @db.Timestamptz(3)
+  accesses        IdentityAccess[]
+
+  @@unique([provider, providerSubject])
+}
+
+// 1つのGoogle IDが複数プロフィールを扱えるよう、本人情報とUserを分離する。
+model IdentityAccess {
+  id         String            @id @default(uuid())
+  identityId String
+  userId     String
+  kind       ProfileAccessKind @default(owner)
+  isDefault  Boolean           @default(false)
+  createdAt  DateTime          @default(now()) @db.Timestamptz(3)
+
+  identity AuthIdentity @relation(fields: [identityId], references: [id], onDelete: Cascade)
+  user     User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([identityId, userId])
+  @@index([userId])
+}
+
+// ログイン中の利用者が開始した明示的なGoogle連携だけを許可するための短期トークン。
+model IdentityLinkIntent {
+  id        String   @id @default(uuid())
+  tokenHash String   @unique
+  userId    String
+  expiresAt DateTime @db.Timestamptz(3)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model AuthAuditLog {
+  id         String   @id @default(uuid())
+  event      String
+  userId     String?
+  identityId String?
+  createdAt  DateTime @default(now()) @db.Timestamptz(3)
+
+  @@index([userId, createdAt])
+  @@index([identityId, createdAt])
 }
 
 model LineLinkToken {

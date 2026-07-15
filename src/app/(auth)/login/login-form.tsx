@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/card"
 import Link from "next/link"
 
-export default function LoginForm() {
+export default function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [error, setError] = useState("")
@@ -24,6 +24,15 @@ export default function LoginForm() {
 
   const registered = searchParams.get("registered")
   const invited = searchParams.get("invited")
+  const authError = searchParams.get("error")
+
+  const googleError = authError === "GoogleNotLinked"
+    ? "このGoogleアカウントは未連携です。先にメールアドレスとパスワードでログインし、設定から連携してください。"
+    : authError === "GoogleEmailNotVerified"
+      ? "確認済みメールアドレスを持つGoogleアカウントを使用してください。"
+      : authError
+        ? "Googleログインを完了できませんでした。"
+        : ""
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -55,6 +64,11 @@ export default function LoginForm() {
         <CardDescription>アカウントにログインしてください</CardDescription>
       </CardHeader>
       <CardContent>
+        {googleError && (
+          <p className="mb-4 rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
+            {googleError}
+          </p>
+        )}
         {registered && (
           <p className="mb-4 text-sm text-primary bg-primary/10 p-3 rounded-lg">
             登録が完了しました。ログインしてください。
@@ -89,6 +103,21 @@ export default function LoginForm() {
             {isPending ? "ログイン中..." : "ログイン"}
           </Button>
         </form>
+        {googleEnabled && (
+          <div className="mt-4 space-y-4">
+            <div className="flex items-center gap-3 text-xs text-muted-foreground">
+              <span className="h-px flex-1 bg-border" />または<span className="h-px flex-1 bg-border" />
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
+            >
+              Googleでログイン
+            </Button>
+          </div>
+        )}
       </CardContent>
       <CardFooter className="justify-center">
         <p className="text-sm text-muted-foreground">

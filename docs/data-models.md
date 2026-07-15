@@ -57,6 +57,16 @@ User {
 - `role` によって使われるリレーションが異なる。teacher は `students`/`homeworksGiven` など、student は `studentProfile`、parent は `parentLinks` を主に使う。
 - `password` は bcrypt ハッシュのみ保存。生パスワードをどこにも記録しない。
 
+### Google認証IDとプロフィールアクセス
+
+`AuthIdentity` はGoogleの不変IDであるOIDC `sub` を保持し、`IdentityAccess` がアプリ内の `User` プロフィールへの許可を表す。Googleのemailは表示・監査補助に限り、アカウント結合キーには使わない。
+
+- `AuthIdentity(provider, providerSubject)` は一意
+- `IdentityAccess(identityId, userId)` は一意で、`isDefault` がログイン直後のプロフィールを示す
+- `kind=guardian` は保護者による生徒プロフィール代理利用のために予約し、現段階では付与しない
+- `IdentityLinkIntent` は明示連携用の10分トークンをハッシュで保持する
+- `AuthAuditLog` は連携・解除・Googleログイン成功を追記型で記録する
+
 ---
 
 ### Student

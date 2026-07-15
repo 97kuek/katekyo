@@ -5,8 +5,55 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { generateLinkToken, unlinkLine, saveMeetLink, deleteParentAccount } from "./actions"
+import {
+  generateLinkToken,
+  unlinkLine,
+  saveMeetLink,
+  deleteParentAccount,
+  linkGoogleAccount,
+  unlinkGoogleAccount,
+} from "./actions"
 import { toast } from "sonner"
+
+export function GoogleAuthSettings({ isLinked }: { isLinked: boolean }) {
+  const [isPending, startTransition] = useTransition()
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">Google ログイン</CardTitle>
+        <CardDescription>
+          Googleの本人確認を、このアプリのプロフィールへ安全に連携します
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="flex items-center gap-2 text-sm font-medium">
+          <span className={`h-2 w-2 rounded-full ${isLinked ? "bg-primary" : "bg-muted-foreground"}`} />
+          {isLinked ? "連携済み" : "未連携"}
+        </div>
+        <p className="text-sm text-muted-foreground">
+          メールアドレスの一致だけでは連携しません。ログイン中にGoogle側でも本人確認します。
+        </p>
+        {isLinked ? (
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={isPending}
+            onClick={() => startTransition(async () => {
+              await unlinkGoogleAccount()
+            })}
+          >
+            {isPending ? "解除中..." : "連携を解除する"}
+          </Button>
+        ) : (
+          <form action={linkGoogleAccount}>
+            <Button type="submit" size="sm">Google アカウントを連携する</Button>
+          </form>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
 
 export function DeleteParentAccountButton() {
   const [confirming, setConfirming] = useState(false)

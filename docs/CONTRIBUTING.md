@@ -177,6 +177,8 @@ DATABASE_URL=                   # Supabase 接続文字列（pooler）
 DIRECT_URL=                     # Supabase Direct URL（マイグレーション用）
 NEXTAUTH_SECRET=                 # openssl rand -base64 32
 NEXTAUTH_URL=                    # 開発時: http://localhost:3000
+AUTH_GOOGLE_ID=                  # Google OAuth 2.0 クライアントID（任意。SECRETと同時設定）
+AUTH_GOOGLE_SECRET=              # Google OAuth 2.0 クライアントシークレット
 SUPABASE_URL=                    # Project Settings > API
 SUPABASE_SERVICE_ROLE_KEY=       # Service Role Key ※絶対に公開しない
 CRON_SECRET=                     # openssl rand -base64 32
@@ -188,6 +190,8 @@ LINE_CHANNEL_SECRET=             # LINE チャネルシークレット（Webhook
 LINE_RICH_MENU_TEACHER_ID=       # LINE リッチメニューID（先生用）
 LINE_RICH_MENU_STUDENT_ID=       # LINE リッチメニューID（生徒用）
 ```
+
+Google Cloud Console の承認済みリダイレクトURIには、`<NEXTAUTH_URL>/api/auth/callback/google` を登録する。既存利用者は従来ログイン後、設定画面からGoogleアカウントを明示連携する。メールアドレス一致による自動統合は行わない。
 
 Supabase Storage: バケット `homework-photos` を **Private** で作成する。既存環境もPrivateへ変更する。
 

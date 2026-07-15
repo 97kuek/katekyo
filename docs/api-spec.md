@@ -262,6 +262,8 @@ bulkApproveHomework(ids: string[]): Promise<{ error: string; approved: number }>
 
 | Action | ロール | 概要 |
 | --- | --- | --- |
+| `linkGoogleAccount` | 全ロール | 10分有効の連携intentを発行し、Google OAuthを開始。メール一致による自動統合はしない |
+| `unlinkGoogleAccount` | 全ロール | 現在のプロフィールに対するGoogleアクセス権を解除し、監査ログを記録 |
 | `generateLinkToken` | teacher / student | LINE 連携用CSPRNG 12桁hexトークン発行（10分有効） |
 | `unlinkLine` | teacher / student | LINE 連携解除。リッチメニューを解除してから `lineUserId` を null に |
 | `saveMeetLink` | teacher | Google Meet 固定 URL を保存（空文字で削除） |

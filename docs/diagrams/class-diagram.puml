@@ -10,6 +10,15 @@ enum Role {
   parent
 }
 
+enum IdentityProvider {
+  google
+}
+
+enum ProfileAccessKind {
+  owner
+  guardian
+}
+
 enum HomeworkStatus {
   assigned
   submitted
@@ -227,6 +236,38 @@ class LineLinkToken {
   createdAt: DateTime
 }
 
+class AuthIdentity {
+  id: String
+  provider: IdentityProvider
+  providerSubject: String
+  emailAtLink: String?
+  emailVerified: Boolean
+  lastLoginAt: DateTime?
+}
+
+class IdentityAccess {
+  id: String
+  identityId: String
+  userId: String
+  kind: ProfileAccessKind
+  isDefault: Boolean
+}
+
+class IdentityLinkIntent {
+  id: String
+  tokenHash: String
+  userId: String
+  expiresAt: DateTime
+}
+
+class AuthAuditLog {
+  id: String
+  event: String
+  userId: String?
+  identityId: String?
+  createdAt: DateTime
+}
+
 User "1" -- "0..*" Student : teacherId
 User "1" -- "0..1" Student : userId
 User "1" -- "0..*" InviteToken : teacherId
@@ -238,6 +279,9 @@ User "1" -- "0..*" ExamEvent : teacherId
 User "1" -- "0..*" StudentMaterial : teacherId
 User "1" -- "0..*" MonthlyPayment : teacherId
 User "1" -- "0..1" LineLinkToken : userId
+AuthIdentity "1" -- "0..*" IdentityAccess
+User "1" -- "0..*" IdentityAccess
+User "1" -- "0..*" IdentityLinkIntent
 
 Student "1" -- "0..*" Homework
 Student "1" -- "0..*" Lesson

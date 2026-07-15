@@ -2,7 +2,7 @@
 
 ## セキュリティ境界
 
-- 認証: Auth.js Credentials + JWT session
+- 認証: Auth.js Credentials / 連携済みGoogle OIDC + JWT session
 - 先生: `session.user.id` を `teacherId` として全テナントデータを分離
 - 生徒: `Student.userId` から解決した `studentId` だけを操作
 - 保護者: `ParentStudent(parentId, studentId)` に存在する生徒だけを閲覧
@@ -48,4 +48,13 @@ Supabase Storageの `homework-photos` bucketはPrivateにする。DBの `Homewor
 
 ## Googleアカウント認証
 
-Google認証の追加は推奨する。ただし、Googleは認証手段であり、roleやテナント所属を決める認可の正本にはしない。メール一致だけの自動アカウント統合を避け、OIDC `sub` を保存し、既存ログイン後の明示連携と招待トークンを維持する。設計案と導入順序は [ADR-0002](adr/0002-google-authentication.md) を参照する。
+Google認証の移行第1段階を実装済み。Googleは認証手段であり、roleやテナント所属を決める認可の正本にはしない。
+
+- OIDC `sub` を `provider + providerSubject` として保存し、メール一致では統合しない
+- 既存Credentialsログイン後に、10分有効のHttpOnly連携intentを発行して明示連携する
+- intentの生トークンはDBへ保存せずSHA-256ハッシュだけを保存する
+- `email_verified=true` を必須とし、OAuthのstate・PKCE・nonceはAuth.jsへ委譲する
+- `IdentityAccess` がGoogle本人情報とアプリ内プロフィールの許可関係を保持する
+- 連携・解除・Googleログイン成功を `AuthAuditLog` に記録する
+
+生徒・保護者の新規招待でのGoogle利用と、保護者が生徒プロフィールを代理利用するプロフィール選択は次段階とする。設計と導入順序は [ADR-0002](adr/0002-google-authentication.md) を参照する。
