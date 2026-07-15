@@ -49,7 +49,7 @@ export async function GET(req: NextRequest) {
 
     if (todayDue.length === 0 && overdue.length === 0) continue
 
-    const lines: string[] = ["📚 宿題リマインダー"]
+    const lines: string[] = ["宿題リマインダー"]
 
     if (todayDue.length > 0) {
       lines.push("\n【今日が期限】")
@@ -105,7 +105,7 @@ export async function GET(req: NextRequest) {
       const uncompleted = lessonsByTeacher.get(teacher.id) ?? []
       if (uncompleted.length === 0) continue
 
-      const lines = ["📋 未完了の授業があります\n"]
+      const lines = ["未完了の授業があります\n"]
       uncompleted.forEach((l) => {
         const d = l.date.toLocaleDateString("ja-JP", { month: "numeric", day: "numeric", timeZone: "Asia/Tokyo" })
         lines.push(`・${d} ${l.student.user.name}さん`)

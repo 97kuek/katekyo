@@ -93,7 +93,7 @@ export async function submitHomework(
     const baseUrl = process.env.NEXTAUTH_URL ?? ""
     await sendLineMessage(
       teacher.lineUserId,
-      `📬 宿題が提出されました\n\n${session.user.name}さんが「${homework.title}」を提出しました。\n${baseUrl}/homework/${id}`
+      `宿題が提出されました\n\n${session.user.name}さんが「${homework.title}」を提出しました。\n${baseUrl}/homework/${id}`
     )
   }
 
@@ -164,9 +164,9 @@ export async function reviewHomework(
       const baseUrl = process.env.NEXTAUTH_URL ?? ""
       let message: string
       if (action === "rejected") {
-        message = `🔁 宿題が差し戻されました\n\n「${homework.title}」が差し戻されました。\n\nフィードバック：\n${feedback ?? "（なし）"}\n\n${baseUrl}/homework/${id}`
+        message = `宿題が差し戻されました\n\n「${homework.title}」が差し戻されました。\n\nフィードバック：\n${feedback ?? "（なし）"}\n\n${baseUrl}/homework/${id}`
       } else {
-        message = `✅ 宿題が承認されました\n\n「${homework.title}」が承認されました！\n森に植物が1つ育ちました 🌱`
+        message = `宿題が承認されました\n\n「${homework.title}」が承認されました。\n森に植物が1つ育ちました。`
         if (feedback) message += `\n\n先生からのコメント：\n${feedback}`
         message += `\n\n${baseUrl}/homework/${id}`
       }

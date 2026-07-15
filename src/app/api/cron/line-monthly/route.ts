@@ -55,7 +55,7 @@ export async function GET(req: NextRequest) {
   for (const teacher of teachers) {
     if (!teacher.lineUserId || teacher.students.length === 0) continue
 
-    const lines: string[] = [`📊 ${monthLabel}の授業レポート`]
+    const lines: string[] = [`${monthLabel}の授業レポート`]
     let totalAmount = 0
 
     for (const student of teacher.students) {

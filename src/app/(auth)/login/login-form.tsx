@@ -65,7 +65,7 @@ export default function LoginForm({ googleEnabled }: { googleEnabled: boolean })
       </CardHeader>
       <CardContent>
         {googleError && (
-          <p className="mb-4 rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
+          <p className="mb-4 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-foreground">
             {googleError}
           </p>
         )}

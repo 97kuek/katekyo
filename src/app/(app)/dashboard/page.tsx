@@ -8,7 +8,7 @@ import { buttonVariants } from "@/components/ui/button"
 import { TEST_TYPE_LABELS } from "@/lib/test-types"
 import { PENDING_STATUSES, isPendingStatus, HOMEWORK_STATUS_CONFIG } from "@/lib/homework-status"
 import { GARDEN_CAPACITY } from "@/lib/garden/utils"
-import { TreePine, Trophy, Video, MapPin, MessageSquareText } from "lucide-react"
+import { ClipboardList, TreePine, Trophy, Video, MapPin, MessageSquareText } from "lucide-react"
 import { LessonLogCard } from "./lesson-log-card"
 import { StatusBadge } from "@/components/homework/status-badge"
 import { UnreadBadge } from "@/components/ui/unread-badge"
@@ -102,10 +102,12 @@ async function UncompletedLessonsSection({ teacherId }: { teacherId: string }) {
   return (
     <div className="rounded-lg border border-warning/30 bg-warning/10 px-4 py-3 flex items-center justify-between gap-3">
       <div className="flex items-center gap-3">
-        <div className="h-8 w-8 rounded-full bg-warning/15 flex items-center justify-center shrink-0 text-base">📋</div>
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-warning/15 text-warning-foreground">
+          <ClipboardList className="h-4 w-4" aria-hidden />
+        </div>
         <div>
           <p className="text-sm font-semibold text-warning-foreground">{count}件の授業が完了確認待ちです</p>
-          <p className="text-xs text-warning mt-0.5">カレンダーから授業を完了にしてください</p>
+          <p className="mt-0.5 text-xs text-warning-foreground">カレンダーから授業を完了にしてください</p>
         </div>
       </div>
       <Link href="/calendar" className={buttonVariants({ variant: "outline", size: "sm" })}>
@@ -239,9 +241,9 @@ async function HomeworkStatusSection({ teacherId }: { teacherId: string }) {
 
   const colors: Record<StatusKey, string> = {
     assigned: "bg-muted text-foreground",
-    submitted: "bg-warning/15 text-warning",
-    approved: "bg-primary/15 text-primary",
-    rejected: "bg-destructive/10 text-destructive",
+    submitted: "border border-warning/30 bg-warning/15 text-foreground",
+    approved: "border border-primary/25 bg-primary/15 text-foreground",
+    rejected: "border border-destructive/25 bg-destructive/10 text-foreground",
   }
   // ラベルは共通定数から取得（「提出済」「差戻し」等の表記ゆれ防止）
   const statusItems = (["assigned", "submitted", "approved", "rejected"] as StatusKey[]).map(
@@ -658,7 +660,7 @@ async function StudentGardenPreview({ userId }: { userId: string }) {
             <span className="ml-auto text-xs font-medium text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-full">第{generation}世代</span>
           )}
           {isFull && (
-            <span className="ml-auto text-xs font-bold text-warning bg-warning/15 px-2 py-0.5 rounded-full">満開達成</span>
+            <span className="ml-auto rounded-full border border-warning/30 bg-warning/15 px-2 py-0.5 text-xs font-bold text-foreground">満開達成</span>
           )}
         </div>
         <div className="h-2 bg-muted rounded-full overflow-hidden">

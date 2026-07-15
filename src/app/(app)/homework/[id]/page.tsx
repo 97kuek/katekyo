@@ -9,15 +9,15 @@ import { CancelSubmissionButton } from "@/app/(app)/homework/cancel-button"
 import { relativeDeadline, deadlineColorClass, formatDate } from "@/lib/date-utils"
 import { isPendingStatus, HOMEWORK_EVENT_LABELS } from "@/lib/homework-status"
 import { ExtendDeadlineButton } from "./extend-deadline"
-import { AlertCircle } from "lucide-react"
+import { AlertCircle, CheckCircle2, Inbox, RotateCcw } from "lucide-react"
 import { DifficultyBars } from "@/components/homework/difficulty-bars"
 import { MarkFeedbackSeen } from "./mark-feedback-seen"
 import { createHomeworkPhotoSignedUrl } from "@/lib/supabase-storage"
 
 const DIFFICULTY_LABELS: Record<number, { label: string; color: string }> = {
-  1: { label: "かんたん",    color: "text-primary bg-primary/10" },
-  2: { label: "ふつう",      color: "text-warning bg-warning/10" },
-  3: { label: "むずかしい",  color: "text-destructive bg-destructive/10" },
+  1: { label: "かんたん",    color: "text-foreground bg-primary/10 border border-primary/20" },
+  2: { label: "ふつう",      color: "text-foreground bg-warning/10 border border-warning/25" },
+  3: { label: "むずかしい",  color: "text-foreground bg-destructive/10 border border-destructive/20" },
 }
 
 export default async function HomeworkDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -229,10 +229,10 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
             {homework.events.map((ev) => {
               const config =
                 ev.eventType === "approved"
-                  ? { icon: "✅", color: "text-primary" }
+                  ? { Icon: CheckCircle2, color: "text-primary" }
                   : ev.eventType === "rejected"
-                  ? { icon: "🔁", color: "text-destructive" }
-                  : { icon: "📬", color: "text-primary" }
+                  ? { Icon: RotateCcw, color: "text-destructive" }
+                  : { Icon: Inbox, color: "text-primary" }
               const label = HOMEWORK_EVENT_LABELS[ev.eventType]
               return (
                 <li key={ev.id} className="ml-4">
@@ -241,7 +241,8 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
                   </span>
                   <div className="flex items-baseline gap-2 flex-wrap">
                     <span className={`text-xs font-semibold ${config.color}`}>
-                      {config.icon} {label}
+                      <config.Icon className="mr-1 inline h-3.5 w-3.5" aria-hidden />
+                      {label}
                     </span>
                     <span className="text-xs text-muted-foreground">{ev.actorName}</span>
                     <span className="text-xs text-muted-foreground">

@@ -37,7 +37,7 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
   if (studentLineUserId) {
     sends.push(sendLineMessage(
       studentLineUserId,
-      `📅 もうすぐ授業が始まります\n\n10分後に授業が始まります。\n以下のリンクからGoogle Meetに参加してください。\n\n${meetLink}`
+      `もうすぐ授業が始まります\n\n10分後に授業が始まります。\n以下のリンクからGoogle Meetに参加してください。\n\n${meetLink}`
     ))
   }
 
@@ -45,7 +45,7 @@ export const POST = verifySignatureAppRouter(async (req: Request) => {
   if (teacherLineUserId) {
     sends.push(sendLineMessage(
       teacherLineUserId,
-      `📅 まもなく授業があります\n\n${studentName}さんとの授業が10分後に始まります。\n\n${meetLink}`
+      `まもなく授業があります\n\n${studentName}さんとの授業が10分後に始まります。\n\n${meetLink}`
     ))
   }
 

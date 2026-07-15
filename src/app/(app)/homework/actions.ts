@@ -81,7 +81,7 @@ export async function bulkApproveHomework(ids: string[]): Promise<{ error: strin
         if (lineUserId) {
           await sendLineMessage(
             lineUserId,
-            `✅ 宿題が承認されました\n\n「${homework.title}」が承認されました！\n森に植物が1つ育ちました 🌱\n${baseUrl}/homework/${homework.id}`
+            `宿題が承認されました\n\n「${homework.title}」が承認されました。\n森に植物が1つ育ちました。\n${baseUrl}/homework/${homework.id}`
           )
         }
       })(),

@@ -68,7 +68,7 @@ export async function createHomework(
     const baseUrl = process.env.NEXTAUTH_URL ?? ""
     await sendLineMessage(
       student.user.lineUserId,
-      `📝 新しい宿題が追加されました\n\n「${title}」\n期限: ${dueStr}\n\n${baseUrl}/homework/${homework.id}`
+      `新しい宿題が追加されました\n\n「${title}」\n期限: ${dueStr}\n\n${baseUrl}/homework/${homework.id}`
     )
   }
 

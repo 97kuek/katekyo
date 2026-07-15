@@ -2,6 +2,7 @@
 
 import { buttonVariants } from "@/components/ui/button"
 import type { Lesson } from "./calendar-types"
+import { CalendarDays } from "lucide-react"
 
 export function NextLessonBanner({ lessons, isTeacher }: { lessons: Lesson[]; isTeacher: boolean }) {
   const now = new Date()
@@ -16,7 +17,9 @@ export function NextLessonBanner({ lessons, isTeacher }: { lessons: Lesson[]; is
 
   return (
     <div className="rounded-lg bg-muted border px-4 py-3 flex items-center gap-3">
-      <div className="h-9 w-9 rounded-full bg-border flex items-center justify-center shrink-0 text-lg">📅</div>
+      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-primary/20 bg-primary/10 text-foreground">
+        <CalendarDays className="h-4 w-4" aria-hidden />
+      </div>
       <div className="min-w-0 flex-1">
         <p className="text-sm font-semibold">
           次の授業: <span className="text-primary">{when}</span>

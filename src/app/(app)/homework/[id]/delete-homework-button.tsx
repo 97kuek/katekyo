@@ -17,7 +17,7 @@ export function DeleteHomeworkButton({ homeworkId }: { homeworkId: string }) {
         fd.append("homeworkId", homeworkId)
         await deleteHomework(fd)
       })}
-      className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+      className="text-destructive hover:bg-muted hover:text-destructive"
     >
       {isPending ? "削除中..." : "削除"}
     </Button>

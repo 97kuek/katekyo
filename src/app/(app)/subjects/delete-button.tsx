@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react"
 import { deleteSubject } from "./actions"
+import { X } from "lucide-react"
 
 export function DeleteSubjectButton({ id }: { id: string }) {
   const [confirming, setConfirming] = useState(false)
@@ -26,7 +27,7 @@ export function DeleteSubjectButton({ id }: { id: string }) {
           onClick={() => setConfirming(false)}
           className="text-xs text-muted-foreground hover:text-foreground"
         >
-          ✕
+          <X className="h-3.5 w-3.5" aria-label="キャンセル" />
         </button>
       </div>
     )

@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { ChevronRight, CheckCheck, Pencil } from "lucide-react"
+import { ChevronRight, CheckCheck, CheckCircle2, FileText, Pencil, X } from "lucide-react"
 import { LessonForm } from "./lesson-form"
 import { LessonEditForm } from "./lesson-edit-form"
 import { Button, buttonVariants } from "@/components/ui/button"
@@ -65,14 +65,14 @@ export function DayDetail({
                       <span className="text-xs text-muted-foreground">{l.durationMin}分</span>
                     )}
                     {l.completedAt && (
-                      <span className="text-xs text-primary font-medium">✓ 完了</span>
+                      <span className="flex items-center gap-1 text-xs font-medium text-primary"><CheckCircle2 className="h-3.5 w-3.5" aria-hidden />完了</span>
                     )}
                   </div>
                   {isTeacher && (
                     <div className="flex items-center gap-1 shrink-0">
                       {isPast && !l.completedAt && (
                         completingLessonId === l.id ? (
-                          <button onClick={() => setCompletingLessonId(null)} className="text-xs text-muted-foreground hover:text-foreground px-1">✕</button>
+                          <button aria-label="完了入力を閉じる" onClick={() => setCompletingLessonId(null)} className="flex min-h-11 min-w-11 items-center justify-center text-muted-foreground hover:text-foreground"><X className="h-4 w-4" aria-hidden /></button>
                         ) : (
                           <Button
                             onClick={() => { setCompletingLessonId(l.id); setEditingLessonId(null) }}
@@ -111,7 +111,7 @@ export function DayDetail({
                     })}
                   </div>
                 )}
-                {l.notes && <p className="text-xs text-muted-foreground mt-1">📝 {l.notes}</p>}
+                {l.notes && <p className="mt-1 flex items-start gap-1 text-xs text-muted-foreground"><FileText className="mt-0.5 h-3 w-3 shrink-0" aria-hidden />{l.notes}</p>}
                 {l.type === "online" && l.meetLink && (
                   <a
                     href={l.meetLink}

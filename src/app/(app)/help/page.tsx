@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
+import { CircleDot, Flower2, Info, Leaf, Lightbulb, Sprout, TreePine, Trees } from "lucide-react"
 
 export default async function HelpPage() {
   const session = await auth()
@@ -62,7 +63,7 @@ function Steps({ items }: { items: string[] }) {
 function Tip({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex gap-2 bg-muted border border-border rounded-md p-3 mt-1">
-      <span className="shrink-0 text-muted-foreground">💡</span>
+      <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
       <p className="text-sm text-foreground leading-relaxed">{children}</p>
     </div>
   )
@@ -183,11 +184,11 @@ function StudentHelp() {
       <SectionCard title="学習の森">
         <p className="mb-2">宿題が承認されたりテストで好成績を取ると、森に植物が育ちます。</p>
         <div className="bg-muted rounded-md p-3 space-y-1 text-xs">
-          <p><span className="font-semibold">🎋 竹</span>　満点 / 偏差値70以上（超レア）</p>
-          <p><span className="font-semibold">🌸 桜</span>　90%以上 / 偏差値65以上（レア）</p>
-          <p><span className="font-semibold">🌳 大木</span>　80〜89% / 偏差値60〜64</p>
-          <p><span className="font-semibold">🌲 木 / 🍄 きのこ</span>　宿題承認時に出現（きのこは低確率でラッキー！）</p>
-          <p><span className="font-semibold">🌿 茂み / 🌼 花</span>　60〜79% / 偏差値50〜59 など</p>
+          <PlantLegend icon={<Sprout />} label="竹" description="満点 / 偏差値70以上（超レア）" />
+          <PlantLegend icon={<Flower2 />} label="桜" description="90%以上 / 偏差値65以上（レア）" />
+          <PlantLegend icon={<Trees />} label="大木" description="80〜89% / 偏差値60〜64" />
+          <PlantLegend icon={<TreePine />} secondaryIcon={<CircleDot />} label="木 / きのこ" description="宿題承認時に出現（きのこは低確率）" />
+          <PlantLegend icon={<Leaf />} secondaryIcon={<Flower2 />} label="茂み / 花" description="60〜79% / 偏差値50〜59 など" />
         </div>
         <Tip>期限切れ・差し戻しがあると古い植物が枯れますが、提出すると回復します。64個すべて育つと次の世代が始まります。</Tip>
       </SectionCard>
@@ -248,7 +249,7 @@ function HomeScreenSection() {
           "「追加」をタップして完了",
         ]} />
         <div className="flex gap-2 bg-muted border border-border rounded-md p-3">
-          <span className="shrink-0 text-muted-foreground">ℹ</span>
+          <Info className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
           <p className="text-sm text-foreground leading-relaxed">Safari 以外のブラウザ（Chrome など）では追加できません。</p>
         </div>
       </div>
@@ -263,6 +264,15 @@ function HomeScreenSection() {
         ]} />
       </div>
     </div>
+  )
+}
+
+function PlantLegend({ icon, secondaryIcon, label, description }: { icon: React.ReactNode; secondaryIcon?: React.ReactNode; label: string; description: string }) {
+  return (
+    <p className="flex items-center gap-2">
+      <span className="flex items-center gap-0.5 text-primary [&_svg]:h-4 [&_svg]:w-4" aria-hidden>{icon}{secondaryIcon}</span>
+      <span><span className="font-semibold">{label}</span>　{description}</span>
+    </p>
   )
 }
 

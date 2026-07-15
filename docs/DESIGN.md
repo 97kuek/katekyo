@@ -38,6 +38,20 @@ katekyo アプリのデザイントークン・コンポーネント規則。`sr
 <div className="rounded-lg border bg-card p-4">
 ```
 
+### コントラスト規則
+
+- `bg-primary` / `bg-destructive` のような塗り背景では、必ず対応する `*-foreground` を使う
+- `bg-primary/10` などの淡色背景に同じ色相の `text-primary` を重ねない。本文は `text-foreground`、意味色は枠線またはアイコンで示す
+- 警告背景上の本文は `text-warning-foreground` を使う
+- ダークモードを含め、通常文字は WCAG AA のコントラスト比 4.5:1 を目標とする
+
+## アイコン
+
+- 画面、ボタン、バッジ、空状態、通知文ではUnicode絵文字を使わない
+- UIアイコンは `lucide-react` に統一し、学習の森には `TreePine`、`Trees`、`Sprout`、`Flower2`、`Leaf` などテーマに沿うものを使う
+- アイコンだけのボタンには `aria-label` または視覚的に同等のラベルを必須とする
+- 装飾アイコンには `aria-hidden` を付け、読み上げ内容を重複させない
+
 ## ボーダー半径スケール
 
 `@theme inline` で定義（`globals.css`）。
@@ -157,6 +171,14 @@ import { Button, buttonVariants } from "@/components/ui/button"
 | `:disabled` | opacity 50% + `pointer-events-none` |
 
 `active:not-aria-[haspopup]` 限定のため、ドロップダウントリガーにはプレスアニメーションが付かない。
+
+### モバイルのスワイプ操作
+
+- 左スワイプは編集・削除などの操作を表示するだけで、スワイプ完了時に削除を実行しない
+- 削除は露出した削除ボタンを押し、さらに「削除する」で確認する2段階操作とする
+- 横移動が縦移動より明確に大きい場合だけスワイプを開始し、通常の縦スクロールを妨げない
+- 行外のタップまたは Escape で操作領域を閉じる
+- 操作領域が閉じている間はフォーカス対象から外す
 
 ### ナビゲーション
 

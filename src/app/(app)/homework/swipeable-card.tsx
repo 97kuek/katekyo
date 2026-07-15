@@ -1,6 +1,6 @@
 "use client"
 
-import { useTransition } from "react"
+import { useState, useTransition } from "react"
 import Link from "next/link"
 import { Pencil, Trash2 } from "lucide-react"
 import { deleteHomework } from "@/app/(app)/homework/[id]/actions"
@@ -25,6 +25,7 @@ export function SwipeableHomeworkCard({
   id, title, studentName, status, dueDateStr, subjectNames, isOverdue,
 }: Props) {
   const [isPending, startTransition] = useTransition()
+  const [confirming, setConfirming] = useState(false)
 
   const canEdit = isPendingStatus(status)
   const dueDate = new Date(dueDateStr)
@@ -41,10 +42,16 @@ export function SwipeableHomeworkCard({
   return (
     <SwipeableRow
       className={isOverdue ? "border-destructive/40" : ""}
-      actionWidth={canEdit ? 112 : 64}
-      onFullSwipe={handleDelete}
+      actionWidth={176}
       actions={
-        <>
+        confirming ? (
+          <div className="flex w-full items-center justify-center gap-2 bg-destructive/10 px-2">
+            <button className="min-h-11 px-2 text-xs text-muted-foreground" onClick={() => setConfirming(false)}>戻る</button>
+            <button className="min-h-11 rounded-full bg-destructive px-3 text-xs font-semibold text-destructive-foreground disabled:opacity-50" disabled={isPending} onClick={handleDelete}>
+              {isPending ? "削除中..." : "削除する"}
+            </button>
+          </div>
+        ) : <>
           {canEdit && (
             <Link
               href={`/homework/${id}/edit`}
@@ -56,12 +63,12 @@ export function SwipeableHomeworkCard({
             </Link>
           )}
           <button
-            onClick={handleDelete}
+            onClick={() => setConfirming(true)}
             disabled={isPending}
             className={`flex flex-col items-center justify-center gap-1 text-destructive text-[11px] font-medium transition-opacity hover:opacity-70 disabled:opacity-50 ${canEdit ? "flex-1 border-l border-border/60" : "w-full"}`}
           >
             <Trash2 className="h-[18px] w-[18px]" />
-            {isPending ? "…" : "削除"}
+            削除
           </button>
         </>
       }

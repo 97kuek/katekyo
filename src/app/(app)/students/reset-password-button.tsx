@@ -4,6 +4,7 @@ import { useState, useActionState } from "react"
 import { resetStudentPassword } from "./actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { X } from "lucide-react"
 
 export function ResetPasswordButton({ studentId }: { studentId: string }) {
   const [open, setOpen] = useState(false)
@@ -47,7 +48,7 @@ export function ResetPasswordButton({ studentId }: { studentId: string }) {
       </form>
       {state.error && <span className="text-xs text-destructive">{state.error}</span>}
       <Button type="button" variant="ghost" size="sm" className="h-10 sm:h-7" onClick={() => setOpen(false)}>
-        ✕
+        <X className="h-4 w-4" aria-label="閉じる" />
       </Button>
     </div>
   )

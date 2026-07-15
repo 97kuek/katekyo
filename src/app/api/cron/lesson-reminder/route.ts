@@ -57,13 +57,13 @@ async function handle(req: NextRequest) {
     if (lesson.student.user.lineUserId) {
       sends.push(sendLineMessage(
         lesson.student.user.lineUserId,
-        `📅 もうすぐ授業が始まります\n\n10分後に授業が始まります。\n以下のリンクからGoogle Meetに参加してください。\n\n${meetLink}`
+        `もうすぐ授業が始まります\n\n10分後に授業が始まります。\n以下のリンクからGoogle Meetに参加してください。\n\n${meetLink}`
       ))
     }
     if (lesson.teacher.lineUserId) {
       sends.push(sendLineMessage(
         lesson.teacher.lineUserId,
-        `📅 まもなく授業があります\n\n${studentName}さんとの授業が10分後に始まります。\n\n${meetLink}`
+        `まもなく授業があります\n\n${studentName}さんとの授業が10分後に始まります。\n\n${meetLink}`
       ))
     }
 

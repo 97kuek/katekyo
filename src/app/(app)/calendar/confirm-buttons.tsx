@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { RotateCcw, Trash2 } from "lucide-react"
+import { RotateCcw, Trash2, X } from "lucide-react"
 import { deleteLesson, deleteExamEvent, uncompleteLesson } from "./actions"
 import { Button } from "@/components/ui/button"
 
@@ -25,7 +25,7 @@ export function DeleteLessonButton({ lessonId }: { lessonId: string }) {
           {isPending ? "..." : "はい"}
         </button>
         <button onClick={() => setConfirming(false)} className="text-xs text-muted-foreground hover:text-foreground">
-          ✕
+          <X className="h-3.5 w-3.5" aria-label="キャンセル" />
         </button>
       </div>
     )
@@ -64,7 +64,7 @@ export function UncompleteLessonButton({ lessonId }: { lessonId: string }) {
           {isPending ? "..." : "はい"}
         </button>
         <button onClick={() => setConfirming(false)} className="text-xs text-muted-foreground hover:text-foreground">
-          ✕
+          <X className="h-3.5 w-3.5" aria-label="キャンセル" />
         </button>
       </div>
     )
@@ -97,7 +97,7 @@ export function DeleteExamEventButton({ examEventId }: { examEventId: string }) 
           {isPending ? "削除中..." : "削除"}
         </button>
         <button onClick={() => setConfirming(false)} className="text-xs text-muted-foreground hover:text-foreground">
-          ✕
+          <X className="h-3.5 w-3.5" aria-label="キャンセル" />
         </button>
       </div>
     )

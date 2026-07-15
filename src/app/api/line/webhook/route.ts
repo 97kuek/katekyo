@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
           : process.env.LINE_RICH_MENU_STUDENT_ID
         if (richMenuId) await linkRichMenuToUser(lineUserId, richMenuId)
 
-        await sendLineMessage(lineUserId, `${linkToken.user.name}さんのLINE連携が完了しました✅\nこれからkatekyoの通知をお届けします。`)
+        await sendLineMessage(lineUserId, `${linkToken.user.name}さんのLINE連携が完了しました。\nこれからkatekyoの通知をお届けします。`)
 
         if (linkToken.user.role === "student") {
           const student = await db.student.findUnique({
@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
           if (student?.teacher.lineUserId) {
             await sendLineMessage(
               student.teacher.lineUserId,
-              `📲 ${linkToken.user.name}さんがLINE連携を完了しました\nこれから通知が届くようになります。`
+              `${linkToken.user.name}さんがLINE連携を完了しました\nこれから通知が届くようになります。`
             )
           }
         }

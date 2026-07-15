@@ -5,6 +5,7 @@ import { markAsPaid, markAsUnpaid, setPaymentDueDate } from "./actions"
 import { buttonVariants } from "@/components/ui/button"
 import { calcFee } from "@/lib/billing"
 import { formatCurrency } from "@/lib/format"
+import { Check, FileText } from "lucide-react"
 
 function dueDateLabel(dueDate: Date | null, isPaid: boolean): { text: string; className: string } | null {
   if (!dueDate) return null
@@ -174,7 +175,7 @@ export default async function BillingPage({
                     <div className="flex items-center gap-2 flex-wrap min-w-0">
                       <p className="font-medium text-sm break-words">{name}</p>
                       {isPaid && (
-                        <span className="text-xs bg-primary/15 text-primary font-medium rounded-full px-2 py-0.5">入金済み</span>
+                        <span className="rounded-full border border-primary/25 bg-primary/15 px-2 py-0.5 text-xs font-medium text-foreground">入金済み</span>
                       )}
                       {dueDateInfo && (
                         <span className={`text-xs ${dueDateInfo.className}`}>{dueDateInfo.text}</span>
@@ -226,7 +227,7 @@ export default async function BillingPage({
                           }) + (isPaid ? " border-primary/30 text-primary bg-transparent" : "")
                         }
                       >
-                        {isPaid ? "✓ 入金済み" : "入金確認"}
+                        {isPaid ? <><Check className="h-3.5 w-3.5" aria-hidden />入金済み</> : "入金確認"}
                       </button>
                     </form>
                   </div>
@@ -249,7 +250,7 @@ export default async function BillingPage({
                             {l.travelExpense != null && l.travelExpense > 0 ? ` · 交通費${formatCurrency(l.travelExpense)}` : ""}
                           </p>
                           {l.lessonLog && (
-                            <p className="text-xs text-warning mt-0.5 line-clamp-1">📝 {l.lessonLog}</p>
+                            <p className="mt-0.5 flex items-center gap-1 text-xs text-warning-foreground line-clamp-1"><FileText className="h-3 w-3 shrink-0" aria-hidden />{l.lessonLog}</p>
                           )}
                         </div>
                         {fee != null && (
@@ -352,7 +353,7 @@ async function ParentBillingPage({
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="font-medium text-sm">{name}</p>
                     {isPaid && (
-                      <span className="text-xs bg-primary/15 text-primary font-medium rounded-full px-2 py-0.5">入金済み</span>
+                      <span className="rounded-full border border-primary/25 bg-primary/15 px-2 py-0.5 text-xs font-medium text-foreground">入金済み</span>
                     )}
                     {dueDateInfo && (
                       <span className={`text-xs ${dueDateInfo.className}`}>{dueDateInfo.text}</span>
