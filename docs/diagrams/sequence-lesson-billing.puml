@@ -1,0 +1,43 @@
+@startuml
+' Scope: lesson completion and monthly billing projection
+' Related: UC-08, UC-09, FR-LSN-01, BR-LSN-01, FR-BIL-01, BR-BIL-01
+title 授業完了・月次請求 シーケンス図
+autonumber
+
+actor "先生" as Teacher
+participant "completeLesson\nServer Action" as Complete
+participant "Billing page\nServer Component" as Billing
+participant "billing helper" as Calculator
+participant "payment actions" as Payment
+participant "NextAuth auth()" as Auth
+database "PostgreSQL\nPrisma" as DB
+
+Teacher -> Complete : lessonIdを完了確定
+Complete -> Auth : teacher roleを確認
+Auth --> Complete : teacherId
+Complete -> DB : id + teacherId + completedAt=nullを検索
+Complete -> DB : completedAtを現在時刻へ更新
+Complete --> Teacher : カレンダーを再検証
+
+Teacher -> Billing : year / monthを指定して表示
+Billing -> Auth : teacher roleを確認
+Billing -> DB : teacherId + 月範囲 + completedAt!=nullで授業取得
+loop 完了授業ごと
+  Billing -> Calculator : durationMin, hourlyRate, travelExpense
+  Calculator --> Billing : lessonFee + total
+end
+Billing -> DB : teacherId + studentId + year + monthの支払状態取得
+Billing --> Teacher : 生徒別内訳・合計・入金状態
+
+Teacher -> Payment : 入金、未入金、期限を更新
+Payment -> Auth : teacher roleを確認
+Payment -> DB : studentId + teacherIdの所有確認
+Payment -> DB : MonthlyPaymentをupsert / delete
+Payment --> Teacher : /billingを再検証
+
+note over Billing,DB
+  未完了授業は請求に含めない。
+  すべての集計と支払状態をteacherIdで分離する。
+end note
+@enduml
+

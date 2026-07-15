@@ -1,4 +1,5 @@
 @startuml
+' Related: NFR-SEC-01, all domain FR/BR identifiers
 title katekyo 主要ドメイン クラス図
 hide methods
 skinparam classAttributeIconSize 0

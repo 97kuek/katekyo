@@ -1,0 +1,54 @@
+@startuml
+' Scope: logical components and dependency direction
+' Related: NFR-SEC-01, NFR-SEC-02, NFR-REL-01
+title katekyo コンポーネント図
+
+skinparam componentStyle rectangle
+
+actor Teacher
+actor Student
+actor Parent
+
+package "Next.js application" {
+  [Server Components\npage.tsx / layout.tsx] as Pages
+  [Client Components\nforms / charts / interactions] as Clients
+  [Server Actions\nactions.ts] as Actions
+  [Route Handlers\napp/api/**/route.ts] as Routes
+  [Authentication & guards\nNextAuth / action-guards] as Auth
+  [Domain helpers\nbilling / garden / validation] as Domain
+  [Prisma data access] as Data
+  [External adapters\nLINE / QStash / Storage] as Adapters
+}
+
+database "PostgreSQL" as DB
+cloud "LINE Messaging API" as LINE
+cloud "Upstash QStash" as QSTASH
+cloud "Supabase Storage" as STORAGE
+
+Teacher --> Pages
+Student --> Pages
+Parent --> Pages
+Pages --> Clients : serializable props
+Pages --> Auth
+Pages --> Data : server-side query
+Clients --> Actions : form / transition
+Actions --> Auth : session + role
+Actions --> Domain
+Actions --> Data : tenant-scoped query
+Actions --> Adapters : best-effort notification
+Routes --> Auth : session / bearer / signature
+Routes --> Domain
+Routes --> Data : scoped query
+Routes --> Adapters
+Data --> DB
+Adapters --> LINE
+Adapters --> QSTASH
+Adapters --> STORAGE
+
+note right of Auth
+  UIの表示制御は認可境界ではない。
+  書き込み前にサーバー側で
+  actorと対象リソースを検証する。
+end note
+@enduml
+

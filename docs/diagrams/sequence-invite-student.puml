@@ -1,0 +1,41 @@
+@startuml
+' Scope: student invitation acceptance and tenant binding
+' Related: UC-01, FR-INV-01, BR-INV-01, NFR-SEC-01
+title 生徒招待・登録 シーケンス図
+autonumber
+
+actor "先生" as Teacher
+actor "生徒" as Student
+participant "createInvite\nServer Action" as Create
+participant "acceptInvite\nServer Action" as Accept
+participant "NextAuth auth()" as Auth
+database "PostgreSQL\nPrisma" as DB
+
+Teacher -> Create : 名前・学年を送信
+Create -> Auth : セッションとteacher roleを確認
+Auth --> Create : teacherId
+Create -> DB : InviteTokenを作成\n[teacherId, expiresAt=7日後]
+DB --> Create : token
+Create --> Teacher : 招待URL
+
+Student -> Accept : token、メール、パスワードを送信
+Accept -> DB : token + usedAt=null + expiresAt>nowを検索
+alt 無効、期限切れ、使用済み
+  DB --> Accept : not found
+  Accept --> Student : 招待を受理しない
+else 有効
+  DB --> Accept : InviteToken(teacherId)
+  Accept -> DB : transaction開始
+  Accept -> DB : User(role=student)を作成
+  Accept -> DB : Student(userId, teacherId)を作成
+  Accept -> DB : InviteToken.usedAtを更新
+  Accept -> DB : transaction commit
+  Accept --> Student : /dashboardへ遷移
+end
+
+note over Accept,DB
+  teacherIdはクライアント入力ではなく、
+  検証済みInviteTokenから引き継ぐ。
+end note
+@enduml
+

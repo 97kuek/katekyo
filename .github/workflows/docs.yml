@@ -1,0 +1,36 @@
+name: Documentation
+
+on:
+  pull_request:
+    paths:
+      - "**/*.md"
+      - "docs/diagrams/*.puml"
+      - "scripts/check-docs.mjs"
+      - "package.json"
+      - ".github/workflows/docs.yml"
+  push:
+    branches: [main]
+    paths:
+      - "**/*.md"
+      - "docs/diagrams/*.puml"
+      - "scripts/check-docs.mjs"
+      - "package.json"
+      - ".github/workflows/docs.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm run docs:check
+      - name: Validate PlantUML syntax
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes plantuml
+          plantuml -checkonly docs/diagrams/*.puml

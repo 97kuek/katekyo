@@ -1,0 +1,31 @@
+@startuml
+' Scope: Homework aggregate lifecycle
+' Related: UC-03..UC-06, FR-HW-01..03, BR-HW-01
+title 宿題の状態遷移
+
+hide empty description
+
+[*] --> assigned : 先生が作成
+
+assigned --> submitted : 生徒が提出\n[本人かつ期限・写真要件を満たす]
+rejected --> submitted : 生徒が再提出\n[本人かつ写真要件を満たす]
+submitted --> assigned : 生徒が提出取消\n[本人]
+submitted --> approved : 先生が承認\n[同一テナント]
+submitted --> rejected : 先生が差し戻し\n[同一テナント]
+
+assigned --> [*] : 先生が削除
+rejected --> [*] : 先生が削除
+approved --> [*] : cleanup / annual cleanup
+
+note right of approved
+  承認時に HomeworkEvent を追加し、
+  GardenItem の付与を試みる。
+  LINE通知失敗は承認を取り消さない。
+end note
+
+note bottom
+  すべての操作で、状態条件に加えて
+  teacherId / studentId による権限境界を検証する。
+end note
+@enduml
+

@@ -1,0 +1,35 @@
+@startuml
+' Scope: production runtime topology
+' Related: FR-NTF-01, FR-NTF-02, NFR-REL-01
+title katekyo 配置図
+
+actor "Web / PWA user" as User
+
+node "Vercel" {
+  artifact "Next.js application" as App
+  component "Serverless Functions\nServer Actions / Route Handlers" as Functions
+  component "Scheduled invocation\nVercel Cron (plan dependent)" as Cron
+  App --> Functions
+  Cron --> Functions : Bearer CRON_SECRET
+}
+
+database "Supabase PostgreSQL" as Postgres
+folder "Supabase Storage\nhomework-photos" as Storage
+cloud "LINE Platform" as Line
+cloud "Upstash QStash" as Qstash
+
+User --> App : HTTPS
+Functions --> Postgres : Prisma / TLS
+Functions --> Storage : service credential / HTTPS
+Functions --> Line : Messaging API / HTTPS
+Functions --> Qstash : schedule / cancel
+Qstash --> Functions : signed webhook / HTTPS
+Line --> Functions : signed webhook / HTTPS
+
+note bottom of Functions
+  秘密情報は環境変数で管理する。
+  Webhook/Cronは署名またはBearerを検証し、
+  reminderSentAtで冪等性を確保する。
+end note
+@enduml
+

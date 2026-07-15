@@ -131,9 +131,13 @@
 
 | ファイル | 内容 |
 | --- | --- |
+| [docs/README.md](docs/README.md) | ドキュメント全体の入口・正本・読み方 |
 | [docs/architecture.md](docs/architecture.md) | ディレクトリ構成・ページ一覧・レイアウト |
 | [docs/data-models.md](docs/data-models.md) | Prisma モデル全定義 |
 | [docs/requirements.md](docs/requirements.md) | 機能要件・ビジネスロジック |
 | [docs/api-spec.md](docs/api-spec.md) | Server Actions・Route Handlers 一覧 |
+| [docs/testing-strategy.md](docs/testing-strategy.md) | テストレベル・認可マトリクス・品質ゲート |
+| [docs/traceability.md](docs/traceability.md) | 要件・UML・実装・テストの対応表 |
+| [docs/adr/](docs/adr/README.md) | アーキテクチャ判断記録 |
 | [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) | 開発環境セットアップ・ブランチ戦略・AI エージェント運用 |
 | [AGENTS.md](AGENTS.md) | Codex / Claude Code 共通のエージェント作業指示 |

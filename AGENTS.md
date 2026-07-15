@@ -10,16 +10,20 @@
 | ファイル | 内容 |
 | --- | --- |
 | [README.md](README.md) | プロダクト概要・デモアカウント・機能一覧・技術スタック |
+| [docs/README.md](docs/README.md) | ドキュメント体系の入口・正本・更新規約 |
 | [docs/usecases.md](docs/usecases.md) | ロール別ユースケース一覧（先生・生徒・保護者の利用シナリオ） |
 | [docs/requirements.md](docs/requirements.md) | 実装上のルール・制約・ビジネスロジック |
 | [docs/architecture.md](docs/architecture.md) | ディレクトリ構成・ページ一覧・CSR/SSR/SSG方針・テスト戦略・レスポンシブ設計 |
 | [docs/data-models.md](docs/data-models.md) | Prisma スキーマ・Enum・インデックス設計・テナント分離・クエリ原則 |
 | [docs/api-spec.md](docs/api-spec.md) | Server Actions・Route Handlers・Zod バリデーション |
+| [docs/testing-strategy.md](docs/testing-strategy.md) | テストレベル・認可マトリクス・品質ゲート |
+| [docs/traceability.md](docs/traceability.md) | 要件・UML・実装・テストの追跡表 |
+| [docs/adr/](docs/adr/README.md) | 重要な設計判断の記録 |
 | [docs/DESIGN.md](docs/DESIGN.md) | カラートークン・ボタン・フォーム・レイアウト・アニメーション規則 |
-| [docs/parent-account-spec.md](docs/parent-account-spec.md) | 保護者アカウント（招待フロー・ページ構成・セキュリティ設計） |
+| [docs/parent-account-spec.md](docs/parent-account-spec.md) | 保護者アカウントの補足設計（招待・ページ・セキュリティ） |
 | [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) | セットアップ・開発運用・テストコマンド・環境変数・ブランチ戦略 |
-| [docs/line-notification-plan.md](docs/line-notification-plan.md) | LINE 通知実装計画 |
-| [docs/meet-reminder-plan.md](docs/meet-reminder-plan.md) | Google Meet リマインダー実装計画 |
+| [docs/line-notification-plan.md](docs/line-notification-plan.md) | LINE 通知の設計・運用仕様 |
+| [docs/meet-reminder-plan.md](docs/meet-reminder-plan.md) | Google Meet リマインダーの設計・運用仕様 |
 | [todo.md](todo.md) | バックログ |
 
 ## 主要コマンド

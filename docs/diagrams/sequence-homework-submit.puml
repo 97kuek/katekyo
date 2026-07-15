@@ -1,4 +1,5 @@
 @startuml
+' Related: UC-04, FR-HW-02, BR-HW-01, NFR-SEC-01
 title 宿題提出 シーケンス図
 autonumber
 

@@ -1,6 +1,6 @@
-# Google Meet 授業前リマインダー 実装計画書
+# Google Meet 授業前リマインダー 設計・運用仕様
 
-> **実装状況**: 実装完了（2026年5月）
+> **文書状態**: Canonical。通知条件は [requirements.md](requirements.md)、エンドポイント契約は [api-spec.md](api-spec.md) を正本とし、この文書ではQStashとcronの運用を補足する。
 
 ## 概要
 

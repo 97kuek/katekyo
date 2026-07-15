@@ -3,6 +3,34 @@
 ユーザー視点の利用シナリオは [docs/usecases.md](usecases.md) を参照。  
 このドキュメントは実装上のルール・制約・ビジネスロジックを記述する。
 
+## 要件カタログ
+
+詳細節では、次のIDを変更・テスト・レビュー時の参照単位として使う。受入条件の細分化は、この親IDを維持したまま連番を追加する。
+
+| ID | 分類 | 要件 | 主なユースケース |
+| --- | --- | --- | --- |
+| NFR-SEC-01 | Security | 先生単位のテナントを越えてデータを参照・変更できない | 全UC |
+| NFR-SEC-02 | Security | サーバー側で認証、ロール、対象リソースの権限を検証する | 全UC |
+| FR-INV-01 | Functional | 先生が期限付きトークンで生徒を招待できる | UC-01 |
+| FR-INV-02 | Functional | 先生または生徒が保護者を招待できる | UC-02 |
+| BR-INV-01 | Business rule | 招待トークンは期限切れまたは使用済みなら受理しない | UC-01、UC-02 |
+| FR-HW-01 | Functional | 先生が担当生徒へ宿題を作成・編集できる | UC-03 |
+| FR-HW-02 | Functional | 生徒が自分の宿題を提出・取り消し・再提出できる | UC-04 |
+| FR-HW-03 | Functional | 先生が提出済み宿題を承認・差し戻しできる | UC-05、UC-06 |
+| BR-HW-01 | Business rule | 宿題は定義された状態遷移だけを許可する | UC-03〜UC-06 |
+| FR-LSN-01 | Functional | 先生が担当生徒の授業とテスト予定を管理できる | UC-07、UC-13 |
+| BR-LSN-01 | Business rule | 完了済み授業だけを請求対象にする | UC-08、UC-09 |
+| FR-BIL-01 | Functional | 先生が月次請求、期限、入金状態を管理できる | UC-09 |
+| BR-BIL-01 | Business rule | 授業料と交通費を定義された計算式で算出する | UC-08、UC-09 |
+| FR-GRD-01 | Functional | 先生が成績を管理し、許可された利用者が推移を閲覧できる | UC-10、UC-11 |
+| FR-GDN-01 | Functional | 宿題承認に応じたGardenを表示する | UC-05、UC-12 |
+| BR-GDN-01 | Business rule | Gardenの付与・枯れ表示・世代更新を決定論的な規則で処理する | UC-12 |
+| FR-NTF-01 | Functional | 利用者がLINEを連携し、対象イベントの通知を受け取れる | UC-14 |
+| FR-NTF-02 | Functional | 条件を満たすオンライン授業の開始前にMeetリンクを通知する | UC-15 |
+| NFR-REL-01 | Reliability | 外部通知の失敗で主データの保存を不整合にしない | UC-03〜UC-08、UC-15 |
+
+IDと実装・図・テストの対応は [traceability.md](traceability.md) を参照する。
+
 ---
 
 ## 認証・認可
@@ -21,7 +49,7 @@
 
 ### 保護者のアクセス制御
 
-`src/middleware.ts` の `PARENT_ALLOWED` ホワイトリストで以下のパスのみ許可:
+`src/proxy.ts` の保護者向けホワイトリストで以下のパスのみ許可:
 
 ```
 /dashboard, /grades, /calendar, /billing, /settings, /help,
@@ -30,7 +58,8 @@
 
 ### テナント分離
 
-- すべての DB クエリに `teacherId: session.user.id` を含める（詳細は [data-models.md](data-models.md)）
+- `NFR-SEC-01`: 先生の操作では、すべてのテナントデータの DB クエリに `teacherId: session.user.id` を含める（詳細は [data-models.md](data-models.md)）
+- 生徒の操作ではセッションの `studentId`、保護者の閲覧では `ParentStudent` の紐づきを権限境界にする
 - `id` のみを条件とする `findFirst` は禁止
 
 ---
@@ -58,6 +87,9 @@
 ## 宿題管理
 
 ### ステータス遷移
+
+`BR-HW-01` として、次の遷移だけを許可する。
+機械可読な設計図は [宿題状態遷移図](diagrams/state-homework.puml) を参照する。
 
 ```
 assigned ──[生徒が提出]──▶ submitted ──[先生が承認]──▶ approved

@@ -1,0 +1,41 @@
+@startuml
+' Scope: parent invitation by teacher/student and read-only linkage
+' Related: UC-02, FR-INV-02, BR-INV-01, NFR-SEC-01, NFR-SEC-02
+title 保護者招待・紐づけ シーケンス図
+autonumber
+
+actor "先生または生徒" as Inviter
+actor "保護者" as Parent
+participant "createParentInvite*\nServer Action" as Create
+participant "accept/link parent invite\nServer Action" as Accept
+participant "NextAuth auth()" as Auth
+database "PostgreSQL\nPrisma" as DB
+
+Inviter -> Create : studentIdを指定して招待を作成
+Create -> Auth : セッションとroleを確認
+Auth --> Create : teacherIdまたはstudentId
+Create -> DB : 対象Studentの権限境界を確認
+Create -> DB : ParentInviteTokenを作成\n[teacherId, studentId, expiresAt]
+Create --> Inviter : 招待URL
+
+Parent -> Accept : tokenを送信
+Accept -> DB : token + usedAt=null + expiresAt>nowを検索
+alt 未登録の保護者
+  Accept -> DB : transaction開始
+  Accept -> DB : User(role=parent)を作成
+  Accept -> DB : ParentStudent(parentId, studentId, teacherId)を作成
+  Accept -> DB : tokenを使用済みにしてcommit
+else ログイン済み保護者
+  Accept -> Auth : parent roleを確認
+  Accept -> DB : ParentStudentをupsert相当で作成
+  Accept -> DB : tokenを使用済みに更新
+else 無効なtoken
+  Accept --> Parent : 存在を漏らさないエラー
+end
+
+note over Accept,DB
+  ParentStudentが読み取り可能な生徒の境界になる。
+  teacherIdとstudentIdは検証済みtokenから引き継ぐ。
+end note
+@enduml
+

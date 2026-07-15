@@ -19,6 +19,13 @@ if (session.user.role !== "teacher") return { error: "権限がありません" 
 
 ## Server Actions 一覧
 
+### 認証（Authentication）
+
+| ファイル | Action | ロール | 概要 |
+| --- | --- | --- | --- |
+| `(auth)/register/actions.ts` | `registerTeacher` | 未ログイン | 先生アカウントを作成する |
+| `(auth)/invite/[token]/actions.ts` | `acceptInvite` | 未ログイン | 有効な生徒招待をトランザクションで受理する |
+
 ### 宿題（Homework）
 
 #### `homework/new/actions.ts`
@@ -258,6 +265,7 @@ bulkApproveHomework(ids: string[]): Promise<{ error: string; approved: number }>
 | `generateLinkToken` | teacher / student | LINE 連携用 6 桁トークン発行（10 分有効） |
 | `unlinkLine` | teacher / student | LINE 連携解除。リッチメニューを解除してから `lineUserId` を null に |
 | `saveMeetLink` | teacher | Google Meet 固定 URL を保存（空文字で削除） |
+| `deleteParentAccount` | parent | 保護者本人のアカウントと生徒との紐づきを削除 |
 
 ---
 
@@ -311,7 +319,7 @@ markLessonLogSeen(lessonId: string): Promise<void>
 
 ### 学習の森（Garden）
 
-#### `lib/garden/actions.ts`（または `lib/garden.ts`）
+#### `lib/garden/actions.ts`
 
 | Action | ロール | 概要 |
 | --- | --- | --- |
@@ -328,6 +336,7 @@ markLessonLogSeen(lessonId: string): Promise<void>
 | --- | --- | --- |
 | `createSubject` | teacher | 科目タグ作成 |
 | `deleteSubject` | teacher | 科目タグ削除 |
+| `updateSubjectColor` | teacher | 科目タグの表示色を許可済みトークンから更新 |
 
 ---
 
@@ -341,6 +350,17 @@ markLessonLogSeen(lessonId: string): Promise<void>
 
 ---
 
+### 表示切り替え（View as）
+
+#### `view-as-actions.ts`
+
+| Action | ロール | 概要 |
+| --- | --- | --- |
+| `startViewingAs` | teacher | 同一テナントの生徒を対象に閲覧コンテキストを開始 |
+| `stopViewingAs` | teacher | 閲覧コンテキストを終了 |
+
+---
+
 ## Route Handlers
 
 | パス | メソッド | 認証 | 概要 |
@@ -348,10 +368,15 @@ markLessonLogSeen(lessonId: string): Promise<void>
 | `/api/auth/[...nextauth]` | GET/POST | – | NextAuth ハンドラ |
 | `/api/billing/export` | GET | teacher セッション | 請求 CSV エクスポート。`?year=&month=` で月指定。UTF-8 BOM 付き（Excel 対応）。列: 生徒名 / 日付 / 開始時刻 / 種別 / 所要時間 / 時給 / 交通費 / 授業料 / 合計 |
 | `/api/cron/cleanup-homework` | GET | `CRON_SECRET` Header | Vercel Cron: 古い宿題・期限切れ招待トークン削除（毎日 18:00 UTC） |
+| `/api/cron/annual-cleanup` | GET | `CRON_SECRET` Header | 手動実行: 保持期間を超えた年度データを削除 |
 | `/api/cron/line-daily` | GET | `CRON_SECRET` Header | Vercel Cron: LINE 週次通知（毎週日曜 23:00 UTC） |
+| `/api/cron/line-monthly` | GET | `CRON_SECRET` Header | 手動実行: 月次LINE通知（定期Cronは無効） |
+| `/api/cron/lesson-reminder` | GET/POST | `CRON_SECRET` Bearer | 開始時刻が近いオンライン授業を検索する冪等セーフティネット |
 | `/api/webhooks/lesson-reminder` | POST | QStash 署名検証 | オンライン授業 10 分前に生徒の LINE へ Meet リンクを送信 |
+| `/api/line/webhook` | POST | LINE署名検証 | LINEイベントを受信し、連携トークンをユーザーへ紐づける |
 | `/api/line/setup-rich-menus` | POST | `Authorization: Bearer CRON_SECRET` | 一回限り: LINE リッチメニュー作成（先生・生徒用） |
 | `/api/line/apply-rich-menus` | POST | `Authorization: Bearer CRON_SECRET` | 一回限り: LINE 連携済み既存ユーザー全員にリッチメニューを一括適用 |
+| `/api/qstash/setup-reminder-schedule` | POST | `Authorization: Bearer CRON_SECRET` | QStashに授業リマインダーの定期スケジュールを作成 |
 
 ---
 
@@ -427,6 +452,14 @@ Server Action を実装する際は以下の順序を必ず守る:
 3. Zod バリデーション
 4. DB クエリに `teacherId: session.user.id`（先生）または `studentId: student.id`（生徒、要事前確認）を含める
 5. `id` だけの `findFirst` は禁止
+
+### エラー契約
+
+- 認証・認可エラーで対象リソースの存在を漏らさない
+- Zodエラーは利用者が修正できる簡潔なメッセージへ変換する
+- DB更新と履歴作成を一体として扱う必要がある処理はtransactionを使う
+- LINE・QStashなど副次的通知の失敗は `NFR-REL-01` に従い、主データ保存を不整合に戻さない
+- WebhookとCronは未検証リクエストを処理せず、再送されても二重実行しない
 
 ```typescript
 // ✅ 正しい実装例

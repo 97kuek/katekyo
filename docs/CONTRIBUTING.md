@@ -150,6 +150,12 @@ END $$;
 
 ## 便利コマンド
 
+ドキュメントを変更した場合は、相対リンク、見出しアンカー、PlantUMLの基本構造、要件トレーサビリティを確認する。
+
+```bash
+npm run docs:check
+```
+
 ```bash
 npm run dev            # 開発サーバー（Turbopack）
 npm run build          # 本番ビルド（prisma generate 込み）

@@ -1,0 +1,46 @@
+@startuml
+' Scope: online lesson reminder scheduling and idempotent delivery
+' Related: UC-15, FR-NTF-02, NFR-REL-01
+title オンライン授業リマインダー シーケンス図
+autonumber
+
+actor "先生" as Teacher
+participant "calendar action" as Action
+participant "QStash adapter" as Adapter
+cloud "Upstash QStash" as Qstash
+participant "lesson-reminder webhook / cron" as Handler
+database "PostgreSQL\nPrisma" as DB
+cloud "LINE Messaging API" as Line
+
+Teacher -> Action : online授業を作成・更新
+Action -> DB : Lessonを保存\n[teacherIdで生徒を所有確認]
+Action -> Adapter : 開始10分前をschedule
+Adapter -> Qstash : publish webhook
+alt scheduling成功
+  Qstash --> Adapter : messageId
+  Adapter -> DB : qstashMessageIdを保存
+else scheduling失敗
+  Adapter --> Action : null / logged error
+  note right of Action
+    授業保存は維持する。
+    cronセーフティネットが補完する。
+  end note
+end
+
+Qstash -> Handler : 署名付きPOST
+Handler -> Handler : QStash署名を検証
+Handler -> DB : Lessonをid + 条件で取得
+alt 対象外またはreminderSentAt設定済み
+  Handler --> Qstash : 200 skip
+else 通知対象
+  Handler -> Line : 先生・生徒へMeetリンク送信
+  Handler -> DB : reminderSentAtを更新
+  Handler --> Qstash : 200 sent
+end
+
+note over Handler,DB
+  cron経路も同じ送信条件とreminderSentAtを使い、
+  QStash経路との重複送信を防ぐ。
+end note
+@enduml
+

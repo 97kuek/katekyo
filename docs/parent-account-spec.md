@@ -1,6 +1,6 @@
-# 保護者アカウント 仕様書
+# 保護者アカウント設計
 
-> **実装状況**: 実装完了（2026年5月）
+> **文書状態**: Supporting。現行要件は [requirements.md](requirements.md)、利用シナリオは [usecases.md](usecases.md)、データ構造は [data-models.md](data-models.md) を正本とする。
 
 ## 概要
 
