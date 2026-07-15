@@ -32,7 +32,7 @@ export async function registerTeacher(
     return { error: "このメールアドレスは既に使用されています" }
   }
 
-  const hashed = await bcrypt.hash(password, 10)
+  const hashed = await bcrypt.hash(password, 12)
   await db.user.create({
     data: { name, email, password: hashed, role: "teacher" },
   })

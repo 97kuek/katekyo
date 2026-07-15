@@ -1,6 +1,7 @@
 import NextAuth from "next-auth"
 import { authConfig } from "@/lib/auth.config"
 import { NextResponse } from "next/server"
+import { matchesPathSegment } from "@/lib/security-validation"
 
 const { auth } = NextAuth(authConfig)
 
@@ -16,12 +17,12 @@ export default auth((req) => {
   const role = req.auth?.user?.role as string | undefined
 
   const isPublicPath =
-    pathname.startsWith("/login") ||
-    pathname.startsWith("/register") ||
-    pathname.startsWith("/invite") ||
-    pathname.startsWith("/parent-invite") ||
-    pathname.startsWith("/terms") ||
-    pathname.startsWith("/privacy")
+    matchesPathSegment(pathname, "/login") ||
+    matchesPathSegment(pathname, "/register") ||
+    matchesPathSegment(pathname, "/invite") ||
+    matchesPathSegment(pathname, "/parent-invite") ||
+    matchesPathSegment(pathname, "/terms") ||
+    matchesPathSegment(pathname, "/privacy")
 
   if (!isLoggedIn && !isPublicPath) {
     return NextResponse.redirect(new URL("/login", req.url))
@@ -32,14 +33,14 @@ export default auth((req) => {
   }
 
   if (role === "parent" && isLoggedIn) {
-    const allowed = PARENT_ALLOWED.some((p) => pathname.startsWith(p))
+    const allowed = PARENT_ALLOWED.some((p) => matchesPathSegment(pathname, p))
     if (!allowed && !isPublicPath) {
       return NextResponse.redirect(new URL("/dashboard", req.url))
     }
   }
 
   if (role === "student" && isLoggedIn) {
-    const blocked = STUDENT_BLOCKED.some((p) => pathname.startsWith(p))
+    const blocked = STUDENT_BLOCKED.some((p) => matchesPathSegment(pathname, p))
     if (blocked) {
       return NextResponse.redirect(new URL("/dashboard", req.url))
     }

@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
+import { hasValidCronSecret } from "@/lib/request-auth"
 
 // Vercel Cron calls this on April 1st at 00:00 UTC (09:00 JST).
 // Deletes data from before April 1st of the previous school year.
 export async function GET(req: NextRequest) {
-  const auth = req.headers.get("authorization")
-  if (auth !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!hasValidCronSecret(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 

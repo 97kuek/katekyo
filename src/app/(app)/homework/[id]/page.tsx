@@ -12,6 +12,7 @@ import { ExtendDeadlineButton } from "./extend-deadline"
 import { AlertCircle } from "lucide-react"
 import { DifficultyBars } from "@/components/homework/difficulty-bars"
 import { MarkFeedbackSeen } from "./mark-feedback-seen"
+import { createHomeworkPhotoSignedUrl } from "@/lib/supabase-storage"
 
 const DIFFICULTY_LABELS: Record<number, { label: string; color: string }> = {
   1: { label: "かんたん",    color: "text-primary bg-primary/10" },
@@ -61,6 +62,10 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
   }
 
   if (!homework) notFound()
+
+  const photoUrl = homework.photoUrl
+    ? await createHomeworkPhotoSignedUrl(homework.photoUrl)
+    : null
 
   const [subjects, material] = await Promise.all([
     db.subject.findMany({
@@ -181,12 +186,12 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
               </p>
             ) : null
           })()}
-          {homework.photoUrl && (
+          {photoUrl && (
             <div>
               <p className="text-xs font-medium text-muted-foreground mb-1">提出写真</p>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={homework.photoUrl}
+                src={photoUrl}
                 alt="提出写真"
                 className="w-full max-h-60 sm:max-h-80 object-contain rounded-md border bg-muted"
               />

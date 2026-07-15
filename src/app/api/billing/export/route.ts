@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { calcFeeBreakdown } from "@/lib/billing"
+import { escapeCsvCell } from "@/lib/csv"
+import { z } from "zod"
 
 export async function GET(req: NextRequest) {
   const session = await auth()
@@ -11,8 +13,17 @@ export async function GET(req: NextRequest) {
 
   const { searchParams } = req.nextUrl
   const now = new Date()
-  const year = parseInt(searchParams.get("year") ?? String(now.getFullYear()))
-  const rawMonth = parseInt(searchParams.get("month") ?? String(now.getMonth() + 1))
+  const period = z.object({
+    year: z.coerce.number().int().min(2000).max(2100),
+    month: z.coerce.number().int().min(1).max(12),
+  }).safeParse({
+    year: searchParams.get("year") ?? now.getFullYear(),
+    month: searchParams.get("month") ?? now.getMonth() + 1,
+  })
+  if (!period.success) {
+    return NextResponse.json({ error: "Invalid year or month" }, { status: 400 })
+  }
+  const { year, month: rawMonth } = period.data
   const month = rawMonth - 1
 
   const monthStart = new Date(year, month, 1)
@@ -67,11 +78,8 @@ export async function GET(req: NextRequest) {
     ]
   })
 
-  const escape = (v: string | number) =>
-    `"${String(v).replace(/"/g, '""')}"`
-
   const csv = [header, ...rows]
-    .map((row) => row.map(escape).join(","))
+    .map((row) => row.map(escapeCsvCell).join(","))
     .join("\r\n")
 
   const filename = `billing-${year}-${String(rawMonth).padStart(2, "0")}.csv`

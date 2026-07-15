@@ -6,6 +6,7 @@ import { redirect } from "next/navigation"
 import { z } from "zod"
 import { plantGardenItem } from "@/lib/garden/actions"
 import { scoreToGardenItemType } from "@/lib/garden/utils"
+import { validateTeacherSubjectIds } from "@/lib/tenant-validation"
 
 function toOptionalInt(val: FormDataEntryValue | null): number | null {
   if (!val || val === "") return null
@@ -52,7 +53,8 @@ export async function createGradeRecord(
   })
   if (!student) return { error: "指定された生徒が見つかりません" }
 
-  const subjectIds = formData.getAll("subjectIds") as string[]
+  const subjectIds = await validateTeacherSubjectIds(teacher.teacherId, formData.getAll("subjectIds") as string[])
+  if (!subjectIds) return { error: "無効な科目が含まれています" }
 
   const score = toOptionalInt(formData.get("score"))
   const maxScore = toOptionalInt(formData.get("maxScore"))

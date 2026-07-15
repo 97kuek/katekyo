@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { Client } from "@upstash/qstash"
+import { hasValidBearerSecret } from "@/lib/request-auth"
 
 // 授業10分前リマインダー用の QStash Schedule を作成する管理用エンドポイント（一度だけ実行）。
 // Vercel Hobby は Cron が「最大2個・1日1回」までのため、5分毎のポーリングは
@@ -10,7 +11,8 @@ import { Client } from "@upstash/qstash"
 // Vercel Pro に上げて vercel.json に cron を足す場合は、このスケジュールは不要（削除推奨）。
 
 export async function POST(req: NextRequest) {
-  if (req.headers.get("authorization") !== `Bearer ${process.env.CRON_SECRET}`) {
+  const cronSecret = process.env.CRON_SECRET
+  if (!hasValidBearerSecret(req, cronSecret)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
   if (!process.env.QSTASH_TOKEN) {
@@ -35,7 +37,7 @@ export async function POST(req: NextRequest) {
     destination,
     cron: "*/5 * * * *",
     // destination 側の Bearer 認証を満たすヘッダを転送する
-    headers: { Authorization: `Bearer ${process.env.CRON_SECRET}` },
+    headers: { Authorization: `Bearer ${cronSecret}` },
   })
 
   return NextResponse.json({ ok: true, scheduleId, destination, removedDuplicates: dupes.length })

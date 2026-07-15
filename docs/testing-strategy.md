@@ -80,6 +80,8 @@ E2EだけでDB・外部API依存を網羅しない。分岐の多い認可とエ
 | T-BIL-01 | P0 | 完了授業だけを請求対象にし料金を正しく計算 | Unit/Integration | 追加予定 | Gap |
 | T-NTF-01 | P1 | LINE失敗時も主処理の整合性を維持 | Contract | 追加予定 | Gap |
 | T-NTF-02 | P0 | Cron・Webhook認証とリマインダー冪等性 | Contract/Integration | 追加予定 | Gap |
+| T-API-01 | P0 | Bearer秘密値の未設定・不一致を拒否 | Unit | `src/lib/request-auth.test.ts` | Covered |
+| T-STO-01 | P0 | 画像magic bytes検証とprivate署名URL方式 | Unit/Review | `src/lib/supabase-storage.test.ts` | Covered |
 
 `Gap` は品質上の既知リスクとして扱う。機能変更が該当領域へ触れる場合、同じPRでCoveredへ移すか、未対応理由をレビューへ明記する。
 

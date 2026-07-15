@@ -99,7 +99,7 @@ Homework {
   difficultyRating Int?                                 # 難易度評価（1=かんたん 2=ふつう 3=むずかしい）
   teacherFeedback  String?                              # 先生からのフィードバック
   requiresPhoto    Boolean        @default(false)       # 写真提出を必須にするか
-  photoUrl         String?                              # Supabase Storage の公開 URL
+  photoUrl         String?                              # Supabase Storage のprivate object path（旧データは公開URL）
   submittedAt      DateTime?      @db.Timestamptz(3)
   reviewedAt       DateTime?      @db.Timestamptz(3)
   feedbackSeenAt   DateTime?      @db.Timestamptz(3)   # 生徒がフィードバックを確認した日時
@@ -376,7 +376,7 @@ ParentStudent {
 LineLinkToken {
   id        String   @id @default(uuid())
   userId    String   @unique
-  token     String   @unique                         # 6桁数字（10分有効）
+  token     String   @unique                         # CSPRNG 12桁hex（10分有効）
   expiresAt DateTime @db.Timestamptz(3)
   createdAt DateTime @default(now()) @db.Timestamptz(3)
 

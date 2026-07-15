@@ -39,13 +39,13 @@ export async function acceptInvite(
     return { error: "このメールアドレスは既に登録されています" }
   }
 
-  const hashed = await bcrypt.hash(password, 10)
+  const hashed = await bcrypt.hash(password, 12)
 
   try {
     await db.$transaction(async (tx) => {
       // usedAt が null の場合のみ使用済みにする（同時リクエストによる二重使用防止）
       const consumed = await tx.inviteToken.updateMany({
-        where: { id: invite.id, usedAt: null },
+        where: { id: invite.id, usedAt: null, expiresAt: { gt: new Date() } },
         data: { usedAt: new Date() },
       })
       if (consumed.count !== 1) {

@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { PENDING_STATUSES } from "@/lib/homework-status"
 import { sendLineMessage } from "@/lib/line"
+import { hasValidCronSecret } from "@/lib/request-auth"
 
 export async function GET(req: NextRequest) {
-  if (req.headers.get("authorization") !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!hasValidCronSecret(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 

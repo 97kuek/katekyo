@@ -189,7 +189,7 @@ LINE_RICH_MENU_TEACHER_ID=       # LINE リッチメニューID（先生用）
 LINE_RICH_MENU_STUDENT_ID=       # LINE リッチメニューID（生徒用）
 ```
 
-Supabase Storage: バケット `homework-photos` を **Public** で作成する。
+Supabase Storage: バケット `homework-photos` を **Private** で作成する。既存環境もPrivateへ変更する。
 
 ---
 

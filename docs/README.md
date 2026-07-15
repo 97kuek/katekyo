@@ -26,6 +26,7 @@
 | Interface | [api-spec.md](api-spec.md) | Server Actions、Route Handlers、入出力、エラー |
 | UX | [DESIGN.md](DESIGN.md) | UIトークン、コンポーネント、レスポンシブ規約 |
 | Quality | [testing-strategy.md](testing-strategy.md) | テストレベル、品質ゲート、非機能検証 |
+| Security | [security.md](security.md) | 認証・認可境界、外部公開面、監査結果、残存リスク |
 | Traceability | [traceability.md](traceability.md) | 要件、UML、実装、テストの対応関係 |
 | Decisions | [adr/](adr/README.md) | 重要な設計判断とその背景 |
 | Operations | [CONTRIBUTING.md](CONTRIBUTING.md) | セットアップ、変更手順、検証コマンド |

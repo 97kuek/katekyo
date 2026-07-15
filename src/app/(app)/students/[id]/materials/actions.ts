@@ -4,6 +4,7 @@ import { db } from "@/lib/db"
 import { requireTeacher } from "@/lib/action-guards"
 import { z } from "zod"
 import { revalidatePath } from "next/cache"
+import { validateTeacherSubjectIds } from "@/lib/tenant-validation"
 
 const createSchema = z.object({
   studentId: z.string().min(1),
@@ -26,7 +27,8 @@ export async function createMaterial(
   if (!result.success) return { error: result.error.issues[0].message }
 
   const { studentId, name, note } = result.data
-  const subjectIds = formData.getAll("subjectIds") as string[]
+  const subjectIds = await validateTeacherSubjectIds(teacher.teacherId, formData.getAll("subjectIds") as string[])
+  if (!subjectIds) return { error: "無効な科目が含まれています" }
 
   const student = await db.student.findFirst({
     where: { id: studentId, teacherId: teacher.teacherId },
@@ -61,6 +63,9 @@ export async function updateMaterialSubjects(
   const teacher = await requireTeacher()
   if (!teacher) return { error: "権限がありません" }
 
+  const validSubjectIds = await validateTeacherSubjectIds(teacher.teacherId, subjectIds)
+  if (!validSubjectIds) return { error: "無効な科目が含まれています" }
+
   const material = await db.studentMaterial.findFirst({
     where: { id: materialId, teacherId: teacher.teacherId, studentId },
   })
@@ -68,7 +73,7 @@ export async function updateMaterialSubjects(
 
   await db.studentMaterial.update({
     where: { id: materialId },
-    data: { subjectIds },
+    data: { subjectIds: validSubjectIds },
   })
 
   revalidatePath(`/students/${studentId}/materials`)

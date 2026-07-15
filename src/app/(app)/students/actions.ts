@@ -8,6 +8,7 @@ import { z } from "zod"
 import bcrypt from "bcryptjs"
 import { deleteHomeworkPhoto } from "@/lib/supabase-storage"
 import { resetPasswordSchema } from "@/lib/validation"
+import { validateTeacherSubjectIds } from "@/lib/tenant-validation"
 
 export async function resetStudentPassword(
   _prevState: { error: string; success: boolean },
@@ -70,7 +71,8 @@ export async function updateStudentRates(
   })
   if (!student) return { error: "生徒が見つかりません", success: false }
 
-  const defaultSubjectIds = formData.getAll("defaultSubjectIds") as string[]
+  const defaultSubjectIds = await validateTeacherSubjectIds(teacher.teacherId, formData.getAll("defaultSubjectIds") as string[])
+  if (!defaultSubjectIds) return { error: "無効な科目が含まれています", success: false }
 
   await db.student.update({
     where: { id: studentId },

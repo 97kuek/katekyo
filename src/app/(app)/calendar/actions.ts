@@ -8,6 +8,7 @@ import { z } from "zod"
 import { scheduleReminderMessage, cancelReminderMessage } from "@/lib/qstash"
 import { sendLineMessage } from "@/lib/line"
 import { createLessonSchema } from "@/lib/validation"
+import { validateTeacherSubjectIds } from "@/lib/tenant-validation"
 
 export async function createLesson(
   _prevState: { error: string; timestamp?: number },
@@ -43,7 +44,8 @@ export async function createLesson(
   })
 
   const effectiveTravelExpense = type === "online" ? 0 : (travelExpense ?? null)
-  const subjectIds = formData.getAll("subjectIds") as string[]
+  const subjectIds = await validateTeacherSubjectIds(teacherGuard.teacherId, formData.getAll("subjectIds") as string[])
+  if (!subjectIds) return { error: "無効な科目が含まれています" }
 
   const teacher = type === "online"
     ? await db.user.findUnique({ where: { id: teacherGuard.teacherId }, select: { meetLink: true } })
@@ -122,7 +124,8 @@ export async function updateLesson(
   const { lessonId, date, time, type, durationMin, notes, lessonLog, hourlyRate, travelExpense } = result.data
   const effectiveTravelExpense = type === "online" ? 0 : (travelExpense ?? null)
   const lessonLogPublic = formData.get("lessonLogPublic") === "on"
-  const subjectIds = formData.getAll("subjectIds") as string[]
+  const subjectIds = await validateTeacherSubjectIds(teacherGuard.teacherId, formData.getAll("subjectIds") as string[])
+  if (!subjectIds) return { error: "無効な科目が含まれています" }
   const newDate = new Date(`${date}T${time}:00+09:00`)
 
   const existing = await db.lesson.findFirst({

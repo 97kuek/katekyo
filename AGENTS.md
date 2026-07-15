@@ -17,6 +17,7 @@
 | [docs/data-models.md](docs/data-models.md) | Prisma スキーマ・Enum・インデックス設計・テナント分離・クエリ原則 |
 | [docs/api-spec.md](docs/api-spec.md) | Server Actions・Route Handlers・Zod バリデーション |
 | [docs/testing-strategy.md](docs/testing-strategy.md) | テストレベル・認可マトリクス・品質ゲート |
+| [docs/security.md](docs/security.md) | 認証・認可・テナント分離・外部境界のセキュリティ設計 |
 | [docs/traceability.md](docs/traceability.md) | 要件・UML・実装・テストの追跡表 |
 | [docs/adr/](docs/adr/README.md) | 重要な設計判断の記録 |
 | [docs/DESIGN.md](docs/DESIGN.md) | カラートークン・ボタン・フォーム・レイアウト・アニメーション規則 |

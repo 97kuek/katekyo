@@ -35,7 +35,7 @@ alt 写真必須だが photo なし
 else 入力OK
   opt photo あり
     Action -> Storage : uploadHomeworkPhoto(file, homeworkId)
-    Storage --> Action : public photoUrl
+    Storage --> Action : private object path
   end
   Action -> DB : Homework を submitted に更新
   Action -> DB : HomeworkEvent(submitted) を作成

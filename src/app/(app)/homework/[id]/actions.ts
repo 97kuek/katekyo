@@ -11,6 +11,7 @@ import { isPendingStatus } from "@/lib/homework-status"
 import { plantForHomeworkApproval } from "@/lib/garden/actions"
 import { sendLineMessage } from "@/lib/line"
 import { submitHomeworkSchema } from "@/lib/validation"
+import { validateTeacherSubjectIds } from "@/lib/tenant-validation"
 
 const MAX_PHOTO_BYTES = 5 * 1024 * 1024
 
@@ -253,7 +254,8 @@ export async function updateHomework(
 
   const { id, title, description, dueDate } = result.data
 
-  const subjectIds = formData.getAll("subjectIds") as string[]
+  const subjectIds = await validateTeacherSubjectIds(teacher.teacherId, formData.getAll("subjectIds") as string[])
+  if (!subjectIds) return { error: "無効な科目が含まれています" }
 
   const existing = await db.homework.findFirst({ where: { id, teacherId: teacher.teacherId } })
   if (!existing) return { error: "宿題が見つかりません" }

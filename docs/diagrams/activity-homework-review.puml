@@ -38,7 +38,7 @@ partition "システム" {
   endif
   if (写真あり?) then (yes)
     :Supabase Storage にアップロード;
-    :photoUrl を保存;
+    :private object path を保存;
   endif
   :Homework を submitted に更新;
   :HomeworkEvent(submitted) を作成;

@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
+import { hasValidCronSecret } from "@/lib/request-auth"
 
 // Vercel Cron calls this daily at 18:00 UTC (03:00 JST).
 export async function GET(req: NextRequest) {
-  const auth = req.headers.get("authorization")
-  if (auth !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!hasValidCronSecret(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { hasValidCronSecret } from "@/lib/request-auth"
 
 // 一度だけ実行してリッチメニューIDを取得する管理用エンドポイント。
 // curl -X POST https://<your-domain>/api/line/setup-rich-menus \
@@ -49,8 +50,7 @@ async function createMenu(token: string, menu: object): Promise<string | null> {
 }
 
 export async function POST(req: NextRequest) {
-  const auth = req.headers.get("authorization")
-  if (auth !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!hasValidCronSecret(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 

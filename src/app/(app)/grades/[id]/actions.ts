@@ -4,6 +4,7 @@ import { db } from "@/lib/db"
 import { requireTeacher } from "@/lib/action-guards"
 import { redirect } from "next/navigation"
 import { z } from "zod"
+import { validateTeacherSubjectIds } from "@/lib/tenant-validation"
 
 function toOptionalInt(val: FormDataEntryValue | null): number | null {
   if (!val || val === "") return null
@@ -42,7 +43,8 @@ export async function updateGradeRecord(
   if (!result.success) return { error: result.error.issues[0].message }
 
   const { id, testName, date, testType } = result.data
-  const subjectIds = formData.getAll("subjectIds") as string[]
+  const subjectIds = await validateTeacherSubjectIds(teacher.teacherId, formData.getAll("subjectIds") as string[])
+  if (!subjectIds) return { error: "無効な科目が含まれています" }
 
   const existing = await db.gradeRecord.findFirst({ where: { id, teacherId: teacher.teacherId } })
   if (!existing) return { error: "成績記録が見つかりません" }

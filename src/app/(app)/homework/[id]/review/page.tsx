@@ -5,6 +5,7 @@ import Link from "next/link"
 import ReviewForm from "./review-form"
 import { DifficultyBars } from "@/components/homework/difficulty-bars"
 import { formatDate } from "@/lib/date-utils"
+import { createHomeworkPhotoSignedUrl } from "@/lib/supabase-storage"
 
 export default async function ReviewHomeworkPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -18,6 +19,9 @@ export default async function ReviewHomeworkPage({ params }: { params: Promise<{
 
   if (!homework) notFound()
   if (homework.status !== "submitted") redirect("/homework")
+  const photoUrl = homework.photoUrl
+    ? await createHomeworkPhotoSignedUrl(homework.photoUrl)
+    : null
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
@@ -40,12 +44,12 @@ export default async function ReviewHomeworkPage({ params }: { params: Promise<{
           <p className="text-sm text-muted-foreground whitespace-pre-wrap">{homework.description}</p>
         )}
 
-        {homework.photoUrl && (
+        {photoUrl && (
           <div>
             <p className="text-xs font-medium text-muted-foreground mb-1">提出写真</p>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={homework.photoUrl}
+              src={photoUrl}
               alt="提出写真"
               className="w-full max-h-60 sm:max-h-80 object-contain rounded-md border bg-muted"
             />

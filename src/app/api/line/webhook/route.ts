@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
     if (event.type === "follow") {
       await sendLineMessage(
         lineUserId,
-        "katekyoへようこそ！\n\nLINE通知を受け取るには、アプリの「設定」ページで6桁のコードを発行し、ここに送信してください。"
+        "katekyoへようこそ！\n\nLINE通知を受け取るには、アプリの「設定」ページで12桁のコードを発行し、ここに送信してください。"
       )
       continue
     }
@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
     if (event.type === "message" && event.message?.type === "text") {
       const text: string = event.message.text.trim()
 
-      if (/^\d{6}$/.test(text)) {
+      if (/^[0-9A-F]{12}$/i.test(text)) {
         const now = new Date()
         const linkToken = await db.lineLinkToken.findUnique({
           where: { token: text },
@@ -49,13 +49,21 @@ export async function POST(req: NextRequest) {
           continue
         }
 
-        await db.$transaction([
-          db.user.update({
+        const linked = await db.$transaction(async (tx) => {
+          const consumed = await tx.lineLinkToken.deleteMany({
+            where: { id: linkToken.id, expiresAt: { gt: now } },
+          })
+          if (consumed.count !== 1) return false
+          await tx.user.update({
             where: { id: linkToken.userId },
             data: { lineUserId },
-          }),
-          db.lineLinkToken.delete({ where: { id: linkToken.id } }),
-        ])
+          })
+          return true
+        })
+        if (!linked) {
+          await sendLineMessage(lineUserId, "コードが無効または期限切れです。")
+          continue
+        }
 
         const richMenuId = linkToken.user.role === "teacher"
           ? process.env.LINE_RICH_MENU_TEACHER_ID
@@ -80,7 +88,7 @@ export async function POST(req: NextRequest) {
         continue
       }
 
-      await sendLineMessage(lineUserId, "6桁のコードを送信してください。\nコードはアプリの「設定」ページで発行できます。")
+      await sendLineMessage(lineUserId, "12桁の連携コードを送信してください。\nコードはアプリの「設定」ページで発行できます。")
     }
   }
 

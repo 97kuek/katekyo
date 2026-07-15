@@ -5,6 +5,7 @@ import { requireTeacher } from "@/lib/action-guards"
 import { redirect } from "next/navigation"
 import { sendLineMessage } from "@/lib/line"
 import { createHomeworkSchema } from "@/lib/validation"
+import { validateTeacherSubjectIds } from "@/lib/tenant-validation"
 
 export async function createHomework(
   _prevState: { error: string },
@@ -29,7 +30,8 @@ export async function createHomework(
   }
 
   const { studentId, title, description, dueDate, materialId, requiresPhoto } = result.data
-  const subjectIds = formData.getAll("subjectIds") as string[]
+  const subjectIds = await validateTeacherSubjectIds(teacher.teacherId, formData.getAll("subjectIds") as string[])
+  if (!subjectIds) return { error: "無効な科目が含まれています" }
 
   const student = await db.student.findFirst({
     where: { id: studentId, teacherId: teacher.teacherId },

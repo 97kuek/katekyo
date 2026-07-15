@@ -17,7 +17,7 @@ async function consumeInviteToken(
   inviteId: string
 ): Promise<boolean> {
   const consumed = await tx.parentInviteToken.updateMany({
-    where: { id: inviteId, usedAt: null },
+    where: { id: inviteId, usedAt: null, expiresAt: { gt: new Date() } },
     data: { usedAt: new Date() },
   })
   return consumed.count === 1
@@ -61,7 +61,7 @@ export async function acceptParentInvite(
     }
   }
 
-  const hashed = await bcrypt.hash(password, 10)
+  const hashed = await bcrypt.hash(password, 12)
 
   try {
     await db.$transaction(async (tx) => {

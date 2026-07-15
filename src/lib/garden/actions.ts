@@ -1,5 +1,3 @@
-"use server"
-
 import { db } from "@/lib/db"
 import { GARDEN_GRID_SIZE } from "./utils"
 import type { GardenItemType } from "./utils"

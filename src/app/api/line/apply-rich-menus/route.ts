@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { linkRichMenuToUser } from "@/lib/line"
+import { hasValidCronSecret } from "@/lib/request-auth"
 
 // LINE連携済みの既存ユーザー全員にリッチメニューを一括適用する一回限りのエンドポイント。
 // curl -X POST https://<domain>/api/line/apply-rich-menus \
 //   -H "Authorization: Bearer <CRON_SECRET>"
 
 export async function POST(req: NextRequest) {
-  const auth = req.headers.get("authorization")
-  if (auth !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!hasValidCronSecret(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 

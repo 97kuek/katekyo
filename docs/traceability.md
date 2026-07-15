@@ -16,6 +16,8 @@
 | UC-13 テスト予定 | FR-LSN-01 | usecase、class | `(app)/calendar/actions.ts` | T-VAL-01、T-SEC-01 | Partial |
 | UC-14 LINE連携 | FR-NTF-01 | component、deployment | `app/api/line`、`lib/line.ts` | T-NTF-01、T-SEC-02 | Gap |
 | UC-15 Meet通知 | FR-NTF-02、NFR-REL-01 | sequence-lesson-reminder、deployment | `app/api/cron`、`app/api/webhooks`、`lib/qstash.ts` | T-NTF-01、T-NTF-02 | Partial |
+| UC-04〜05 提出写真 | NFR-SEC-03 | sequence-homework-submit | `lib/supabase-storage.ts`、`homework/[id]` | T-STO-01 | Covered |
+| 管理API | NFR-SEC-04 | component、deployment | `lib/request-auth.ts`、`app/api/cron` | T-API-01 | Covered |
 
 `Gap` は仕様未実装を意味せず、追跡可能な自動テストまたは設計図が不足している状態を示す。
 

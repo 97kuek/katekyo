@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { sendLineMessage } from "@/lib/line"
+import { hasValidCronSecret } from "@/lib/request-auth"
 
 /**
  * オンライン授業の Meet リンクを開始10分前に LINE 配信するセーフティネット。
@@ -16,7 +17,7 @@ import { sendLineMessage } from "@/lib/line"
  * どちらでも動くよう GET / POST 両方を受ける。
  */
 async function handle(req: NextRequest) {
-  if (req.headers.get("authorization") !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!hasValidCronSecret(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 

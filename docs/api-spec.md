@@ -262,7 +262,7 @@ bulkApproveHomework(ids: string[]): Promise<{ error: string; approved: number }>
 
 | Action | ロール | 概要 |
 | --- | --- | --- |
-| `generateLinkToken` | teacher / student | LINE 連携用 6 桁トークン発行（10 分有効） |
+| `generateLinkToken` | teacher / student | LINE 連携用CSPRNG 12桁hexトークン発行（10分有効） |
 | `unlinkLine` | teacher / student | LINE 連携解除。リッチメニューを解除してから `lineUserId` を null に |
 | `saveMeetLink` | teacher | Google Meet 固定 URL を保存（空文字で削除） |
 | `deleteParentAccount` | parent | 保護者本人のアカウントと生徒との紐づきを削除 |
@@ -385,10 +385,10 @@ markLessonLogSeen(lessonId: string): Promise<void>
 ```typescript
 // src/lib/supabase-storage.ts
 
-// バケット: homework-photos（Public）
+// バケット: homework-photos（Private）
 // パス: homework/{homeworkId}/{timestamp}.{ext}
 uploadHomeworkPhoto(file: File, homeworkId: string): Promise<string | null>
-// → 公開 URL を返す。Homework.photoUrl に保存する
+// → private object path を返す。Homework.photoUrl に保存する
 
 deleteHomeworkPhoto(url: string): Promise<void>
 // → URL から Storage パスを解析して削除。生徒削除時・写真再アップ時に呼び出す

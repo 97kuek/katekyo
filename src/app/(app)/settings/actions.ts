@@ -5,12 +5,15 @@ import { db } from "@/lib/db"
 import { requireTeacher } from "@/lib/action-guards"
 import { z } from "zod"
 import { unlinkRichMenuFromUser } from "@/lib/line"
+import { randomBytes } from "node:crypto"
+import { isAllowedMeetUrl } from "@/lib/security-validation"
 
 export async function generateLinkToken(): Promise<{ error?: string; token?: string }> {
   const session = await auth()
   if (!session) return { error: "認証が必要です" }
 
-  const token = Math.floor(100000 + Math.random() * 900000).toString()
+  // 48bit。6桁コードより総当たり耐性を大幅に高めつつ、LINEへコピーしやすい形式にする。
+  const token = randomBytes(6).toString("hex").toUpperCase()
   const expiresAt = new Date(Date.now() + 10 * 60 * 1000)
 
   await db.lineLinkToken.upsert({
@@ -43,7 +46,9 @@ export async function unlinkLine(): Promise<{ error?: string }> {
 }
 
 const meetLinkSchema = z.object({
-  meetLink: z.string().url("有効なURLを入力してください").includes("meet.google.com", { message: "Google Meet のURLを入力してください" }).or(z.literal("")),
+  meetLink: z.string().url("有効なURLを入力してください")
+    .refine(isAllowedMeetUrl, "Google Meet のURLを入力してください")
+    .or(z.literal("")),
 })
 
 export async function deleteParentAccount(): Promise<{ error: string }> {
