@@ -3,12 +3,14 @@
 import { startTransition, useActionState, useState, useRef } from "react"
 import { submitHomework } from "../actions"
 import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { DifficultyBars } from "@/components/homework/difficulty-bars"
 import { StickyFormActions } from "@/components/ui/sticky-form-actions"
 import { PendingStatus } from "@/components/ui/pending-status"
+import { FormField, FormFieldLabel } from "@/components/ui/form-field"
+import { FormMessage } from "@/components/ui/form-message"
+import { ImagePlus, LoaderCircle, Send, Trash2 } from "lucide-react"
 
 const DIFFICULTIES = [
   { value: 1, label: "かんたん" },
@@ -98,25 +100,18 @@ export default function SubmitForm({ id, rejectedFeedback, requiresPhoto = false
           <input type="hidden" name="id" value={id} />
           <input type="hidden" name="difficultyRating" value={difficulty ?? ""} />
           {state.error && (
-            <p className="text-sm text-foreground border border-destructive/30 bg-destructive/10 p-3 rounded-md">{state.error}</p>
+            <FormMessage type="error">{state.error} 写真とコメントを確認してください。</FormMessage>
           )}
 
           {rejectedFeedback && (
-            <div className="rounded-md bg-destructive/5 border border-destructive/20 p-3">
+            <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-3">
               <p className="text-xs font-medium text-destructive mb-1">先生のコメント（差し戻し理由）</p>
               <p className="text-sm text-destructive/80">{rejectedFeedback}</p>
             </div>
           )}
 
           <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <Label>提出写真</Label>
-              {requiresPhoto ? (
-                <span className="text-xs font-medium text-foreground border border-destructive/30 bg-destructive/10 px-1.5 py-0.5 rounded">必須</span>
-              ) : (
-                <span className="text-xs text-muted-foreground">任意</span>
-              )}
-            </div>
+            <FormFieldLabel htmlFor="homework-photo" label="提出写真" required={requiresPhoto} />
             <p className="text-xs text-muted-foreground">代表的なページを1枚だけ撮影して添付してください</p>
             {preview && (
               <div className="space-y-2">
@@ -124,14 +119,11 @@ export default function SubmitForm({ id, rejectedFeedback, requiresPhoto = false
                 <img
                   src={preview}
                   alt="提出写真プレビュー"
-                  className="w-full max-h-64 object-contain rounded-md border bg-muted"
+                  className="max-h-64 w-full rounded-lg border bg-muted object-contain"
                 />
                 {isCompressing ? (
                   <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-                    <svg className="animate-spin h-3 w-3 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
-                    </svg>
+                    <LoaderCircle className="size-3 animate-spin" aria-hidden />
                     写真を圧縮中...
                   </p>
                 ) : (
@@ -142,6 +134,7 @@ export default function SubmitForm({ id, rejectedFeedback, requiresPhoto = false
                     onClick={handleRemovePhoto}
                     className="border-destructive/40 text-destructive hover:bg-muted"
                   >
+                    <Trash2 aria-hidden />
                     写真を削除
                   </Button>
                 )}
@@ -150,11 +143,13 @@ export default function SubmitForm({ id, rejectedFeedback, requiresPhoto = false
             {requiresPhoto && !preview && (
               <p className="text-xs text-destructive">写真を添付してください（提出に必須です）</p>
             )}
-            <label className={`flex flex-col items-center justify-center w-full h-28 border-2 border-dashed ${requiresPhoto && !preview ? "border-destructive/50" : "border-input"} rounded-md cursor-pointer hover:bg-muted/50 transition-colors${preview ? " hidden" : ""}`}>
-              <span className="text-sm text-muted-foreground">タップして写真を選択</span>
+            <label className={`flex h-28 w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed transition-colors hover:bg-muted/50 ${requiresPhoto && !preview ? "border-destructive/50" : "border-input"}${preview ? " hidden" : ""}`}>
+              <ImagePlus className="mb-1 size-5 text-muted-foreground" aria-hidden />
+              <span className="text-sm text-muted-foreground">写真を選択</span>
               <span className="text-xs text-muted-foreground mt-1">カメラで撮影も可能です</span>
               <input
                 ref={fileRef}
+                id="homework-photo"
                 type="file"
                 name="photo"
                 accept="image/*"
@@ -168,17 +163,16 @@ export default function SubmitForm({ id, rejectedFeedback, requiresPhoto = false
             <summary className="flex min-h-11 cursor-pointer list-none items-center px-3 text-sm font-medium text-muted-foreground hover:text-foreground [&::-webkit-details-marker]:hidden">任意項目（難易度・コメント）</summary>
             <div className="space-y-4 border-t p-3">
           <div className="space-y-2">
-            <Label>この宿題の難易度（任意）</Label>
+            <FormFieldLabel label="この宿題の難易度" />
             <div className="flex gap-2">
               {DIFFICULTIES.map((d) => (
-                <button key={d.value} type="button" aria-pressed={difficulty === d.value} onClick={() => setDifficulty(difficulty === d.value ? null : d.value)} className={`flex min-h-14 flex-1 flex-col items-center justify-center gap-1 rounded-md border-2 text-sm font-medium ${difficulty === d.value ? "border-primary bg-primary text-primary-foreground" : "border-input text-muted-foreground hover:bg-muted"}`}>
+                <button key={d.value} type="button" aria-pressed={difficulty === d.value} onClick={() => setDifficulty(difficulty === d.value ? null : d.value)} className={`flex min-h-14 flex-1 flex-col items-center justify-center gap-1 rounded-lg border-2 text-sm font-medium ${difficulty === d.value ? "border-primary bg-primary text-primary-foreground" : "border-input text-muted-foreground hover:bg-muted"}`}>
                   <DifficultyBars level={d.value} className="h-3 w-5" /><span className="text-xs">{d.label}</span>
                 </button>
               ))}
             </div>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="note">先生へのコメント（任意）</Label>
+          <FormField htmlFor="note" label="先生へのコメント" hint="質問や報告がある場合に入力します。">
             <Textarea
               id="note"
               name="note"
@@ -186,15 +180,12 @@ export default function SubmitForm({ id, rejectedFeedback, requiresPhoto = false
               className="resize-none"
               placeholder="質問や報告があれば入力してください"
             />
-          </div>
+          </FormField>
             </div>
           </details>
           {isPending && preview && (
-            <div className="flex items-center gap-2.5 rounded-md bg-primary/5 border border-primary/20 px-4 py-3">
-              <svg className="animate-spin h-4 w-4 text-primary shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
-              </svg>
+            <div className="flex items-center gap-2.5 rounded-lg border border-primary/20 bg-primary/5 px-4 py-3">
+              <LoaderCircle className="size-4 shrink-0 animate-spin text-primary" aria-hidden />
               <div>
                 <p className="text-sm font-medium text-primary">写真をアップロード中...</p>
                 <p className="text-xs text-primary/70 mt-0.5">そのままお待ちください</p>
@@ -203,6 +194,7 @@ export default function SubmitForm({ id, rejectedFeedback, requiresPhoto = false
           )}
           <StickyFormActions>
             <Button type="submit" className="w-full md:w-auto" disabled={isSubmitDisabled}>
+              <Send aria-hidden />
               {isPending ? "提出中..." : isCompressing ? "写真を処理中..." : requiresPhoto && !preview ? "写真を添付してください" : "提出する"}
             </Button>
           </StickyFormActions>

@@ -8,6 +8,7 @@ import { FormField } from "@/components/ui/form-field"
 import { FormProgress } from "@/components/ui/form-progress"
 import { FormMessage } from "@/components/ui/form-message"
 import { PendingStatus } from "@/components/ui/pending-status"
+import { KeyRound } from "lucide-react"
 
 export function PasswordForm() {
   const [state, action, isPending] = useActionState(updatePassword, { error: "" })
@@ -25,6 +26,7 @@ export function PasswordForm() {
         <Input id="newPassword" name="newPassword" type="password" required minLength={8} autoComplete="new-password" />
       </FormField>
       <Button type="submit" size="sm" disabled={isPending}>
+        <KeyRound aria-hidden />
         {isPending ? "変更中..." : "パスワードを変更"}
       </Button>
     </form>

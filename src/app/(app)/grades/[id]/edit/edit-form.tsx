@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import { FormMessage } from "@/components/ui/form-message"
 import { FormProgress } from "@/components/ui/form-progress"
 import { PendingStatus } from "@/components/ui/pending-status"
+import { Save } from "lucide-react"
 
 type Grade = {
   id: string
@@ -65,7 +66,7 @@ export default function EditGradeForm({
         }}
         mode="edit"
         studentField={(
-          <div className="col-span-2 space-y-2">
+          <div className="min-w-0 max-w-full space-y-2 sm:col-span-2">
             <Label>生徒</Label>
             <Input value={grade.student.user.name} disabled className="bg-muted" />
           </div>
@@ -74,7 +75,8 @@ export default function EditGradeForm({
 
       <StickyFormActions>
         <Button type="submit" className="w-full md:w-auto" disabled={isPending}>
-          {isPending ? "保存中..." : "変更を保存"}
+          <Save aria-hidden />
+          {isPending ? "保存中..." : "保存"}
         </Button>
       </StickyFormActions>
     </form>

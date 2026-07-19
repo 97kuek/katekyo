@@ -5,8 +5,9 @@ import { updateStudentGrade } from "./[id]/actions"
 import { GRADE_OPTIONS } from "@/lib/grades"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Select } from "@/components/ui/select"
-import { Label } from "@/components/ui/label"
 import { PendingSubmitButton } from "@/components/ui/pending-submit-button"
+import { FormField } from "@/components/ui/form-field"
+import { Pencil, Save, X } from "lucide-react"
 
 type Props = { studentId: string; currentGrade: string }
 
@@ -21,7 +22,8 @@ export function UpdateGradeForm({ studentId, currentGrade }: Props) {
         size="xs"
         onClick={() => setOpen(true)}
       >
-        学年変更
+        <Pencil aria-hidden />
+        学年
       </Button>
     )
   }
@@ -35,8 +37,7 @@ export function UpdateGradeForm({ studentId, currentGrade }: Props) {
       className="grid gap-2 sm:flex sm:items-center sm:gap-1"
     >
       <input type="hidden" name="studentId" value={studentId} />
-      <div className="grid gap-1">
-        <Label htmlFor={`grade-${studentId}`} className="text-xs">新しい学年（必須）</Label>
+      <FormField htmlFor={`grade-${studentId}`} label="新しい学年" required className="sm:w-auto">
         <Select
           id={`grade-${studentId}`}
           name="grade"
@@ -49,11 +50,13 @@ export function UpdateGradeForm({ studentId, currentGrade }: Props) {
             <option key={g} value={g}>{g}</option>
           ))}
         </Select>
-      </div>
+      </FormField>
       <PendingSubmitButton pendingLabel="保存中" className={buttonVariants({ size: "sm", className: "h-10 sm:h-8" })}>
+        <Save aria-hidden />
         保存
       </PendingSubmitButton>
       <Button type="button" variant="outline" size="sm" className="h-10 sm:h-8" onClick={() => setOpen(false)}>
+        <X aria-hidden />
         キャンセル
       </Button>
     </form>

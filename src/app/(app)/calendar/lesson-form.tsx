@@ -5,11 +5,13 @@ import { toast } from "sonner"
 import { createLesson } from "./actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Select } from "@/components/ui/select"
 import { FormProgress } from "@/components/ui/form-progress"
 import { FormMessage } from "@/components/ui/form-message"
 import { PendingStatus } from "@/components/ui/pending-status"
+import { FormField, FormFieldLabel } from "@/components/ui/form-field"
+import { ChoiceControl } from "@/components/ui/choice-control"
+import { Plus, X } from "lucide-react"
 
 const DURATION_KEY = "lesson_default_duration"
 
@@ -105,13 +107,12 @@ export function LessonForm({ students, defaultDate, subjects, embedded = false, 
         <FormProgress />
         <PendingStatus pending={isPending} label="授業を追加しています" />
 
-        <div className="space-y-1.5">
-          <Label htmlFor="studentId" className="text-xs font-medium">生徒 <span className="text-destructive">必須</span></Label>
+        <FormField htmlFor="studentId" label="生徒" required>
           {students.length === 1 ? (
-            <>
-              <input type="hidden" name="studentId" value={students[0].id} />
-              <p className="text-sm py-2 px-3 rounded-md border bg-muted">{students[0].user.name}（{students[0].grade}）</p>
-            </>
+              <>
+                <input type="hidden" name="studentId" value={students[0].id} />
+                <Input id="studentId" value={`${students[0].user.name}（${students[0].grade}）`} disabled />
+              </>
           ) : (
             <Select
               id="studentId"
@@ -128,32 +129,22 @@ export function LessonForm({ students, defaultDate, subjects, embedded = false, 
               ))}
             </Select>
           )}
-        </div>
+        </FormField>
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <div className="space-y-1.5 min-w-0">
-            <Label htmlFor="date" className="text-xs font-medium">日付 <span className="text-destructive">必須</span></Label>
+          <FormField htmlFor="date" label="日付" required>
             <Input id="date" name="date" type="date" required defaultValue={defaultDate} className="md:h-9" />
-          </div>
-          <div className="space-y-1.5 min-w-0">
-            <Label htmlFor="time" className="text-xs font-medium">時刻 <span className="text-destructive">必須</span></Label>
+          </FormField>
+          <FormField htmlFor="time" label="時刻" required>
             <Input id="time" name="time" type="time" required defaultValue="16:00" className="md:h-9" />
-          </div>
+          </FormField>
         </div>
 
         <div className="space-y-1.5">
-          <Label className="text-xs font-medium">授業形式 <span className="text-destructive">必須</span></Label>
-          <div className="flex gap-5 pt-0.5">
-            <label className="flex min-h-11 items-center gap-1.5 text-sm cursor-pointer">
-              <input type="radio" name="type" value="online" defaultChecked required className="accent-primary"
-                onChange={() => setLessonType("online")} />
-              オンライン
-            </label>
-            <label className="flex min-h-11 items-center gap-1.5 text-sm cursor-pointer">
-              <input type="radio" name="type" value="offline" required className="accent-primary"
-                onChange={() => setLessonType("offline")} />
-              対面
-            </label>
+          <FormFieldLabel label="授業形式" required />
+          <div className="flex flex-wrap gap-2 pt-0.5">
+            <ChoiceControl type="radio" name="type" value="online" defaultChecked required onChange={() => setLessonType("online")} label="オンライン" />
+            <ChoiceControl type="radio" name="type" value="offline" required onChange={() => setLessonType("offline")} label="対面" />
           </div>
         </div>
 
@@ -164,8 +155,7 @@ export function LessonForm({ students, defaultDate, subjects, embedded = false, 
           <div className="space-y-3 border-t p-3">
         <p className="text-xs leading-relaxed text-muted-foreground">時間・金額は半角数字で入力します。カンマ、単位、ハイフンは不要です。</p>
 
-        <div className="space-y-1.5">
-          <Label htmlFor="durationMin" className="text-xs font-medium">時間（分・任意）</Label>
+        <FormField htmlFor="durationMin" label="時間（分）" hint="半角数字で入力します。単位は不要です。">
           <Input
             id="durationMin"
             name="durationMin"
@@ -175,10 +165,9 @@ export function LessonForm({ students, defaultDate, subjects, embedded = false, 
             onChange={handleDurationChange}
             className="md:h-9"
           />
-        </div>
+        </FormField>
 
-        <div className="space-y-1.5">
-          <Label htmlFor="repeatWeeks" className="text-xs font-medium">繰り返し登録（任意）</Label>
+        <FormField htmlFor="repeatWeeks" label="繰り返し登録">
           <Select
             id="repeatWeeks"
             name="repeatWeeks"
@@ -190,11 +179,10 @@ export function LessonForm({ students, defaultDate, subjects, embedded = false, 
               <option key={w} value={w}>計{w+1}回（今日 + {w}週後まで）</option>
             ))}
           </Select>
-        </div>
+        </FormField>
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <div className="space-y-1.5">
-            <Label htmlFor="hourlyRate" className="text-xs font-medium">時給（円・任意）</Label>
+          <FormField htmlFor="hourlyRate" label="時給（円）" hint="半角数字のみ。カンマ・円記号は不要です。">
             <Input
               id="hourlyRate"
               name="hourlyRate"
@@ -205,9 +193,8 @@ export function LessonForm({ students, defaultDate, subjects, embedded = false, 
               onChange={(e) => setHourlyRate(e.target.value)}
               className="md:h-9"
             />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="travelExpense" className="text-xs font-medium">交通費（円・任意）</Label>
+          </FormField>
+          <FormField htmlFor="travelExpense" label="交通費（円）" hint="オンライン授業では0円になります。">
             <Input
               id="travelExpense"
               name="travelExpense"
@@ -219,46 +206,41 @@ export function LessonForm({ students, defaultDate, subjects, embedded = false, 
               onChange={(e) => setTravelExpense(e.target.value)}
               className="md:h-9 disabled:bg-muted disabled:text-muted-foreground"
             />
-          </div>
+          </FormField>
         </div>
 
         {subjects.length > 0 && (
           <div className="space-y-1.5">
-            <Label className="text-xs font-medium">科目（任意・複数選択可）</Label>
-            <div className="flex flex-wrap gap-x-4 gap-y-1.5">
+            <FormFieldLabel label="科目（複数選択可）" />
+            <div className="flex flex-wrap gap-2">
               {subjects.map((s) => (
-                <label key={s.id} className="flex min-h-11 items-center gap-1.5 text-sm cursor-pointer">
-                  <input
-                    type="checkbox"
-                    name="subjectIds"
-                    value={s.id}
-                    checked={selectedSubjectIds.includes(s.id)}
-                    onChange={(e) =>
-                      setSelectedSubjectIds((ids) =>
-                        e.target.checked ? [...ids, s.id] : ids.filter((id) => id !== s.id)
-                      )
-                    }
-                    className="accent-primary"
-                  />
-                  {s.name}
-                </label>
+                <ChoiceControl
+                  key={s.id}
+                  type="checkbox"
+                  name="subjectIds"
+                  value={s.id}
+                  checked={selectedSubjectIds.includes(s.id)}
+                  onChange={(e) => setSelectedSubjectIds((ids) => e.target.checked ? [...ids, s.id] : ids.filter((id) => id !== s.id))}
+                  label={s.name}
+                />
               ))}
             </div>
           </div>
         )}
 
-        <div className="space-y-1.5">
-          <Label htmlFor="notes" className="text-xs font-medium">メモ（任意）</Label>
+        <FormField htmlFor="notes" label="メモ" hint="授業前に確認したい内容を入力します。">
           <Input id="notes" name="notes" placeholder="事前メモ" className="md:h-9" />
-        </div>
+        </FormField>
           </div>
         </details>
 
         <div className="flex gap-2 pt-1">
           <Button type="submit" size="sm" disabled={isPending}>
+            <Plus aria-hidden />
             {isPending ? "追加中..." : "追加"}
           </Button>
           <Button type="button" variant="outline" size="sm" onClick={() => { setOpen(false); onClose?.() }}>
+            <X aria-hidden />
             キャンセル
           </Button>
         </div>

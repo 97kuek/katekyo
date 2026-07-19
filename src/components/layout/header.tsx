@@ -15,10 +15,10 @@ export default function Header({ name, notificationData }: { name: string; notif
 
   return (
     <header className="h-14 border-b border-border bg-background flex items-center justify-between px-4 md:px-6 shrink-0">
-      {/* モバイルでは現在地（ページタイトル）を優先し、無い画面ではブランド名を出す */}
+      {/* モバイルの最上位ナビゲーションは、画面名ではなくブランドを固定表示する。 */}
       <div className="flex items-center gap-2 md:hidden min-w-0">
         <BookOpen className="h-5 w-5 text-primary shrink-0" />
-        <span className="font-bold tracking-tight truncate">{title || "katekyo"}</span>
+        <span className="truncate font-bold tracking-tight">katekyo</span>
       </div>
       <span className="text-sm font-semibold hidden md:block">{title}</span>
       <div className="flex items-center gap-1.5">

@@ -1,11 +1,11 @@
 import type { ChangeEventHandler, ReactNode } from "react"
 
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Select } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { TEST_TYPE_OPTIONS } from "@/lib/test-types"
-import { FormField } from "@/components/ui/form-field"
+import { FormField, FormFieldLabel } from "@/components/ui/form-field"
+import { ChoiceControl } from "@/components/ui/choice-control"
 
 type Subject = { id: string; name: string }
 
@@ -61,7 +61,7 @@ export function GradeFormFields({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {studentField}
 
-        <FormField htmlFor="testType" label="テスト種別" required className="col-span-2 space-y-2" hint="模試は偏差値、それ以外は得点率を学習の森の評価に優先利用します。">
+        <FormField htmlFor="testType" label="テスト種別" required className="min-w-0 max-w-full space-y-2 sm:col-span-2" hint="模試は偏差値、それ以外は得点率を学習の森の評価に優先利用します。">
           <Select
             id="testType"
             name="testType"
@@ -76,7 +76,7 @@ export function GradeFormFields({
           </Select>
         </FormField>
 
-        <FormField htmlFor="testName" label="テスト名" required className="col-span-2 space-y-2" hint="一覧で他の記録と区別できる正式名称を入力します。" example="2026年 第1回 英語模試">
+        <FormField htmlFor="testName" label="テスト名" required className="min-w-0 max-w-full space-y-2 sm:col-span-2" hint="一覧で他の記録と区別できる正式名称を入力します。" example="2026年 第1回 英語模試">
           <Input
             id="testName"
             name="testName"
@@ -89,7 +89,7 @@ export function GradeFormFields({
           />
         </FormField>
 
-        <FormField htmlFor="date" label="実施日" required className="col-span-2 space-y-2">
+        <FormField htmlFor="date" label="実施日" required className="min-w-0 max-w-full space-y-2 sm:col-span-2">
           <Input
             id="date"
             name="date"
@@ -171,19 +171,17 @@ export function GradeFormFields({
 
       {subjects.length > 0 && (
         <div className="space-y-2">
-          <Label>科目タグ <span className="text-xs text-muted-foreground font-normal">（任意・複数選択可）</span></Label>
-          <div className="flex flex-wrap gap-3">
+          <FormFieldLabel label="科目タグ（複数選択可）" />
+          <div className="flex flex-wrap gap-2">
             {subjects.map((s) => (
-              <label key={s.id} className="flex min-h-11 items-center gap-1.5 cursor-pointer">
-                <input
-                  type="checkbox"
-                  name="subjectIds"
-                  value={s.id}
-                  defaultChecked={selectedSubjectIds.includes(s.id)}
-                  className="accent-primary"
-                />
-                <span className="text-sm">{s.name}</span>
-              </label>
+              <ChoiceControl
+                key={s.id}
+                type="checkbox"
+                name="subjectIds"
+                value={s.id}
+                defaultChecked={selectedSubjectIds.includes(s.id)}
+                label={s.name}
+              />
             ))}
           </div>
         </div>

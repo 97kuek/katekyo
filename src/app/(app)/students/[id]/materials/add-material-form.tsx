@@ -4,10 +4,11 @@ import { useActionState, useRef } from "react"
 import { createMaterial } from "./actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { FormField } from "@/components/ui/form-field"
+import { FormField, FormFieldLabel } from "@/components/ui/form-field"
 import { FormMessage } from "@/components/ui/form-message"
 import { PendingStatus } from "@/components/ui/pending-status"
 import { toast } from "sonner"
+import { ChoiceControl } from "@/components/ui/choice-control"
 
 type Subject = { id: string; name: string }
 
@@ -40,13 +41,10 @@ export function AddMaterialForm({ studentId, subjects }: { studentId: string; su
       </div>
       {subjects.length > 0 && (
         <div className="space-y-1.5">
-          <p className="text-xs text-muted-foreground">科目タグ（任意・複数選択可）</p>
+          <FormFieldLabel label="科目タグ（複数選択可）" />
           <div className="flex flex-wrap gap-2">
             {subjects.map((s) => (
-              <label key={s.id} className="inline-flex min-h-11 items-center gap-1.5 cursor-pointer">
-                <input type="checkbox" name="subjectIds" value={s.id} className="accent-primary" />
-                <span className="text-xs">{s.name}</span>
-              </label>
+              <ChoiceControl key={s.id} type="checkbox" name="subjectIds" value={s.id} label={s.name} />
             ))}
           </div>
         </div>

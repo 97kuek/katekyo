@@ -1,13 +1,14 @@
 "use client"
 
 import { useActionState, useState, useTransition } from "react"
-import { CalendarClock, Pencil, Trash2 } from "lucide-react"
+import { CalendarClock, Pencil, Save, Trash2, X } from "lucide-react"
 import { deleteHomework, extendDueDate } from "./actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { PendingStatus } from "@/components/ui/pending-status"
 import { ActionButton, ActionLink, ActionList } from "@/components/ui/action-list"
+import { FormField } from "@/components/ui/form-field"
+import { FormMessage } from "@/components/ui/form-message"
 
 export function HomeworkDetailActions({
   homeworkId,
@@ -71,17 +72,18 @@ export function HomeworkDetailActions({
         <form action={action} className="apple-card-surface grid gap-3 rounded-2xl p-4 sm:grid-cols-[minmax(0,12rem)_auto_auto] sm:items-end">
           <PendingStatus pending={isPending} label="宿題の期限を更新しています" />
           <input type="hidden" name="id" value={homeworkId} />
-          <div className="space-y-1">
-            <Label htmlFor="homework-due-date" className="text-xs">新しい期限（必須）</Label>
+          <FormField htmlFor="homework-due-date" label="新しい期限" required>
             <Input id="homework-due-date" name="dueDate" type="date" required defaultValue={currentDueDate} className="md:h-10" />
-          </div>
+          </FormField>
           <Button type="submit" disabled={isPending}>
+            <Save aria-hidden />
             {isPending ? "更新中..." : "期限を更新"}
           </Button>
           <Button type="button" variant="outline" onClick={() => setChangingDeadline(false)}>
+            <X aria-hidden />
             キャンセル
           </Button>
-          {state.error && <p className="text-xs text-destructive sm:col-span-3">{state.error}</p>}
+          {state.error && <div className="sm:col-span-3"><FormMessage type="error">{state.error}</FormMessage></div>}
         </form>
       )}
 
@@ -91,8 +93,8 @@ export function HomeworkDetailActions({
           <p className="text-sm font-semibold text-destructive">この宿題を削除しますか？</p>
           <p className="mt-1 text-xs leading-relaxed text-muted-foreground">提出履歴を含めて削除され、この操作は取り消せません。</p>
           <div className="mt-3 flex justify-end gap-2">
-            <Button type="button" variant="ghost" size="sm" disabled={isDeleting} onClick={() => setConfirmingDelete(false)}>キャンセル</Button>
-            <Button type="button" variant="destructive" size="sm" disabled={isDeleting} onClick={handleDelete}>{isDeleting ? "削除中..." : "削除する"}</Button>
+            <Button type="button" variant="ghost" size="sm" disabled={isDeleting} onClick={() => setConfirmingDelete(false)}><X aria-hidden />キャンセル</Button>
+            <Button type="button" variant="destructive" size="sm" disabled={isDeleting} onClick={handleDelete}><Trash2 aria-hidden />{isDeleting ? "削除中..." : "削除"}</Button>
           </div>
         </div>
       )}

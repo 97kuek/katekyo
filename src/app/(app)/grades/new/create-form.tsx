@@ -4,6 +4,7 @@ import { useActionState, useState } from "react"
 import { createGradeRecord } from "./actions"
 import { GradeFormFields } from "../grade-form-fields"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { StickyFormActions } from "@/components/ui/sticky-form-actions"
 import { Label } from "@/components/ui/label"
 import { Select } from "@/components/ui/select"
@@ -12,6 +13,7 @@ import { FormMessage } from "@/components/ui/form-message"
 import { FormField } from "@/components/ui/form-field"
 import { FormProgress } from "@/components/ui/form-progress"
 import { PendingStatus } from "@/components/ui/pending-status"
+import { BarChart3 } from "lucide-react"
 
 type Student = { id: string; grade: string; user: { name: string } }
 type Subject = { id: string; name: string }
@@ -85,11 +87,11 @@ export default function CreateGradeForm({
         defaultValues={{ testType, testName, date }}
         mode="create"
         studentField={(
-          <FormField htmlFor="studentId" label="生徒" required className="col-span-2 space-y-2" hint="成績を記録する生徒を選びます。">
+          <FormField htmlFor="studentId" label="生徒" required className="min-w-0 max-w-full space-y-2 sm:col-span-2" hint="成績を記録する生徒を選びます。">
             {singleStudent ? (
               <>
                 <input type="hidden" name="studentId" value={singleStudent.id} />
-                <p className="text-sm py-2 px-3 rounded-md border bg-muted">{singleStudent.user.name}（{singleStudent.grade}）</p>
+                <Input id="studentId" value={`${singleStudent.user.name}（${singleStudent.grade}）`} disabled />
               </>
             ) : (
               <Select
@@ -120,7 +122,8 @@ export default function CreateGradeForm({
 
       <StickyFormActions contained={withinSheet}>
         <Button type="submit" className="w-full md:w-auto" disabled={isPending}>
-          {isPending ? "保存中..." : "成績を記録する"}
+          <BarChart3 aria-hidden />
+          {isPending ? "記録中..." : "記録"}
         </Button>
       </StickyFormActions>
     </form>

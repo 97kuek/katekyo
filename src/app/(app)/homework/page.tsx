@@ -13,7 +13,7 @@ import { relativeDeadline, deadlineColorClass, formatDate } from "@/lib/date-uti
 import { isPendingStatus } from "@/lib/homework-status"
 import { SubjectTags } from "@/components/ui/subject-tags"
 import { HomeworkCard } from "./homework-card"
-import { HomeworkActions } from "./homework-actions"
+import { HomeworkSplitView } from "./homework-split-view"
 import { EmptyState } from "@/components/ui/empty-state"
 import { PageHeader } from "@/components/ui/page-header"
 import { HomeworkViewTabs } from "./homework-view-tabs"
@@ -135,48 +135,23 @@ async function TeacherHomeworkPage({
               )
             })}
           </div>
-          {/* デスクトップ: テーブル表示 */}
-          <div className="apple-card-surface hidden overflow-hidden overflow-x-auto rounded-2xl md:block">
-            <table className="w-full text-sm min-w-[480px]">
-              <thead className="border-b bg-muted">
-                <tr>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">タイトル</th>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">生徒</th>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">期限</th>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">状態</th>
-                  <th className="px-4 py-3 text-right font-medium text-muted-foreground">操作</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {visibleHomeworks.map((h) => {
-                  const overdue = h.dueDate < now && (isPendingStatus(h.status))
-                  const relLabel = relativeDeadline(h.dueDate)
-                  const relColor = deadlineColorClass(h.dueDate)
-                  return (
-                    <tr key={h.id} className={`hover:bg-muted ${overdue ? "bg-destructive/5" : ""}`}>
-                      <td className="px-4 py-3">
-                        <Link href={`/homework/${h.id}`} className="font-medium hover:underline">{h.title}</Link>
-                        <SubjectTags ids={h.subjectIds} map={subjectMap} />
-                      </td>
-                      <td className="px-4 py-3 text-muted-foreground">{h.student.user.name}</td>
-                      <td className="px-4 py-3">
-                        <p className="text-muted-foreground">{formatDate(h.dueDate)}</p>
-                        {(isPendingStatus(h.status)) && (
-                          <p className={`text-xs ${relColor}`}>{relLabel}</p>
-                        )}
-                      </td>
-                      <td className="px-4 py-3">
-                        <StatusBadge status={h.status} />
-                      </td>
-                      <td className="px-4 py-3">
-                        <HomeworkActions homeworkId={h.id} canEdit={isPendingStatus(h.status)} showDetails size="xs" />
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
+          <HomeworkSplitView
+            homeworks={visibleHomeworks.map((homework) => {
+              const canEdit = isPendingStatus(homework.status)
+              return {
+                id: homework.id,
+                title: homework.title,
+                description: homework.description,
+                studentName: homework.student.user.name,
+                status: homework.status,
+                subjectNames: homework.subjectIds.map((subjectId) => subjectMap.get(subjectId)).filter(Boolean) as string[],
+                dueDateLabel: formatDate(homework.dueDate),
+                relativeLabel: canEdit ? relativeDeadline(homework.dueDate) : null,
+                canEdit,
+                isOverdue: homework.dueDate < now && canEdit,
+              }
+            })}
+          />
         </section>
       )}
 

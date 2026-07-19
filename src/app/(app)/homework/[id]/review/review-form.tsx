@@ -1,14 +1,15 @@
 "use client"
 
 import { useActionState, useState } from "react"
-import { Loader2 } from "lucide-react"
+import { CheckCircle2, Loader2, RotateCcw } from "lucide-react"
 import { reviewHomework } from "../actions"
 import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { haptic } from "@/lib/haptic"
 import { PendingStatus } from "@/components/ui/pending-status"
+import { FormField } from "@/components/ui/form-field"
+import { FormMessage } from "@/components/ui/form-message"
 
 export default function ReviewForm({ id }: { id: string }) {
   const [state, action, isPending] = useActionState(reviewHomework, { error: "" })
@@ -24,12 +25,9 @@ export default function ReviewForm({ id }: { id: string }) {
           <PendingStatus pending={isPending} label="宿題の確認結果を反映しています" />
           <input type="hidden" name="id" value={id} />
           {state.error && (
-            <p className="text-sm text-foreground border border-destructive/30 bg-destructive/10 p-3 rounded-md animate-shake">
-              {state.error}
-            </p>
+            <FormMessage type="error">{state.error} コメントを確認してください。</FormMessage>
           )}
-          <div className="space-y-2">
-            <Label htmlFor="feedback">コメント（任意）</Label>
+          <FormField htmlFor="feedback" label="コメント" hint="承認理由や、次に直してほしい点を具体的に入力します。">
             <Textarea
               id="feedback"
               name="feedback"
@@ -37,7 +35,7 @@ export default function ReviewForm({ id }: { id: string }) {
               className="resize-none"
               placeholder="生徒へのコメントを入力してください"
             />
-          </div>
+          </FormField>
           <div className="flex gap-3">
             <Button
               type="submit"
@@ -49,7 +47,7 @@ export default function ReviewForm({ id }: { id: string }) {
             >
               {isPending && pendingAction === "approved"
                 ? <><Loader2 className="h-4 w-4 animate-spin mr-1.5" />処理中...</>
-                : "承認する"
+                : <><CheckCircle2 aria-hidden />承認</>
               }
             </Button>
             <Button
@@ -63,7 +61,7 @@ export default function ReviewForm({ id }: { id: string }) {
             >
               {isPending && pendingAction === "rejected"
                 ? <><Loader2 className="h-4 w-4 animate-spin mr-1.5" />処理中...</>
-                : "差し戻す"
+                : <><RotateCcw aria-hidden />差し戻し</>
               }
             </Button>
           </div>

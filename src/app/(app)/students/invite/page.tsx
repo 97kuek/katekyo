@@ -1,35 +1,26 @@
 "use client"
 
-import { useActionState, useState } from "react"
+import { useActionState } from "react"
 import { createInvite } from "./actions"
 import { Button } from "@/components/ui/button"
-import { buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Select } from "@/components/ui/select"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { GRADE_OPTIONS } from "@/lib/grades"
-import Link from "next/link"
 import { PageHeader } from "@/components/ui/page-header"
 import { FormField } from "@/components/ui/form-field"
 import { FormProgress } from "@/components/ui/form-progress"
 import { FormMessage } from "@/components/ui/form-message"
 import { PendingStatus } from "@/components/ui/pending-status"
+import { InviteLinkResult } from "@/components/invitations/invite-link-result"
+import { Link2 } from "lucide-react"
 
 export default function InvitePage() {
   const [state, action, isPending] = useActionState(createInvite, { error: "", token: null })
-  const [copied, setCopied] = useState(false)
 
   // トークンはクライアント側のアクション完了後にのみ存在するため window を直接参照できる
   const origin = typeof window !== "undefined" ? window.location.origin : ""
   const inviteUrl = state.token ? `${origin}/invite/${state.token}` : null
-
-  async function copyUrl() {
-    if (!inviteUrl) return
-    await navigator.clipboard.writeText(inviteUrl)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
@@ -41,21 +32,12 @@ export default function InvitePage() {
         </CardHeader>
         <CardContent>
           {state.token ? (
-            <div className="space-y-4">
-              <p className="text-sm text-foreground border border-primary/25 bg-primary/10 p-3 rounded-md">招待リンクが生成されました。生徒に送付してください。</p>
-              <div>
-                <Label>招待URL</Label>
-                <div className="grid gap-2 mt-1 sm:flex">
-                  <Input value={inviteUrl ?? ""} readOnly className="sm:text-xs" />
-                  <Button type="button" variant="outline" onClick={copyUrl} className="shrink-0">
-                    {copied ? "コピー済み" : "コピー"}
-                  </Button>
-                </div>
-              </div>
-              <Link href="/students/invite" className={buttonVariants({ variant: "outline", className: "w-full justify-center" })}>
-                別の招待を作成
-              </Link>
-            </div>
+            <InviteLinkResult
+              url={inviteUrl ?? ""}
+              message="招待リンクが生成されました。生徒に送付してください。"
+              nextHref="/students/invite"
+              nextLabel="別の招待を作成"
+            />
           ) : (
             <form action={action} className="space-y-4">
               <PendingStatus pending={isPending} label="招待リンクを生成しています" />
@@ -73,6 +55,7 @@ export default function InvitePage() {
                 </Select>
               </FormField>
               <Button type="submit" className="w-full" disabled={isPending}>
+                <Link2 aria-hidden />
                 {isPending ? "生成中..." : "招待リンクを生成"}
               </Button>
             </form>

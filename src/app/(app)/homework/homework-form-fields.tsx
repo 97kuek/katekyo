@@ -1,9 +1,9 @@
 "use client"
 
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { FormField } from "@/components/ui/form-field"
+import { FormField, FormFieldLabel } from "@/components/ui/form-field"
+import { ChoiceControl } from "@/components/ui/choice-control"
 
 type Subject = { id: string; name: string }
 
@@ -62,19 +62,17 @@ export function SubjectCheckboxes({
   if (subjects.length === 0) return null
   return (
     <div className="space-y-2">
-      <Label>{label}</Label>
-      <div className="flex flex-wrap gap-3">
+      <FormFieldLabel label={label} />
+      <div className="flex flex-wrap gap-2">
         {subjects.map((s) => (
-          <label key={s.id} className="flex min-h-11 items-center gap-1.5 cursor-pointer">
-            <input
-              type="checkbox"
-              name="subjectIds"
-              value={s.id}
-              defaultChecked={defaultCheckedIds?.includes(s.id)}
-              className="accent-primary"
-            />
-            <span className="text-sm">{s.name}</span>
-          </label>
+          <ChoiceControl
+            key={s.id}
+            type="checkbox"
+            name="subjectIds"
+            value={s.id}
+            defaultChecked={defaultCheckedIds?.includes(s.id)}
+            label={s.name}
+          />
         ))}
       </div>
     </div>

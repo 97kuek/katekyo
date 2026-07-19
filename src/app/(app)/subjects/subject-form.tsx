@@ -1,7 +1,7 @@
 "use client"
 
 import { useActionState, useRef, useState } from "react"
-import { Check } from "lucide-react"
+import { Check, Plus } from "lucide-react"
 import { createSubject } from "./actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -33,10 +33,11 @@ export default function SubjectForm() {
       <input type="hidden" name="color" value={color} />
       {state.error && <FormMessage type="error">{state.error} 科目名を確認して、もう一度追加してください。</FormMessage>}
       <div className="flex gap-2 items-end">
-        <FormField htmlFor="name" label="新しい科目タグ" required className="flex-1 space-y-2" hint="50文字以内。教材名ではなく、一覧で比較しやすい短い科目名にします。" example="数学">
+        <FormField htmlFor="name" label="新しい科目タグ" required className="min-w-0 max-w-full flex-1 space-y-2" hint="50文字以内。教材名ではなく、一覧で比較しやすい短い科目名にします。" example="数学">
           <Input id="name" name="name" placeholder="数学" required maxLength={50} />
         </FormField>
         <Button type="submit" disabled={isPending} className="shrink-0">
+          <Plus aria-hidden />
           {isPending ? "追加中..." : "追加"}
         </Button>
       </div>

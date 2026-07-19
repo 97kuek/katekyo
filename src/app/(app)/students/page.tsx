@@ -6,7 +6,7 @@ import { ChevronRight } from "lucide-react"
 import { buttonVariants } from "@/components/ui/button"
 import { EmptyState } from "@/components/ui/empty-state"
 import { StudentSort } from "./student-sort"
-import { StudentRow } from "./student-row"
+import { StudentSplitView } from "./student-split-view"
 import { PageHeader } from "@/components/ui/page-header"
 import { cacheLife, cacheTag } from "next/cache"
 import { cacheProfiles } from "@/lib/cache-policy"
@@ -58,31 +58,20 @@ export default async function StudentsPage({
               </Link>
             ))}
           </div>
-          {/* デスクトップ: テーブル表示（行クリックで詳細へ） */}
-          <div className="apple-card-surface hidden overflow-hidden overflow-x-auto rounded-2xl md:block">
-            <table className="w-full text-sm">
-              <thead className="border-b bg-muted">
-                <tr>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">名前</th>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">学年</th>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">状況</th>
-                  <th className="px-4 py-3 w-10"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {students.map((s) => (
-                  <StudentRow key={s.id} href={`/students/${s.id}`}>
-                    <td className="px-4 py-3 font-medium">{s.user.name}</td>
-                    <td className="px-4 py-3">{s.grade}</td>
-                    <td className="px-4 py-3"><StudentSignal homeworks={s.homeworks} nextLesson={s.lessons[0]?.date} /></td>
-                    <td className="px-4 py-3 text-muted-foreground">
-                      <ChevronRight className="h-4 w-4" />
-                    </td>
-                  </StudentRow>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <StudentSplitView
+            students={students.map((student) => {
+              const reviewCount = student.homeworks.filter((homework) => homework.status === "submitted").length
+              return {
+                id: student.id,
+                name: student.user.name,
+                email: student.user.email,
+                grade: student.grade,
+                reviewCount,
+                problemCount: student.homeworks.length - reviewCount,
+                nextLesson: student.lessons[0]?.date.toISOString() ?? null,
+              }
+            })}
+          />
         </>
       )}
     </div>
@@ -103,7 +92,7 @@ async function getStudentsWithSignals(teacherId: string, sort?: string) {
   return db.student.findMany({
     where: { teacherId },
     include: {
-      user: { select: { name: true } },
+      user: { select: { name: true, email: true } },
       homeworks: {
         where: {
           OR: [

@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { agreeToTerms } from "@/app/(app)/terms-actions"
 import { Button } from "@/components/ui/button"
+import { ChoiceControl } from "@/components/ui/choice-control"
+import { Check } from "lucide-react"
 
 export function TermsAgreementModal({ show }: { show: boolean }) {
   const [checked, setChecked] = useState(false)
@@ -23,12 +25,12 @@ export function TermsAgreementModal({ show }: { show: boolean }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 px-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-[calc(env(safe-area-inset-top)+0.75rem)] sm:items-center sm:px-4 sm:py-6">
+    <div className="fixed inset-0 z-[130] flex items-end justify-center bg-foreground/35 px-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-[calc(env(safe-area-inset-top)+0.75rem)] backdrop-blur-[2px] sm:items-center sm:px-4 sm:py-6">
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="terms-agreement-title"
-        className="flex max-h-full w-full max-w-md flex-col overflow-hidden rounded-lg border border-border bg-card shadow-xl"
+        className="liquid-glass-chrome flex max-h-full w-full max-w-md flex-col overflow-hidden rounded-3xl"
       >
         <div className="shrink-0 px-5 pt-5 sm:px-6 sm:pt-6">
           <h2 id="terms-agreement-title" className="text-lg font-bold text-foreground">利用規約への同意</h2>
@@ -53,17 +55,13 @@ export function TermsAgreementModal({ show }: { show: boolean }) {
         </div>
 
         <div className="shrink-0 space-y-4 border-t bg-card px-5 pb-5 pt-4 sm:px-6 sm:pb-6">
-          <label className="flex min-h-11 items-start gap-3 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={checked}
-              onChange={(e) => setChecked(e.target.checked)}
-              className="mt-0.5 h-4 w-4 rounded border-input accent-primary"
-            />
-            <span className="text-sm text-foreground">
-              利用規約およびプライバシーポリシーに同意します
-            </span>
-          </label>
+          <ChoiceControl
+            type="checkbox"
+            checked={checked}
+            onChange={(event) => setChecked(event.target.checked)}
+            className="w-full rounded-2xl"
+            label="利用規約およびプライバシーポリシーに同意します"
+          />
 
           <Button
             type="button"
@@ -71,6 +69,7 @@ export function TermsAgreementModal({ show }: { show: boolean }) {
             disabled={!checked || isPending}
             className="w-full"
           >
+            <Check aria-hidden />
             {isPending ? "処理中..." : "同意してはじめる"}
           </Button>
         </div>

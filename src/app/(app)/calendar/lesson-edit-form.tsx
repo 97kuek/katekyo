@@ -5,11 +5,13 @@ import { toast } from "sonner"
 import { updateLesson } from "./actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { FormProgress } from "@/components/ui/form-progress"
 import { FormMessage } from "@/components/ui/form-message"
 import { PendingStatus } from "@/components/ui/pending-status"
+import { FormField, FormFieldLabel } from "@/components/ui/form-field"
+import { ChoiceControl } from "@/components/ui/choice-control"
+import { Save, X } from "lucide-react"
 
 type Subject = { id: string; name: string }
 
@@ -58,48 +60,36 @@ export function LessonEditForm({ lesson, onClose, subjects }: { lesson: Lesson; 
       <PendingStatus pending={isPending} label="授業の変更を保存しています" />
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <div className="space-y-1.5 min-w-0">
-          <Label htmlFor={`lesson-date-${lesson.id}`} className="text-xs font-medium">日付 <span className="text-destructive">必須</span></Label>
+        <FormField htmlFor={`lesson-date-${lesson.id}`} label="日付" required>
           <Input id={`lesson-date-${lesson.id}`} name="date" type="date" required defaultValue={toDateStr(lesson.date)} className="md:h-9" />
-        </div>
-        <div className="space-y-1.5 min-w-0">
-          <Label htmlFor={`lesson-time-${lesson.id}`} className="text-xs font-medium">時刻 <span className="text-destructive">必須</span></Label>
+        </FormField>
+        <FormField htmlFor={`lesson-time-${lesson.id}`} label="時刻" required>
           <Input id={`lesson-time-${lesson.id}`} name="time" type="time" required defaultValue={toTimeStr(lesson.date)} className="md:h-9" />
-        </div>
+        </FormField>
       </div>
 
       <div className="space-y-1.5">
-        <Label className="text-xs font-medium">授業形式 <span className="text-destructive">必須</span></Label>
-        <div className="flex gap-4 pt-0.5">
-          <label className="flex min-h-11 items-center gap-1.5 text-sm cursor-pointer">
-            <input type="radio" name="type" value="online" defaultChecked={lesson.type === "online"} required className="accent-primary"
-              onChange={() => setLessonType("online")} />
-            オンライン
-          </label>
-          <label className="flex min-h-11 items-center gap-1.5 text-sm cursor-pointer">
-            <input type="radio" name="type" value="offline" defaultChecked={lesson.type === "offline"} required className="accent-primary"
-              onChange={() => setLessonType("offline")} />
-            対面
-          </label>
+        <FormFieldLabel label="授業形式" required />
+        <div className="flex flex-wrap gap-2 pt-0.5">
+          <ChoiceControl type="radio" name="type" value="online" defaultChecked={lesson.type === "online"} required onChange={() => setLessonType("online")} label="オンライン" />
+          <ChoiceControl type="radio" name="type" value="offline" defaultChecked={lesson.type === "offline"} required onChange={() => setLessonType("offline")} label="対面" />
         </div>
       </div>
 
       <p className="text-xs leading-relaxed text-muted-foreground">時間・金額は半角数字で入力します。カンマ、単位、ハイフンは不要です。</p>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <div className="space-y-1.5">
-          <Label className="text-xs font-medium">時間（分・任意）</Label>
-          <Input name="durationMin" type="number" min="1" defaultValue={lesson.durationMin ?? ""} className="md:h-9" />
-        </div>
-        <div className="space-y-1.5">
-          <Label className="text-xs font-medium">時給（円・任意）</Label>
-          <Input name="hourlyRate" type="number" min="0" defaultValue={lesson.hourlyRate ?? ""} className="md:h-9" />
-        </div>
+        <FormField htmlFor={`lesson-duration-${lesson.id}`} label="時間（分）" hint="半角数字のみ。単位は不要です。">
+          <Input id={`lesson-duration-${lesson.id}`} name="durationMin" type="number" min="1" defaultValue={lesson.durationMin ?? ""} className="md:h-9" />
+        </FormField>
+        <FormField htmlFor={`lesson-rate-${lesson.id}`} label="時給（円）" hint="半角数字のみ。カンマ・円記号は不要です。">
+          <Input id={`lesson-rate-${lesson.id}`} name="hourlyRate" type="number" min="0" defaultValue={lesson.hourlyRate ?? ""} className="md:h-9" />
+        </FormField>
       </div>
 
-      <div className="space-y-1.5">
-        <Label className="text-xs font-medium">交通費（円・任意）</Label>
+      <FormField htmlFor={`lesson-travel-${lesson.id}`} label="交通費（円）" hint="オンライン授業では0円になります。">
         <Input
+          id={`lesson-travel-${lesson.id}`}
           name="travelExpense"
           type="number"
           min="0"
@@ -107,58 +97,42 @@ export function LessonEditForm({ lesson, onClose, subjects }: { lesson: Lesson; 
           disabled={lessonType === "online"}
           className="md:h-9 disabled:bg-muted disabled:text-muted-foreground"
         />
-      </div>
+      </FormField>
 
-      <div className="space-y-1.5">
-        <Label className="text-xs font-medium">メモ（任意）</Label>
-        <Input name="notes" defaultValue={lesson.notes ?? ""} className="md:h-9" placeholder="事前メモ" />
-      </div>
+      <FormField htmlFor={`lesson-notes-${lesson.id}`} label="メモ" hint="授業前に確認したい内容を入力します。">
+        <Input id={`lesson-notes-${lesson.id}`} name="notes" defaultValue={lesson.notes ?? ""} className="md:h-9" placeholder="事前メモ" />
+      </FormField>
 
       {subjects.length > 0 && (
         <div className="space-y-1.5">
-          <Label className="text-xs font-medium">科目（任意・複数選択可）</Label>
-          <div className="flex flex-wrap gap-x-4 gap-y-1.5">
+          <FormFieldLabel label="科目（複数選択可）" />
+          <div className="flex flex-wrap gap-2">
             {subjects.map((s) => (
-              <label key={s.id} className="flex min-h-11 items-center gap-1.5 text-sm cursor-pointer">
-                <input
-                  type="checkbox"
-                  name="subjectIds"
-                  value={s.id}
-                  defaultChecked={lesson.subjectIds.includes(s.id)}
-                  className="accent-primary"
-                />
-                {s.name}
-              </label>
+              <ChoiceControl key={s.id} type="checkbox" name="subjectIds" value={s.id} defaultChecked={lesson.subjectIds.includes(s.id)} label={s.name} />
             ))}
           </div>
         </div>
       )}
 
-      <div className="space-y-1.5">
-        <Label className="text-xs font-medium">授業ログ（実施内容・次回目標・任意）</Label>
+      <FormField htmlFor={`lesson-log-${lesson.id}`} label="授業ログ" hint="実施内容と次回の目標を入力します。">
         <Textarea
+          id={`lesson-log-${lesson.id}`}
           name="lessonLog"
           rows={3}
           defaultValue={lesson.lessonLog ?? ""}
           placeholder="今日の内容、宿題、次回の目標など"
           className="resize-none"
         />
-        <label className="flex min-h-11 items-center gap-1.5 text-sm cursor-pointer text-muted-foreground">
-          <input
-            type="checkbox"
-            name="lessonLogPublic"
-            defaultChecked={lesson.lessonLogPublic}
-            className="accent-primary"
-          />
-          生徒に公開する
-        </label>
-      </div>
+        <ChoiceControl type="checkbox" name="lessonLogPublic" defaultChecked={lesson.lessonLogPublic} label="生徒に公開する" />
+      </FormField>
 
       <div className="grid gap-2 pt-1 sm:flex">
         <Button type="submit" size="sm" disabled={isPending} className="h-10 sm:h-8">
+          <Save aria-hidden />
           {isPending ? "保存中..." : "保存"}
         </Button>
         <Button type="button" variant="outline" size="sm" className="h-10 sm:h-8" onClick={onClose}>
+          <X aria-hidden />
           キャンセル
         </Button>
       </div>

@@ -3,6 +3,7 @@
 import { useEffect, useId, useRef, useState, type FocusEvent, type FormEvent, type ReactNode } from "react"
 import { AlertCircle } from "lucide-react"
 import { Label } from "@/components/ui/label"
+import { cn } from "@/lib/utils"
 
 type FormControl = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
 
@@ -36,7 +37,7 @@ export function FormField({
   example,
   error,
   children,
-  className = "space-y-2",
+  className,
 }: {
   htmlFor: string
   label: string
@@ -95,16 +96,8 @@ export function FormField({
   }
 
   return (
-    <div className={className} onBlurCapture={handleBlur} onInputCapture={handleInput} onInvalidCapture={handleInvalid}>
-      <div className="flex items-center gap-2">
-        <Label htmlFor={htmlFor}>{label}</Label>
-        <span className={required
-          ? "rounded-full bg-destructive/10 px-2 py-0.5 text-[11px] font-semibold text-foreground"
-          : "rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground"
-        }>
-          {required ? "必須" : "任意"}
-        </span>
-      </div>
+    <div className={cn("min-w-0 max-w-full space-y-2", className)} onBlurCapture={handleBlur} onInputCapture={handleInput} onInvalidCapture={handleInvalid}>
+      <FormFieldLabel htmlFor={htmlFor} label={label} required={required} />
       {children}
       {(hint || example) && (
         <p id={descriptionId} className="text-xs leading-relaxed text-muted-foreground">
@@ -117,6 +110,20 @@ export function FormField({
           {visibleError}
         </p>
       )}
+    </div>
+  )
+}
+
+export function FormFieldLabel({ htmlFor, label, required = false }: { htmlFor?: string; label: string; required?: boolean }) {
+  return (
+    <div className="flex min-w-0 items-center gap-2">
+      <Label htmlFor={htmlFor} className="min-w-0 truncate">{label}</Label>
+      <span className={required
+        ? "shrink-0 rounded-full bg-destructive/10 px-2 py-0.5 text-[11px] font-semibold text-foreground"
+        : "shrink-0 rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground"
+      }>
+        {required ? "必須" : "任意"}
+      </span>
     </div>
   )
 }

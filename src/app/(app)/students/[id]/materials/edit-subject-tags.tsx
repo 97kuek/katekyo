@@ -2,8 +2,9 @@
 
 import { useState, useTransition } from "react"
 import { updateMaterialSubjects } from "./actions"
-import { Pencil } from "lucide-react"
+import { Pencil, Save, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { ChoiceControl } from "@/components/ui/choice-control"
 
 type Subject = { id: string; name: string }
 
@@ -64,15 +65,7 @@ export function EditSubjectTags({
     <div className="mt-1.5 space-y-1.5">
       <div className="flex flex-wrap gap-2">
         {subjects.map((s) => (
-          <label key={s.id} className="inline-flex min-h-11 items-center gap-1.5 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={selected.has(s.id)}
-              onChange={() => toggle(s.id)}
-              className="accent-primary"
-            />
-            <span className="text-xs">{s.name}</span>
-          </label>
+          <ChoiceControl key={s.id} type="checkbox" checked={selected.has(s.id)} onChange={() => toggle(s.id)} label={s.name} />
         ))}
       </div>
       <div className="flex gap-3">
@@ -82,9 +75,11 @@ export function EditSubjectTags({
           onClick={save}
           disabled={isPending}
         >
+          <Save aria-hidden />
           {isPending ? "保存中..." : "保存"}
         </Button>
         <Button type="button" variant="outline" size="xs" onClick={cancel}>
+          <X aria-hidden />
           キャンセル
         </Button>
       </div>

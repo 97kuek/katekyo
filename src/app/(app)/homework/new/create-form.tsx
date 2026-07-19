@@ -4,14 +4,16 @@ import { useActionState, useState } from "react"
 import Link from "next/link"
 import { createHomework } from "./actions"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { StickyFormActions } from "@/components/ui/sticky-form-actions"
-import { Label } from "@/components/ui/label"
 import { Select } from "@/components/ui/select"
 import { HomeworkCoreFields, SubjectCheckboxes } from "../homework-form-fields"
 import { FormField } from "@/components/ui/form-field"
 import { FormProgress } from "@/components/ui/form-progress"
 import { FormMessage } from "@/components/ui/form-message"
 import { PendingStatus } from "@/components/ui/pending-status"
+import { ChoiceControl } from "@/components/ui/choice-control"
+import { Plus } from "lucide-react"
 
 type Student = {
   id: string
@@ -53,10 +55,10 @@ export default function CreateHomeworkForm({
       <PendingStatus pending={isPending} label="宿題を作成しています" />
       <FormField htmlFor="studentId" label="生徒" required hint="宿題を割り当てる生徒を選びます。">
         {singleStudent ? (
-          <>
-            <input type="hidden" name="studentId" value={singleStudent.id} />
-            <p className="text-sm py-2 px-3 rounded-md border bg-muted">{singleStudent.user.name}（{singleStudent.grade}）</p>
-          </>
+              <>
+                <input type="hidden" name="studentId" value={singleStudent.id} />
+                <Input id="studentId" value={`${singleStudent.user.name}（${singleStudent.grade}）`} disabled />
+              </>
         ) : (
           <Select
             id="studentId"
@@ -97,15 +99,11 @@ export default function CreateHomeworkForm({
         </FormField>
       )}
       <SubjectCheckboxes label="科目タグ（任意・複数選択可）" subjects={subjects} />
-      <div className="flex min-h-11 items-center gap-2">
-        <input type="checkbox" name="requiresPhoto" id="requiresPhoto" value="1" className="accent-primary" />
-        <Label htmlFor="requiresPhoto" className="text-sm font-normal cursor-pointer">
-          写真提出を必須にする
-        </Label>
-      </div>
+      <ChoiceControl type="checkbox" name="requiresPhoto" id="requiresPhoto" value="1" label="写真提出を必須にする" />
       <StickyFormActions>
         <Button type="submit" className="w-full md:w-auto" disabled={isPending}>
-          {isPending ? "作成中..." : "宿題を作成する"}
+          <Plus aria-hidden />
+          {isPending ? "作成中..." : "作成"}
         </Button>
       </StickyFormActions>
     </form>

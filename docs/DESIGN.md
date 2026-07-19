@@ -65,10 +65,12 @@ katekyo アプリのデザイントークン・コンポーネント規則。`sr
 | クラス | 値 | 主な用途 |
 |---|---|---|
 | `rounded-sm` | 4px | マイクロ UI |
-| `rounded-lg` | 8px | **標準カード・モーダル・フォーム入力（全カード面で統一）** |
+| `rounded-lg` | 8px | フォーム入力・インライン通知・小さな内包面 |
+| `rounded-2xl` | 16px | 標準カード・ActionList・デスクトップ詳細ペイン |
+| `rounded-3xl` | 24px | シート・浮遊ナビゲーションなどの機能層 |
 | `rounded-full` | 9999px | ボタン（全て）・バッジ・チップ |
 
-> カード面（`bg-card` のコンテナ・`<Card>` コンポーネント・モーダル・空状態）は **すべて `rounded-lg`** に統一。`rounded-xl` / `rounded-2xl` / `rounded-3xl` はコンテンツカードには使わない（装飾ロゴアイコンの箱のみ例外）。
+> コンテンツカードは `Card` / `apple-card-surface` の `rounded-2xl`、入力欄は `rounded-lg`、浮遊するシートは `rounded-3xl` に統一する。角丸の大きさでコンテンツ層と機能層を区別する。
 
 ## ボタンコンポーネント
 
@@ -135,10 +137,13 @@ import { Button, buttonVariants } from "@/components/ui/button"
 | `apple-interactive-card` | カード全体が遷移する場合の押下・ホバー反応 |
 | `ActionList` | iOSの設定画面に近い、編集・変更・削除などの明示的な操作行 |
 | `Sheet` | 一覧を離れずに作成・編集する浮遊タスク面 |
+| `PageHeader` | 大きなページタイトル。スクロール後はコンパクトなガラスツールバーへ連続的に変化 |
+| `ChoiceControl` | チェック／ラジオ選択を、44pxの押下領域とチェックアイコンを持つ共通ピルへ統一 |
 
 - 通常カードは透明にしない。可読性と情報階層を守るため、`apple-card-surface` は実体色を使う
 - ガラス表現はナビゲーション、ツールバー、シートなど、コンテンツの上に浮く機能層へ限定する
 - クリック可能なカードだけ `apple-interactive-card` を付け、静的カードを不用意に浮かせない
+- モバイルのシートは44pxの把持領域を持ち、下方向のドラッグ量へ1:1で追従する。指を離した時は移動量と速度から閉じるか復帰するかを決め、復帰中も再度つかめるようにする
 - シートは開いた方向と同じ経路で閉じ、`prefers-reduced-motion` では移動をクロスフェードへ置き換える
 
 ## フォーム入力部品
@@ -155,10 +160,13 @@ import { Button, buttonVariants } from "@/components/ui/button"
 | `PendingStatus` | `ui/pending-status.tsx` | 送信待ちを時間に応じてスピナー／長時間バーへ切り替え |
 | `Sheet` | `ui/sheet.tsx` | モバイルは下端、デスクトップは中央から現れるガラスのタスク面。フォーカス制御・Escape・背景操作抑止を内包 |
 | `ActionList` | `ui/action-list.tsx` | ボタン列を、アイコン・説明・シェブロンを持つ明示的な操作行へ置き換える |
+| `ChoiceControl` | `ui/choice-control.tsx` | 科目・授業形式などの選択。ネイティブ入力を保持しつつ見た目と押下領域を統一 |
+| `CopyButton` | `ui/copy-button.tsx` | URL等のコピーと2秒間の完了フィードバックを共通化 |
 
 - フィルターバー等の**コンパクトな操作系**（`h-8`/`h-9`）は別系統。フォーム入力には使わない
 - 送信ボタンは長いフォームではモバイルで `StickyFormActions` により画面下部に固定する。シート内では `contained` を指定し、シート内下端に留める（[architecture.md](architecture.md#モバイル操作safe-area) 参照）
 - 必須／任意を色だけで区別せず、必ず文字で表示する
+- `Card` / `CardContent` / `FormField` / 各入力部品は `min-width: 0` と `max-width: 100%` を持ち、日付入力や長い値でもモバイルのカード外へ出さない
 - 大文字・小文字、全角・半角、ハイフンや単位の要否が迷いやすい項目は入力欄の直下に明記する
 - メールアドレスは全角英数字を半角へ正規化し、小文字として保存・照合する。パスワードは大文字・小文字と全角・半角を区別する
 - サーバーエラーは理由と修正方法を同じメッセージで示し、成功後は次に確認できる画面または反映先を案内する
@@ -181,6 +189,7 @@ import { Button, buttonVariants } from "@/components/ui/button"
 **main**: モバイル下余白は `--mobile-nav-clearance + 1rem`、デスクトップは `md:pb-6`
 
 - `--mobile-nav-clearance` はガラス面の高さと iOS safe-area を一元管理し、本文・固定CTA・宿題の主要操作で共有する
+- ページ先頭では大きなタイトルで現在地を示し、`main`を48px以上スクロールすると同じタイトルをコンパクトなガラスツールバーへ縮める。戻る導線と主要操作は位置を保ち、説明文だけを折りたたむ
 
 **html/body** (`globals.css`): `overscroll-behavior: none` — iOS の elastic bounce を無効化
 
@@ -224,6 +233,7 @@ import { Button, buttonVariants } from "@/components/ui/button"
 ### ナビゲーション
 
 - **Sidebar**: 色・背景・不透明度だけを短く切り替える。非アクティブ項目はクリック時に `scale(0.97)` で沈む
+- **Header**: モバイル最上部は画面名で切り替えず、アイコンと `katekyo` を固定表示する。現在地は各ページの大見出しとBottomNavで示す
 - **BottomNav**: コンテンツ層から浮く単一の `liquid-glass-chrome` 面を使い、ガラス面を重ねない。選択項目は不透明なprimaryのアイコン背景で示す
 - Liquid Glass風の半透明素材はナビ・ツールバー・シートなどの機能層に限定し、コンテンツカードには使わない
 - `prefers-reduced-transparency` では不透明背景、`prefers-contrast: more` では高コントラストの枠線へフォールバックする
@@ -253,6 +263,7 @@ import { Button, buttonVariants } from "@/components/ui/button"
 - 二次情報は詳細開示へ置けるが、編集・削除などの操作は「その他」やジェスチャーに隠さず明示する
 - 破壊操作は通常の視線上へ常設せず、確認を含む2段階操作にする
 - 一覧は主情報1行、補助情報1行、状態を基本とする。デスクトップ表は原則5列以下とし、残りは詳細へ移す
+- デスクトップで同種の項目を連続確認する画面は、左の選択一覧と右の概要ペインを優先する。選択だけではURL遷移せず、編集や全履歴が必要な時だけ詳細ページへ移動する
 - 編集・削除はジェスチャーや「その他」に隠さず、ラベル付きボタンから到達可能にする
 - フィルターは検索を先頭に置き、モバイルでは「絞り込み（適用数）」へまとめる
 - 検索・絞り込み後は一致件数を表示し、カードと表で主要項目の順序をそろえて比較しやすくする

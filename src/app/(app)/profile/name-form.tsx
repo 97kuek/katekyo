@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { FormField } from "@/components/ui/form-field"
 import { FormMessage } from "@/components/ui/form-message"
 import { PendingStatus } from "@/components/ui/pending-status"
+import { Save } from "lucide-react"
 
 export function NameForm({ currentName }: { currentName: string }) {
   const [state, action, isPending] = useActionState(updateName, { error: "" })
@@ -20,6 +21,7 @@ export function NameForm({ currentName }: { currentName: string }) {
         <Input id="name" name="name" required autoComplete="name" defaultValue={currentName} maxLength={50} />
       </FormField>
       <Button type="submit" size="sm" disabled={isPending}>
+        <Save aria-hidden />
         {isPending ? "保存中..." : "保存"}
       </Button>
     </form>

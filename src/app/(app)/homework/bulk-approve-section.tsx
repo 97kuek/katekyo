@@ -5,6 +5,7 @@ import Link from "next/link"
 import { Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import { Button, buttonVariants } from "@/components/ui/button"
+import { ChoiceControl } from "@/components/ui/choice-control"
 import { SubjectTags } from "@/components/ui/subject-tags"
 import { bulkApproveHomework } from "./actions"
 import { haptic } from "@/lib/haptic"
@@ -75,23 +76,16 @@ export function BulkApproveSection({
       </div>
 
       <div className="space-y-2">
-        <label className="flex min-h-11 w-fit items-center gap-2 text-xs text-muted-foreground cursor-pointer select-none">
-          <input
-            type="checkbox"
-            checked={allSelected}
-            onChange={toggleAll}
-            className="accent-primary"
-          />
-          すべて選択
-        </label>
+        <ChoiceControl type="checkbox" checked={allSelected} onChange={toggleAll} label="すべて選択" />
 
         {submitted.map((h) => (
           <div key={h.id} className="apple-card-surface rounded-2xl p-4 flex items-start gap-3">
-            <input
+            <ChoiceControl
               type="checkbox"
               checked={selected.has(h.id)}
               onChange={() => toggle(h.id)}
-              className="mt-1 accent-primary shrink-0"
+              className="shrink-0 px-2.5"
+              label={<span className="sr-only">{h.title}を選択</span>}
             />
             <div className="flex-1 min-w-0">
               <div className="flex items-start justify-between gap-4">

@@ -1,17 +1,21 @@
 "use client"
 
-import { useState, useActionState } from "react"
+import { useState, useActionState, useId } from "react"
 import { createExamEvent, createHomeworkFromCalendar } from "./actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Select } from "@/components/ui/select"
 import { PendingStatus } from "@/components/ui/pending-status"
+import { FormField } from "@/components/ui/form-field"
+import { FormMessage } from "@/components/ui/form-message"
+import { FormProgress } from "@/components/ui/form-progress"
 import { TEST_TYPE_OPTIONS } from "@/lib/test-types"
 import { toast } from "sonner"
 import type { Student } from "./calendar-types"
+import { Plus, X } from "lucide-react"
 
 export function HomeworkForm({ students, defaultDate, embedded = false, onClose }: { students: Student[]; defaultDate: string; embedded?: boolean; onClose?: () => void }) {
+  const fieldPrefix = useId().replaceAll(":", "")
   const [open, setOpen] = useState(embedded)
   const [state, action, isPending] = useActionState(
     async (prev: { error: string; timestamp?: number }, formData: FormData) => {
@@ -41,17 +45,18 @@ export function HomeworkForm({ students, defaultDate, embedded = false, onClose 
       <h3 className="font-medium text-sm">宿題を追加</h3>
       <form action={action} className="space-y-3">
         <PendingStatus pending={isPending} label="宿題を追加しています" />
-        {state.error && <p className="text-xs text-foreground border border-destructive/30 bg-destructive/10 p-2 rounded">{state.error}</p>}
+        {state.error && <FormMessage type="error">{state.error} 入力内容を確認してください。</FormMessage>}
+        <FormProgress />
         <div className="space-y-2">
-          <div className="space-y-1">
-            <Label className="text-xs">生徒（必須）</Label>
+          <FormField htmlFor={`${fieldPrefix}-homework-student`} label="生徒" required>
             {students.length === 1 ? (
               <>
                 <input type="hidden" name="studentId" value={students[0].id} />
-                <p className="text-sm py-1.5 px-3 rounded-md border bg-muted">{students[0].user.name}（{students[0].grade}）</p>
+                <Input id={`${fieldPrefix}-homework-student`} value={`${students[0].user.name}（${students[0].grade}）`} disabled />
               </>
             ) : (
               <Select
+                id={`${fieldPrefix}-homework-student`}
                 name="studentId"
                 required
                 className="md:h-9"
@@ -62,21 +67,21 @@ export function HomeworkForm({ students, defaultDate, embedded = false, onClose 
                 ))}
               </Select>
             )}
-          </div>
-          <div className="space-y-1">
-            <Label className="text-xs">タイトル（必須）</Label>
-            <Input name="title" placeholder="例: 数学 p.30-35" required className="md:h-9" />
-          </div>
-          <div className="space-y-1">
-            <Label className="text-xs">期限（必須）</Label>
-            <Input name="dueDate" type="date" required defaultValue={defaultDate} className="md:h-9" />
-          </div>
+          </FormField>
+          <FormField htmlFor={`${fieldPrefix}-homework-title`} label="タイトル" required example="数学 p.30〜35">
+            <Input id={`${fieldPrefix}-homework-title`} name="title" placeholder="数学 p.30〜35" required className="md:h-9" />
+          </FormField>
+          <FormField htmlFor={`${fieldPrefix}-homework-date`} label="期限" required>
+            <Input id={`${fieldPrefix}-homework-date`} name="dueDate" type="date" required defaultValue={defaultDate} className="md:h-9" />
+          </FormField>
         </div>
         <div className="flex gap-2">
           <Button type="submit" size="sm" disabled={isPending}>
+            <Plus aria-hidden />
             {isPending ? "追加中..." : "追加"}
           </Button>
           <Button type="button" variant="outline" size="sm" onClick={() => { setOpen(false); onClose?.() }}>
+            <X aria-hidden />
             キャンセル
           </Button>
         </div>
@@ -86,6 +91,7 @@ export function HomeworkForm({ students, defaultDate, embedded = false, onClose 
 }
 
 export function ExamEventForm({ students, defaultDate, embedded = false, onClose }: { students: Student[]; defaultDate: string; embedded?: boolean; onClose?: () => void }) {
+  const fieldPrefix = useId().replaceAll(":", "")
   const [open, setOpen] = useState(embedded)
   const [state, action, isPending] = useActionState(
     async (prev: { error: string; timestamp?: number }, formData: FormData) => {
@@ -116,18 +122,19 @@ export function ExamEventForm({ students, defaultDate, embedded = false, onClose
       <form action={action} className="space-y-3">
         <PendingStatus pending={isPending} label="テストを追加しています" />
         {state.error && (
-          <p className="text-xs text-foreground border border-destructive/30 bg-destructive/10 p-2 rounded">{state.error}</p>
+          <FormMessage type="error">{state.error} 入力内容を確認してください。</FormMessage>
         )}
+        <FormProgress />
         <div className="space-y-2">
-          <div className="space-y-1">
-            <Label className="text-xs">生徒（必須）</Label>
+          <FormField htmlFor={`${fieldPrefix}-exam-student`} label="生徒" required>
             {students.length === 1 ? (
               <>
                 <input type="hidden" name="studentId" value={students[0].id} />
-                <p className="text-sm py-1.5 px-3 rounded-md border bg-muted">{students[0].user.name}（{students[0].grade}）</p>
+                <Input id={`${fieldPrefix}-exam-student`} value={`${students[0].user.name}（${students[0].grade}）`} disabled />
               </>
             ) : (
               <Select
+                id={`${fieldPrefix}-exam-student`}
                 name="studentId"
                 required
                 className="md:h-9"
@@ -138,24 +145,21 @@ export function ExamEventForm({ students, defaultDate, embedded = false, onClose
                 ))}
               </Select>
             )}
-          </div>
+          </FormField>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-            <div className="space-y-1">
-              <Label className="text-xs">開始日（必須）</Label>
-              <Input name="date" type="date" required defaultValue={defaultDate} className="md:h-9" />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs">終了日（任意）</Label>
-              <Input name="endDate" type="date" className="md:h-9" />
-            </div>
+            <FormField htmlFor={`${fieldPrefix}-exam-start`} label="開始日" required>
+              <Input id={`${fieldPrefix}-exam-start`} name="date" type="date" required defaultValue={defaultDate} className="md:h-9" />
+            </FormField>
+            <FormField htmlFor={`${fieldPrefix}-exam-end`} label="終了日">
+              <Input id={`${fieldPrefix}-exam-end`} name="endDate" type="date" className="md:h-9" />
+            </FormField>
           </div>
-          <div className="space-y-1">
-            <Label className="text-xs">テスト名（必須）</Label>
-            <Input name="name" placeholder="例: 英語期末テスト" required className="md:h-9" />
-          </div>
-          <div className="space-y-1">
-            <Label className="text-xs">種別（必須）</Label>
+          <FormField htmlFor={`${fieldPrefix}-exam-name`} label="テスト名" required example="英語期末テスト">
+            <Input id={`${fieldPrefix}-exam-name`} name="name" placeholder="英語期末テスト" required className="md:h-9" />
+          </FormField>
+          <FormField htmlFor={`${fieldPrefix}-exam-type`} label="種別" required>
             <Select
+              id={`${fieldPrefix}-exam-type`}
               name="testType"
               defaultValue="exam"
               required
@@ -165,13 +169,15 @@ export function ExamEventForm({ students, defaultDate, embedded = false, onClose
                 <option key={value} value={value}>{label}</option>
               ))}
             </Select>
-          </div>
+          </FormField>
         </div>
         <div className="flex gap-2">
           <Button type="submit" size="sm" disabled={isPending}>
+            <Plus aria-hidden />
             {isPending ? "追加中..." : "追加"}
           </Button>
           <Button type="button" variant="outline" size="sm" onClick={() => { setOpen(false); onClose?.() }}>
+            <X aria-hidden />
             キャンセル
           </Button>
         </div>
