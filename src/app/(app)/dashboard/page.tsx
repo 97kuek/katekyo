@@ -5,12 +5,11 @@ import { getStudentByUserId, getSubjectsByTeacherId, buildSubjectMap } from "@/l
 import Link from "next/link"
 import { Suspense } from "react"
 import { buttonVariants } from "@/components/ui/button"
-import { TEST_TYPE_LABELS } from "@/lib/test-types"
-import { PENDING_STATUSES, isPendingStatus, HOMEWORK_STATUS_CONFIG } from "@/lib/homework-status"
+import { PENDING_STATUSES, isPendingStatus } from "@/lib/homework-status"
 import { GARDEN_CAPACITY } from "@/lib/garden/utils"
-import { ClipboardList, TreePine, Trophy, Video, MapPin, MessageSquareText } from "lucide-react"
+import { relativeDeadline, deadlineColorClass } from "@/lib/date-utils"
+import { ChevronRight, TreePine, Trophy, Video, MapPin, MessageSquareText } from "lucide-react"
 import { LessonLogCard } from "./lesson-log-card"
-import { StatusBadge } from "@/components/homework/status-badge"
 import { UnreadBadge } from "@/components/ui/unread-badge"
 import { Skeleton as Sk } from "@/components/ui/skeleton"
 import { scorePercentage } from "@/lib/grade-record"
@@ -24,351 +23,251 @@ export default async function DashboardPage() {
   return <StudentDashboard userId={ctx.effectiveUserId} />
 }
 
+// ─── Shared ──────────────────────────────────────────────────────────────────
+
+function fmtDay(d: Date) {
+  return d.toLocaleDateString("ja-JP", { timeZone: "Asia/Tokyo", month: "numeric", day: "numeric", weekday: "short" })
+}
+
+function fmtTime(d: Date) {
+  return d.toLocaleTimeString("ja-JP", { timeZone: "Asia/Tokyo", hour: "2-digit", minute: "2-digit" })
+}
+
+/** セクション見出し。href があれば見出し全体が遷移先へのリンクになる（個別の「〜を見る」リンクを廃止） */
+function SectionHeader({ title, count, href }: { title: string; count?: number; href?: string }) {
+  const heading = (
+    <h2 className="text-sm font-semibold flex items-center gap-1.5">
+      {title}
+      {count != null && count > 0 && (
+        <span className="rounded-full border border-primary/25 bg-primary/10 px-2 py-0.5 text-xs font-bold text-foreground">{count}</span>
+      )}
+    </h2>
+  )
+  if (!href) return heading
+  return (
+    <Link href={href} className="group flex items-center justify-between">
+      {heading}
+      <ChevronRight className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-foreground" />
+    </Link>
+  )
+}
+
+function SectionSkeleton({ rows = 3 }: { rows?: number }) {
+  return (
+    <div className="space-y-3">
+      <Sk className="h-5 w-24" />
+      <div className="rounded-lg border bg-card divide-y">
+        {[...Array(rows)].map((_, i) => (
+          <div key={i} className="px-4 py-3">
+            <Sk className="h-4 w-2/3" />
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 // ─── Teacher ────────────────────────────────────────────────────────────────
 
 function TeacherDashboard({ teacherId }: { teacherId: string }) {
   return (
-    <div className="space-y-6">
-      <Suspense fallback={null}>
-        <UncompletedLessonsSection teacherId={teacherId} />
+    <div className="space-y-8">
+      <Suspense fallback={<SectionSkeleton />}>
+        <TeacherActionSection teacherId={teacherId} />
       </Suspense>
-
-      {/* 承認待ちを最上部に */}
-      <Suspense fallback={null}>
-        <PendingHomeworksSection teacherId={teacherId} />
+      <Suspense fallback={<SectionSkeleton />}>
+        <TeacherWeekSection teacherId={teacherId} />
       </Suspense>
-
-      <Suspense fallback={
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="rounded-lg border bg-card p-3 space-y-2">
-              <Sk className="h-3 w-20" /><Sk className="h-7 w-10" />
-            </div>
-          ))}
-        </div>
-      }>
-        <TeacherSummaryCards teacherId={teacherId} />
-      </Suspense>
-
-      <Suspense fallback={
-        <div className="grid gap-6 md:grid-cols-2">
-          {[...Array(2)].map((_, i) => (
-            <div key={i} className="space-y-3">
-              <Sk className="h-5 w-32" />
-              {[...Array(3)].map((_, j) => <Sk key={j} className="h-14 w-full rounded-lg" />)}
-            </div>
-          ))}
-        </div>
-      }>
-        <TeacherUpcomingSection teacherId={teacherId} />
-      </Suspense>
-
-      <Suspense fallback={<Sk className="h-40 w-full rounded-lg" />}>
-        <HomeworkStatusSection teacherId={teacherId} />
-      </Suspense>
-
-      <Suspense fallback={<Sk className="h-32 w-full rounded-lg" />}>
-        <GradeTrendsSection teacherId={teacherId} />
+      <Suspense fallback={<SectionSkeleton />}>
+        <TeacherStudentsSection teacherId={teacherId} />
       </Suspense>
     </div>
   )
 }
 
-async function TeacherSummaryCards({ teacherId }: { teacherId: string }) {
+/** 承認待ち・完了確認・期限切れを1つに統合した「要対応」。何も無ければ表示しない */
+async function TeacherActionSection({ teacherId }: { teacherId: string }) {
   const now = new Date()
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
-  const [pendingCount, studentCount, gradeCount, overdueCount] = await Promise.all([
-    db.homework.count({ where: { teacherId, status: "submitted" } }),
-    db.student.count({ where: { teacherId } }),
-    db.gradeRecord.count({ where: { teacherId, createdAt: { gte: monthStart } } }),
-    db.homework.count({ where: { teacherId, status: { in: PENDING_STATUSES }, dueDate: { lt: now } } }),
-  ])
-  return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-      <SummaryCard title="承認待ち" value={String(pendingCount)} accent={pendingCount > 0} href="/homework" />
-      <SummaryCard title="期限切れ" value={String(overdueCount)} danger={overdueCount > 0} href="/homework" />
-      <SummaryCard title="登録生徒数" value={String(studentCount)} href="/students" />
-      <SummaryCard title="今月の成績" value={String(gradeCount)} href="/grades" />
-    </div>
-  )
-}
-
-async function UncompletedLessonsSection({ teacherId }: { teacherId: string }) {
-  const now = new Date()
-  const count = await db.lesson.count({
-    where: { teacherId, date: { lt: now }, completedAt: null },
-  })
-  if (count === 0) return null
-
-  return (
-    <div className="rounded-lg border border-warning/30 bg-warning/10 px-4 py-3 flex items-center justify-between gap-3">
-      <div className="flex items-center gap-3">
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-warning/15 text-warning-foreground">
-          <ClipboardList className="h-4 w-4" aria-hidden />
-        </div>
-        <div>
-          <p className="text-sm font-semibold text-warning-foreground">{count}件の授業が完了確認待ちです</p>
-          <p className="mt-0.5 text-xs text-warning-foreground">カレンダーから授業を完了にしてください</p>
-        </div>
-      </div>
-      <Link href="/calendar" className={buttonVariants({ variant: "outline", size: "sm" })}>
-        カレンダーへ
-      </Link>
-    </div>
-  )
-}
-
-async function PendingHomeworksSection({ teacherId }: { teacherId: string }) {
-  const [pendingCount, pendingHomeworks] = await Promise.all([
+  const [pendingCount, pending, uncompletedLessons, overdueCount] = await Promise.all([
     db.homework.count({ where: { teacherId, status: "submitted" } }),
     db.homework.findMany({
       where: { teacherId, status: "submitted" },
       include: { student: { include: { user: { select: { name: true } } } } },
-      orderBy: { submittedAt: "desc" },
-      take: 5,
+      orderBy: { submittedAt: "asc" },
+      take: 3,
     }),
+    db.lesson.count({ where: { teacherId, date: { lt: now }, completedAt: null } }),
+    db.homework.count({ where: { teacherId, status: { in: PENDING_STATUSES }, dueDate: { lt: now } } }),
   ])
-  if (pendingHomeworks.length === 0) return null
+
+  const total = pendingCount + uncompletedLessons + overdueCount
+  if (total === 0) return null
+
   return (
     <section className="space-y-3">
-      <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold">承認待ちの宿題（{pendingCount}件）</h2>
-        <Link href="/homework" className="text-xs text-muted-foreground hover:underline">すべて見る</Link>
-      </div>
-      <div className="space-y-2">
-        {pendingHomeworks.map((h) => (
-          <div key={h.id} className="rounded-lg border bg-card p-3 flex items-center justify-between gap-4">
-            <div>
-              <p className="font-medium text-sm">{h.title}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">{h.student.user.name}</p>
-            </div>
-            <Link href={`/homework/${h.id}/review`} className={buttonVariants({ variant: "outline", size: "sm", className: "shrink-0" })}>
-              確認する
-            </Link>
-          </div>
+      <SectionHeader title="要対応" count={total} />
+      <div className="rounded-lg border bg-card divide-y">
+        {pending.map((h) => (
+          <Link
+            key={h.id}
+            href={`/homework/${h.id}/review`}
+            className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-muted active:bg-muted"
+          >
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-sm font-medium">{h.title}</span>
+              <span className="mt-0.5 block text-xs text-muted-foreground">{h.student.user.name} · 承認待ち</span>
+            </span>
+            <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+          </Link>
         ))}
+        {pendingCount > 3 && (
+          <Link href="/homework" className="flex items-center justify-between px-4 py-3 text-sm text-muted-foreground transition-colors hover:bg-muted">
+            承認待ち 他{pendingCount - 3}件
+            <ChevronRight className="h-4 w-4 shrink-0" />
+          </Link>
+        )}
+        {uncompletedLessons > 0 && (
+          <Link href="/calendar" className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-muted active:bg-muted">
+            <span className="flex-1 text-sm">完了確認待ちの授業</span>
+            <span className="rounded-full bg-warning/15 px-2 py-0.5 text-xs font-bold text-warning-foreground">{uncompletedLessons}</span>
+            <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+          </Link>
+        )}
+        {overdueCount > 0 && (
+          <Link href="/homework" className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-muted active:bg-muted">
+            <span className="flex-1 text-sm">期限切れの宿題</span>
+            <span className="rounded-full border border-destructive/25 bg-destructive/10 px-2 py-0.5 text-xs font-bold text-foreground">{overdueCount}</span>
+            <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+          </Link>
+        )}
       </div>
     </section>
   )
 }
 
-async function TeacherUpcomingSection({ teacherId }: { teacherId: string }) {
+/** 授業と宿題期限を1本の時系列にまとめた「今週」 */
+async function TeacherWeekSection({ teacherId }: { teacherId: string }) {
   const now = new Date()
-  const weekEnd = new Date(now); weekEnd.setDate(weekEnd.getDate() + 7)
-  const [upcomingLessons, upcomingDeadlines] = await Promise.all([
+  const weekEnd = new Date(now)
+  weekEnd.setDate(weekEnd.getDate() + 7)
+
+  const [lessons, deadlines] = await Promise.all([
     db.lesson.findMany({
       where: { teacherId, date: { gte: now, lte: weekEnd } },
       include: { student: { include: { user: { select: { name: true } } } } },
-      orderBy: { date: "asc" }, take: 5,
+      orderBy: { date: "asc" },
+      take: 5,
     }),
     db.homework.findMany({
       where: { teacherId, status: { in: PENDING_STATUSES }, dueDate: { gte: now, lte: weekEnd } },
       include: { student: { include: { user: { select: { name: true } } } } },
-      orderBy: { dueDate: "asc" }, take: 5,
+      orderBy: { dueDate: "asc" },
+      take: 5,
     }),
   ])
 
-  const hasDeadlines = upcomingDeadlines.length > 0
-
-  return (
-    <div className={`grid gap-6 ${hasDeadlines ? "md:grid-cols-2" : ""}`}>
-      <section className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold">今後7日の授業</h2>
-          <Link href="/calendar" className="text-xs text-muted-foreground hover:underline">カレンダーを見る</Link>
-        </div>
-        {upcomingLessons.length === 0 ? (
-          <div className="rounded-lg border bg-card p-5 text-center text-sm text-muted-foreground">予定なし</div>
-        ) : (
-          <div className="space-y-2">
-            {upcomingLessons.map((l) => (
-              <div key={l.id} className="rounded-lg border bg-card p-3 flex items-center gap-3">
-                <div className="h-8 w-8 rounded-full flex items-center justify-center shrink-0 bg-muted text-muted-foreground">
-                  {l.type === "online" ? <Video className="h-4 w-4" /> : <MapPin className="h-4 w-4" />}
-                </div>
-                <div>
-                  <p className="text-sm font-medium">{l.student.user.name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {l.date.toLocaleDateString("ja-JP", { timeZone: "Asia/Tokyo", month: "short", day: "numeric", weekday: "short" })}{" "}
-                    {l.date.toLocaleTimeString("ja-JP", { timeZone: "Asia/Tokyo", hour: "2-digit", minute: "2-digit" })}
-                    {l.durationMin ? `（${l.durationMin}分）` : ""}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
-
-      {hasDeadlines && (
-        <section className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold">今後7日の宿題期限</h2>
-            <Link href="/homework" className="text-xs text-muted-foreground hover:underline">宿題一覧</Link>
-          </div>
-          <div className="space-y-2">
-            {upcomingDeadlines.map((h) => (
-              <Link key={h.id} href={`/homework/${h.id}`} className="block rounded-lg border bg-card p-3 hover:bg-muted active:bg-muted transition-colors">
-                <div className="flex items-center justify-between gap-2">
-                  <p className="text-sm font-medium truncate">{h.title}</p>
-                  <span className="text-xs text-muted-foreground shrink-0">
-                    {h.dueDate.toLocaleDateString("ja-JP", { month: "short", day: "numeric" })}
-                  </span>
-                </div>
-                <p className="text-xs text-muted-foreground mt-0.5">{h.student.user.name}</p>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
-    </div>
-  )
-}
-
-async function HomeworkStatusSection({ teacherId }: { teacherId: string }) {
-  const [homeworkStats, students] = await Promise.all([
-    db.homework.groupBy({ by: ["studentId", "status"], where: { teacherId }, _count: { status: true } }),
-    db.student.findMany({ where: { teacherId }, include: { user: { select: { name: true } } } }),
-  ])
-  if (homeworkStats.length === 0 || students.length === 0) return null
-
-  type StatusKey = "assigned" | "submitted" | "approved" | "rejected"
-  const statusMap = new Map<string, Record<StatusKey, number>>()
-  for (const s of students) statusMap.set(s.id, { assigned: 0, submitted: 0, approved: 0, rejected: 0 })
-  for (const row of homeworkStats) {
-    const entry = statusMap.get(row.studentId)
-    if (entry) entry[row.status as StatusKey] = row._count.status
-  }
-
-  const colors: Record<StatusKey, string> = {
-    assigned: "bg-muted text-foreground",
-    submitted: "border border-warning/30 bg-warning/15 text-foreground",
-    approved: "border border-primary/25 bg-primary/15 text-foreground",
-    rejected: "border border-destructive/25 bg-destructive/10 text-foreground",
-  }
-  // ラベルは共通定数から取得（「提出済」「差戻し」等の表記ゆれ防止）
-  const statusItems = (["assigned", "submitted", "approved", "rejected"] as StatusKey[]).map(
-    (key) => ({ key, label: HOMEWORK_STATUS_CONFIG[key].label })
-  )
+  const items = [
+    ...lessons.map((l) => ({
+      key: `l-${l.id}`,
+      date: l.date,
+      href: "/calendar",
+      icon: l.type === "online" ? Video : MapPin,
+      title: l.student.user.name,
+      sub: `${fmtDay(l.date)} ${fmtTime(l.date)}`,
+    })),
+    ...deadlines.map((h) => ({
+      key: `h-${h.id}`,
+      date: h.dueDate,
+      href: `/homework/${h.id}`,
+      icon: null,
+      title: h.title,
+      sub: `${h.student.user.name} · 期限 ${fmtDay(h.dueDate)}`,
+    })),
+  ]
+    .sort((a, b) => a.date.getTime() - b.date.getTime())
+    .slice(0, 6)
 
   return (
     <section className="space-y-3">
-      <h2 className="text-sm font-semibold">生徒別 宿題ステータス</h2>
-
-      {/* モバイル: カード表示 */}
-      <div className="md:hidden space-y-2">
-        {students.map((s) => {
-          const stat = statusMap.get(s.id) ?? { assigned: 0, submitted: 0, approved: 0, rejected: 0 }
-          if (stat.assigned + stat.submitted + stat.approved + stat.rejected === 0) return null
-          return (
-            <div key={s.id} className="rounded-lg border bg-card p-3">
-              <p className="text-sm font-medium mb-2">{s.user.name}</p>
-              <div className="grid grid-cols-4 gap-1.5 text-center">
-                {statusItems.map(({ key, label }) => (
-                  <div key={key} className={`rounded-md py-1.5 ${colors[key]}`}>
-                    <p className="text-base font-bold leading-none">{stat[key]}</p>
-                    <p className="text-xs mt-0.5 opacity-70">{label}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )
-        })}
-      </div>
-
-      {/* デスクトップ: テーブル表示 */}
-      <div className="hidden md:block rounded-lg border bg-card overflow-hidden overflow-x-auto">
-        <table className="w-full text-sm min-w-[400px]">
-          <thead className="border-b bg-muted">
-            <tr>
-              <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">生徒</th>
-              {statusItems.map(({ label }) => (
-                <th key={label} className="px-3 py-2.5 text-center font-medium text-muted-foreground">{label}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y">
-            {students.map((s) => {
-              const stat = statusMap.get(s.id) ?? { assigned: 0, submitted: 0, approved: 0, rejected: 0 }
-              if (stat.assigned + stat.submitted + stat.approved + stat.rejected === 0) return null
-              return (
-                <tr key={s.id} className="hover:bg-muted">
-                  <td className="px-4 py-2.5 font-medium">{s.user.name}</td>
-                  {statusItems.map(({ key }) => (
-                    <td key={key} className="px-3 py-2.5 text-center">
-                      {stat[key] > 0 ? (
-                        <span className={`inline-flex items-center justify-center h-5 min-w-5 rounded-full text-xs font-medium px-1.5 ${colors[key]}`}>
-                          {stat[key]}
-                        </span>
-                      ) : <span className="text-muted-foreground">-</span>}
-                    </td>
-                  ))}
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
-      </div>
+      <SectionHeader title="今週" href="/calendar" />
+      {items.length === 0 ? (
+        <div className="rounded-lg border bg-card p-5 text-center text-sm text-muted-foreground">予定なし</div>
+      ) : (
+        <div className="rounded-lg border bg-card divide-y">
+          {items.map(({ key, href, icon: Icon, title, sub }) => (
+            <Link key={key} href={href} className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-muted active:bg-muted">
+              {Icon && (
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                  <Icon className="h-4 w-4" />
+                </span>
+              )}
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-sm font-medium">{title}</span>
+                <span className="mt-0.5 block text-xs text-muted-foreground">{sub}</span>
+              </span>
+            </Link>
+          ))}
+        </div>
+      )}
     </section>
   )
 }
 
-async function GradeTrendsSection({ teacherId }: { teacherId: string }) {
-  const students = await db.student.findMany({
-    where: { teacherId },
-    include: {
-      user: { select: { name: true } },
-      grades: {
-        orderBy: { date: "desc" },
-        take: 2,
+/** 宿題ステータス表と成績動向を、生徒別の1行に集約した「生徒」 */
+async function TeacherStudentsSection({ teacherId }: { teacherId: string }) {
+  const [students, hwStats] = await Promise.all([
+    db.student.findMany({
+      where: { teacherId },
+      include: {
+        user: { select: { name: true } },
+        grades: { orderBy: { date: "desc" }, take: 2 },
       },
-    },
-  })
+      orderBy: { createdAt: "asc" },
+    }),
+    db.homework.groupBy({ by: ["studentId", "status"], where: { teacherId }, _count: { status: true } }),
+  ])
+  if (students.length === 0) return null
 
-  type Grade = typeof students[0]["grades"][0]
+  const stat = new Map<string, { active: number; submitted: number }>()
+  for (const row of hwStats) {
+    const entry = stat.get(row.studentId) ?? { active: 0, submitted: 0 }
+    if (row.status === "submitted") entry.submitted += row._count.status
+    else if (row.status === "assigned" || row.status === "rejected") entry.active += row._count.status
+    stat.set(row.studentId, entry)
+  }
+
+  type Grade = (typeof students)[0]["grades"][0]
   const val = (g: Grade) => scorePercentage(g.score, g.maxScore) ?? g.deviation
-
-  const gradeTrends = students
-    .filter((s) => s.grades.length >= 2)
-    .map((s) => {
-      const [latest, prev] = s.grades
-      const latestVal = val(latest)
-      const prevVal = val(prev)
-      if (latestVal == null || prevVal == null) return null
-      const diff = latestVal - prevVal
-      if (Math.abs(diff) < 1) return null
-      return { studentId: s.id, name: s.user.name, diff, latest }
-    })
-    .filter(Boolean)
-    .sort((a, b) => Math.abs(b!.diff) - Math.abs(a!.diff))
-    .slice(0, 5) as NonNullable<{ studentId: string; name: string; diff: number; latest: Grade }>[]
-
-  if (gradeTrends.length === 0) return null
 
   return (
     <section className="space-y-3">
-      <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold">直近の成績動向</h2>
-        <Link href="/grades" className="text-xs text-muted-foreground hover:underline">成績一覧</Link>
-      </div>
+      <SectionHeader title="生徒" href="/students" />
       <div className="rounded-lg border bg-card divide-y">
-        {gradeTrends.map((t) => {
-          const up = t.diff > 0
+        {students.map((s) => {
+          const { active, submitted } = stat.get(s.id) ?? { active: 0, submitted: 0 }
+          let diff: number | null = null
+          if (s.grades.length >= 2) {
+            const [latest, prev] = s.grades
+            const a = val(latest)
+            const b = val(prev)
+            if (a != null && b != null && Math.abs(a - b) >= 1) diff = a - b
+          }
           return (
-            <div key={t.studentId} className="flex items-center gap-3 px-4 py-2.5">
-              <span className={`text-base font-bold w-4 shrink-0 ${up ? "text-primary" : "text-destructive"}`}>
-                {up ? "↑" : "↓"}
-              </span>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium">{t.name}</p>
-                <p className="text-xs text-muted-foreground truncate">
-                  {TEST_TYPE_LABELS[t.latest.testType as keyof typeof TEST_TYPE_LABELS]}「{t.latest.testName}」
-                </p>
-              </div>
-              <span className={`text-sm font-bold shrink-0 ${up ? "text-primary" : "text-destructive"}`}>
-                {up ? "+" : ""}{Math.round(t.diff)}{t.latest.deviation != null ? "" : "%"}
-              </span>
-            </div>
+            <Link key={s.id} href={`/students/${s.id}`} className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-muted active:bg-muted">
+              <span className="min-w-0 flex-1 truncate text-sm font-medium">{s.user.name}</span>
+              {submitted > 0 && (
+                <span className="shrink-0 rounded-full bg-warning/15 px-2 py-0.5 text-xs font-medium text-warning-foreground">承認待ち {submitted}</span>
+              )}
+              {active > 0 && (
+                <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">宿題 {active}</span>
+              )}
+              {diff != null && (
+                <span className={`shrink-0 text-sm font-bold ${diff > 0 ? "text-primary" : "text-destructive"}`}>
+                  {diff > 0 ? "↑" : "↓"}{Math.abs(Math.round(diff))}
+                </span>
+              )}
+              <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+            </Link>
           )
         })}
       </div>
@@ -380,48 +279,19 @@ async function GradeTrendsSection({ teacherId }: { teacherId: string }) {
 
 function StudentDashboard({ userId }: { userId: string }) {
   return (
-    <div className="space-y-6">
-      <Suspense fallback={null}>
-        <StudentFeedbackSection userId={userId} />
+    <div className="space-y-8">
+      <Suspense fallback={<SectionSkeleton />}>
+        <StudentTodoSection userId={userId} />
       </Suspense>
-
-      <Suspense fallback={
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="rounded-lg border bg-card p-3 space-y-2">
-              <Sk className="h-3 w-20" /><Sk className="h-7 w-10" />
-            </div>
-          ))}
-        </div>
-      }>
-        <StudentSummaryCards userId={userId} />
+      <Suspense fallback={<SectionSkeleton />}>
+        <StudentWeekSection userId={userId} />
       </Suspense>
-
-      <Suspense fallback={<Sk className="h-28 w-full rounded-lg" />}>
-        <StudentUpcomingExams userId={userId} />
-      </Suspense>
-
-      <Suspense fallback={
-        <div className="grid gap-6 md:grid-cols-2">
-          {[...Array(2)].map((_, i) => (
-            <div key={i} className="space-y-3">
-              <Sk className="h-5 w-32" />
-              {[...Array(2)].map((_, j) => <Sk key={j} className="h-14 w-full rounded-lg" />)}
-            </div>
-          ))}
-        </div>
-      }>
-        <StudentUpcomingSection userId={userId} />
-      </Suspense>
-
-      <Suspense fallback={<Sk className="h-24 w-full rounded-lg" />}>
-        <StudentRecentLogs userId={userId} />
-      </Suspense>
-
       <Suspense fallback={<Sk className="h-24 w-full rounded-lg" />}>
         <StudentGardenPreview userId={userId} />
       </Suspense>
-
+      <Suspense fallback={null}>
+        <StudentRecentLogs userId={userId} />
+      </Suspense>
       <Suspense fallback={null}>
         <StudentParentInvitePrompt userId={userId} />
       </Suspense>
@@ -429,46 +299,59 @@ function StudentDashboard({ userId }: { userId: string }) {
   )
 }
 
-async function StudentFeedbackSection({ userId }: { userId: string }) {
+/** 未読フィードバックと提出すべき宿題を1つにまとめた「やること」 */
+async function StudentTodoSection({ userId }: { userId: string }) {
   const student = await getStudentByUserId(userId)
   if (!student) return null
 
-  const feedbacks = await db.homework.findMany({
-    where: {
-      studentId: student.id,
-      teacherFeedback: { not: null },
-      feedbackSeenAt: null,
-      status: { in: ["approved", "rejected"] },
-    },
-    orderBy: { reviewedAt: "desc" },
-    take: 5,
-    select: { id: true, title: true, teacherFeedback: true, status: true },
-  })
-  if (feedbacks.length === 0) return null
+  const [feedbacks, active] = await Promise.all([
+    db.homework.findMany({
+      where: {
+        studentId: student.id,
+        teacherFeedback: { not: null },
+        feedbackSeenAt: null,
+        status: { in: ["approved", "rejected"] },
+      },
+      orderBy: { reviewedAt: "desc" },
+      take: 2,
+      select: { id: true, title: true, teacherFeedback: true },
+    }),
+    db.homework.findMany({
+      where: { studentId: student.id, status: { in: PENDING_STATUSES } },
+      orderBy: { dueDate: "asc" },
+      take: 4,
+      select: { id: true, title: true, dueDate: true },
+    }),
+  ])
+  if (feedbacks.length === 0 && active.length === 0) return null
 
   return (
     <section className="space-y-3">
-      <h2 className="text-sm font-semibold flex items-center gap-1.5">
-        <MessageSquareText className="h-4 w-4 text-primary" />
-        先生からのフィードバック（{feedbacks.length}件）
-      </h2>
-      <div className="space-y-2">
+      <SectionHeader title="やること" count={active.length} href="/homework" />
+      <div className="rounded-lg border bg-card divide-y">
         {feedbacks.map((h) => (
           <Link
             key={h.id}
             href={`/homework/${h.id}`}
-            className="block rounded-lg border border-primary/30 bg-primary/5 p-4 transition-colors hover:bg-primary/10"
+            className="flex items-center gap-3 bg-primary/5 px-4 py-3 transition-colors hover:bg-primary/10"
           >
-            <div className="flex items-center gap-2">
-              <p className="text-sm font-medium truncate">{h.title}</p>
-              <span className="ml-auto shrink-0 flex items-center gap-1.5">
-                <StatusBadge status={h.status} />
-                <UnreadBadge />
-              </span>
-            </div>
-            <p className="mt-1.5 text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap line-clamp-2">
-              {h.teacherFeedback}
-            </p>
+            <MessageSquareText className="h-4 w-4 shrink-0 text-primary" />
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-sm font-medium">{h.title}</span>
+              <span className="mt-0.5 block truncate text-xs text-muted-foreground">{h.teacherFeedback}</span>
+            </span>
+            <UnreadBadge />
+          </Link>
+        ))}
+        {active.map((h) => (
+          <Link
+            key={h.id}
+            href={`/homework/${h.id}/submit`}
+            className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-muted active:bg-muted"
+          >
+            <span className="min-w-0 flex-1 truncate text-sm font-medium">{h.title}</span>
+            <span className={`shrink-0 text-xs font-medium ${deadlineColorClass(h.dueDate)}`}>{relativeDeadline(h.dueDate)}</span>
+            <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
           </Link>
         ))}
       </div>
@@ -476,149 +359,75 @@ async function StudentFeedbackSection({ userId }: { userId: string }) {
   )
 }
 
-async function StudentSummaryCards({ userId }: { userId: string }) {
-  const student = await getStudentByUserId(userId)
-  if (!student) return (
-    <div className="grid gap-4 md:grid-cols-2">
-      <SummaryCard title="未完了の宿題" value="0" />
-      <SummaryCard title="次のテスト" value="-" />
-    </div>
-  )
-
-  const now = new Date()
-  const [incompleteCount, overdueCount, submittedCount] = await Promise.all([
-    db.homework.count({ where: { studentId: student.id, status: { in: PENDING_STATUSES } } }),
-    db.homework.count({ where: { studentId: student.id, status: { in: PENDING_STATUSES }, dueDate: { lt: now } } }),
-    db.homework.count({ where: { studentId: student.id, status: "submitted" } }),
-  ])
-
-  return (
-    <div className="grid grid-cols-3 gap-3">
-      <SummaryCard title="未完了" value={String(incompleteCount)} accent={incompleteCount > 0} href="/homework" />
-      <SummaryCard title="期限切れ" value={String(overdueCount)} danger={overdueCount > 0} href="/homework" />
-      <SummaryCard title="承認待ち" value={String(submittedCount)} href="/homework" />
-    </div>
-  )
-}
-
-async function StudentUpcomingSection({ userId }: { userId: string }) {
+/** 授業とテストを1本の時系列にまとめた「今週」 */
+async function StudentWeekSection({ userId }: { userId: string }) {
   const student = await getStudentByUserId(userId)
   if (!student) return null
 
   const now = new Date()
-  const weekEnd = new Date(now); weekEnd.setDate(weekEnd.getDate() + 7)
-  const [upcomingLessons, upcomingDeadlines] = await Promise.all([
+  const weekEnd = new Date(now)
+  weekEnd.setDate(weekEnd.getDate() + 7)
+  const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+
+  const [lessons, exams] = await Promise.all([
     db.lesson.findMany({
       where: { studentId: student.id, date: { gte: now, lte: weekEnd } },
-      orderBy: { date: "asc" }, take: 3,
+      orderBy: { date: "asc" },
+      take: 3,
     }),
-    db.homework.findMany({
-      where: { studentId: student.id, status: { in: PENDING_STATUSES }, dueDate: { gte: now, lte: weekEnd } },
-      orderBy: { dueDate: "asc" }, take: 5,
+    db.examEvent.findMany({
+      where: { studentId: student.id, date: { gte: now } },
+      orderBy: { date: "asc" },
+      take: 3,
     }),
   ])
 
-  const hasDeadlines = upcomingDeadlines.length > 0
+  const items = [
+    ...lessons.map((l) => ({
+      key: `l-${l.id}`,
+      date: l.date,
+      icon: l.type === "online" ? Video : MapPin,
+      title: l.type === "online" ? "オンライン授業" : "対面授業",
+      sub: `${fmtDay(l.date)} ${fmtTime(l.date)}`,
+      badge: null as string | null,
+      urgent: false,
+    })),
+    ...exams.map((e) => {
+      const examMidnight = new Date(e.date.getFullYear(), e.date.getMonth(), e.date.getDate())
+      const diffDays = Math.round((examMidnight.getTime() - todayMidnight.getTime()) / (1000 * 60 * 60 * 24))
+      const badge = diffDays === 0 ? "今日" : diffDays === 1 ? "明日" : `${diffDays}日後`
+      return {
+        key: `e-${e.id}`,
+        date: e.date,
+        icon: null,
+        title: e.name,
+        sub: fmtDay(e.date),
+        badge,
+        urgent: diffDays <= 3,
+      }
+    }),
+  ].sort((a, b) => a.date.getTime() - b.date.getTime())
 
-  return (
-    <div className={`grid gap-6 ${hasDeadlines ? "md:grid-cols-2" : ""}`}>
-      <section className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold">今後7日の授業</h2>
-          <Link href="/calendar" className="text-xs text-muted-foreground hover:underline">カレンダー</Link>
-        </div>
-        {upcomingLessons.length === 0 ? (
-          <div className="rounded-lg border bg-card p-5 text-center text-sm text-muted-foreground">予定なし</div>
-        ) : (
-          <div className="space-y-2">
-            {upcomingLessons.map((l) => (
-              <div key={l.id} className="rounded-lg border bg-card p-3 flex items-center gap-3">
-                <div className="h-8 w-8 rounded-full flex items-center justify-center shrink-0 bg-muted text-muted-foreground">
-                  {l.type === "online" ? <Video className="h-4 w-4" /> : <MapPin className="h-4 w-4" />}
-                </div>
-                <div>
-                  <p className="text-sm font-medium">{l.type === "online" ? "オンライン授業" : "対面授業"}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {l.date.toLocaleDateString("ja-JP", { timeZone: "Asia/Tokyo", month: "short", day: "numeric", weekday: "short" })}{" "}
-                    {l.date.toLocaleTimeString("ja-JP", { timeZone: "Asia/Tokyo", hour: "2-digit", minute: "2-digit" })}
-                    {l.durationMin ? `（${l.durationMin}分）` : ""}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
-
-      {hasDeadlines && (
-        <section className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold">今後7日の期限</h2>
-            <Link href="/homework" className="text-xs text-muted-foreground hover:underline">宿題一覧</Link>
-          </div>
-          <div className="space-y-2">
-            {upcomingDeadlines.map((h) => (
-              <div key={h.id} className="rounded-lg border bg-card p-3 flex items-center justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-sm font-medium truncate">{h.title}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    期限: {h.dueDate.toLocaleDateString("ja-JP", { month: "short", day: "numeric" })}
-                  </p>
-                </div>
-                <Link href={`/homework/${h.id}/submit`} className={buttonVariants({ size: "sm", className: "shrink-0" })}>
-                  提出する
-                </Link>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-    </div>
-  )
-}
-
-async function StudentUpcomingExams({ userId }: { userId: string }) {
-  const student = await getStudentByUserId(userId)
-  if (!student) return null
-
-  const now = new Date()
-  const exams = await db.examEvent.findMany({
-    where: { studentId: student.id, date: { gte: now } },
-    orderBy: { date: "asc" },
-    take: 5,
-  })
-  if (exams.length === 0) return null
-
-  const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  if (items.length === 0) return null
 
   return (
     <section className="space-y-3">
-      <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold">直近のテスト</h2>
-        <Link href="/calendar" className="text-xs text-muted-foreground hover:underline">カレンダー</Link>
-      </div>
+      <SectionHeader title="今週" href="/calendar" />
       <div className="rounded-lg border bg-card divide-y">
-        {exams.map((e) => {
-          const examMidnight = new Date(e.date.getFullYear(), e.date.getMonth(), e.date.getDate())
-          const diffDays = Math.round((examMidnight.getTime() - todayMidnight.getTime()) / (1000 * 60 * 60 * 24))
-          const urgent = diffDays <= 3
-          const soon = !urgent && diffDays <= 7
-          return (
-            <div key={e.id} className="px-4 py-3 flex items-center justify-between gap-4">
-              <div className="min-w-0">
-                <p className="text-sm font-medium truncate">{e.name}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  {TEST_TYPE_LABELS[e.testType as keyof typeof TEST_TYPE_LABELS]}
-                  {" · "}
-                  {e.date.toLocaleDateString("ja-JP", { month: "short", day: "numeric", weekday: "short" })}
-                </p>
-              </div>
-              <p className={`text-sm font-bold shrink-0 ${urgent ? "text-destructive" : soon ? "text-warning" : ""}`}>
-                {diffDays === 0 ? "今日" : diffDays === 1 ? "明日" : diffDays === 2 ? "明後日" : `${diffDays}日後`}
-              </p>
-            </div>
-          )
-        })}
+        {items.map(({ key, icon: Icon, title, sub, badge, urgent }) => (
+          <div key={key} className="flex items-center gap-3 px-4 py-3">
+            {Icon && (
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                <Icon className="h-4 w-4" />
+              </span>
+            )}
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-sm font-medium">{title}</span>
+              <span className="mt-0.5 block text-xs text-muted-foreground">{sub}</span>
+            </span>
+            {badge && <span className={`shrink-0 text-sm font-bold ${urgent ? "text-destructive" : ""}`}>{badge}</span>}
+          </div>
+        ))}
       </div>
     </section>
   )
@@ -636,25 +445,20 @@ async function StudentGardenPreview({ userId }: { userId: string }) {
 
   return (
     <section className="space-y-3">
-      <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold">学習の森</h2>
-        <Link href="/garden" className="text-xs text-muted-foreground hover:underline">
-          森を見る
-        </Link>
-      </div>
+      <SectionHeader title="学習の森" href="/garden" />
       <Link
         href="/garden"
-        className={`block rounded-lg border p-4 hover:opacity-90 transition-opacity space-y-3 ${isFull ? "bg-warning/10 border-warning/40" : "bg-card"}`}
+        className={`block space-y-3 rounded-lg border p-4 transition-opacity hover:opacity-90 ${isFull ? "border-warning/40 bg-warning/10" : "bg-card"}`}
       >
         <div className="flex items-center gap-3">
           {isFull ? (
-            <Trophy className="h-9 w-9 text-warning shrink-0" />
+            <Trophy className="h-9 w-9 shrink-0 text-warning" />
           ) : (
-            <TreePine className="h-9 w-9 text-primary shrink-0" />
+            <TreePine className="h-9 w-9 shrink-0 text-primary" />
           )}
           <div>
             <p className={`text-2xl font-bold leading-none ${isFull ? "text-warning" : ""}`}>{count}</p>
-            <p className="text-xs text-muted-foreground mt-0.5">/ {max} アイテム</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">/ {max}</p>
           </div>
           {generation > 1 && !isFull && (
             <span className="ml-auto rounded-full border border-primary/25 bg-primary/10 px-2 py-0.5 text-xs font-medium text-foreground">第{generation}世代</span>
@@ -663,15 +467,13 @@ async function StudentGardenPreview({ userId }: { userId: string }) {
             <span className="ml-auto rounded-full border border-warning/30 bg-warning/15 px-2 py-0.5 text-xs font-bold text-foreground">満開達成</span>
           )}
         </div>
-        <div className="h-2 bg-muted rounded-full overflow-hidden">
+        <div className="h-2 overflow-hidden rounded-full bg-muted">
           <div
             className={`h-full rounded-full transition-all ${isFull ? "bg-warning" : "bg-primary"}`}
             style={{ width: `${count > 0 ? Math.max(pct, 3) : 0}%` }}
           />
         </div>
-        {count === 0 && (
-          <p className="text-xs text-muted-foreground">宿題が承認されると森にアイテムが育ちます</p>
-        )}
+        {count === 0 && <p className="text-xs text-muted-foreground">宿題が承認されると森が育ちます</p>}
       </Link>
     </section>
   )
@@ -688,7 +490,7 @@ async function StudentRecentLogs({ userId }: { userId: string }) {
       lessonLog: { not: null },
     },
     orderBy: { date: "desc" },
-    take: 5,
+    take: 3,
     select: { id: true, date: true, lessonLog: true, subjectIds: true, lessonLogSeenAt: true },
   })
   if (lessons.length === 0) return null
@@ -704,23 +506,16 @@ async function StudentRecentLogs({ userId }: { userId: string }) {
 
   return (
     <section className="space-y-3">
-      <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold">
-          授業ログ
-          {unreadCount > 0 && <span className="ml-1.5 text-xs font-medium text-primary">未読{unreadCount}件</span>}
-        </h2>
-        <Link href="/calendar" className="text-xs text-muted-foreground hover:underline">カレンダー</Link>
-      </div>
+      <SectionHeader title="授業ログ" count={unreadCount} href="/calendar" />
       <div className="space-y-2">
         {sorted.map((l) => {
           const subjectNames = l.subjectIds.map((id) => subjectMap.get(id)).filter(Boolean) as string[]
-          const dateStr = l.date.toLocaleDateString("ja-JP", { month: "short", day: "numeric", weekday: "short" })
           return (
             <LessonLogCard
               key={l.id}
               lessonId={l.id}
               unread={l.lessonLogSeenAt === null}
-              date={dateStr}
+              date={fmtDay(l.date)}
               subjectNames={subjectNames}
               log={l.lessonLog!}
             />
@@ -739,7 +534,7 @@ async function StudentParentInvitePrompt({ userId }: { userId: string }) {
   if (hasParent) return null
 
   return (
-    <div className="rounded-lg border border-dashed bg-card p-4 flex items-center justify-between gap-3">
+    <div className="flex items-center justify-between gap-3 rounded-lg border border-dashed bg-card p-4">
       <p className="text-sm text-muted-foreground">保護者に学習状況を共有できます</p>
       <Link href="/parent-invite/create" className={buttonVariants({ variant: "outline", size: "sm" })}>
         保護者を招待
@@ -803,29 +598,26 @@ async function ParentStudentList({ parentId }: { parentId: string }) {
         const latestGrade = student.grades[0]
 
         return (
-          <div key={student.id} className="rounded-lg border bg-card p-5 space-y-4">
+          <div key={student.id} className="space-y-4 rounded-lg border bg-card p-5">
             <div>
-              <p className="font-semibold text-base">{student.user.name}</p>
+              <p className="text-base font-semibold">{student.user.name}</p>
               <p className="text-xs text-muted-foreground">{student.grade}</p>
             </div>
 
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
               <div className="rounded-md bg-muted p-3">
-                <p className="text-xs text-muted-foreground">宿題（未完了）</p>
-                <p className="text-xl font-bold mt-0.5">{pendingHw}<span className="text-sm font-normal text-muted-foreground ml-1">件</span></p>
+                <p className="text-xs text-muted-foreground">宿題</p>
+                <p className="mt-0.5 text-xl font-bold">{pendingHw}<span className="ml-1 text-sm font-normal text-muted-foreground">件</span></p>
               </div>
               <div className="rounded-md bg-muted p-3">
                 <p className="text-xs text-muted-foreground">次の授業</p>
-                <p className="text-sm font-medium mt-0.5">
-                  {nextLesson
-                    ? nextLesson.date.toLocaleDateString("ja-JP", { timeZone: "Asia/Tokyo", month: "short", day: "numeric", weekday: "short" })
-                    : <span className="text-muted-foreground">-</span>
-                  }
+                <p className="mt-0.5 text-sm font-medium">
+                  {nextLesson ? fmtDay(nextLesson.date) : <span className="text-muted-foreground">-</span>}
                 </p>
               </div>
-              <div className="rounded-md bg-muted p-3 col-span-2 sm:col-span-1">
+              <div className="col-span-2 rounded-md bg-muted p-3 sm:col-span-1">
                 <p className="text-xs text-muted-foreground">直近の成績</p>
-                <p className="text-sm font-medium mt-0.5">
+                <p className="mt-0.5 text-sm font-medium">
                   {latestGrade
                     ? latestGrade.score != null && latestGrade.maxScore != null
                       ? `${latestGrade.score}/${latestGrade.maxScore}点`
@@ -840,42 +632,16 @@ async function ParentStudentList({ parentId }: { parentId: string }) {
               <div className="space-y-1">
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <span>宿題進捗</span>
-                  <span>{approvedHw}/{totalHw}（{pct}%）</span>
+                  <span>{approvedHw}/{totalHw}</span>
                 </div>
-                <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+                <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
                   <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${pct}%` }} />
                 </div>
               </div>
             )}
-
-            <div className="flex items-center gap-2 pt-1 border-t flex-wrap text-xs">
-              <Link href={`/grades?studentId=${student.id}`} className="text-primary underline-offset-4 hover:underline">成績を見る</Link>
-              <span className="text-muted-foreground">·</span>
-              <Link href={`/calendar`} className="text-primary underline-offset-4 hover:underline">カレンダー</Link>
-              <span className="text-muted-foreground">·</span>
-              <Link href={`/billing`} className="text-primary underline-offset-4 hover:underline">請求</Link>
-            </div>
           </div>
         )
       })}
     </div>
   )
-}
-
-// ─── Shared ──────────────────────────────────────────────────────────────────
-
-function SummaryCard({ title, value, accent, danger, sub, href }: {
-  title: string; value: string; accent?: boolean; danger?: boolean; sub?: string; href?: string
-}) {
-  const inner = (
-    <div className={`rounded-lg border bg-card p-3 shadow-sm transition-colors
-      ${danger ? "border-destructive/40" : accent ? "border-warning/50" : ""}
-      ${href ? "hover:bg-muted active:bg-muted" : ""}`}>
-      <p className="text-xs text-muted-foreground">{title}</p>
-      <p className={`mt-1 text-2xl font-bold ${danger ? "text-destructive" : accent ? "text-warning-foreground" : ""}`}>{value}</p>
-      {sub && <p className="text-xs text-muted-foreground mt-0.5 truncate">{sub}</p>}
-    </div>
-  )
-  if (href) return <Link href={href}>{inner}</Link>
-  return inner
 }

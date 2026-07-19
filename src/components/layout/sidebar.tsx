@@ -6,16 +6,16 @@ import { BookOpen, GraduationCap, LayoutDashboard, ClipboardList, BarChart2, Cal
 import { cn } from "@/lib/utils"
 
 const teacherNav = [
-  { href: "/dashboard", label: "ダッシュボード", icon: LayoutDashboard },
-  { href: "/students", label: "生徒一覧", icon: GraduationCap },
-  { href: "/homework", label: "宿題管理", icon: ClipboardList },
-  { href: "/grades", label: "成績管理", icon: BarChart2 },
+  { href: "/dashboard", label: "ホーム", icon: LayoutDashboard },
+  { href: "/students", label: "生徒", icon: GraduationCap },
+  { href: "/homework", label: "宿題", icon: ClipboardList },
+  { href: "/grades", label: "成績", icon: BarChart2 },
   { href: "/calendar", label: "カレンダー", icon: CalendarDays },
-  { href: "/billing", label: "請求管理", icon: Receipt },
+  { href: "/billing", label: "請求", icon: Receipt },
 ]
 
 const studentNav = [
-  { href: "/dashboard", label: "ダッシュボード", icon: LayoutDashboard },
+  { href: "/dashboard", label: "ホーム", icon: LayoutDashboard },
   { href: "/homework", label: "宿題", icon: ClipboardList },
   { href: "/grades", label: "成績", icon: BarChart2 },
   { href: "/calendar", label: "カレンダー", icon: CalendarDays },
@@ -24,7 +24,7 @@ const studentNav = [
 ]
 
 const parentNav = [
-  { href: "/dashboard", label: "ダッシュボード", icon: LayoutDashboard },
+  { href: "/dashboard", label: "ホーム", icon: LayoutDashboard },
   { href: "/grades", label: "成績", icon: BarChart2 },
   { href: "/calendar", label: "カレンダー", icon: CalendarDays },
   { href: "/billing", label: "請求", icon: Receipt },

@@ -392,13 +392,7 @@ async function StudentHomeworkPage({ userId }: { userId: string }) {
               )
             })}
             {approvedRemainder > 0 && (
-              <p className="text-center text-xs text-muted-foreground py-1">
-                他 {approvedRemainder} 件は
-                <Link href="/homework?status=approved" className="ml-1 underline hover:text-foreground">
-                  宿題一覧
-                </Link>
-                から確認できます
-              </p>
+              <p className="py-1 text-center text-xs text-muted-foreground">他 {approvedRemainder} 件</p>
             )}
           </div>
         </section>
