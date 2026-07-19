@@ -2,10 +2,9 @@
 
 import { useActionState, useTransition, useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import {
   generateLinkToken,
   unlinkLine,
@@ -15,12 +14,16 @@ import {
   unlinkGoogleAccount,
 } from "./actions"
 import { toast } from "sonner"
+import { PendingStatus } from "@/components/ui/pending-status"
+import { PendingSubmitButton } from "@/components/ui/pending-submit-button"
+import { FormField } from "@/components/ui/form-field"
 
 export function GoogleAuthSettings({ isLinked }: { isLinked: boolean }) {
   const [isPending, startTransition] = useTransition()
 
   return (
     <Card>
+      <PendingStatus pending={isPending} label="Google連携を解除しています" />
       <CardHeader>
         <CardTitle className="text-base">Google ログイン</CardTitle>
         <CardDescription>
@@ -48,7 +51,9 @@ export function GoogleAuthSettings({ isLinked }: { isLinked: boolean }) {
           </Button>
         ) : (
           <form action={linkGoogleAccount}>
-            <Button type="submit" size="sm">Google アカウントを連携する</Button>
+            <PendingSubmitButton pendingLabel="Googleへ接続中" className={buttonVariants({ size: "sm" })}>
+              Google アカウントを連携する
+            </PendingSubmitButton>
           </form>
         )}
       </CardContent>
@@ -76,6 +81,7 @@ export function DeleteParentAccountButton() {
 
   return (
     <div className="space-y-3 rounded-lg border border-destructive/30 bg-destructive/5 p-3">
+      <PendingStatus pending={isPending} label="アカウントを削除しています" />
       <p className="text-sm font-medium text-destructive">本当に削除しますか？この操作は取り消せません。</p>
       <div className="flex gap-2">
         <Button variant="destructive" size="sm" disabled={isPending} onClick={handleDelete}>
@@ -150,8 +156,13 @@ export function MeetLinkSettings({ currentMeetLink }: { currentMeetLink: string 
               </p>
             </div>
             <form action={action} className="space-y-3">
-              <div className="space-y-1.5">
-                <Label htmlFor="meetLink">Meet URL</Label>
+              <PendingStatus pending={isPending} label="Meet URLを保存しています" />
+              <FormField
+                htmlFor="meetLink"
+                label="Meet URL"
+                hint="小文字の半角英字とハイフンを含むURLを、そのまま貼り付けてください。空欄で保存すると登録を解除します。"
+                example="https://meet.google.com/xxx-yyyy-zzz"
+              >
                 <Input
                   ref={inputRef}
                   id="meetLink"
@@ -160,7 +171,7 @@ export function MeetLinkSettings({ currentMeetLink }: { currentMeetLink: string 
                   placeholder="https://meet.google.com/xxx-yyyy-zzz"
                   defaultValue={displayedLink ?? ""}
                 />
-              </div>
+              </FormField>
               {state.error && <p className="text-sm text-destructive">{state.error}</p>}
               <div className="flex gap-2">
                 <Button type="submit" size="sm" disabled={isPending}>
@@ -263,6 +274,7 @@ export function LineSettings({ isLinked }: { isLinked: boolean }) {
               </span>
             </div>
             <form action={generateAction}>
+              <PendingStatus pending={isGenerating} label="LINE連携コードを再発行しています" />
               <Button type="submit" variant="ghost" size="sm" disabled={isGenerating}>
                 コードを再発行する
               </Button>
@@ -277,6 +289,7 @@ export function LineSettings({ isLinked }: { isLinked: boolean }) {
               <p className="text-sm text-destructive">{tokenState.error}</p>
             )}
             <form action={generateAction}>
+              <PendingStatus pending={isGenerating} label="LINE連携コードを生成しています" />
               <Button type="submit" disabled={isGenerating}>
                 LINE連携を開始する
               </Button>

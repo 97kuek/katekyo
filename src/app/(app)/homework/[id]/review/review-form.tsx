@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { haptic } from "@/lib/haptic"
+import { PendingStatus } from "@/components/ui/pending-status"
 
 export default function ReviewForm({ id }: { id: string }) {
   const [state, action, isPending] = useActionState(reviewHomework, { error: "" })
@@ -20,6 +21,7 @@ export default function ReviewForm({ id }: { id: string }) {
       </CardHeader>
       <CardContent>
         <form action={action} className="space-y-4">
+          <PendingStatus pending={isPending} label="宿題の確認結果を反映しています" />
           <input type="hidden" name="id" value={id} />
           {state.error && (
             <p className="text-sm text-foreground border border-destructive/30 bg-destructive/10 p-3 rounded-md animate-shake">

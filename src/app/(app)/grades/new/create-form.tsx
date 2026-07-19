@@ -9,6 +9,9 @@ import { Label } from "@/components/ui/label"
 import { Select } from "@/components/ui/select"
 import { TEST_TYPE_OPTIONS } from "@/lib/test-types"
 import { FormMessage } from "@/components/ui/form-message"
+import { FormField } from "@/components/ui/form-field"
+import { FormProgress } from "@/components/ui/form-progress"
+import { PendingStatus } from "@/components/ui/pending-status"
 
 type Student = { id: string; grade: string; user: { name: string } }
 type Subject = { id: string; name: string }
@@ -53,8 +56,10 @@ export default function CreateGradeForm({
   return (
     <form action={action} className="space-y-5">
       {state.error && (
-        <FormMessage type="error">{state.error}</FormMessage>
+        <FormMessage type="error">{state.error} 関連する項目をセットで確認して、もう一度保存してください。</FormMessage>
       )}
+      <FormProgress />
+      <PendingStatus pending={isPending} label="成績を記録しています" />
 
       {examEvents.length > 0 && (
         <div className="space-y-2">
@@ -73,15 +78,12 @@ export default function CreateGradeForm({
         </div>
       )}
 
-      <p className="text-xs text-muted-foreground"><span className="text-destructive font-medium">*</span> は必須項目です</p>
-
       <GradeFormFields
         subjects={subjects}
         defaultValues={{ testType, testName, date }}
         mode="create"
         studentField={(
-          <div className="col-span-2 space-y-2">
-            <Label htmlFor="studentId">生徒 <span className="text-destructive">*</span></Label>
+          <FormField htmlFor="studentId" label="生徒" required className="col-span-2 space-y-2" hint="成績を記録する生徒を選びます。">
             {singleStudent ? (
               <>
                 <input type="hidden" name="studentId" value={singleStudent.id} />
@@ -101,7 +103,7 @@ export default function CreateGradeForm({
                 ))}
               </Select>
             )}
-          </div>
+          </FormField>
         )}
         testTypeValue={testType}
         onTestTypeChange={(e) => setTestType(e.target.value)}

@@ -8,6 +8,10 @@ import { StickyFormActions } from "@/components/ui/sticky-form-actions"
 import { Label } from "@/components/ui/label"
 import { Select } from "@/components/ui/select"
 import { HomeworkCoreFields, SubjectCheckboxes } from "../homework-form-fields"
+import { FormField } from "@/components/ui/form-field"
+import { FormProgress } from "@/components/ui/form-progress"
+import { FormMessage } from "@/components/ui/form-message"
+import { PendingStatus } from "@/components/ui/pending-status"
 
 type Student = {
   id: string
@@ -44,12 +48,10 @@ export default function CreateHomeworkForm({
 
   return (
     <form action={action} className="space-y-4">
-      {state.error && (
-        <p className="text-sm text-foreground border border-destructive/30 bg-destructive/10 p-3 rounded-md">{state.error}</p>
-      )}
-      <p className="text-xs text-muted-foreground"><span className="text-destructive font-medium">*</span> は必須項目です</p>
-      <div className="space-y-2">
-        <Label htmlFor="studentId">生徒 <span className="text-destructive">*</span></Label>
+      {state.error && <FormMessage type="error">{state.error} 該当する項目を確認して、もう一度保存してください。</FormMessage>}
+      <FormProgress />
+      <PendingStatus pending={isPending} label="宿題を作成しています" />
+      <FormField htmlFor="studentId" label="生徒" required hint="宿題を割り当てる生徒を選びます。">
         {singleStudent ? (
           <>
             <input type="hidden" name="studentId" value={singleStudent.id} />
@@ -71,11 +73,10 @@ export default function CreateHomeworkForm({
             ))}
           </Select>
         )}
-      </div>
+      </FormField>
       <HomeworkCoreFields mode="create" defaults={{ dueDate: tomorrowISO() }} />
       {selectedStudentId && (
-        <div className="space-y-2">
-          <Label htmlFor="materialId">使用教材（任意）</Label>
+        <FormField htmlFor="materialId" label="使用教材" hint="登録済み教材を選ぶと、生徒がどの教材を使うか迷いません。">
           {materials.length === 0 ? (
             <p className="text-xs text-muted-foreground">
               この生徒の教材が未登録です。
@@ -93,7 +94,7 @@ export default function CreateHomeworkForm({
               ))}
             </Select>
           )}
-        </div>
+        </FormField>
       )}
       <SubjectCheckboxes label="科目タグ（任意・複数選択可）" subjects={subjects} />
       <div className="flex min-h-11 items-center gap-2">

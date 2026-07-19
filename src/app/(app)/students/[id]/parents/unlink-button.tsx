@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react"
 import { unlinkParent } from "./actions"
 import { Button } from "@/components/ui/button"
+import { PendingStatus } from "@/components/ui/pending-status"
 
 export function UnlinkParentButton({ parentId, studentId, parentName }: {
   parentId: string
@@ -17,6 +18,7 @@ export function UnlinkParentButton({ parentId, studentId, parentName }: {
       <div className="flex items-center gap-2">
         <span className="text-xs text-muted-foreground">本当に解除しますか？</span>
         <form action={action} className="flex items-center gap-2">
+          <PendingStatus pending={isPending} label="保護者の連携を解除しています" />
           <input type="hidden" name="parentId" value={parentId} />
           <input type="hidden" name="studentId" value={studentId} />
           <Button

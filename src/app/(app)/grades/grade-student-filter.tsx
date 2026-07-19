@@ -3,6 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation"
 import { useOptimistic, useTransition } from "react"
 import { Select } from "@/components/ui/select"
+import { PendingStatus } from "@/components/ui/pending-status"
 
 type Student = { id: string; user: { name: string } }
 
@@ -27,18 +28,21 @@ export function GradeStudentFilter({ students }: { students: Student[] }) {
   }
 
   return (
-    <Select
-      value={optimisticCurrent}
-      onChange={(e) => setStudent(e.target.value)}
-      aria-busy={isPending}
-      className="md:h-8 md:text-xs"
-    >
-      <option value="">生徒: すべて</option>
-      {students.map((s) => (
-        <option key={s.id} value={s.id}>
-          {s.user.name}
-        </option>
-      ))}
-    </Select>
+    <>
+      <PendingStatus pending={isPending} label="成績を絞り込んでいます" />
+      <Select
+        value={optimisticCurrent}
+        onChange={(e) => setStudent(e.target.value)}
+        aria-busy={isPending}
+        className="md:h-8 md:text-xs"
+      >
+        <option value="">生徒: すべて</option>
+        {students.map((s) => (
+          <option key={s.id} value={s.id}>
+            {s.user.name}
+          </option>
+        ))}
+      </Select>
+    </>
   )
 }

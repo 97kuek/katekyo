@@ -3,6 +3,7 @@
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { FormField } from "@/components/ui/form-field"
 
 type Subject = { id: string; name: string }
 
@@ -20,10 +21,7 @@ export function HomeworkCoreFields({
   const isCreate = mode === "create"
   return (
     <>
-      <div className="space-y-2">
-        <Label htmlFor="title">
-          タイトル {isCreate && <span className="text-destructive">*</span>}
-        </Label>
+      <FormField htmlFor="title" label="タイトル" required hint="生徒が一覧を見ただけで内容を判断できる短い名前にします。" example="英単語50問">
         <Input
           id="title"
           name="title"
@@ -31,25 +29,22 @@ export function HomeworkCoreFields({
           defaultValue={defaults?.title}
           placeholder={isCreate ? "例: 英単語50問" : undefined}
           autoFocus={isCreate}
+          maxLength={100}
         />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="description">内容（任意）</Label>
+      </FormField>
+      <FormField htmlFor="description" label="内容" hint="ページ範囲、提出方法、注意事項など、タイトルだけでは分からない指示を入力します。" example="教科書p.30〜35。途中式もノートに残してください">
         <Textarea
           id="description"
           name="description"
           rows={3}
           className="resize-none"
           defaultValue={defaults?.description}
-          placeholder={isCreate ? "詳細な指示があれば入力してください" : undefined}
+          placeholder={isCreate ? "ページ範囲や注意事項を入力" : undefined}
         />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="dueDate">
-          期限 {isCreate && <span className="text-destructive">*</span>}
-        </Label>
+      </FormField>
+      <FormField htmlFor="dueDate" label="期限" required hint="生徒の端末では日付選択として表示されます。">
         <Input id="dueDate" name="dueDate" type="date" required defaultValue={defaults?.dueDate} />
-      </div>
+      </FormField>
     </>
   )
 }

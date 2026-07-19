@@ -5,6 +5,7 @@ import bcrypt from "bcryptjs"
 import { redirect } from "next/navigation"
 import { z } from "zod"
 import { invalidateStudent } from "@/lib/cache-invalidation"
+import { normalizeEmailInput } from "@/lib/input-normalization"
 
 const schema = z.object({
   token: z.string().min(1),
@@ -18,7 +19,7 @@ export async function acceptInvite(
 ): Promise<{ error: string }> {
   const result = schema.safeParse({
     token: formData.get("token"),
-    email: formData.get("email"),
+    email: normalizeEmailInput(formData.get("email")),
     password: formData.get("password"),
   })
 
@@ -35,7 +36,7 @@ export async function acceptInvite(
     return { error: INVALID_INVITE_ERROR }
   }
 
-  const existingUser = await db.user.findUnique({ where: { email } })
+  const existingUser = await db.user.findFirst({ where: { email: { equals: email, mode: "insensitive" } } })
   if (existingUser) {
     return { error: "このメールアドレスは既に登録されています" }
   }

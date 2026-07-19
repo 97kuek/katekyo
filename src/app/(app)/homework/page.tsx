@@ -99,6 +99,12 @@ async function TeacherHomeworkPage({
 
       <HomeworkFilter students={students} subjects={subjects} />
 
+      {(q || studentIdFilter || subjectFilter) && (
+        <p role="status" className="rounded-lg border bg-muted/60 px-3 py-2 text-xs text-muted-foreground">
+          条件に一致する宿題は{total}件です。タイトル・生徒・期限・状態を同じ順序で比較できます。
+        </p>
+      )}
+
       {currentView === "review" && submitted.length > 0 && (
         <BulkApproveSection submitted={submitted} subjectMap={subjectMap} />
       )}

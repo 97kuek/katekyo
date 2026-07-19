@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import Link from "next/link"
 import { buttonVariants } from "@/components/ui/button"
 import { PageHeader } from "@/components/ui/page-header"
+import { PendingStatus } from "@/components/ui/pending-status"
 
 export default function CreateParentInvitePage() {
   const [state, action, isPending] = useActionState(createParentInviteAsStudent, { error: "", token: null })
@@ -57,6 +58,7 @@ export default function CreateParentInvitePage() {
             </div>
           ) : (
             <form action={action} className="space-y-4">
+              <PendingStatus pending={isPending} label="招待リンクを生成しています" />
               {state.error && (
                 <p className="text-sm text-foreground border border-destructive/30 bg-destructive/10 p-3 rounded-md">{state.error}</p>
               )}

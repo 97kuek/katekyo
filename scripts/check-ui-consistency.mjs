@@ -26,6 +26,15 @@ for (const file of walk(sourceRoot).filter((path) => [".ts", ".tsx", ".css"].inc
   const lines = readFileSync(file, "utf8").split("\n")
   const relativeFile = relative(root, file).split("\\").join("/")
   const source = lines.join("\n")
+  if (/next\/font\/google/.test(source)) {
+    errors.push(`${relativeFile}: 初期表示を外部Webフォント取得へ依存させずシステムフォントを使用してください`)
+  }
+  if (/\b(?:window\.)?location\.reload\s*\(/.test(source)) {
+    errors.push(`${relativeFile}: 全体リロードではなく局所状態更新またはrouter.refreshを使用してください`)
+  }
+  if (/\btransition-all\b/.test(source)) {
+    errors.push(`${relativeFile}: transition-allではなく変化するプロパティだけを指定してください`)
+  }
   if (/<button\b/.test(source) && !rawButtonAllowlist.has(relativeFile)) {
     errors.push(`${relativeFile}: 通常の操作は生の<button>ではなく共通Buttonを使用してください`)
   }

@@ -4,6 +4,7 @@ import { db } from "@/lib/db"
 import bcrypt from "bcryptjs"
 import { redirect } from "next/navigation"
 import { z } from "zod"
+import { normalizeEmailInput } from "@/lib/input-normalization"
 
 const schema = z.object({
   name: z.string().min(1, "名前を入力してください"),
@@ -17,7 +18,7 @@ export async function registerTeacher(
 ) {
   const result = schema.safeParse({
     name: formData.get("name"),
-    email: formData.get("email"),
+    email: normalizeEmailInput(formData.get("email")),
     password: formData.get("password"),
   })
 
@@ -27,7 +28,7 @@ export async function registerTeacher(
 
   const { name, email, password } = result.data
 
-  const existing = await db.user.findUnique({ where: { email } })
+  const existing = await db.user.findFirst({ where: { email: { equals: email, mode: "insensitive" } } })
   if (existing) {
     return { error: "このメールアドレスは既に使用されています" }
   }

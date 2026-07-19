@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label"
 import { Select } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { TEST_TYPE_OPTIONS } from "@/lib/test-types"
+import { FormField } from "@/components/ui/form-field"
 
 type Subject = { id: string; name: string }
 
@@ -60,8 +61,7 @@ export function GradeFormFields({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {studentField}
 
-        <div className="col-span-2 space-y-2">
-          <Label htmlFor="testType">テスト種別 <span className="text-destructive">*</span></Label>
+        <FormField htmlFor="testType" label="テスト種別" required className="col-span-2 space-y-2" hint="模試は偏差値、それ以外は得点率を学習の森の評価に優先利用します。">
           <Select
             id="testType"
             name="testType"
@@ -74,10 +74,9 @@ export function GradeFormFields({
               <option key={value} value={value}>{label}</option>
             ))}
           </Select>
-        </div>
+        </FormField>
 
-        <div className="col-span-2 space-y-2">
-          <Label htmlFor="testName">テスト名 <span className="text-destructive">*</span></Label>
+        <FormField htmlFor="testName" label="テスト名" required className="col-span-2 space-y-2" hint="一覧で他の記録と区別できる正式名称を入力します。" example="2026年 第1回 英語模試">
           <Input
             id="testName"
             name="testName"
@@ -88,10 +87,9 @@ export function GradeFormFields({
               ? { value: testNameValue, onChange: onTestNameChange }
               : { defaultValue: defaultValues.testName })}
           />
-        </div>
+        </FormField>
 
-        <div className="col-span-2 space-y-2">
-          <Label htmlFor="date">実施日 <span className="text-destructive">*</span></Label>
+        <FormField htmlFor="date" label="実施日" required className="col-span-2 space-y-2">
           <Input
             id="date"
             name="date"
@@ -101,44 +99,39 @@ export function GradeFormFields({
               ? { value: dateValue, onChange: onDateChange }
               : { defaultValue: defaultValues.date })}
           />
-        </div>
+        </FormField>
 
-        <div className="space-y-2">
-          <Label htmlFor="score">得点 <span className="text-xs text-muted-foreground font-normal">（任意）</span></Label>
+        <FormField htmlFor="score" label="得点" hint="半角数字で入力します。カンマ・単位・ハイフンは不要です。" example="82">
           {mode === "create" ? (
             <Input id="score" name="score" type="number" inputMode="numeric" min="0" max="10000" placeholder="82" />
           ) : (
             <Input id="score" name="score" type="number" min="0" max="10000" defaultValue={defaultValues.score} />
           )}
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="maxScore">満点 <span className="text-xs text-muted-foreground font-normal">（任意）</span></Label>
+        </FormField>
+        <FormField htmlFor="maxScore" label="満点" hint="得点を入力した場合は必ずセットで入力します。" example="100">
           {mode === "create" ? (
             <Input id="maxScore" name="maxScore" type="number" inputMode="numeric" min="1" max="10000" placeholder="100" />
           ) : (
             <Input id="maxScore" name="maxScore" type="number" min="1" max="10000" defaultValue={defaultValues.maxScore} />
           )}
-        </div>
+        </FormField>
 
-        <div className="space-y-2">
-          <Label htmlFor="rank">順位 <span className="text-xs text-muted-foreground font-normal">（任意）</span></Label>
+        <FormField htmlFor="rank" label="順位" hint="半角数字のみ。受験者数とセットで入力します。" example="15">
           {mode === "create" ? (
             <Input id="rank" name="rank" type="number" inputMode="numeric" min="1" max="1000000" placeholder="15" />
           ) : (
             <Input id="rank" name="rank" type="number" min="1" max="1000000" defaultValue={defaultValues.rank} />
           )}
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="totalStudents">受験者数 <span className="text-xs text-muted-foreground font-normal">（任意）</span></Label>
+        </FormField>
+        <FormField htmlFor="totalStudents" label="受験者数" hint="順位を入力した場合は必ずセットで入力します。" example="200">
           {mode === "create" ? (
             <Input id="totalStudents" name="totalStudents" type="number" inputMode="numeric" min="1" max="1000000" placeholder="200" />
           ) : (
             <Input id="totalStudents" name="totalStudents" type="number" min="1" max="1000000" defaultValue={defaultValues.totalStudents} />
           )}
-        </div>
+        </FormField>
 
-        <div className="space-y-2">
-          <Label htmlFor="deviation">偏差値 <span className="text-xs text-muted-foreground font-normal">（任意）</span></Label>
+        <FormField htmlFor="deviation" label="偏差値" hint="半角数字で、小数第1位まで入力できます。" example="58.5">
           {mode === "create" ? (
             <Input id="deviation" name="deviation" type="number" inputMode="decimal" step="0.1" min="0" max="100" placeholder="58.5" />
           ) : (
@@ -152,10 +145,9 @@ export function GradeFormFields({
               defaultValue={defaultValues.deviation}
             />
           )}
-        </div>
+        </FormField>
 
-        <div className="space-y-2">
-          <Label htmlFor="avgScore">クラス平均点 <span className="text-xs text-muted-foreground font-normal">（任意）</span></Label>
+        <FormField htmlFor="avgScore" label="クラス平均点" hint="満点と同じ単位の半角数字で入力します。" example="65">
           {mode === "create" ? (
             <Input id="avgScore" name="avgScore" type="number" inputMode="numeric" min="0" max="10000" placeholder="65" />
           ) : (
@@ -168,7 +160,7 @@ export function GradeFormFields({
               defaultValue={defaultValues.avgScore}
             />
           )}
-        </div>
+        </FormField>
 
       </div>
 
@@ -197,8 +189,7 @@ export function GradeFormFields({
         </div>
       )}
 
-      <div className="space-y-2">
-        <Label htmlFor="comment">コメント <span className="text-xs text-muted-foreground font-normal">（任意）</span></Label>
+      <FormField htmlFor="comment" label="コメント" hint="生徒が次に取り組むことを具体的に書くと、結果を行動につなげやすくなります。" example="長文問題の根拠箇所に線を引いて復習しましょう">
         <Textarea
           id="comment"
           name="comment"
@@ -208,7 +199,7 @@ export function GradeFormFields({
           className="resize-none"
           placeholder={commentPlaceholder}
         />
-      </div>
+      </FormField>
     </>
   )
 }

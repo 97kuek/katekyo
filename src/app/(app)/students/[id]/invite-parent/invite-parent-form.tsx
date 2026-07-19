@@ -7,6 +7,9 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { buttonVariants } from "@/components/ui/button"
 import Link from "next/link"
+import { FormField } from "@/components/ui/form-field"
+import { FormMessage } from "@/components/ui/form-message"
+import { PendingStatus } from "@/components/ui/pending-status"
 
 export default function InviteParentForm({ studentId }: { studentId: string }) {
   const [state, action, isPending] = useActionState(createParentInvite, { error: "", token: null })
@@ -47,15 +50,12 @@ export default function InviteParentForm({ studentId }: { studentId: string }) {
 
   return (
     <form action={action} className="space-y-4">
+      <PendingStatus pending={isPending} label="招待リンクを生成しています" />
       <input type="hidden" name="studentId" value={studentId} />
-      {state.error && (
-        <p className="text-sm text-foreground border border-destructive/30 bg-destructive/10 p-3 rounded-md">{state.error}</p>
-      )}
-      <div className="space-y-2">
-        <Label htmlFor="email">保護者のメールアドレス <span className="text-xs text-muted-foreground font-normal">（任意）</span></Label>
-        <Input id="email" name="email" type="email" placeholder="parent@example.com" />
-        <p className="text-xs text-muted-foreground">入力しておくと、保護者がそのアドレスで登録しやすくなります</p>
-      </div>
+      {state.error && <FormMessage type="error">{state.error} メールアドレスの形式を確認して、もう一度生成してください。</FormMessage>}
+      <FormField htmlFor="email" label="保護者のメールアドレス" hint="未入力でも生成できます。入力する場合、全角英数字は半角へ変換し、大文字は小文字として扱います。" example="parent@example.com">
+        <Input id="email" name="email" type="email" inputMode="email" autoCapitalize="none" autoCorrect="off" spellCheck={false} placeholder="parent@example.com" />
+      </FormField>
       <Button type="submit" className="w-full" disabled={isPending}>
         {isPending ? "生成中..." : "招待リンクを生成"}
       </Button>

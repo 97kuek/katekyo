@@ -3,6 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation"
 import { useOptimistic, useTransition } from "react"
 import { Select } from "@/components/ui/select"
+import { PendingStatus } from "@/components/ui/pending-status"
 
 type Subject = { id: string; name: string }
 
@@ -29,18 +30,21 @@ export function GradeSubjectFilter({ subjects }: { subjects: Subject[] }) {
   if (subjects.length === 0) return null
 
   return (
-    <Select
-      value={optimisticCurrent}
-      onChange={(e) => setSubject(e.target.value)}
-      aria-busy={isPending}
-      className="md:h-8 md:text-xs"
-    >
-      <option value="">科目: すべて</option>
-      {subjects.map((s) => (
-        <option key={s.id} value={s.id}>
-          {s.name}
-        </option>
-      ))}
-    </Select>
+    <>
+      <PendingStatus pending={isPending} label="成績を絞り込んでいます" />
+      <Select
+        value={optimisticCurrent}
+        onChange={(e) => setSubject(e.target.value)}
+        aria-busy={isPending}
+        className="md:h-8 md:text-xs"
+      >
+        <option value="">科目: すべて</option>
+        {subjects.map((s) => (
+          <option key={s.id} value={s.id}>
+            {s.name}
+          </option>
+        ))}
+      </Select>
+    </>
   )
 }

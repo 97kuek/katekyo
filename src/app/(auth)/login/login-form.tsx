@@ -5,7 +5,6 @@ import { signIn } from "next-auth/react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import {
   Card,
   CardContent,
@@ -15,6 +14,10 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import Link from "next/link"
+import { FormField } from "@/components/ui/form-field"
+import { FormMessage } from "@/components/ui/form-message"
+import { normalizeEmailInput } from "@/lib/input-normalization"
+import { PendingStatus } from "@/components/ui/pending-status"
 
 export default function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
   const router = useRouter()
@@ -41,7 +44,7 @@ export default function LoginForm({ googleEnabled }: { googleEnabled: boolean })
 
     const formData = new FormData(e.currentTarget)
     const result = await signIn("credentials", {
-      email: formData.get("email"),
+      email: normalizeEmailInput(formData.get("email")),
       password: formData.get("password"),
       redirect: false,
     })
@@ -80,17 +83,12 @@ export default function LoginForm({ googleEnabled }: { googleEnabled: boolean })
           </p>
         )}
         <form onSubmit={handleSubmit} className="space-y-4">
-          {error && (
-            <p className="text-sm text-foreground border border-destructive/30 bg-destructive/10 p-3 rounded-lg">
-              {error}
-            </p>
-          )}
-          <div className="space-y-2">
-            <Label htmlFor="email">メールアドレス</Label>
-            <Input id="email" name="email" type="email" required autoComplete="email" />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">パスワード</Label>
+          {error && <FormMessage type="error">{error}。入力形式を確認し、解決しない場合は登録したメールアドレスを先生または管理者へ確認してください。</FormMessage>}
+          <PendingStatus pending={isPending} label="ログインしています" />
+          <FormField htmlFor="email" label="メールアドレス" required hint="全角英数字は半角へ変換し、大文字は小文字として扱います。" example="name@example.com">
+            <Input id="email" name="email" type="email" required inputMode="email" autoComplete="email" autoCapitalize="none" autoCorrect="off" spellCheck={false} placeholder="name@example.com" />
+          </FormField>
+          <FormField htmlFor="password" label="パスワード" required hint="8文字以上。英字の大文字・小文字は区別されます。">
             <Input
               id="password"
               name="password"
@@ -98,7 +96,7 @@ export default function LoginForm({ googleEnabled }: { googleEnabled: boolean })
               required
               autoComplete="current-password"
             />
-          </div>
+          </FormField>
           <Button type="submit" className="w-full" disabled={isPending}>
             {isPending ? "ログイン中..." : "ログイン"}
           </Button>
@@ -122,7 +120,7 @@ export default function LoginForm({ googleEnabled }: { googleEnabled: boolean })
       <CardFooter className="justify-center">
         <p className="text-sm text-muted-foreground">
           先生として新規登録は{" "}
-          <Link href="/register" className="underline underline-offset-4">
+          <Link href="/register" className="inline-flex min-h-11 items-center underline underline-offset-4">
             こちら
           </Link>
         </p>

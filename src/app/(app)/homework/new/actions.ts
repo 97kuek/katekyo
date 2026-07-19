@@ -84,5 +84,5 @@ export async function createHomework(
     studentUserId: student.user.id,
   })
 
-  redirect("/homework")
+  redirect("/homework?toast=homework-created")
 }

@@ -8,6 +8,8 @@ import { StickyFormActions } from "@/components/ui/sticky-form-actions"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { FormMessage } from "@/components/ui/form-message"
+import { FormProgress } from "@/components/ui/form-progress"
+import { PendingStatus } from "@/components/ui/pending-status"
 
 type Grade = {
   id: string
@@ -41,9 +43,10 @@ export default function EditGradeForm({
     <form action={action} className="space-y-5">
       <input type="hidden" name="id" value={grade.id} />
       {state.error && (
-        <FormMessage type="error">{state.error}</FormMessage>
+        <FormMessage type="error">{state.error} 関連する項目をセットで確認して、もう一度保存してください。</FormMessage>
       )}
-      <p className="text-xs text-muted-foreground"><span className="text-destructive font-medium">*</span> は必須項目です</p>
+      <FormProgress />
+      <PendingStatus pending={isPending} label="成績の変更を保存しています" />
 
       <GradeFormFields
         subjects={subjects}

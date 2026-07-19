@@ -5,13 +5,18 @@ import { resetStudentPassword } from "./actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { X } from "lucide-react"
+import { toast } from "sonner"
+import { PendingStatus } from "@/components/ui/pending-status"
 
 export function ResetPasswordButton({ studentId }: { studentId: string }) {
   const [open, setOpen] = useState(false)
   const [state, action, isPending] = useActionState(
     async (prev: { error: string; success: boolean }, formData: FormData) => {
       const result = await resetStudentPassword(prev, formData)
-      if (result.success) setOpen(false)
+      if (result.success) {
+        setOpen(false)
+        toast.success("パスワードを変更しました。次回ログインから新しいパスワードを使用します")
+      }
       return result
     },
     { error: "", success: false }
@@ -28,15 +33,23 @@ export function ResetPasswordButton({ studentId }: { studentId: string }) {
   return (
     <div className="grid gap-2 sm:flex sm:items-center sm:gap-1.5 sm:flex-wrap">
       <form action={action} className="grid gap-2 sm:flex sm:items-center sm:gap-1.5">
+        <PendingStatus pending={isPending} label="パスワードを変更しています" />
         <input type="hidden" name="studentId" value={studentId} />
-        <Input
-          name="password"
-          type="password"
-          placeholder="新パスワード(8文字以上)"
-          minLength={8}
-          required
-          className="sm:h-7 sm:w-36 sm:text-xs"
-        />
+        <label htmlFor={`password-${studentId}`} className="grid gap-1 text-xs font-medium">
+          新しいパスワード（必須）
+          <Input
+            id={`password-${studentId}`}
+            name="password"
+            type="password"
+            aria-describedby={`password-help-${studentId}`}
+            placeholder="8文字以上"
+            minLength={8}
+            required
+            autoComplete="new-password"
+            className="sm:h-7 sm:w-40 sm:text-xs"
+          />
+          <span id={`password-help-${studentId}`} className="font-normal text-muted-foreground">大文字・小文字を区別します</span>
+        </label>
         <Button
           type="submit"
           disabled={isPending}

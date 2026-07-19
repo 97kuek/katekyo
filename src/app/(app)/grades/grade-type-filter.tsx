@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { useOptimistic, useTransition } from "react"
 import { TEST_TYPE_OPTIONS } from "@/lib/test-types"
 import { Button } from "@/components/ui/button"
+import { PendingStatus } from "@/components/ui/pending-status"
 
 export function GradeTypeFilter() {
   const router = useRouter()
@@ -27,6 +28,7 @@ export function GradeTypeFilter() {
 
   return (
     <div className="flex items-center gap-0.5 rounded-lg border border-input bg-background p-0.5 overflow-x-auto" aria-busy={isPending}>
+      <PendingStatus pending={isPending} label="成績を絞り込んでいます" />
       <Button
         type="button"
         size="xs"

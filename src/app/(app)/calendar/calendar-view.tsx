@@ -9,6 +9,7 @@ import { DayDetail } from "./day-detail"
 import { pad, toDateKey, DOW_LABELS } from "./calendar-types"
 import type { Lesson, HomeworkDeadline, ExamEvent, Student, Subject } from "./calendar-types"
 import { SegmentedControl } from "@/components/ui/segmented-control"
+import { PendingStatus } from "@/components/ui/pending-status"
 
 type Props = {
   lessons: Lesson[]
@@ -130,6 +131,7 @@ export default function CalendarView({ lessons, deadlines, examEvents, students,
 
   return (
     <div className={`space-y-4 transition-opacity motion-reduce:transition-none ${isNavigating ? "opacity-70" : "opacity-100"}`} aria-busy={isNavigating}>
+      <PendingStatus pending={isNavigating} label="予定を読み込んでいます" />
       <NextLessonBanner lessons={lessons} isTeacher={isTeacher} showStudentNames={showStudentNames} />
 
       {/* ナビゲーションバー: ビュー切替 + 期間移動 */}

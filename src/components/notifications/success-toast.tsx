@@ -7,8 +7,9 @@ import { toast } from "sonner"
 const MESSAGES: Record<string, string> = {
   submitted: "宿題を提出しました",
   reviewed: "確認しました",
-  created: "成績を記録しました",
-  saved: "変更を保存しました",
+  created: "成績を記録しました。次は推移グラフで変化を確認できます",
+  "homework-created": "宿題を作成しました。次は一覧から内容を確認できます",
+  saved: "変更を保存しました。一覧へ反映されています",
   deleted: "削除しました",
 }
 

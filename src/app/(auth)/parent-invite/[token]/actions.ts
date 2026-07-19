@@ -6,6 +6,7 @@ import bcrypt from "bcryptjs"
 import { redirect } from "next/navigation"
 import { z } from "zod"
 import { invalidateParentStudents, invalidateStudent } from "@/lib/cache-invalidation"
+import { normalizeEmailInput } from "@/lib/input-normalization"
 
 const INVALID_INVITE_ERROR = "招待リンクが無効または期限切れです"
 
@@ -38,7 +39,7 @@ export async function acceptParentInvite(
   const result = schema.safeParse({
     token: formData.get("token"),
     name: formData.get("name"),
-    email: formData.get("email"),
+    email: normalizeEmailInput(formData.get("email")),
     password: formData.get("password"),
   })
 
@@ -54,7 +55,7 @@ export async function acceptParentInvite(
     return { error: INVALID_INVITE_ERROR }
   }
 
-  const existingUser = await db.user.findUnique({ where: { email } })
+  const existingUser = await db.user.findFirst({ where: { email: { equals: email, mode: "insensitive" } } })
   if (existingUser) {
     return {
       error: "このメールアドレスはすでに登録されています。",

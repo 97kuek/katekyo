@@ -7,6 +7,8 @@ import { deleteHomework, extendDueDate } from "./actions"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { InlineConfirmAction } from "@/components/ui/inline-confirm-action"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { PendingStatus } from "@/components/ui/pending-status"
 
 export function HomeworkDetailActions({
   homeworkId,
@@ -57,8 +59,12 @@ export function HomeworkDetailActions({
 
       {changingDeadline && (
         <form action={action} className="mt-4 grid gap-2 border-t pt-4 sm:grid-cols-[minmax(0,12rem)_auto_auto] sm:items-center">
+          <PendingStatus pending={isPending} label="宿題の期限を更新しています" />
           <input type="hidden" name="id" value={homeworkId} />
-          <Input name="dueDate" type="date" required defaultValue={currentDueDate} aria-label="新しい期限" className="md:h-10" />
+          <div className="space-y-1">
+            <Label htmlFor="homework-due-date" className="text-xs">新しい期限（必須）</Label>
+            <Input id="homework-due-date" name="dueDate" type="date" required defaultValue={currentDueDate} className="md:h-10" />
+          </div>
           <Button type="submit" disabled={isPending}>
             {isPending ? "更新中..." : "期限を更新"}
           </Button>

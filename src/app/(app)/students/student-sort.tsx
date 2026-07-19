@@ -3,6 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation"
 import { useOptimistic, useTransition } from "react"
 import { Select } from "@/components/ui/select"
+import { PendingStatus } from "@/components/ui/pending-status"
 
 export function StudentSort() {
   const router = useRouter()
@@ -28,6 +29,7 @@ export function StudentSort() {
 
   return (
     <label className="flex items-center gap-2 text-xs text-muted-foreground">
+      <PendingStatus pending={isPending} label="生徒を並べ替えています" />
       並び替え
       <Select value={optimisticCurrent} onChange={(event) => setSort(event.target.value)} aria-busy={isPending} containerClassName="w-auto" className="h-9 min-w-28 text-xs">
         {options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}

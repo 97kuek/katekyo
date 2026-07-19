@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { DifficultyBars } from "@/components/homework/difficulty-bars"
 import { StickyFormActions } from "@/components/ui/sticky-form-actions"
+import { PendingStatus } from "@/components/ui/pending-status"
 
 const DIFFICULTIES = [
   { value: 1, label: "かんたん" },
@@ -93,6 +94,7 @@ export default function SubmitForm({ id, rejectedFeedback, requiresPhoto = false
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
+          <PendingStatus pending={isPending} label="宿題を提出しています" />
           <input type="hidden" name="id" value={id} />
           <input type="hidden" name="difficultyRating" value={difficulty ?? ""} />
           {state.error && (
@@ -166,7 +168,7 @@ export default function SubmitForm({ id, rejectedFeedback, requiresPhoto = false
             <summary className="flex min-h-11 cursor-pointer list-none items-center px-3 text-sm font-medium text-muted-foreground hover:text-foreground [&::-webkit-details-marker]:hidden">任意項目（難易度・コメント）</summary>
             <div className="space-y-4 border-t p-3">
           <div className="space-y-2">
-            <Label>この宿題の難易度</Label>
+            <Label>この宿題の難易度（任意）</Label>
             <div className="flex gap-2">
               {DIFFICULTIES.map((d) => (
                 <button key={d.value} type="button" aria-pressed={difficulty === d.value} onClick={() => setDifficulty(difficulty === d.value ? null : d.value)} className={`flex min-h-14 flex-1 flex-col items-center justify-center gap-1 rounded-md border-2 text-sm font-medium ${difficulty === d.value ? "border-primary bg-primary text-primary-foreground" : "border-input text-muted-foreground hover:bg-muted"}`}>

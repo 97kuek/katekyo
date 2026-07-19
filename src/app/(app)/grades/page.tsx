@@ -205,6 +205,12 @@ async function TeacherGradesPage({
         </div>
       </div>
 
+      {currentMode === "list" && (studentIdFilter || subjectIdFilter || typeFilter) && (
+        <p role="status" className="rounded-lg border bg-muted/60 px-3 py-2 text-xs text-muted-foreground">
+          条件に一致する成績は{total}件です。テスト名・生徒・日付・結果を同じ順序で比較できます。
+        </p>
+      )}
+
       {currentMode === "analysis" && studentIdFilter && chartGrades.length > 0 && (
         <>
           <GradeChart grades={chartGrades} subjects={subjects} typeFilter={typeFilter} />

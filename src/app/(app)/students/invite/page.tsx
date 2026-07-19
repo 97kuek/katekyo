@@ -11,6 +11,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { GRADE_OPTIONS } from "@/lib/grades"
 import Link from "next/link"
 import { PageHeader } from "@/components/ui/page-header"
+import { FormField } from "@/components/ui/form-field"
+import { FormProgress } from "@/components/ui/form-progress"
+import { FormMessage } from "@/components/ui/form-message"
+import { PendingStatus } from "@/components/ui/pending-status"
 
 export default function InvitePage() {
   const [state, action, isPending] = useActionState(createInvite, { error: "", token: null })
@@ -54,22 +58,20 @@ export default function InvitePage() {
             </div>
           ) : (
             <form action={action} className="space-y-4">
-              {state.error && (
-                <p className="text-sm text-foreground border border-destructive/30 bg-destructive/10 p-3 rounded-md">{state.error}</p>
-              )}
-              <div className="space-y-2">
-                <Label htmlFor="name">生徒の名前</Label>
-                <Input id="name" name="name" required />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="grade">学年</Label>
+              <PendingStatus pending={isPending} label="招待リンクを生成しています" />
+              {state.error && <FormMessage type="error">{state.error} 入力内容を確認して、もう一度生成してください。</FormMessage>}
+              <FormProgress />
+              <FormField htmlFor="name" label="生徒の名前" required hint="全角・半角どちらでも入力できます。生徒本人が見て分かる表記にします。" example="山田 太郎">
+                <Input id="name" name="name" required autoComplete="name" maxLength={50} placeholder="山田 太郎" />
+              </FormField>
+              <FormField htmlFor="grade" label="学年" required hint="現在の学年を選択します。">
                 <Select id="grade" name="grade" required>
                   <option value="">学年を選択してください</option>
                   {GRADE_OPTIONS.map((g) => (
                     <option key={g} value={g}>{g}</option>
                   ))}
                 </Select>
-              </div>
+              </FormField>
               <Button type="submit" className="w-full" disabled={isPending}>
                 {isPending ? "生成中..." : "招待リンクを生成"}
               </Button>

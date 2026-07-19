@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { PendingStatus } from "@/components/ui/pending-status"
 import { TEST_TYPE_OPTIONS } from "@/lib/test-types"
 import { toast } from "sonner"
 import type { Student } from "./calendar-types"
@@ -27,6 +28,7 @@ export function CompleteLessonLogForm({ lessonId, onClose }: { lessonId: string;
 
   return (
     <div className="mt-2 pt-2 border-t space-y-2">
+      <PendingStatus pending={isPending} label="授業を完了にしています" />
       <p className="text-xs font-medium text-primary">授業ログを残す（任意）</p>
       <Textarea
         value={log}
@@ -84,10 +86,11 @@ export function HomeworkForm({ students, defaultDate, embedded = false, onClose 
     <div className="rounded-lg border bg-card p-3 space-y-3 w-full">
       <h3 className="font-medium text-sm">宿題を追加</h3>
       <form action={action} className="space-y-3">
+        <PendingStatus pending={isPending} label="宿題を追加しています" />
         {state.error && <p className="text-xs text-foreground border border-destructive/30 bg-destructive/10 p-2 rounded">{state.error}</p>}
         <div className="space-y-2">
           <div className="space-y-1">
-            <Label className="text-xs">生徒</Label>
+            <Label className="text-xs">生徒（必須）</Label>
             {students.length === 1 ? (
               <>
                 <input type="hidden" name="studentId" value={students[0].id} />
@@ -107,11 +110,11 @@ export function HomeworkForm({ students, defaultDate, embedded = false, onClose 
             )}
           </div>
           <div className="space-y-1">
-            <Label className="text-xs">タイトル</Label>
+            <Label className="text-xs">タイトル（必須）</Label>
             <Input name="title" placeholder="例: 数学 p.30-35" required className="md:h-9" />
           </div>
           <div className="space-y-1">
-            <Label className="text-xs">期限</Label>
+            <Label className="text-xs">期限（必須）</Label>
             <Input name="dueDate" type="date" required defaultValue={defaultDate} className="md:h-9" />
           </div>
         </div>
@@ -157,12 +160,13 @@ export function ExamEventForm({ students, defaultDate, embedded = false, onClose
     <div className="rounded-lg border bg-card p-3 space-y-3 w-full">
       <h3 className="font-medium text-sm">テストを追加</h3>
       <form action={action} className="space-y-3">
+        <PendingStatus pending={isPending} label="テストを追加しています" />
         {state.error && (
           <p className="text-xs text-foreground border border-destructive/30 bg-destructive/10 p-2 rounded">{state.error}</p>
         )}
         <div className="space-y-2">
           <div className="space-y-1">
-            <Label className="text-xs">生徒</Label>
+            <Label className="text-xs">生徒（必須）</Label>
             {students.length === 1 ? (
               <>
                 <input type="hidden" name="studentId" value={students[0].id} />
@@ -183,7 +187,7 @@ export function ExamEventForm({ students, defaultDate, embedded = false, onClose
           </div>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             <div className="space-y-1">
-              <Label className="text-xs">開始日</Label>
+              <Label className="text-xs">開始日（必須）</Label>
               <Input name="date" type="date" required defaultValue={defaultDate} className="md:h-9" />
             </div>
             <div className="space-y-1">
@@ -192,14 +196,15 @@ export function ExamEventForm({ students, defaultDate, embedded = false, onClose
             </div>
           </div>
           <div className="space-y-1">
-            <Label className="text-xs">テスト名</Label>
+            <Label className="text-xs">テスト名（必須）</Label>
             <Input name="name" placeholder="例: 英語期末テスト" required className="md:h-9" />
           </div>
           <div className="space-y-1">
-            <Label className="text-xs">種別</Label>
+            <Label className="text-xs">種別（必須）</Label>
             <Select
               name="testType"
               defaultValue="exam"
+              required
               className="md:h-9"
             >
               {TEST_TYPE_OPTIONS.map(([value, label]) => (

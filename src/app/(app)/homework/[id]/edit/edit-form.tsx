@@ -7,6 +7,9 @@ import { StickyFormActions } from "@/components/ui/sticky-form-actions"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { HomeworkCoreFields, SubjectCheckboxes } from "@/app/(app)/homework/homework-form-fields"
+import { FormProgress } from "@/components/ui/form-progress"
+import { FormMessage } from "@/components/ui/form-message"
+import { PendingStatus } from "@/components/ui/pending-status"
 
 type Homework = {
   id: string
@@ -30,9 +33,9 @@ export default function EditHomeworkForm({
   return (
     <form action={action} className="space-y-4">
       <input type="hidden" name="id" value={homework.id} />
-      {state.error && (
-        <p className="text-sm text-foreground border border-destructive/30 bg-destructive/10 p-3 rounded-md">{state.error}</p>
-      )}
+      {state.error && <FormMessage type="error">{state.error} 該当する項目を確認して、もう一度保存してください。</FormMessage>}
+      <FormProgress />
+      <PendingStatus pending={isPending} label="宿題の変更を保存しています" />
       <div className="space-y-2">
         <Label>生徒</Label>
         <Input value={homework.student.user.name} disabled className="bg-muted" />

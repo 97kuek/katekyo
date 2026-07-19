@@ -3,6 +3,7 @@
 import { db } from "@/lib/db"
 import { requireTeacher } from "@/lib/action-guards"
 import { z } from "zod"
+import { normalizeEmailInput } from "@/lib/input-normalization"
 
 const schema = z.object({
   studentId: z.string().min(1),
@@ -18,7 +19,7 @@ export async function createParentInvite(
 
   const raw = {
     studentId: formData.get("studentId") as string,
-    email: (formData.get("email") as string) || undefined,
+    email: normalizeEmailInput(formData.get("email")) || undefined,
   }
   const result = schema.safeParse(raw)
   if (!result.success) return { error: result.error.issues[0].message, token: null }
