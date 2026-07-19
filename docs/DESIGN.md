@@ -102,7 +102,7 @@ import { Button, buttonVariants } from "@/components/ui/button"
 
 // 標準
 <Button>追加</Button>
-<Button variant="outline" size="sm">編集</Button>
+<Button variant="ghost" size="sm">編集</Button>
 <Button variant="ghost" size="xs">削除</Button>
 <Button variant="ghost" size="icon-sm"><ChevronLeftIcon /></Button>
 
@@ -121,6 +121,26 @@ import { Button, buttonVariants } from "@/components/ui/button"
 
 生 `<button>` タグが許可される場面: カレンダーの日付セル、色見本、セグメント、評価選択など、標準ボタンとは異なる形そのものに意味がある専用コントロールと、共通 `Button` 実装内部のみ。それ以外は `<Button>` を使う。
 
+- 塗りの強い `default` ボタンは、画面またはシート内の主要CTA 1つに限定する
+- 作成・追加はナビゲーション右上の `+` からシートを開き、一覧から離れずに完了できるようにする
+- 完了状態は丸い完了コントロール、設定値はトグル／セグメント、画面移動はシェブロン付き行を優先する
+- 編集・期限変更・削除のように目的が異なる操作を、同じ形のボタン列へ並べない。`ActionList` の操作行へ分ける
+- 取り消せる状態変更は即時反映して「元に戻す」を示し、確認画面は削除など不可逆操作に限定する
+
+## カードと浮遊面
+
+| コンポーネント | 用途 |
+|---|---|
+| `Card` / `apple-card-surface` | 情報をまとめる白い実体面。`rounded-2xl`、淡い境界、二段階の柔らかい影 |
+| `apple-interactive-card` | カード全体が遷移する場合の押下・ホバー反応 |
+| `ActionList` | iOSの設定画面に近い、編集・変更・削除などの明示的な操作行 |
+| `Sheet` | 一覧を離れずに作成・編集する浮遊タスク面 |
+
+- 通常カードは透明にしない。可読性と情報階層を守るため、`apple-card-surface` は実体色を使う
+- ガラス表現はナビゲーション、ツールバー、シートなど、コンテンツの上に浮く機能層へ限定する
+- クリック可能なカードだけ `apple-interactive-card` を付け、静的カードを不用意に浮かせない
+- シートは開いた方向と同じ経路で閉じ、`prefers-reduced-motion` では移動をクロスフェードへ置き換える
+
 ## フォーム入力部品
 
 標準フォームの入力欄は共通コンポーネントを使う。**生の `<input>` / `<textarea>` / `<select>` を独自スタイルで使わない**（高さ・角丸・フォントのばらつき・iOS のフォーカス時ズームを防ぐため）。
@@ -133,9 +153,11 @@ import { Button, buttonVariants } from "@/components/ui/button"
 | `FormField` | `ui/form-field.tsx` | 必須／任意、入力形式、例、フォーカス移動後の具体的な即時エラーを一体表示 |
 | `FormProgress` | `ui/form-progress.tsx` | 長いフォームの必須項目数と完了率を自動計算 |
 | `PendingStatus` | `ui/pending-status.tsx` | 送信待ちを時間に応じてスピナー／長時間バーへ切り替え |
+| `Sheet` | `ui/sheet.tsx` | モバイルは下端、デスクトップは中央から現れるガラスのタスク面。フォーカス制御・Escape・背景操作抑止を内包 |
+| `ActionList` | `ui/action-list.tsx` | ボタン列を、アイコン・説明・シェブロンを持つ明示的な操作行へ置き換える |
 
 - フィルターバー等の**コンパクトな操作系**（`h-8`/`h-9`）は別系統。フォーム入力には使わない
-- 送信ボタンは長いフォームではモバイルで `StickyFormActions` により画面下部に固定（[architecture.md](architecture.md#モバイル操作safe-area) 参照）
+- 送信ボタンは長いフォームではモバイルで `StickyFormActions` により画面下部に固定する。シート内では `contained` を指定し、シート内下端に留める（[architecture.md](architecture.md#モバイル操作safe-area) 参照）
 - 必須／任意を色だけで区別せず、必ず文字で表示する
 - 大文字・小文字、全角・半角、ハイフンや単位の要否が迷いやすい項目は入力欄の直下に明記する
 - メールアドレスは全角英数字を半角へ正規化し、小文字として保存・照合する。パスワードは大文字・小文字と全角・半角を区別する

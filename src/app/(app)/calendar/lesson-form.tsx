@@ -98,7 +98,7 @@ export function LessonForm({ students, defaultDate, subjects, embedded = false, 
   if (!open) return null
 
   return (
-    <div className="rounded-lg border bg-card p-4 space-y-3 w-full">
+    <div className="apple-card-surface rounded-2xl p-4 space-y-3 w-full">
       <h3 className="font-medium text-sm">授業を追加</h3>
       <form action={action} className="space-y-3">
         {state.error && <FormMessage type="error">{state.error} 日付・時刻・金額の入力を確認してください。</FormMessage>}

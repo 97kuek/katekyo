@@ -25,7 +25,7 @@ export function HomeworkCard({
   const canEdit = isPendingStatus(status)
 
   return (
-    <article className={`rounded-lg border bg-card p-4 ${isOverdue ? "border-destructive/40" : ""}`}>
+    <article className={`apple-card-surface rounded-2xl p-4 ${isOverdue ? "border-destructive/40" : ""}`}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <Link href={`/homework/${id}`} className="inline-flex min-h-11 items-center font-medium hover:underline">{title}</Link>

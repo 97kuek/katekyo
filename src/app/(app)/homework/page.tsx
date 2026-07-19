@@ -136,7 +136,7 @@ async function TeacherHomeworkPage({
             })}
           </div>
           {/* デスクトップ: テーブル表示 */}
-          <div className="hidden md:block rounded-lg border bg-card overflow-hidden overflow-x-auto">
+          <div className="apple-card-surface hidden overflow-hidden overflow-x-auto rounded-2xl md:block">
             <table className="w-full text-sm min-w-[480px]">
               <thead className="border-b bg-muted">
                 <tr>
@@ -211,7 +211,7 @@ async function ParentHomeworkPage({ parentId, studentIdFilter, view, page }: { p
   const links = await getParentHomeworkLinks(parentId)
   if (links.length === 0) {
     return (
-      <div className="rounded-lg border bg-card p-12 text-center text-sm text-muted-foreground">
+      <div className="apple-card-surface rounded-2xl p-12 text-center text-sm text-muted-foreground">
         まだお子様の情報が登録されていません
       </div>
     )
@@ -246,7 +246,7 @@ async function ParentHomeworkPage({ parentId, studentIdFilter, view, page }: { p
       />
 
       {allTotal === 0 ? (
-        <div className="rounded-lg border bg-card p-12 text-center text-muted-foreground text-sm">
+        <div className="apple-card-surface rounded-2xl p-12 text-center text-muted-foreground text-sm">
           宿題はまだありません
         </div>
       ) : visibleHomeworks.length === 0 ? (
@@ -261,7 +261,7 @@ async function ParentHomeworkPage({ parentId, studentIdFilter, view, page }: { p
               <Link
                 key={h.id}
                 href={`/homework/${h.id}`}
-                className={`block rounded-lg border bg-card p-4 hover:bg-muted active:bg-muted transition-colors ${overdue ? "border-destructive/30 bg-destructive/5" : ""}`}
+                className={`apple-card-surface apple-interactive-card block rounded-2xl p-4 ${overdue ? "border-destructive/30 bg-destructive/5" : ""}`}
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
@@ -323,7 +323,7 @@ async function StudentHomeworkPage({ userId, view, page }: { userId: string; vie
               return (
                 <div
                   key={h.id}
-                  className={`rounded-lg border bg-card p-4 flex items-start justify-between gap-4 ${overdue ? "border-destructive/30" : ""}`}
+                  className={`apple-card-surface rounded-2xl p-4 flex items-start justify-between gap-4 ${overdue ? "border-destructive/30" : ""}`}
                 >
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
@@ -358,7 +358,7 @@ async function StudentHomeworkPage({ userId, view, page }: { userId: string; vie
           <h2 className="sr-only">先生が確認中の宿題</h2>
           <div className="space-y-2">
             {submitted.map((h) => (
-              <div key={h.id} className="rounded-lg border bg-card p-4 flex items-start justify-between gap-4">
+              <div key={h.id} className="apple-card-surface rounded-2xl p-4 flex items-start justify-between gap-4">
                 <div className="min-w-0">
                   <p className="font-medium truncate">{h.title}</p>
                   <p className="text-xs text-muted-foreground mt-0.5">
@@ -421,7 +421,7 @@ async function StudentHomeworkPage({ userId, view, page }: { userId: string; vie
       ) && <EmptyState title="該当する宿題はありません" />}
 
       {allTotal === 0 && (
-        <div className="rounded-lg border bg-card p-12 text-center">
+        <div className="apple-card-surface rounded-2xl p-12 text-center">
           <p className="text-muted-foreground">宿題はまだありません</p>
         </div>
       )}

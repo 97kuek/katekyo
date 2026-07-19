@@ -1,6 +1,6 @@
 "use client"
 
-import { deleteExamEvent, deleteLesson, uncompleteLesson } from "./actions"
+import { deleteExamEvent, deleteLesson } from "./actions"
 import { InlineConfirmAction } from "@/components/ui/inline-confirm-action"
 
 export function DeleteLessonButton({ lessonId }: { lessonId: string }) {
@@ -14,23 +14,6 @@ export function DeleteLessonButton({ lessonId }: { lessonId: string }) {
         const formData = new FormData()
         formData.set("lessonId", lessonId)
         await deleteLesson(formData)
-      }}
-    />
-  )
-}
-
-export function UncompleteLessonButton({ lessonId }: { lessonId: string }) {
-  return (
-    <InlineConfirmAction
-      triggerLabel="完了取消"
-      confirmLabel="取り消す"
-      pendingLabel="処理中..."
-      message="授業を未完了へ戻しますか？"
-      destructive={false}
-      onConfirm={async () => {
-        const formData = new FormData()
-        formData.set("lessonId", lessonId)
-        await uncompleteLesson(formData)
       }}
     />
   )

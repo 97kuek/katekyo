@@ -36,7 +36,7 @@ export default async function InvitesPage() {
       </div>
 
       {invites.length === 0 && (
-        <div className="rounded-lg border bg-card p-12 text-center">
+        <div className="apple-card-surface rounded-2xl p-12 text-center">
           <p className="text-muted-foreground">招待トークンがまだありません</p>
         </div>
       )}
@@ -49,7 +49,7 @@ export default async function InvitesPage() {
             </span>
             有効（未使用）
           </h2>
-          <div className="rounded-lg border bg-card overflow-hidden overflow-x-auto">
+          <div className="apple-card-surface overflow-hidden overflow-x-auto rounded-2xl">
             <table className="w-full text-sm min-w-[480px]">
               <thead className="border-b bg-muted">
                 <tr>
@@ -98,7 +98,7 @@ export default async function InvitesPage() {
       {expired.length > 0 && (
         <section className="space-y-3">
           <h2 className="text-sm font-medium text-muted-foreground">期限切れ（未使用）</h2>
-          <div className="rounded-lg border bg-card overflow-hidden overflow-x-auto">
+          <div className="apple-card-surface overflow-hidden overflow-x-auto rounded-2xl">
             <table className="w-full text-sm min-w-[480px]">
               <thead className="border-b bg-muted">
                 <tr>
@@ -140,7 +140,7 @@ export default async function InvitesPage() {
       {used.length > 0 && (
         <section className="space-y-3">
           <h2 className="text-sm font-medium text-muted-foreground">使用済み</h2>
-          <div className="rounded-lg border bg-card overflow-hidden overflow-x-auto">
+          <div className="apple-card-surface overflow-hidden overflow-x-auto rounded-2xl">
             <table className="w-full text-sm min-w-[480px]">
               <thead className="border-b bg-muted">
                 <tr>

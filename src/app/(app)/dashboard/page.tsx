@@ -59,7 +59,7 @@ function SectionSkeleton({ rows = 3 }: { rows?: number }) {
   return (
     <div className="space-y-3">
       <Sk className="h-5 w-24" />
-      <div className="rounded-lg border bg-card divide-y">
+      <div className="apple-card-surface divide-y overflow-hidden rounded-2xl">
         {[...Array(rows)].map((_, i) => (
           <div key={i} className="px-4 py-3">
             <Sk className="h-4 w-2/3" />
@@ -113,7 +113,7 @@ async function TeacherActionSection({ teacherId }: { teacherId: string }) {
   return (
     <section className="space-y-3">
       <SectionHeader title="要対応" count={total} />
-      <div className="rounded-lg border bg-card divide-y">
+      <div className="apple-card-surface divide-y overflow-hidden rounded-2xl">
         {pending.map((h) => (
           <Link
             key={h.id}
@@ -201,9 +201,9 @@ async function TeacherWeekSection({ teacherId }: { teacherId: string }) {
     <section className="space-y-3">
       <SectionHeader title="今週" href="/calendar" />
       {items.length === 0 ? (
-        <div className="rounded-lg border bg-card p-5 text-center text-sm text-muted-foreground">予定なし</div>
+        <div className="apple-card-surface rounded-2xl p-5 text-center text-sm text-muted-foreground">予定なし</div>
       ) : (
-        <div className="rounded-lg border bg-card divide-y">
+      <div className="apple-card-surface divide-y overflow-hidden rounded-2xl">
           {items.map(({ key, href, icon: Icon, title, sub }) => (
             <Link key={key} href={href} className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-muted active:bg-muted">
               {Icon && (
@@ -255,7 +255,7 @@ async function TeacherStudentsSection({ teacherId }: { teacherId: string }) {
   return (
     <section className="space-y-3">
       <SectionHeader title="生徒" href="/students" />
-      <div className="rounded-lg border bg-card divide-y">
+      <div className="apple-card-surface divide-y overflow-hidden rounded-2xl">
         {students.map((s) => {
           const { active, submitted } = stat.get(s.id) ?? { active: 0, submitted: 0 }
           let diff: number | null = null
@@ -344,7 +344,7 @@ async function StudentTodoSection({ userId }: { userId: string }) {
   return (
     <section className="space-y-3">
       <SectionHeader title="やること" count={activeCount + feedbacks.length} href="/homework" />
-      <div className="rounded-lg border bg-card divide-y">
+      <div className="apple-card-surface divide-y overflow-hidden rounded-2xl">
         {feedbacks.map((h) => (
           <Link
             key={h.id}
@@ -433,7 +433,7 @@ async function StudentWeekSection({ userId }: { userId: string }) {
   return (
     <section className="space-y-3">
       <SectionHeader title="今週" href="/calendar" />
-      <div className="rounded-lg border bg-card divide-y">
+      <div className="apple-card-surface divide-y overflow-hidden rounded-2xl">
         {items.map(({ key, icon: Icon, title, sub, badge, urgent }) => (
           <div key={key} className="flex items-center gap-3 px-4 py-3">
             {Icon && (
@@ -611,7 +611,7 @@ async function ParentStudentList({ parentId }: { parentId: string }) {
 
   if (links.length === 0) {
     return (
-      <div className="rounded-lg border bg-card p-12 text-center text-sm text-muted-foreground">
+      <div className="apple-card-surface rounded-2xl p-12 text-center text-sm text-muted-foreground">
         まだお子様の情報が登録されていません。先生から招待リンクを受け取ってください。
       </div>
     )
@@ -626,7 +626,7 @@ async function ParentStudentList({ parentId }: { parentId: string }) {
         const payment = student.monthlyPayments[0]
 
         return (
-          <div key={student.id} className="space-y-4 rounded-lg border bg-card p-5">
+          <div key={student.id} className="apple-card-surface space-y-4 rounded-2xl p-5">
             <div className="flex items-center justify-between gap-3">
               <p className="text-base font-semibold">{student.user.name}</p>
               <span className="text-xs text-muted-foreground">{student.grade}</span>

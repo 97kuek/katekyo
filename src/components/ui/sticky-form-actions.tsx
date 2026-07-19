@@ -13,10 +13,20 @@ import { cn } from "@/lib/utils"
 function StickyFormActions({
   className,
   children,
+  contained = false,
 }: {
   className?: string
   children: React.ReactNode
+  contained?: boolean
 }) {
+  if (contained) {
+    return (
+      <div className={cn("sticky -bottom-5 -mx-5 z-20 mt-6 border-t border-border/60 bg-background px-5 py-3 shadow-[0_-8px_20px_oklch(0.16_0.02_250_/_0.06)] sm:-mx-6 sm:px-6", className)}>
+        {children}
+      </div>
+    )
+  }
+
   return (
     <>
       {/* モバイル: 固定バーの高さ分のスペーサー（最後の入力欄が隠れないように） */}

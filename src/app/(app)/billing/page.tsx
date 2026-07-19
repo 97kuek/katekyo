@@ -132,7 +132,7 @@ export default async function BillingPage({
       ) : (
         <>
           {/* Summary */}
-          <div className="rounded-lg border bg-card p-4">
+          <div className="apple-card-surface rounded-2xl p-4">
             <p className="text-xs text-muted-foreground">今月の請求合計</p>
             <p className="mt-1 text-2xl font-bold">{hasFeeData ? formatCurrency(grandTotal) : "金額未設定"}</p>
             <p className="mt-2 text-xs text-muted-foreground">完了授業 {completedLessons.length}回 ・ {Math.floor(totalMinutes / 60)}時間{totalMinutes % 60 > 0 ? `${totalMinutes % 60}分` : ""}</p>
@@ -160,7 +160,7 @@ export default async function BillingPage({
               : ""
 
             return (
-              <div key={sid} className="rounded-lg border bg-card overflow-hidden">
+              <div key={sid} className="apple-card-surface overflow-hidden rounded-2xl">
                 <div className="px-4 py-3 bg-muted space-y-2">
                   {/* 1行目: 名前・ステータス / 金額 */}
                   <div className="flex items-start justify-between gap-2">
@@ -295,7 +295,7 @@ async function ParentBillingPage({
   const links = await getBillingParentLinks(parentId)
   if (links.length === 0) {
     return (
-      <div className="rounded-lg border bg-card p-12 text-center text-sm text-muted-foreground">
+      <div className="apple-card-surface rounded-2xl p-12 text-center text-sm text-muted-foreground">
         まだお子様の情報が登録されていません
       </div>
     )
@@ -345,7 +345,7 @@ async function ParentBillingPage({
             const hasFee = sLessons.some((l) => calcFee(l) != null)
             const dueDateInfo = dueDateLabel(paymentRecord?.dueDate ?? null, isPaid)
             return (
-              <div key={sid} className="rounded-lg border bg-card overflow-hidden">
+              <div key={sid} className="apple-card-surface overflow-hidden rounded-2xl">
                 <div className="space-y-3 bg-muted px-5 py-4">
                   <p className="text-xs text-muted-foreground">{name}・今月の請求</p>
                   <div className="flex items-end justify-between gap-3">

@@ -7,7 +7,7 @@ export default function Loading() {
     <div className="space-y-6">
       <Skeleton className="h-4 w-28" />
       <Skeleton className="h-7 w-40" />
-      <div className="rounded-lg border bg-card overflow-hidden">
+      <div className="apple-card-surface overflow-hidden rounded-2xl">
         <div className="border-b bg-muted px-4 py-3 flex gap-4">
           {[...Array(4)].map((_, i) => (
             <Skeleton key={i} className="h-4 w-20" />

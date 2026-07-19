@@ -227,6 +227,39 @@
   80%       { transform: translateX(4px); }
 }
 
+@layer components {
+  .apple-card-surface {
+    background-color: var(--card);
+    border: 1px solid color-mix(in oklch, var(--border) 72%, transparent);
+    box-shadow:
+      0 1px 2px oklch(0.16 0.02 250 / 0.04),
+      0 10px 28px oklch(0.16 0.02 250 / 0.055),
+      inset 0 1px 0 oklch(1 0 0 / 0.52);
+  }
+  .apple-interactive-card {
+    transition-property: transform, background-color, border-color, box-shadow;
+    transition-duration: 120ms;
+    transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .apple-interactive-card:hover {
+    border-color: color-mix(in oklch, var(--border) 88%, var(--foreground) 12%);
+    box-shadow:
+      0 2px 4px oklch(0.16 0.02 250 / 0.05),
+      0 14px 34px oklch(0.16 0.02 250 / 0.075),
+      inset 0 1px 0 oklch(1 0 0 / 0.6);
+    transform: translateY(-1px);
+  }
+  .apple-interactive-card:active {
+    transform: scale(0.985);
+  }
+  .dark .apple-card-surface {
+    box-shadow:
+      0 1px 2px oklch(0 0 0 / 0.18),
+      0 12px 30px oklch(0 0 0 / 0.2),
+      inset 0 1px 0 oklch(1 0 0 / 0.08);
+  }
+}
+
 @layer utilities {
   .animate-page-in {
     animation: page-in 0.18s ease-out both;
@@ -273,6 +306,12 @@
     width: 100%;
     transform: none;
   }
+  .apple-interactive-card,
+  .apple-interactive-card:hover,
+  .apple-interactive-card:active {
+    transform: none;
+    transition: none;
+  }
 }
 
 /* 透明度削減設定：半透明クローム（ナビ等）を不透明にフォールバック */
@@ -288,6 +327,10 @@
 }
 
 @media (prefers-contrast: more) {
+  .apple-card-surface {
+    border: 2px solid var(--foreground);
+    box-shadow: none;
+  }
   .liquid-glass-chrome {
     background-color: var(--background);
     border: 2px solid var(--foreground);

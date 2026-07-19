@@ -49,11 +49,11 @@ export default async function StudentParentsPage({ params }: { params: Promise<{
         </div>
 
         {parentLinks.length === 0 ? (
-          <div className="rounded-lg border bg-card p-12 text-center text-sm text-muted-foreground">
+          <div className="apple-card-surface rounded-2xl p-12 text-center text-sm text-muted-foreground">
             まだ保護者が登録されていません
           </div>
         ) : (
-          <div className="rounded-lg border bg-card divide-y">
+          <div className="apple-card-surface divide-y overflow-hidden rounded-2xl">
             {parentLinks.map(({ parent }) => (
               <div key={parent.id} className="px-4 py-3 flex items-center justify-between gap-3">
                 <div>
@@ -78,7 +78,7 @@ export default async function StudentParentsPage({ params }: { params: Promise<{
       {pendingInvites.length > 0 && (
         <div className="space-y-2">
           <p className="text-sm font-medium">招待中（未使用）</p>
-          <div className="rounded-lg border bg-card divide-y">
+          <div className="apple-card-surface divide-y overflow-hidden rounded-2xl">
             {pendingInvites.map((inv) => (
               <div key={inv.id} className="px-4 py-3">
                 <p className="text-xs text-muted-foreground">

@@ -10,7 +10,7 @@ export default function Loading() {
         <Skeleton className="h-7 w-40" />
         <Skeleton className="h-4 w-12" />
       </div>
-      <div className="rounded-lg border bg-card p-4">
+      <div className="apple-card-surface rounded-2xl p-4">
         <Skeleton className="w-full aspect-[560/450] rounded" />
       </div>
     </div>

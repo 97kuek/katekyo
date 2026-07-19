@@ -86,7 +86,7 @@ export function BulkApproveSection({
         </label>
 
         {submitted.map((h) => (
-          <div key={h.id} className="rounded-lg border bg-card p-4 flex items-start gap-3">
+          <div key={h.id} className="apple-card-surface rounded-2xl p-4 flex items-start gap-3">
             <input
               type="checkbox"
               checked={selected.has(h.id)}

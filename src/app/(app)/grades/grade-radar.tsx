@@ -69,7 +69,7 @@ export default function GradeRadar({ grades, subjects }: { grades: Grade[]; subj
   const current = qualifying[Math.min(selected, qualifying.length - 1)]
 
   return (
-    <div className="rounded-lg border bg-card p-4 space-y-3">
+    <div className="apple-card-surface rounded-2xl p-4 space-y-3">
       <div className="flex items-center justify-between gap-2">
         <p className="text-sm font-medium">科目バランス</p>
         {qualifying.length > 1 ? (

@@ -13,7 +13,7 @@ export default function Loading() {
         <Skeleton className="h-9 w-20" />
       </div>
 
-      <div className="rounded-lg border bg-card p-4">
+      <div className="apple-card-surface rounded-2xl p-4">
         <Skeleton className="h-4 w-28" />
         <Skeleton className="mt-2 h-5 w-52" />
       </div>
@@ -30,7 +30,7 @@ export default function Loading() {
 
         <div className="grid grid-cols-7 gap-1">
           {[...Array(7)].map((_, i) => (
-            <div key={i} className="space-y-2 rounded-lg border bg-card p-2 text-center">
+            <div key={i} className="apple-card-surface space-y-2 rounded-2xl p-2 text-center">
               <Skeleton className="mx-auto h-3 w-6" />
               <Skeleton className="mx-auto h-8 w-8 rounded-full" />
               <Skeleton className="mx-auto h-2 w-2 rounded-full" />
@@ -39,7 +39,7 @@ export default function Loading() {
         </div>
       </div>
 
-      <div className="rounded-lg border bg-card overflow-hidden">
+      <div className="apple-card-surface overflow-hidden rounded-2xl">
         <div className="flex items-center justify-between border-b px-4 py-3">
           <Skeleton className="h-5 w-36" />
           <Skeleton className="h-8 w-8 rounded" />

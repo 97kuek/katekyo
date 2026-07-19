@@ -6,7 +6,7 @@ export default function Loading() {
   return (
     <div className="max-w-2xl space-y-6">
       <Skeleton className="h-4 w-28" />
-      <div className="rounded-lg border bg-card p-5 space-y-4">
+      <div className="apple-card-surface rounded-2xl p-5 space-y-4">
         {[...Array(6)].map((_, i) => (
           <div key={i} className="space-y-2">
             <Skeleton className="h-4 w-20" />

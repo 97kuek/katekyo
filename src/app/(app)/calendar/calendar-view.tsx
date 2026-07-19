@@ -167,7 +167,7 @@ export default function CalendarView({ lessons, deadlines, examEvents, students,
 
       {viewMode === "month" ? (
         <>
-          <div className="rounded-lg border bg-card overflow-hidden">
+          <div className="apple-card-surface overflow-hidden rounded-2xl">
             <div className="grid grid-cols-7 text-center">
               {DOW_LABELS.map((d, i) => (
                 <div key={d} className={`py-2 text-xs font-medium ${i === 0 ? "text-calendar-sun" : i === 6 ? "text-calendar-sat" : "text-muted-foreground"}`}>
@@ -240,7 +240,7 @@ export default function CalendarView({ lessons, deadlines, examEvents, students,
       ) : (
         /* 週表示 */
         <>
-          <div className="rounded-lg border bg-card overflow-hidden">
+          <div className="apple-card-surface overflow-hidden rounded-2xl">
             <div className="grid grid-cols-7 divide-x text-center">
               {weekDays.map((d, i) => {
                 const key = toDateKey(d)

@@ -38,7 +38,7 @@ export default async function NewHomeworkPage({ searchParams }: { searchParams: 
     return (
       <div className="max-w-2xl mx-auto space-y-6">
         <PageHeader backHref="/homework" backLabel="宿題一覧" title="宿題を作成" />
-        <div className="rounded-lg border bg-card p-12 text-center">
+        <div className="apple-card-surface rounded-2xl p-12 text-center">
           <p className="text-muted-foreground">生徒が登録されていません</p>
           <p className="text-sm text-muted-foreground mt-1">
             まず

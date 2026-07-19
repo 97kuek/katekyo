@@ -27,7 +27,7 @@ export default async function ReviewHomeworkPage({ params }: { params: Promise<{
     <div className="max-w-2xl mx-auto space-y-6">
       <PageHeader backHref="/homework?view=review" backLabel="確認待ち一覧" title="宿題を確認" description={`${homework.student.user.name}・${homework.title}`} />
 
-      <div className="rounded-lg border bg-card p-5 space-y-3">
+      <div className="apple-card-surface rounded-2xl p-5 space-y-3">
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-xs text-muted-foreground">{homework.student.user.name}</p>

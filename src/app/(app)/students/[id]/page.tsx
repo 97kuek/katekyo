@@ -70,18 +70,18 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
       <section aria-labelledby="student-overview" className="space-y-3">
         <h2 id="student-overview" className="text-sm font-semibold">現在の状況</h2>
         <div className="grid gap-3 sm:grid-cols-3">
-          <Link href={homeworkOverview.href} className="rounded-lg border bg-card p-4 transition-[background-color,transform] hover:bg-muted active:scale-[0.99] motion-reduce:transform-none motion-reduce:transition-none">
+          <Link href={homeworkOverview.href} className="apple-card-surface apple-interactive-card rounded-2xl p-4">
             <p className="text-xs text-muted-foreground">{homeworkOverview.label}</p>
             <p className="mt-1 text-2xl font-bold tabular-nums">{homeworkOverview.count}<span className="ml-1 text-sm font-normal text-muted-foreground">件</span></p>
             <p className="mt-1 text-xs text-muted-foreground">{homeworkOverview.description}</p>
           </Link>
-          <Link href={`/calendar?studentId=${student.id}`} className="rounded-lg border bg-card p-4 transition-[background-color,transform] hover:bg-muted active:scale-[0.99] motion-reduce:transform-none motion-reduce:transition-none">
+          <Link href={`/calendar?studentId=${student.id}`} className="apple-card-surface apple-interactive-card rounded-2xl p-4">
             <p className="text-xs text-muted-foreground">次回授業</p>
             {nextLesson ? (
               <p className="mt-1 font-semibold">{nextLesson.date.toLocaleDateString("ja-JP", { timeZone: "Asia/Tokyo", month: "numeric", day: "numeric", weekday: "short" })}<span className="ml-2 text-sm font-normal text-muted-foreground">{nextLesson.date.toLocaleTimeString("ja-JP", { timeZone: "Asia/Tokyo", hour: "2-digit", minute: "2-digit" })}</span></p>
             ) : <p className="mt-1 text-sm text-muted-foreground">予定はありません</p>}
           </Link>
-          <Link href={`/grades?studentId=${student.id}`} className="rounded-lg border bg-card p-4 transition-[background-color,transform] hover:bg-muted active:scale-[0.99] motion-reduce:transform-none motion-reduce:transition-none">
+          <Link href={`/grades?studentId=${student.id}`} className="apple-card-surface apple-interactive-card rounded-2xl p-4">
             <p className="text-xs text-muted-foreground">直近の成績</p>
             {latestGrade ? (
               <><p className="mt-1 truncate font-semibold">{latestGrade.testName}</p><p className="mt-1 text-sm text-muted-foreground">{latestGrade.score != null ? `${latestGrade.score}${latestGrade.maxScore != null ? `/${latestGrade.maxScore}` : ""}` : latestGrade.deviation != null ? `偏差値 ${latestGrade.deviation}` : "記録あり"}</p></>
@@ -92,7 +92,7 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
 
       <section aria-labelledby="student-sections" className="space-y-3">
         <h2 id="student-sections" className="text-sm font-semibold">学習情報</h2>
-        <div className="overflow-hidden rounded-lg border bg-card sm:grid sm:grid-cols-2">
+        <div className="apple-card-surface overflow-hidden rounded-2xl sm:grid sm:grid-cols-2">
           {navLinks.map(({ href, Icon, label, garden }, index) => (
             <Link
               key={href}

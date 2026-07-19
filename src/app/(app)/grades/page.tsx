@@ -23,6 +23,7 @@ import { cacheLife, cacheTag } from "next/cache"
 import { cacheProfiles } from "@/lib/cache-policy"
 import { cacheTags } from "@/lib/cache-tags"
 import { PaginationNav } from "@/components/ui/pagination-nav"
+import { GradeCreateSheet } from "./grade-create-sheet"
 
 const GRADE_PAGE_SIZE = 50
 
@@ -163,10 +164,11 @@ async function TeacherGradesPage({
   const isValidType = (v: string | undefined): v is ValidType =>
     validTypes.includes(v as ValidType)
 
-  const [{ grades, total }, subjects, students] = await Promise.all([
+  const [{ grades, total }, subjects, students, examEvents] = await Promise.all([
     getTeacherGrades(teacherId, isValidType(typeFilter) ? typeFilter : undefined, studentIdFilter, subjectIdFilter, currentModeForQuery(mode), page),
     getSubjectsByTeacherId(teacherId),
     getTeacherGradeStudents(teacherId),
+    getRecentTeacherExamEvents(teacherId),
   ])
 
   const subjectMap = buildSubjectMap(subjects)
@@ -189,7 +191,15 @@ async function TeacherGradesPage({
   return (
     <div className="space-y-3">
       <PageHeader title="成績" description="記録の一覧と、生徒ごとの推移を分けて確認できます。" action={
-        <Link href={studentIdFilter ? `/grades/new?studentId=${studentIdFilter}` : "/grades/new"} className={buttonVariants({ size: "sm" })}>成績を記録</Link>
+        students.length > 0 ? (
+          <GradeCreateSheet
+            compact
+            students={students}
+            subjects={subjects}
+            examEvents={examEvents}
+            defaultStudentId={studentIdFilter}
+          />
+        ) : undefined
       } />
       <GradeModeTabs current={currentMode} params={{ studentId: studentIdFilter, type: typeFilter, subjectId: subjectIdFilter }} />
       <div className="space-y-2">
@@ -223,11 +233,16 @@ async function TeacherGradesPage({
       {currentMode === "list" && (grades.length === 0 ? (
         <EmptyState
           title="成績記録がありません"
-          description={typeFilter ? "別のテスト種別を選ぶと記録が見つかる場合があります。" : "最初のテスト結果を記録しましょう。"}
+          description={typeFilter
+            ? "別のテスト種別を選ぶと記録が見つかる場合があります。"
+            : students.length === 0
+              ? "成績を記録するには、先に生徒を招待してください。"
+              : "最初のテスト結果を記録しましょう。"
+          }
           action={!typeFilter ? (
-            <Link href="/grades/new" className={buttonVariants({ className: "mt-4 inline-flex" })}>
-              最初の成績を記録する
-            </Link>
+            students.length > 0
+              ? <GradeCreateSheet students={students} subjects={subjects} examEvents={examEvents} defaultStudentId={studentIdFilter} />
+              : <Link href="/students/invite" className={buttonVariants()}>生徒を招待する</Link>
           ) : undefined}
         />
       ) : (
@@ -235,14 +250,14 @@ async function TeacherGradesPage({
           {/* モバイル: カード表示 */}
           <div className="lg:hidden space-y-2">
             {grades.map((g, i) => (
-              <div key={g.id} className="rounded-lg border bg-card p-4">
+              <div key={g.id} className="apple-card-surface rounded-2xl p-4">
                 <GradeCard g={g} diff={prevDiff[i]} subjectMap={subjectMap} studentName={g.student.user.name} />
                 <GradeActionsCell gradeId={g.id} size="sm" className="mt-3 border-t pt-3" />
               </div>
             ))}
           </div>
           {/* デスクトップ: テーブル表示 */}
-          <div className="hidden lg:block rounded-lg border bg-card overflow-hidden overflow-x-auto">
+          <div className="apple-card-surface hidden overflow-hidden overflow-x-auto rounded-2xl lg:block">
             <table className="w-full text-sm">
               <thead className="border-b bg-muted">
                 <tr>
@@ -334,13 +349,13 @@ async function StudentGradesPage({ userId, mode, page }: { userId: string; mode?
           {/* モバイル: カード表示 */}
           <div className={`${currentMode === "history" ? "md:hidden" : "hidden"} space-y-2`}>
             {grades.map((g, i) => (
-              <div key={g.id} className="rounded-lg border bg-card p-4">
+              <div key={g.id} className="apple-card-surface rounded-2xl p-4">
                 <GradeCard g={g} diff={prevDiff[i]} subjectMap={subjectMap} comment={g.comment} />
               </div>
             ))}
           </div>
           {/* デスクトップ: テーブル表示 */}
-          <div className={`${currentMode === "history" ? "hidden md:block" : "hidden"} rounded-lg border bg-card overflow-hidden overflow-x-auto`}>
+          <div className={`${currentMode === "history" ? "hidden md:block" : "hidden"} apple-card-surface overflow-hidden overflow-x-auto rounded-2xl`}>
             <table className="w-full text-sm">
               <thead className="border-b bg-muted">
                 <tr>
@@ -447,12 +462,12 @@ async function ParentGradesPage({
           </>}
           <div className={`${currentMode === "history" ? "md:hidden" : "hidden"} space-y-2`}>
             {grades.map((g, i) => (
-              <div key={g.id} className="rounded-lg border bg-card p-4">
+              <div key={g.id} className="apple-card-surface rounded-2xl p-4">
                 <GradeCard g={g} diff={prevDiff[i]} subjectMap={subjectMap} comment={g.comment} />
               </div>
             ))}
           </div>
-          <div className={`${currentMode === "history" ? "hidden md:block" : "hidden"} rounded-lg border bg-card overflow-hidden overflow-x-auto`}>
+          <div className={`${currentMode === "history" ? "hidden md:block" : "hidden"} apple-card-surface overflow-hidden overflow-x-auto rounded-2xl`}>
             <table className="w-full text-sm">
               <thead className="border-b bg-muted">
                 <tr>
@@ -540,6 +555,27 @@ async function getTeacherGradeStudents(teacherId: string) {
   })
 }
 
+async function getRecentTeacherExamEvents(teacherId: string) {
+  "use cache"
+  cacheLife(cacheProfiles.active)
+  cacheTag(cacheTags.teacherCalendar(teacherId))
+  const now = new Date()
+  const pastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+  const events = await db.examEvent.findMany({
+    where: { teacherId, date: { gte: pastMonth } },
+    include: { student: { include: { user: { select: { name: true } } } } },
+    orderBy: { date: "desc" },
+  })
+  return events.map((event) => ({
+    id: event.id,
+    name: event.name,
+    testType: event.testType,
+    date: event.date.toISOString().slice(0, 10),
+    studentId: event.studentId,
+    studentName: event.student.user.name ?? "",
+  }))
+}
+
 async function getStudentGrades(
   studentId: string,
   typeFilter?: "mock" | "exam" | "quiz" | "other",
@@ -603,7 +639,7 @@ function LearningModeTabs({ current, studentId }: { current: "trend" | "history"
 function LatestGradeSummary({ grade, diff }: { grade: GradeCardData; diff: number | null }) {
   const primary = grade.score != null ? `${grade.score}${grade.maxScore != null ? `/${grade.maxScore}` : ""}` : grade.deviation != null ? `偏差値 ${grade.deviation}` : "記録あり"
   return (
-    <div className="flex items-end justify-between gap-3 rounded-lg border bg-card p-4">
+    <div className="apple-card-surface flex items-end justify-between gap-3 rounded-2xl p-4">
       <div className="min-w-0"><p className="text-xs text-muted-foreground">最新の結果</p><p className="mt-1 truncate font-semibold">{grade.testName}</p><p className="mt-1 text-xs text-muted-foreground">{formatDate(grade.date)}</p></div>
       <p className="shrink-0 text-2xl font-bold tabular-nums">{primary}<DiffBadge diff={diff} /></p>
     </div>

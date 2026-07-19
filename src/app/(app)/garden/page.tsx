@@ -80,7 +80,7 @@ export default async function GardenPage({
       )}
 
       {total === 0 ? (
-        <div className="rounded-lg border bg-card p-12 flex flex-col items-center gap-3 text-center">
+        <div className="apple-card-surface rounded-2xl p-12 flex flex-col items-center gap-3 text-center">
           <TreePine className="h-10 w-10 text-primary/30" />
           <p className="font-medium text-muted-foreground">まだ何も育っていません</p>
           <p className="text-sm text-muted-foreground">
@@ -88,7 +88,7 @@ export default async function GardenPage({
           </p>
         </div>
       ) : (
-        <div className="rounded-lg border bg-card p-4 overflow-hidden">
+        <div className="apple-card-surface rounded-2xl p-4 overflow-hidden">
           <GardenCanvas items={items} milestone={milestone} />
         </div>
       )}
@@ -161,7 +161,7 @@ async function ParentGardenPage({
   })
   if (links.length === 0) {
     return (
-      <div className="rounded-lg border bg-card p-12 text-center text-sm text-muted-foreground">
+      <div className="apple-card-surface rounded-2xl p-12 text-center text-sm text-muted-foreground">
         まだお子様の情報が登録されていません
       </div>
     )
@@ -225,7 +225,7 @@ async function ParentGardenPage({
       )}
 
       {total === 0 ? (
-        <div className="rounded-lg border bg-card p-12 flex flex-col items-center gap-3 text-center">
+        <div className="apple-card-surface rounded-2xl p-12 flex flex-col items-center gap-3 text-center">
           <TreePine className="h-10 w-10 text-primary/30" />
           <p className="font-medium text-muted-foreground">まだ何も育っていません</p>
           <p className="text-sm text-muted-foreground">
@@ -233,7 +233,7 @@ async function ParentGardenPage({
           </p>
         </div>
       ) : (
-        <div className="rounded-lg border bg-card p-4 overflow-hidden">
+        <div className="apple-card-surface rounded-2xl p-4 overflow-hidden">
           <GardenCanvas items={items} milestone={milestone} />
         </div>
       )}

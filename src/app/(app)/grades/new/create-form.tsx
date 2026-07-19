@@ -29,11 +29,13 @@ export default function CreateGradeForm({
   subjects,
   examEvents = [],
   defaultStudentId,
+  withinSheet = false,
 }: {
   students: Student[]
   subjects: Subject[]
   examEvents?: ExamEvent[]
   defaultStudentId?: string
+  withinSheet?: boolean
 }) {
   const [state, action, isPending] = useActionState(createGradeRecord, { error: "" })
   const singleStudent = students.length === 1 ? students[0] : null
@@ -116,7 +118,7 @@ export default function CreateGradeForm({
         commentPlaceholder="生徒へのフィードバックを入力してください"
       />
 
-      <StickyFormActions>
+      <StickyFormActions contained={withinSheet}>
         <Button type="submit" className="w-full md:w-auto" disabled={isPending}>
           {isPending ? "保存中..." : "成績を記録する"}
         </Button>

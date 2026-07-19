@@ -2,13 +2,14 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { ChevronRight, CheckCheck, CheckCircle2, FileText, Pencil, Plus, X } from "lucide-react"
+import { ChevronRight, CheckCircle2, FileText, Pencil, Plus, X } from "lucide-react"
 import { LessonForm } from "./lesson-form"
 import { LessonEditForm } from "./lesson-edit-form"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { TEST_TYPE_LABELS } from "@/lib/test-types"
-import { DeleteLessonButton, UncompleteLessonButton, DeleteExamEventButton } from "./confirm-buttons"
-import { CompleteLessonLogForm, HomeworkForm, ExamEventForm } from "./quick-forms"
+import { DeleteLessonButton, DeleteExamEventButton } from "./confirm-buttons"
+import { HomeworkForm, ExamEventForm } from "./quick-forms"
+import { LessonCompletionControl } from "./lesson-completion-control"
 import type { Lesson, HomeworkDeadline, ExamEvent, Student, Subject } from "./calendar-types"
 
 export function DayDetail({
@@ -36,24 +37,27 @@ export function DayDetail({
   editingLessonId: string | null
   setEditingLessonId: (id: string | null) => void
 }) {
-  const [completingLessonId, setCompletingLessonId] = useState<string | null>(null)
   const [addType, setAddType] = useState<"lesson" | "homework" | "exam" | "menu" | null>(null)
 
   return (
-    <div className="rounded-lg border bg-card p-4 space-y-3">
+    <div className="apple-card-surface rounded-2xl p-4 space-y-3">
       <h2 className="font-semibold text-sm">{dateStr}</h2>
       {isTeacher && (
         <div className="space-y-2">
           {addType === null && (
-            <Button size="sm" onClick={() => setAddType("menu")}><Plus className="h-4 w-4" aria-hidden />追加</Button>
+            <Button variant="secondary" size="icon-sm" aria-label="予定を追加" onClick={() => setAddType("menu")}><Plus aria-hidden /></Button>
           )}
           {addType === "menu" && (
-            <div className="flex flex-wrap items-center gap-2 rounded-lg border bg-muted/40 p-2">
-              <span className="px-1 text-xs font-medium text-muted-foreground">追加する予定</span>
-              <Button size="sm" onClick={() => setAddType("lesson")}>授業</Button>
-              <Button size="sm" variant="outline" onClick={() => setAddType("homework")}>宿題期限</Button>
-              <Button size="sm" variant="outline" onClick={() => setAddType("exam")}>テスト</Button>
-              <Button size="icon-sm" variant="ghost" aria-label="追加メニューを閉じる" onClick={() => setAddType(null)}><X className="h-4 w-4" /></Button>
+            <div className="apple-card-surface max-w-sm overflow-hidden rounded-2xl p-1">
+              <div className="flex items-center justify-between px-2 py-1">
+                <span className="text-xs font-medium text-muted-foreground">追加する予定</span>
+                <Button size="icon-sm" variant="ghost" aria-label="追加メニューを閉じる" onClick={() => setAddType(null)}><X aria-hidden /></Button>
+              </div>
+              <div className="grid gap-0.5">
+                <Button className="w-full justify-start rounded-xl" variant="ghost" onClick={() => setAddType("lesson")}>授業</Button>
+                <Button className="w-full justify-start rounded-xl" variant="ghost" onClick={() => setAddType("homework")}>宿題期限</Button>
+                <Button className="w-full justify-start rounded-xl" variant="ghost" onClick={() => setAddType("exam")}>テスト</Button>
+              </div>
             </div>
           )}
           {addType === "lesson" && <LessonForm students={students} defaultDate={dayKey} subjects={subjects} embedded onClose={() => setAddType(null)} />}
@@ -69,9 +73,12 @@ export function DayDetail({
             const now = new Date()
             const isPast = l.date < now
             return (
-              <div key={l.id} className="rounded-md px-3 py-2 bg-muted">
+              <div key={l.id} className="apple-card-surface rounded-2xl px-3 py-3">
                 <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0 flex items-center gap-x-2 gap-y-0.5 flex-wrap">
+                  {isTeacher && (isPast || !!l.completedAt) && (
+                    <LessonCompletionControl lessonId={l.id} completed={!!l.completedAt} />
+                  )}
+                  <div className="min-w-0 flex flex-1 items-center gap-x-2 gap-y-0.5 flex-wrap">
                     {(isTeacher || showStudentNames) && <span className="text-sm font-medium">{l.student.user.name}</span>}
                     <span className="text-xs text-muted-foreground">
                       {l.type === "online" ? "オンライン" : "対面"}
@@ -85,29 +92,13 @@ export function DayDetail({
                   </div>
                   {isTeacher && (
                     <div className="flex items-center gap-1 shrink-0">
-                      {isPast && !l.completedAt && (
-                        completingLessonId === l.id ? (
-                          <Button type="button" aria-label="完了入力を閉じる" variant="ghost" size="icon-sm" onClick={() => setCompletingLessonId(null)}><X className="h-4 w-4" aria-hidden /></Button>
-                        ) : (
-                          <Button
-                            onClick={() => { setCompletingLessonId(l.id); setEditingLessonId(null) }}
-                            variant="outline"
-                            size="xs"
-                            title="完了にする"
-                          >
-                            <CheckCheck className="h-3.5 w-3.5 mr-1" />
-                            完了
-                          </Button>
-                        )
-                      )}
-                      {l.completedAt && <UncompleteLessonButton lessonId={l.id} />}
                       <Button
                         variant="ghost"
                         size="icon-sm"
-                        onClick={() => { setEditingLessonId(editingLessonId === l.id ? null : l.id); setCompletingLessonId(null) }}
-                        title={editingLessonId === l.id ? "閉じる" : "編集"}
+                        onClick={() => setEditingLessonId(editingLessonId === l.id ? null : l.id)}
+                        aria-label={editingLessonId === l.id ? "授業の編集を閉じる" : "授業を編集"}
                       >
-                        <Pencil className="h-4 w-4" />
+                        {editingLessonId === l.id ? <X className="h-4 w-4" aria-hidden /> : <Pencil className="h-4 w-4" aria-hidden />}
                       </Button>
                       <DeleteLessonButton lessonId={l.id} />
                     </div>
@@ -150,9 +141,6 @@ export function DayDetail({
                     {l.hourlyRate && l.durationMin ? `¥${Math.round((l.durationMin / 60) * l.hourlyRate).toLocaleString()}` : l.hourlyRate ? `時給¥${l.hourlyRate.toLocaleString()}` : ""}
                     {l.travelExpense != null && l.travelExpense > 0 ? ` + 交通費¥${l.travelExpense.toLocaleString()}` : ""}
                   </p>
-                )}
-                {isTeacher && completingLessonId === l.id && (
-                  <CompleteLessonLogForm lessonId={l.id} onClose={() => setCompletingLessonId(null)} />
                 )}
                 {isTeacher && editingLessonId === l.id && (
                   <LessonEditForm lesson={l} onClose={() => setEditingLessonId(null)} subjects={subjects} />

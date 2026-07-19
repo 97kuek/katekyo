@@ -15,7 +15,7 @@ export function Disclosure({
   className?: string
 }) {
   return (
-    <details className={cn("group rounded-lg border bg-card", className)} open={defaultOpen}>
+    <details className={cn("apple-card-surface group overflow-hidden rounded-2xl", className)} open={defaultOpen}>
       <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden">
         <span className="min-w-0">
           <span className="block text-sm font-medium">{title}</span>

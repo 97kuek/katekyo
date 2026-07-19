@@ -48,7 +48,7 @@ export default async function StudentsPage({
               <Link
                 key={s.id}
                 href={`/students/${s.id}`}
-                className="flex items-center justify-between gap-2 rounded-lg border bg-card p-3.5 hover:bg-muted transition-colors"
+                className="apple-card-surface apple-interactive-card flex items-center justify-between gap-2 rounded-2xl p-3.5"
               >
                 <div className="min-w-0">
                   <div className="flex items-baseline gap-2"><p className="font-medium truncate">{s.user.name}</p><p className="text-xs text-muted-foreground shrink-0">{s.grade}</p></div>
@@ -59,7 +59,7 @@ export default async function StudentsPage({
             ))}
           </div>
           {/* デスクトップ: テーブル表示（行クリックで詳細へ） */}
-          <div className="hidden md:block rounded-lg border bg-card overflow-hidden overflow-x-auto">
+          <div className="apple-card-surface hidden overflow-hidden overflow-x-auto rounded-2xl md:block">
             <table className="w-full text-sm">
               <thead className="border-b bg-muted">
                 <tr>

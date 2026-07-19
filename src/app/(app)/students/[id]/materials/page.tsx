@@ -43,17 +43,17 @@ export default async function StudentMaterialsPage({ params }: { params: Promise
         </p>
       </div>
 
-      <div className="rounded-lg border bg-card p-5 space-y-4">
+      <div className="apple-card-surface rounded-2xl p-5 space-y-4">
         <h2 className="text-sm font-semibold">教材を追加</h2>
         <AddMaterialForm studentId={id} subjects={subjects} />
       </div>
 
       {materials.length === 0 ? (
-        <div className="rounded-lg border bg-card p-10 text-center">
+        <div className="apple-card-surface rounded-2xl p-10 text-center">
           <p className="text-sm text-muted-foreground">教材が登録されていません</p>
         </div>
       ) : (
-        <div className="rounded-lg border bg-card divide-y">
+        <div className="apple-card-surface divide-y overflow-hidden rounded-2xl">
           {materials.map((m) => (
             <div key={m.id} className="flex items-center justify-between gap-3 px-5 py-3">
               <div className="min-w-0">

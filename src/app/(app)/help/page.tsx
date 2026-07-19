@@ -38,7 +38,7 @@ function SectionCard({
   children: React.ReactNode
 }) {
   return (
-    <div className="rounded-lg border bg-card p-5 space-y-3">
+    <div className="apple-card-surface rounded-2xl p-5 space-y-3">
       <h2 className="font-semibold text-base">{title}</h2>
       <div className="space-y-2.5 text-sm text-foreground">{children}</div>
     </div>
@@ -90,7 +90,7 @@ function TeacherHelp() {
       <H1>使い方ガイド（先生）</H1>
 
       {/* クイックスタート */}
-      <div className="rounded-lg border bg-card p-5 space-y-3">
+    <div className="apple-card-surface rounded-2xl p-5 space-y-3">
         <p className="font-semibold">はじめてのセットアップ（3ステップ）</p>
         <Steps items={[
           "「生徒一覧」→「招待リンクを作成」で生徒を登録する",
@@ -126,7 +126,7 @@ function TeacherHelp() {
       <SectionCard title="授業と請求">
         <Steps items={[
           "「予定」で日付をタップし、生徒・日時・形式・時間を入力します（最大12週の繰り返し登録も可）。",
-          "授業後に「完了」を押すと請求管理に反映されます。",
+          "授業後に予定行の丸いチェックをタップすると請求管理に反映されます。間違えた場合は「元に戻す」で取り消せます。",
         ]} />
         <BulletList items={[
           { label: "料金", desc: "授業料 = 時給 × 時間。対面授業は交通費が加算され、完了した授業のみ集計されます。" },
@@ -136,7 +136,7 @@ function TeacherHelp() {
 
       {/* 成績・森 */}
       <SectionCard title="成績と学習の森">
-        <p>「成績管理」→「成績を記録」でテスト名・日付・生徒・得点などを入力します（得点や偏差値は任意）。</p>
+        <p>「成績」の右上にある「＋」をタップし、一覧上のシートでテスト名・日付・生徒・得点などを入力します（得点や偏差値は任意）。</p>
         <Tip>成績を入力すると、スコアに応じた植物が生徒の「学習の森」に育ちます（満点で竹、90%以上で桜など）。</Tip>
       </SectionCard>
 
@@ -156,7 +156,7 @@ function StudentHelp() {
       <H1>使い方ガイド（生徒）</H1>
 
       {/* クイックスタート */}
-      <div className="rounded-lg border bg-card p-5 space-y-3">
+    <div className="apple-card-surface rounded-2xl p-5 space-y-3">
         <p className="font-semibold">はじめてのセットアップ（3ステップ）</p>
         <Steps items={[
           "先生から届いた招待URLを開いてアカウントを作成する",
@@ -208,7 +208,7 @@ function ParentHelp() {
     <div className="space-y-6">
       <H1>使い方ガイド（保護者）</H1>
 
-      <div className="rounded-lg border bg-card p-5 space-y-3">
+    <div className="apple-card-surface rounded-2xl p-5 space-y-3">
         <p className="font-semibold">保護者アカウントでできること</p>
         <p className="text-sm">宿題・成績・授業スケジュール・請求・学習の森を閲覧できます。</p>
         <p className="text-xs text-muted-foreground">※ 閲覧専用です。宿題の提出・成績の入力などの操作は行えません。</p>
@@ -236,7 +236,7 @@ function ParentHelp() {
 
 function HomeScreenSection() {
   return (
-    <div className="rounded-lg border bg-card p-5 space-y-4">
+    <div className="apple-card-surface rounded-2xl p-5 space-y-4">
       <h2 className="font-semibold text-base">ホーム画面に追加する</h2>
       <p className="text-sm text-muted-foreground">アプリのようにホーム画面から直接起動できます。</p>
 
@@ -278,7 +278,7 @@ function PlantLegend({ icon, secondaryIcon, label, description }: { icon: React.
 
 function AboutSection() {
   return (
-    <div className="rounded-lg border bg-card p-5 space-y-2 text-sm text-muted-foreground">
+    <div className="apple-card-surface rounded-2xl p-5 space-y-2 text-sm text-muted-foreground">
       <p className="font-semibold text-foreground">katekyo について</p>
       <p>家庭教師と生徒の学習をサポートするWebアプリです。宿題・成績・授業スケジュールを一元管理し、学習の継続を「学習の森」として可視化します。</p>
       <div className="pt-2 space-y-0.5 text-xs text-muted-foreground border-t">

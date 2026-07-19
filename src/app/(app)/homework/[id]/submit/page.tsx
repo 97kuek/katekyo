@@ -26,7 +26,7 @@ export default async function SubmitHomeworkPage({ params }: { params: Promise<{
     <div className="max-w-2xl mx-auto space-y-6">
       <PageHeader backHref={`/homework/${id}`} backLabel="宿題詳細" title="宿題を提出" description="必要な内容を確認して先生へ提出します。" />
 
-      <div className="rounded-lg border bg-card p-5 space-y-3">
+      <div className="apple-card-surface rounded-2xl p-5 space-y-3">
         <div className="flex items-start justify-between gap-2">
           <h2 className="font-semibold text-lg">{homework.title}</h2>
           <StatusBadge status={homework.status} />

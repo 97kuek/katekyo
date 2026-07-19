@@ -111,7 +111,7 @@ export default function GradeChart({
   const innerWidth = needScroll ? chartData.length * POINT_W + 48 : undefined
 
   return (
-    <div className="rounded-lg border bg-card p-4 space-y-3">
+    <div className="apple-card-surface rounded-2xl p-4 space-y-3">
       {/* コントロール1行 */}
       <div className="flex items-center justify-between gap-2 flex-wrap">
         {!isExternalFilter && (

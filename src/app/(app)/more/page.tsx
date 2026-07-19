@@ -17,7 +17,7 @@ export default async function MorePage() {
       {groups.map((group) => (
         <section key={group.label} aria-labelledby={`more-${group.label}`} className="space-y-2">
           <h2 id={`more-${group.label}`} className="px-1 text-xs font-semibold text-muted-foreground">{group.label}</h2>
-          <div className="overflow-hidden rounded-lg border bg-card">
+          <div className="apple-card-surface overflow-hidden rounded-2xl">
             {group.items.map(({ href, label, description, icon: Icon }, index) => (
               <Link
                 key={href}

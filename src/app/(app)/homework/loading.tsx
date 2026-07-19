@@ -24,7 +24,7 @@ export default function Loading() {
         <Skeleton className="h-9 w-24" />
       </div>
 
-      <div className="rounded-lg border bg-card overflow-hidden">
+      <div className="apple-card-surface overflow-hidden rounded-2xl">
         <div className="divide-y">
           {[...Array(5)].map((_, i) => (
             <div key={i} className="px-4 py-3 flex items-center gap-4">

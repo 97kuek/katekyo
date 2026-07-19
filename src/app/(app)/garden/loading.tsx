@@ -5,7 +5,7 @@ export default function GardenLoading() {
         <div className="h-8 w-32 bg-muted rounded animate-pulse" />
         <div className="h-4 w-12 bg-muted rounded animate-pulse" />
       </div>
-      <div className="rounded-lg border bg-card p-4">
+      <div className="apple-card-surface rounded-2xl p-4">
         <div className="w-full aspect-[560/450] bg-muted rounded animate-pulse" />
       </div>
     </div>

@@ -16,7 +16,7 @@ export default function Loading() {
         <Skeleton className="h-8 w-8" />
       </div>
 
-      <div className="rounded-lg border bg-card p-4">
+      <div className="apple-card-surface rounded-2xl p-4">
         <div className="flex items-center justify-between gap-3">
           <div className="space-y-2">
             <Skeleton className="h-3 w-20" />
@@ -32,7 +32,7 @@ export default function Loading() {
         ))}
       </div>
 
-      <div className="rounded-lg border bg-card overflow-hidden">
+      <div className="apple-card-surface overflow-hidden rounded-2xl">
         <div className="divide-y">
           {[...Array(4)].map((_, i) => (
             <div key={i} className="flex items-center gap-3 px-4 py-4">

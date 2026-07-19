@@ -1,61 +1,15 @@
 "use client"
 
-import { useState, useActionState, useTransition } from "react"
-import { createExamEvent, completeLesson, createHomeworkFromCalendar } from "./actions"
+import { useState, useActionState } from "react"
+import { createExamEvent, createHomeworkFromCalendar } from "./actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
 import { PendingStatus } from "@/components/ui/pending-status"
 import { TEST_TYPE_OPTIONS } from "@/lib/test-types"
 import { toast } from "sonner"
 import type { Student } from "./calendar-types"
-
-export function CompleteLessonLogForm({ lessonId, onClose }: { lessonId: string; onClose: () => void }) {
-  const [log, setLog] = useState("")
-  const [isPending, startTransition] = useTransition()
-
-  function submit(withLog: boolean) {
-    startTransition(async () => {
-      const fd = new FormData()
-      fd.append("lessonId", lessonId)
-      if (withLog && log.trim()) fd.append("lessonLog", log.trim())
-      await completeLesson(fd)
-      onClose()
-    })
-  }
-
-  return (
-    <div className="mt-2 pt-2 border-t space-y-2">
-      <PendingStatus pending={isPending} label="授業を完了にしています" />
-      <p className="text-xs font-medium text-primary">授業ログを残す（任意）</p>
-      <Textarea
-        value={log}
-        onChange={(e) => setLog(e.target.value)}
-        placeholder="今日の授業メモ..."
-        rows={2}
-        autoFocus
-        className="min-h-20 resize-none md:min-h-14 md:text-xs"
-      />
-      <div className="flex gap-2">
-        <Button
-          onClick={() => submit(true)}
-          disabled={isPending}
-          size="xs"
-        >
-          {isPending ? "完了中..." : "完了にする"}
-        </Button>
-        <Button onClick={() => submit(false)} disabled={isPending} variant="ghost" size="xs">
-          スキップ
-        </Button>
-        <Button type="button" onClick={onClose} variant="outline" size="xs" className="ml-auto">
-          キャンセル
-        </Button>
-      </div>
-    </div>
-  )
-}
 
 export function HomeworkForm({ students, defaultDate, embedded = false, onClose }: { students: Student[]; defaultDate: string; embedded?: boolean; onClose?: () => void }) {
   const [open, setOpen] = useState(embedded)
@@ -83,7 +37,7 @@ export function HomeworkForm({ students, defaultDate, embedded = false, onClose 
   if (!open) return null
 
   return (
-    <div className="rounded-lg border bg-card p-3 space-y-3 w-full">
+    <div className="apple-card-surface rounded-2xl p-3 space-y-3 w-full">
       <h3 className="font-medium text-sm">宿題を追加</h3>
       <form action={action} className="space-y-3">
         <PendingStatus pending={isPending} label="宿題を追加しています" />
@@ -157,7 +111,7 @@ export function ExamEventForm({ students, defaultDate, embedded = false, onClose
   if (!open) return null
 
   return (
-    <div className="rounded-lg border bg-card p-3 space-y-3 w-full">
+    <div className="apple-card-surface rounded-2xl p-3 space-y-3 w-full">
       <h3 className="font-medium text-sm">テストを追加</h3>
       <form action={action} className="space-y-3">
         <PendingStatus pending={isPending} label="テストを追加しています" />

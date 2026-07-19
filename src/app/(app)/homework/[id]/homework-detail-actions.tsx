@@ -1,14 +1,13 @@
 "use client"
 
-import Link from "next/link"
-import { useActionState, useState } from "react"
+import { useActionState, useState, useTransition } from "react"
 import { CalendarClock, Pencil, Trash2 } from "lucide-react"
 import { deleteHomework, extendDueDate } from "./actions"
-import { Button, buttonVariants } from "@/components/ui/button"
-import { InlineConfirmAction } from "@/components/ui/inline-confirm-action"
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { PendingStatus } from "@/components/ui/pending-status"
+import { ActionButton, ActionLink, ActionList } from "@/components/ui/action-list"
 
 export function HomeworkDetailActions({
   homeworkId,
@@ -20,6 +19,8 @@ export function HomeworkDetailActions({
   canEdit: boolean
 }) {
   const [changingDeadline, setChangingDeadline] = useState(false)
+  const [confirmingDelete, setConfirmingDelete] = useState(false)
+  const [isDeleting, startDeleting] = useTransition()
   const [state, action, isPending] = useActionState(
     async (previous: { error: string; success: boolean }, formData: FormData) => {
       const result = await extendDueDate(previous, formData)
@@ -29,36 +30,45 @@ export function HomeworkDetailActions({
     { error: "", success: false }
   )
 
+  function handleDelete() {
+    startDeleting(async () => {
+      const formData = new FormData()
+      formData.set("homeworkId", homeworkId)
+      await deleteHomework(formData)
+    })
+  }
+
   return (
-    <section aria-labelledby="homework-actions-title" className="rounded-lg border bg-card p-4">
-      <h2 id="homework-actions-title" className="text-sm font-semibold">宿題の操作</h2>
-      <div className="mt-3 flex flex-wrap items-center gap-2">
+    <section aria-labelledby="homework-actions-title" className="space-y-2">
+      <h2 id="homework-actions-title" className="px-1 text-xs font-semibold text-muted-foreground">宿題の操作</h2>
+      <ActionList>
         {canEdit && (
-          <Link href={`/homework/${homeworkId}/edit`} className={buttonVariants({ variant: "outline", size: "sm" })}>
-            <Pencil aria-hidden />編集
-          </Link>
+          <ActionLink
+            href={`/homework/${homeworkId}/edit`}
+            icon={<Pencil aria-hidden />}
+            label="宿題を編集"
+            description="タイトル・内容・教材などを変更"
+          />
         )}
-        <Button type="button" variant="outline" size="sm" onClick={() => setChangingDeadline((open) => !open)}>
-          <CalendarClock aria-hidden />期限を延長
-        </Button>
-        <InlineConfirmAction
-          triggerLabel="削除"
-          confirmLabel="削除する"
-          pendingLabel="削除中..."
-          message="この宿題を削除しますか？"
-          triggerVariant="outline"
-          triggerSize="sm"
-          triggerIcon={<Trash2 aria-hidden />}
-          onConfirm={async () => {
-            const formData = new FormData()
-            formData.set("homeworkId", homeworkId)
-            await deleteHomework(formData)
-          }}
+        <ActionButton
+          icon={<CalendarClock aria-hidden />}
+          label="期限を変更"
+          description="現在の期限を別の日付へ変更"
+          expanded={changingDeadline}
+          onClick={() => { setChangingDeadline((open) => !open); setConfirmingDelete(false) }}
         />
-      </div>
+        <ActionButton
+          icon={<Trash2 aria-hidden />}
+          label="宿題を削除"
+          description="記録と提出履歴を完全に削除"
+          destructive
+          expanded={confirmingDelete}
+          onClick={() => { setConfirmingDelete((open) => !open); setChangingDeadline(false) }}
+        />
+      </ActionList>
 
       {changingDeadline && (
-        <form action={action} className="mt-4 grid gap-2 border-t pt-4 sm:grid-cols-[minmax(0,12rem)_auto_auto] sm:items-center">
+        <form action={action} className="apple-card-surface grid gap-3 rounded-2xl p-4 sm:grid-cols-[minmax(0,12rem)_auto_auto] sm:items-end">
           <PendingStatus pending={isPending} label="宿題の期限を更新しています" />
           <input type="hidden" name="id" value={homeworkId} />
           <div className="space-y-1">
@@ -73,6 +83,18 @@ export function HomeworkDetailActions({
           </Button>
           {state.error && <p className="text-xs text-destructive sm:col-span-3">{state.error}</p>}
         </form>
+      )}
+
+      {confirmingDelete && (
+        <div className="rounded-2xl border border-destructive/25 bg-destructive/5 p-4">
+          <PendingStatus pending={isDeleting} label="宿題を削除しています" />
+          <p className="text-sm font-semibold text-destructive">この宿題を削除しますか？</p>
+          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">提出履歴を含めて削除され、この操作は取り消せません。</p>
+          <div className="mt-3 flex justify-end gap-2">
+            <Button type="button" variant="ghost" size="sm" disabled={isDeleting} onClick={() => setConfirmingDelete(false)}>キャンセル</Button>
+            <Button type="button" variant="destructive" size="sm" disabled={isDeleting} onClick={handleDelete}>{isDeleting ? "削除中..." : "削除する"}</Button>
+          </div>
+        </div>
       )}
     </section>
   )

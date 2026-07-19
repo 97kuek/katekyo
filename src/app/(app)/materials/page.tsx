@@ -32,7 +32,7 @@ export default async function StudentMaterialsPage() {
       {materials.length === 0 ? (
         <EmptyState title="教材が登録されていません" description="教材は先生が登録すると、ここに表示されます。" />
       ) : (
-        <div className="rounded-lg border bg-card divide-y">
+        <div className="apple-card-surface divide-y overflow-hidden rounded-2xl">
           {materials.map((m) => (
             <div key={m.id} className="flex items-center gap-3 px-5 py-4">
               <BookOpen className="h-4 w-4 text-warning shrink-0" />

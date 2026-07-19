@@ -1,7 +1,6 @@
 "use client"
 
 import Link from "next/link"
-import { Pencil } from "lucide-react"
 import { deleteGradeRecord } from "./[id]/actions"
 import { InlineConfirmAction } from "@/components/ui/inline-confirm-action"
 import { buttonVariants } from "@/components/ui/button"
@@ -17,8 +16,8 @@ export function GradeActionsCell({
 }) {
   return (
     <div className={`flex flex-wrap items-center justify-end gap-2 ${className}`}>
-      <Link href={`/grades/${gradeId}/edit`} className={buttonVariants({ variant: "outline", size })}>
-        <Pencil aria-hidden />編集
+      <Link href={`/grades/${gradeId}/edit`} className={buttonVariants({ variant: "ghost", size, className: "text-primary" })}>
+        編集
       </Link>
       <InlineConfirmAction
         triggerLabel="削除"

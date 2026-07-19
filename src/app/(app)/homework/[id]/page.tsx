@@ -136,7 +136,7 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
         </div>
       )}
 
-      <div className="rounded-lg border bg-card p-5 space-y-4">
+      <div className="apple-card-surface rounded-2xl p-5 space-y-4">
         <div className="space-y-2 sm:flex sm:items-start sm:justify-between sm:gap-4 sm:space-y-0">
           <div>
             <div className="flex items-center gap-2 flex-wrap">
@@ -214,7 +214,7 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
       )}
 
       {(homework.teacherFeedback || homework.reviewedAt) && (
-        <div className="rounded-lg border bg-card p-5 space-y-2">
+        <div className="apple-card-surface rounded-2xl p-5 space-y-2">
           <h2 className="text-sm font-semibold">先生のフィードバック</h2>
           {homework.reviewedAt && (
             <p className="text-xs text-muted-foreground">

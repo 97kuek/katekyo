@@ -17,7 +17,7 @@ export default function Loading() {
         <Skeleton className="h-9 w-28" />
       </div>
 
-      <div className="rounded-lg border bg-card overflow-hidden">
+      <div className="apple-card-surface overflow-hidden rounded-2xl">
         <div className="border-b bg-muted px-4 py-3 flex gap-6">
           <Skeleton className="h-4 flex-1" />
           <Skeleton className="h-4 w-32" />
