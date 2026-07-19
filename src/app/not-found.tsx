@@ -10,7 +10,7 @@ export default function NotFound() {
       </p>
       <Link
         href="/dashboard"
-        className="mt-2 px-4 py-2 border border-border rounded-full text-sm hover:bg-muted transition-colors"
+        className="mt-2 inline-flex min-h-11 items-center rounded-full border border-border px-4 py-2 text-sm transition-colors hover:bg-muted"
       >
         ダッシュボードへ戻る
       </Link>

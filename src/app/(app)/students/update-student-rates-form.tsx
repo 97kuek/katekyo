@@ -80,7 +80,7 @@ export function UpdateStudentRatesForm({ studentId, defaultHourlyRate, defaultTr
       {subjects.length > 0 && (
         <div className="w-full flex flex-wrap gap-x-3 gap-y-1">
           {subjects.map((s) => (
-            <label key={s.id} className="flex items-center gap-1 text-xs cursor-pointer">
+            <label key={s.id} className="flex min-h-11 items-center gap-1 text-xs cursor-pointer">
               <input
                 type="checkbox"
                 name="defaultSubjectIds"

@@ -70,7 +70,7 @@ export function SubjectCheckboxes({
       <Label>{label}</Label>
       <div className="flex flex-wrap gap-3">
         {subjects.map((s) => (
-          <label key={s.id} className="flex items-center gap-1.5 cursor-pointer">
+          <label key={s.id} className="flex min-h-11 items-center gap-1.5 cursor-pointer">
             <input
               type="checkbox"
               name="subjectIds"

@@ -30,7 +30,7 @@ export default async function StudentParentsPage({ params }: { params: Promise<{
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <Link href="/students" className="text-sm text-muted-foreground hover:underline">
+      <Link href="/students" className="inline-flex min-h-11 items-center text-sm text-muted-foreground hover:underline">
         ← 生徒一覧に戻る
       </Link>
 

@@ -123,7 +123,7 @@ export default async function BillingPage({
           <p className="text-sm text-warning-foreground">
             <span className="font-semibold">{unconfirmedCount}件</span>の授業が未完了です。予定から完了にすると請求へ反映されます。
           </p>
-          <Link href="/calendar" prefetch={true} className="text-xs text-warning underline hover:text-warning-foreground shrink-0">予定へ</Link>
+          <Link href="/calendar" prefetch={true} className="inline-flex min-h-11 shrink-0 items-center text-xs text-warning underline hover:text-warning-foreground">予定へ</Link>
         </div>
       )}
 
@@ -190,7 +190,7 @@ export default async function BillingPage({
                 </div>
                 <details className="group border-t">
                   <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between px-4 text-sm font-medium text-muted-foreground hover:bg-muted [&::-webkit-details-marker]:hidden">
-                    期限・授業内訳を見る <ChevronRight className="h-4 w-4 transition-transform group-open:rotate-90" aria-hidden />
+                    期限・授業内訳を見る <ChevronRight className="h-4 w-4 transition-transform group-open:rotate-90 motion-reduce:transform-none motion-reduce:transition-none" aria-hidden />
                   </summary>
                   <div className="space-y-3 border-t p-4">
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
@@ -364,7 +364,7 @@ async function ParentBillingPage({
                   </div>
                 </div>
                 {sLessons.length > 0 ? <details className="group border-t">
-                  <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between px-4 text-sm font-medium text-muted-foreground hover:bg-muted [&::-webkit-details-marker]:hidden">授業の内訳（{sLessons.length}回）<ChevronRight className="h-4 w-4 transition-transform group-open:rotate-90" aria-hidden /></summary>
+                  <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between px-4 text-sm font-medium text-muted-foreground hover:bg-muted [&::-webkit-details-marker]:hidden">授業の内訳（{sLessons.length}回）<ChevronRight className="h-4 w-4 transition-transform group-open:rotate-90 motion-reduce:transform-none motion-reduce:transition-none" aria-hidden /></summary>
                   <div className="divide-y border-t">
                   {sLessons.map((l) => {
                     const fee = calcFee(l)

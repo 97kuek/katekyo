@@ -34,7 +34,7 @@ export default async function StudentMaterialsPage({ params }: { params: Promise
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div>
-        <Link href="/students" className="text-sm text-muted-foreground hover:underline">
+        <Link href="/students" className="inline-flex min-h-11 items-center text-sm text-muted-foreground hover:underline">
           ← 生徒一覧に戻る
         </Link>
         <h1 className="text-2xl font-bold mt-2">{student.user.name} の使用教材</h1>

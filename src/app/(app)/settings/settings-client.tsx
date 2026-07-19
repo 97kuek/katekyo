@@ -1,6 +1,7 @@
 "use client"
 
 import { useActionState, useTransition, useState, useEffect, useRef } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -121,7 +122,7 @@ export function MeetLinkSettings({ currentMeetLink }: { currentMeetLink: string 
                 href={displayedLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="shrink-0 text-xs text-primary underline font-medium"
+                className="inline-flex min-h-11 shrink-0 items-center px-1 text-xs font-medium text-primary underline"
               >
                 開く
               </a>
@@ -180,10 +181,12 @@ export function MeetLinkSettings({ currentMeetLink }: { currentMeetLink: string 
 }
 
 export function LineSettings({ isLinked }: { isLinked: boolean }) {
+  const router = useRouter()
+  const [linked, setLinked] = useState(isLinked)
   const [tokenState, generateAction, isGenerating] = useActionState(generateLinkToken, {})
   const [isUnlinking, startUnlink] = useTransition()
 
-  if (isLinked) {
+  if (linked) {
     return (
       <Card>
         <CardHeader>
@@ -202,9 +205,18 @@ export function LineSettings({ isLinked }: { isLinked: boolean }) {
             variant="outline"
             size="sm"
             disabled={isUnlinking}
-            onClick={() => startUnlink(async () => { await unlinkLine(); location.reload() })}
+            onClick={() => startUnlink(async () => {
+              const result = await unlinkLine()
+              if (result.error) {
+                toast.error(result.error)
+                return
+              }
+              setLinked(false)
+              toast.success("LINE連携を解除しました")
+              router.refresh()
+            })}
           >
-            連携を解除する
+            {isUnlinking ? "解除中..." : "連携を解除する"}
           </Button>
         </CardContent>
       </Card>

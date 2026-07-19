@@ -5,6 +5,7 @@ import { useEffect, useRef, useState, useTransition, type ReactNode } from "reac
 import { RefreshCw } from "lucide-react"
 import { haptic } from "@/lib/haptic"
 import { rubberband } from "@/lib/spring"
+import { usePrefersReducedMotion } from "@/hooks/use-prefers-reduced-motion"
 
 const THRESHOLD = 70
 const MAX = 110
@@ -17,6 +18,7 @@ const RUBBERBAND_DIMENSION = 300
  */
 export function PullToRefresh({ children }: { children: ReactNode }) {
   const router = useRouter()
+  const reduceMotion = usePrefersReducedMotion()
   const wrapRef = useRef<HTMLDivElement>(null)
   const startY = useRef(0)
   const active = useRef(false)
@@ -38,7 +40,7 @@ export function PullToRefresh({ children }: { children: ReactNode }) {
   }, [refreshing, isPending])
 
   function onTouchStart(e: React.TouchEvent) {
-    if (refreshing) return
+    if (refreshing || reduceMotion) return
     const scroller = wrapRef.current?.closest("main")
     if (scroller && scroller.scrollTop <= 0) {
       startY.current = e.touches[0].clientY
@@ -52,7 +54,7 @@ export function PullToRefresh({ children }: { children: ReactNode }) {
   }
 
   function onTouchMove(e: React.TouchEvent) {
-    if (!active.current || refreshing) return
+    if (!active.current || refreshing || reduceMotion) return
     const dy = e.touches[0].clientY - startY.current
     if (dy <= 0) {
       setPull(0)
@@ -69,6 +71,12 @@ export function PullToRefresh({ children }: { children: ReactNode }) {
   }
 
   function onTouchEnd() {
+    if (reduceMotion) {
+      active.current = false
+      setTouching(false)
+      setPull(0)
+      return
+    }
     if (!active.current) return
     active.current = false
     setTouching(false)

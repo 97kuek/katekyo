@@ -32,7 +32,6 @@ export default function CalendarView({ lessons, deadlines, examEvents, students,
   const [selectedDay, setSelectedDay] = useState<string | null>(toDateKey(referenceDate))
   const [editingLessonId, setEditingLessonId] = useState<string | null>(null)
   const [viewMode, setViewMode] = useState<"month" | "week">(searchParams.get("view") === "month" ? "month" : "week")
-  const [weekOffset, setWeekOffset] = useState(0)
   const [isNavigating, startNavigation] = useTransition()
 
   // 選択日が変わったら編集中の授業をレンダー中に derived state として閉じる
@@ -71,7 +70,10 @@ export default function CalendarView({ lessons, deadlines, examEvents, students,
     }
   }
 
-  function navigateToMonth(targetYear: number, targetMonth: number, mode = viewMode) {
+  function navigateToMonth(targetYear: number, targetMonth: number, mode = viewMode, targetDate?: Date) {
+    const currentDay = selectedDay ? new Date(`${selectedDay}T00:00:00`).getDate() : 1
+    const lastDay = new Date(targetYear, targetMonth + 1, 0).getDate()
+    setSelectedDay(toDateKey(targetDate ?? new Date(targetYear, targetMonth, Math.min(currentDay, lastDay))))
     const params = new URLSearchParams(searchParams.toString())
     params.set("year", String(targetYear))
     params.set("month", String(targetMonth + 1))
@@ -86,30 +88,30 @@ export default function CalendarView({ lessons, deadlines, examEvents, students,
   }
   function goToToday() {
     if (year !== today.getFullYear() || month !== today.getMonth()) {
-      navigateToMonth(today.getFullYear(), today.getMonth())
+      navigateToMonth(today.getFullYear(), today.getMonth(), viewMode, today)
     } else {
       setSelectedDay(toDateKey(today))
-      setWeekOffset(0)
     }
   }
 
   // Week view helpers
-  const weekSundayBase = new Date(referenceDate)
-  weekSundayBase.setDate(referenceDate.getDate() - referenceDate.getDay())
+  const weekAnchor = selectedDay ? new Date(`${selectedDay}T00:00:00`) : referenceDate
+  const weekSundayBase = new Date(weekAnchor)
+  weekSundayBase.setDate(weekAnchor.getDate() - weekAnchor.getDay())
   const weekDays = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(weekSundayBase)
-    d.setDate(weekSundayBase.getDate() + i + weekOffset * 7)
+    d.setDate(weekSundayBase.getDate() + i)
     return d
   })
 
   function shiftWeek(direction: -1 | 1) {
-    const target = new Date(weekDays[0])
+    const target = new Date(weekAnchor)
     target.setDate(target.getDate() + direction * 7)
     if (target.getFullYear() !== year || target.getMonth() !== month) {
-      navigateToMonth(target.getFullYear(), target.getMonth(), "week")
+      navigateToMonth(target.getFullYear(), target.getMonth(), "week", target)
       return
     }
-    setWeekOffset((offset) => offset + direction)
+    setSelectedDay(toDateKey(target))
   }
 
   const firstDay = new Date(year, month, 1).getDay()
@@ -127,7 +129,7 @@ export default function CalendarView({ lessons, deadlines, examEvents, students,
     : ""
 
   return (
-    <div className={`space-y-4 transition-opacity ${isNavigating ? "opacity-70" : "opacity-100"}`} aria-busy={isNavigating}>
+    <div className={`space-y-4 transition-opacity motion-reduce:transition-none ${isNavigating ? "opacity-70" : "opacity-100"}`} aria-busy={isNavigating}>
       <NextLessonBanner lessons={lessons} isTeacher={isTeacher} showStudentNames={showStudentNames} />
 
       {/* ナビゲーションバー: ビュー切替 + 期間移動 */}

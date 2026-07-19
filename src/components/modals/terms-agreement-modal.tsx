@@ -53,7 +53,7 @@ export function TermsAgreementModal({ show }: { show: boolean }) {
         </div>
 
         <div className="shrink-0 space-y-4 border-t bg-card px-5 pb-5 pt-4 sm:px-6 sm:pb-6">
-          <label className="flex items-start gap-3 cursor-pointer">
+          <label className="flex min-h-11 items-start gap-3 cursor-pointer">
             <input
               type="checkbox"
               checked={checked}

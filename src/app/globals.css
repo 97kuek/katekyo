@@ -179,6 +179,8 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-optical-sizing: auto;
+    text-rendering: optimizeLegibility;
   }
   html {
     @apply font-sans;
@@ -255,8 +257,13 @@
 
 /* モーション削減設定：移動を伴わない短いクロスフェードまたは静的表示へ置き換える */
 @media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
   .animate-page-in {
-    animation-duration: 0.12s;
+    animation: none;
   }
   .animate-shake {
     animation: none;

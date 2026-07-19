@@ -1,6 +1,7 @@
 "use client"
 
 import { useActionState, useState } from "react"
+import Link from "next/link"
 import { createHomework } from "./actions"
 import { Button } from "@/components/ui/button"
 import { StickyFormActions } from "@/components/ui/sticky-form-actions"
@@ -78,9 +79,9 @@ export default function CreateHomeworkForm({
           {materials.length === 0 ? (
             <p className="text-xs text-muted-foreground">
               この生徒の教材が未登録です。
-              <a href={`/students/${selectedStudentId}/materials`} className="underline ml-1">
+              <Link href={`/students/${selectedStudentId}/materials`} className="ml-1 inline-flex min-h-11 items-center underline">
                 教材を登録する
-              </a>
+              </Link>
             </p>
           ) : (
             <Select id="materialId" name="materialId">
@@ -95,7 +96,7 @@ export default function CreateHomeworkForm({
         </div>
       )}
       <SubjectCheckboxes label="科目タグ（任意・複数選択可）" subjects={subjects} />
-      <div className="flex items-center gap-2">
+      <div className="flex min-h-11 items-center gap-2">
         <input type="checkbox" name="requiresPhoto" id="requiresPhoto" value="1" className="accent-primary" />
         <Label htmlFor="requiresPhoto" className="text-sm font-normal cursor-pointer">
           写真提出を必須にする

@@ -62,12 +62,13 @@ export function SwatchPicker({
             onClick={() => onChange(c)}
             aria-label={`色 ${c}`}
             aria-pressed={selected}
-            className={`flex h-7 w-7 items-center justify-center rounded-full transition-transform active:scale-90 ${
+            className={`flex size-11 items-center justify-center rounded-full transition-transform active:scale-90 motion-reduce:transform-none motion-reduce:transition-none ${
               selected ? "ring-2 ring-offset-2 ring-foreground/40" : ""
             }`}
-            style={{ backgroundColor: c }}
           >
-            {selected && <Check className="h-3.5 w-3.5 text-white" strokeWidth={3} />}
+            <span className="flex size-7 items-center justify-center rounded-full" style={{ backgroundColor: c }}>
+              {selected && <Check className="h-3.5 w-3.5 text-white" strokeWidth={3} />}
+            </span>
           </button>
         )
       })}

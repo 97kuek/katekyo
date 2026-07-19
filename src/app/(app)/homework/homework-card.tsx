@@ -28,7 +28,7 @@ export function HomeworkCard({
     <article className={`rounded-lg border bg-card p-4 ${isOverdue ? "border-destructive/40" : ""}`}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <Link href={`/homework/${id}`} className="font-medium hover:underline">{title}</Link>
+          <Link href={`/homework/${id}`} className="inline-flex min-h-11 items-center font-medium hover:underline">{title}</Link>
           <p className="mt-0.5 text-sm text-muted-foreground">{studentName}</p>
           {subjectNames.length > 0 && (
             <div className="mt-1.5 flex flex-wrap gap-1">

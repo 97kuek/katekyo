@@ -141,12 +141,12 @@ export function LessonForm({ students, defaultDate, subjects, embedded = false, 
         <div className="space-y-1.5">
           <Label className="text-xs font-medium">授業形式</Label>
           <div className="flex gap-5 pt-0.5">
-            <label className="flex items-center gap-1.5 text-sm cursor-pointer">
+            <label className="flex min-h-11 items-center gap-1.5 text-sm cursor-pointer">
               <input type="radio" name="type" value="online" defaultChecked className="accent-primary"
                 onChange={() => setLessonType("online")} />
               オンライン
             </label>
-            <label className="flex items-center gap-1.5 text-sm cursor-pointer">
+            <label className="flex min-h-11 items-center gap-1.5 text-sm cursor-pointer">
               <input type="radio" name="type" value="offline" className="accent-primary"
                 onChange={() => setLessonType("offline")} />
               対面
@@ -223,7 +223,7 @@ export function LessonForm({ students, defaultDate, subjects, embedded = false, 
             <Label className="text-xs font-medium">科目（任意）</Label>
             <div className="flex flex-wrap gap-x-4 gap-y-1.5">
               {subjects.map((s) => (
-                <label key={s.id} className="flex items-center gap-1.5 text-sm cursor-pointer">
+                <label key={s.id} className="flex min-h-11 items-center gap-1.5 text-sm cursor-pointer">
                   <input
                     type="checkbox"
                     name="subjectIds"

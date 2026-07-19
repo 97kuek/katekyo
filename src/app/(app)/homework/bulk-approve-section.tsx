@@ -75,7 +75,7 @@ export function BulkApproveSection({
       </div>
 
       <div className="space-y-2">
-        <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer select-none w-fit">
+        <label className="flex min-h-11 w-fit items-center gap-2 text-xs text-muted-foreground cursor-pointer select-none">
           <input
             type="checkbox"
             checked={allSelected}

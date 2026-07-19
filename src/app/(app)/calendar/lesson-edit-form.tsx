@@ -68,12 +68,12 @@ export function LessonEditForm({ lesson, onClose, subjects }: { lesson: Lesson; 
       <div className="space-y-1.5">
         <Label className="text-xs font-medium">授業形式</Label>
         <div className="flex gap-4 pt-0.5">
-          <label className="flex items-center gap-1.5 text-sm cursor-pointer">
+          <label className="flex min-h-11 items-center gap-1.5 text-sm cursor-pointer">
             <input type="radio" name="type" value="online" defaultChecked={lesson.type === "online"} className="accent-primary"
               onChange={() => setLessonType("online")} />
             オンライン
           </label>
-          <label className="flex items-center gap-1.5 text-sm cursor-pointer">
+          <label className="flex min-h-11 items-center gap-1.5 text-sm cursor-pointer">
             <input type="radio" name="type" value="offline" defaultChecked={lesson.type === "offline"} className="accent-primary"
               onChange={() => setLessonType("offline")} />
             対面
@@ -114,7 +114,7 @@ export function LessonEditForm({ lesson, onClose, subjects }: { lesson: Lesson; 
           <Label className="text-xs font-medium">科目</Label>
           <div className="flex flex-wrap gap-x-4 gap-y-1.5">
             {subjects.map((s) => (
-              <label key={s.id} className="flex items-center gap-1.5 text-sm cursor-pointer">
+              <label key={s.id} className="flex min-h-11 items-center gap-1.5 text-sm cursor-pointer">
                 <input
                   type="checkbox"
                   name="subjectIds"
@@ -138,7 +138,7 @@ export function LessonEditForm({ lesson, onClose, subjects }: { lesson: Lesson; 
           placeholder="今日の内容、宿題、次回の目標など"
           className="resize-none"
         />
-        <label className="flex items-center gap-1.5 text-sm cursor-pointer text-muted-foreground">
+        <label className="flex min-h-11 items-center gap-1.5 text-sm cursor-pointer text-muted-foreground">
           <input
             type="checkbox"
             name="lessonLogPublic"

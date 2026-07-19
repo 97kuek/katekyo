@@ -25,17 +25,19 @@ export function SubjectColorEditor({
   }
 
   return (
-    <div className="flex items-center gap-2.5 min-w-0">
+    <div className="relative flex min-w-0 items-center gap-1">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-label="グラフの色を変更"
-        className="h-4 w-4 shrink-0 rounded-full border border-border/60 transition-transform active:scale-90"
-        style={{ backgroundColor: color ?? "var(--muted)" }}
-      />
+        aria-expanded={open}
+        className="flex size-11 shrink-0 items-center justify-center rounded-full transition-transform active:scale-90 motion-reduce:transform-none motion-reduce:transition-none"
+      >
+        <span className="size-4 rounded-full border border-border/60" style={{ backgroundColor: color ?? "var(--muted)" }} />
+      </button>
       <span className={`text-sm font-medium truncate ${isPending ? "opacity-50" : ""}`}>{name}</span>
       {open && (
-        <div className="absolute z-10 mt-8 rounded-lg border bg-card p-2 shadow-md">
+        <div className="absolute left-0 top-11 z-10 rounded-lg border bg-popover p-2 text-popover-foreground shadow-md">
           <SwatchPicker value={color ?? ""} onChange={handlePick} />
         </div>
       )}

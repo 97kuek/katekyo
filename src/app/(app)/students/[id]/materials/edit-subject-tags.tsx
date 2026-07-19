@@ -64,7 +64,7 @@ export function EditSubjectTags({
     <div className="mt-1.5 space-y-1.5">
       <div className="flex flex-wrap gap-2">
         {subjects.map((s) => (
-          <label key={s.id} className="inline-flex items-center gap-1.5 cursor-pointer">
+          <label key={s.id} className="inline-flex min-h-11 items-center gap-1.5 cursor-pointer">
             <input
               type="checkbox"
               checked={selected.has(s.id)}

@@ -22,7 +22,7 @@ export function AddMaterialForm({ studentId, subjects }: { studentId: string; su
           <p className="text-xs text-muted-foreground">科目タグ（任意・複数選択可）</p>
           <div className="flex flex-wrap gap-2">
             {subjects.map((s) => (
-              <label key={s.id} className="inline-flex items-center gap-1.5 cursor-pointer">
+              <label key={s.id} className="inline-flex min-h-11 items-center gap-1.5 cursor-pointer">
                 <input type="checkbox" name="subjectIds" value={s.id} className="accent-primary" />
                 <span className="text-xs">{s.name}</span>
               </label>

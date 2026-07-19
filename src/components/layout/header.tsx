@@ -30,7 +30,7 @@ export default function Header({ name, notificationData }: { name: string; notif
           >
             <UserRound className="h-4 w-4" aria-hidden />
             <span className="hidden max-w-28 truncate text-xs sm:inline">{name}</span>
-            <ChevronDown className="hidden h-3.5 w-3.5 transition-transform group-open:rotate-180 sm:block" aria-hidden />
+            <ChevronDown className="hidden h-3.5 w-3.5 transition-transform group-open:rotate-180 motion-reduce:transform-none motion-reduce:transition-none sm:block" aria-hidden />
           </summary>
           <div className="absolute right-0 top-[calc(100%+0.5rem)] z-50 w-52 overflow-hidden rounded-lg border bg-popover p-1 text-popover-foreground shadow-lg">
             <Link href="/profile" className="flex min-h-11 items-center gap-2 rounded-md px-3 text-sm hover:bg-muted active:opacity-70">

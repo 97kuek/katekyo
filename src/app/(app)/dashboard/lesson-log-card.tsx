@@ -28,22 +28,18 @@ export function LessonLogCard({ date, subjectNames, log, lessonId, unread }: Pro
   }
 
   return (
-    <div
-      onClick={isUnread ? acknowledge : undefined}
-      onKeyDown={isUnread ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); acknowledge() } } : undefined}
-      role={isUnread ? "button" : undefined}
-      tabIndex={isUnread ? 0 : undefined}
-      aria-label={isUnread ? "授業ログを既読にする" : undefined}
-      className={`rounded-lg border p-3 space-y-1.5 transition-colors ${
-        isUnread ? "border-primary/30 bg-primary/5 cursor-pointer" : "bg-card"
-      }`}
-    >
+    <div className={`rounded-lg border p-3 space-y-1.5 ${isUnread ? "border-primary/30 bg-primary/5" : "bg-card"}`}>
       <div className="flex items-center gap-2 flex-wrap">
         <p className="text-xs text-muted-foreground">{date}</p>
         {subjectNames.map((n) => (
           <span key={n} className="text-xs bg-muted text-foreground rounded-full px-2 py-0.5">{n}</span>
         ))}
-        {isUnread && <span className="ml-auto"><UnreadBadge /></span>}
+        {isUnread && (
+          <span className="ml-auto flex items-center gap-1.5">
+            <UnreadBadge />
+            <Button type="button" variant="outline" size="xs" onClick={acknowledge}>既読にする</Button>
+          </span>
+        )}
       </div>
       <p className={`text-sm text-foreground whitespace-pre-wrap leading-relaxed ${!expanded && needsClamp ? "line-clamp-3" : ""}`}>
         {log}
@@ -53,7 +49,7 @@ export function LessonLogCard({ date, subjectNames, log, lessonId, unread }: Pro
           type="button"
           variant="ghost"
           size="xs"
-          onClick={(e) => { e.stopPropagation(); setExpanded((v) => !v); acknowledge() }}
+          onClick={() => { setExpanded((v) => !v); acknowledge() }}
           className="px-0 text-primary hover:bg-transparent hover:underline"
         >
           {expanded ? "閉じる" : "続きを見る"}

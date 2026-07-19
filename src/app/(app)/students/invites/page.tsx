@@ -25,7 +25,7 @@ export default async function InvitesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <Link href="/students" className="text-sm text-muted-foreground hover:underline">
+          <Link href="/students" className="inline-flex min-h-11 items-center text-sm text-muted-foreground hover:underline">
             ← 生徒一覧に戻る
           </Link>
           <h1 className="text-2xl font-bold mt-2">招待トークン管理</h1>

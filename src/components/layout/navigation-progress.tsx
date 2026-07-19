@@ -82,7 +82,7 @@ export function NavigationProgress() {
     <div
       aria-hidden="true"
       data-navigation-pending={visible ? "true" : "false"}
-      className={`pointer-events-none fixed inset-x-0 top-0 z-[100] h-0.5 overflow-hidden transition-opacity duration-150 ${visible ? "opacity-100" : "opacity-0"}`}
+      className={`pointer-events-none fixed inset-x-0 top-0 z-[100] h-0.5 overflow-hidden transition-opacity duration-150 motion-reduce:transition-none ${visible ? "opacity-100" : "opacity-0"}`}
     >
       <div className="h-full w-2/5 animate-navigation-progress rounded-r-full bg-primary" />
     </div>

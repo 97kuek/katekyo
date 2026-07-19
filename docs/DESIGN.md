@@ -173,7 +173,7 @@ import { Button, buttonVariants } from "@/components/ui/button"
 | 状態 | 効果 |
 | --- | --- |
 | `:active` | `translateY(+1px)` + `scale(0.97)`（`active:translate-y-px active:scale-[0.97]`） |
-| `:hover` | 背景色・テキスト色を `transition-all` でフェード |
+| `:hover` | 背景色・テキスト色だけを短くフェード |
 | `:focus-visible` | 3px リング（`focus-visible:ring-3`） |
 | `:disabled` | opacity 50% + `pointer-events-none` |
 
@@ -188,10 +188,11 @@ import { Button, buttonVariants } from "@/components/ui/button"
 
 ### ナビゲーション
 
-- **Sidebar**: `transition-all duration-150` でアクティブ背景が滑らかに切り替わる。非アクティブ項目はクリック時に `scale(0.97)` で沈む
+- **Sidebar**: 色・背景・不透明度だけを短く切り替える。非アクティブ項目はクリック時に `scale(0.97)` で沈む
 - **BottomNav**: コンテンツ層から浮く単一の `liquid-glass-chrome` 面を使い、ガラス面を重ねない。選択項目は不透明なprimaryのアイコン背景で示す
 - Liquid Glass風の半透明素材はナビ・ツールバー・シートなどの機能層に限定し、コンテンツカードには使わない
 - `prefers-reduced-transparency` では不透明背景、`prefers-contrast: more` では高コントラストの枠線へフォールバックする
+- `prefers-reduced-motion` では反復アニメーションと移動を止め、グラフを初期状態から静的描画し、プルダウン更新を無効化する
 - 「学習」「その他」のような集約タブは、配下画面でも選択状態を維持し現在地を見失わせない
 
 ### ローディング（Skeleton）

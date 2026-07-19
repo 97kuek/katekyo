@@ -134,7 +134,7 @@ export default function ChangelogBell({ notificationData }: { notificationData: 
                           <li key={h.id}>
                             <Link
                               href={`/homework/${h.id}/review`}
-                              className="text-sm text-foreground hover:text-primary hover:underline"
+                              className="-mx-2 flex min-h-11 items-center rounded-md px-2 text-sm text-foreground hover:bg-muted hover:text-primary"
                               onClick={handleClose}
                             >
                               <span className="text-xs text-muted-foreground mr-1">{h.studentName}</span>
@@ -164,7 +164,7 @@ export default function ChangelogBell({ notificationData }: { notificationData: 
                     <Section icon={<BookOpen className="h-3.5 w-3.5 text-muted-foreground" />} label="期限が近い宿題">
                       {notificationData.homework.length === 0 ? <Empty>要対応の宿題はありません</Empty> : notificationData.homework.map((homework) => (
                         <li key={homework.id} className="flex items-center gap-2">
-                          <Link href={`/homework/${homework.id}`} className="text-sm hover:text-primary hover:underline" onClick={handleClose}>
+                          <Link href={`/homework/${homework.id}`} className="-mx-2 flex min-h-11 items-center rounded-md px-2 text-sm hover:bg-muted hover:text-primary" onClick={handleClose}>
                             <span className="mr-1 text-xs text-muted-foreground">{homework.studentName}</span>{homework.title}
                           </Link>
                           {homework.isOverdue && <span className="shrink-0 text-xs text-destructive">期限切れ</span>}
@@ -190,7 +190,7 @@ export default function ChangelogBell({ notificationData }: { notificationData: 
                           <li key={h.id} className="flex items-center gap-2">
                             <Link
                               href={`/homework/${h.id}/submit`}
-                              className="text-sm text-foreground hover:text-primary hover:underline"
+                              className="-mx-2 flex min-h-11 items-center rounded-md px-2 text-sm text-foreground hover:bg-muted hover:text-primary"
                               onClick={handleClose}
                             >
                               {h.title}

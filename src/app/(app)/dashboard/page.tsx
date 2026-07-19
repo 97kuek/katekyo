@@ -493,7 +493,7 @@ async function StudentGardenPreview({ userId }: { userId: string }) {
         </div>
         <div className="h-2 overflow-hidden rounded-full bg-muted">
           <div
-            className={`h-full rounded-full transition-all ${isFull ? "bg-warning" : "bg-primary"}`}
+            className={`h-full rounded-full transition-[width,background-color] motion-reduce:transition-none ${isFull ? "bg-warning" : "bg-primary"}`}
             style={{ width: `${count > 0 ? Math.max(pct, 3) : 0}%` }}
           />
         </div>

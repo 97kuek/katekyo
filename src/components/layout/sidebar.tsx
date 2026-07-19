@@ -8,7 +8,7 @@ import { desktopNavigation, normalizeRole } from "./navigation-config"
 
 const navLinkClass = (active: boolean) =>
   cn(
-    "flex items-center justify-center lg:justify-start gap-3 px-3 py-2 rounded-full text-sm font-medium transition-all duration-150",
+    "flex min-h-11 items-center justify-center lg:justify-start gap-3 px-3 py-2 rounded-full text-sm font-medium transition-[color,background-color,opacity,scale] duration-150 motion-reduce:transform-none motion-reduce:transition-none",
     active
       ? "bg-primary text-primary-foreground"
       : "text-muted-foreground hover:bg-muted hover:text-foreground active:scale-[0.97] active:opacity-80"

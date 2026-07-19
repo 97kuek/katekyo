@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button"
 import { TEST_TYPE_OPTIONS } from "@/lib/test-types"
 import { FALLBACK_LINE_COLORS } from "@/lib/subject-colors"
 import { scorePercentage } from "@/lib/grade-record"
+import { usePrefersReducedMotion } from "@/hooks/use-prefers-reduced-motion"
 
 type Grade = {
   id: string
@@ -50,6 +51,7 @@ export default function GradeChart({
   subjects: Subject[]
   typeFilter?: string
 }) {
+  const reduceMotion = usePrefersReducedMotion()
   const availableTypes = Array.from(new Set(grades.map((g) => g.testType)))
   const [mode, setMode] = useState<"score" | "deviation">("score")
   const [internalTypeFilter, setInternalTypeFilter] = useState<string>(availableTypes[0] ?? "")
@@ -135,7 +137,7 @@ export default function GradeChart({
             variant={mode === "score" ? "default" : "outline"}
             onClick={() => setMode("score")}
             disabled={!hasScore}
-            className="h-7 px-2.5 text-xs"
+            className="px-2.5 text-xs md:h-7"
           >
             点数
           </Button>
@@ -145,7 +147,7 @@ export default function GradeChart({
             variant={mode === "deviation" ? "default" : "outline"}
             onClick={() => setMode("deviation")}
             disabled={!hasDeviation}
-            className="h-7 px-2.5 text-xs"
+            className="px-2.5 text-xs md:h-7"
           >
             偏差値
           </Button>
@@ -200,6 +202,7 @@ export default function GradeChart({
                       dot={{ r: dimmed ? 2 : 4 }}
                       activeDot={{ r: 6 }}
                       connectNulls
+                      isAnimationActive={!reduceMotion}
                     />
                   )
                 })
@@ -211,6 +214,7 @@ export default function GradeChart({
                   strokeWidth={2}
                   dot={{ r: 4 }}
                   activeDot={{ r: 6 }}
+                  isAnimationActive={!reduceMotion}
                 />
               )}
 
@@ -229,6 +233,7 @@ export default function GradeChart({
                       dot={false}
                       connectNulls
                       legendType="none"
+                      isAnimationActive={!reduceMotion}
                     />
                   )
                 })
@@ -241,6 +246,7 @@ export default function GradeChart({
                   strokeDasharray="4 4"
                   dot={false}
                   name="クラス平均"
+                  isAnimationActive={!reduceMotion}
                 />
               )}
           </LineChart>

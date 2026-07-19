@@ -11,6 +11,7 @@ import {
   Tooltip,
 } from "recharts"
 import { Select } from "@/components/ui/select"
+import { usePrefersReducedMotion } from "@/hooks/use-prefers-reduced-motion"
 
 type Grade = {
   id: string
@@ -30,6 +31,7 @@ type Subject = { id: string; name: string }
  * 得点%（score/maxScore）優先、無ければ偏差値。科目が3つ以上揃ったテストのみ対象。
  */
 export default function GradeRadar({ grades, subjects }: { grades: Grade[]; subjects: Subject[] }) {
+  const reduceMotion = usePrefersReducedMotion()
   const subjectMap = new Map(subjects.map((s) => [s.id, s.name]))
 
   // テスト名でグループ化
@@ -98,6 +100,7 @@ export default function GradeRadar({ grades, subjects }: { grades: Grade[]; subj
             fill="var(--primary)"
             fillOpacity={0.3}
             dot={{ r: 3, fill: "var(--primary)" }}
+            isAnimationActive={!reduceMotion}
           />
           <Tooltip formatter={(value) => [String(value), "得点"]} />
         </RadarChart>
