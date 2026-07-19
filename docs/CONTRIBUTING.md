@@ -121,7 +121,7 @@ npx prisma migrate dev
 npm run dev
 ```
 
-> **注意**: `db push` はマイグレーション履歴（`prisma/migrations/`）を更新しない。スキーマのドリフト解消や開発初期のみ使用し、本番環境では `prisma migrate deploy` を使うこと。Vercel の Build Command は `prisma generate && next build` のままにする。
+> **注意**: `db push` はマイグレーション履歴（`prisma/migrations/`）を更新しない。スキーマのドリフト解消や開発初期のみ使用し、本番環境では `prisma migrate deploy` を使うこと。`npm run build` は `VERCEL_ENV=production` のときだけビルド前に `prisma migrate deploy` を実行する。Preview / ローカルビルドではDBを変更しない。
 
 ## 年次データクリーンアップ（手動実行）
 
@@ -175,7 +175,7 @@ npx prisma migrate dev --name <name>  # マイグレーション作成（→ /mi
 
 ```bash
 DATABASE_URL=                   # Supabase 接続文字列（pooler）
-DIRECT_URL=                     # Supabase Direct URL（マイグレーション用）
+DIRECT_URL=                     # Supabase Direct URL（本番Vercelビルドのマイグレーションにも使用）
 NEXTAUTH_SECRET=                 # openssl rand -base64 32
 NEXTAUTH_URL=                    # 開発時: http://localhost:3000
 AUTH_GOOGLE_ID=                  # Google OAuth 2.0 クライアントID（任意。SECRETと同時設定）
