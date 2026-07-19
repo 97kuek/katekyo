@@ -1,12 +1,12 @@
-import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { CircleDot, Flower2, Info, Leaf, Lightbulb, Sprout, TreePine, Trees } from "lucide-react"
+import { getViewingContext } from "@/lib/view-as"
 
 export default async function HelpPage() {
-  const session = await auth()
-  if (!session) redirect("/login")
+  const ctx = await getViewingContext()
+  if (!ctx) redirect("/login")
 
-  const role = session.user.role
+  const role = ctx.effectiveRole
 
   return (
     <div className="max-w-3xl mx-auto space-y-8">

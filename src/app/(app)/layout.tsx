@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation"
-import { auth } from "@/lib/auth"
 import { getViewingContext } from "@/lib/view-as"
 import { Suspense } from "react"
 import { Toaster } from "sonner"
@@ -19,15 +18,9 @@ import { cacheTags } from "@/lib/cache-tags"
 import { cacheProfiles } from "@/lib/cache-policy"
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
-  const session = await auth()
-  if (!session) redirect("/login")
-
   const ctx = await getViewingContext()
-  const effectiveRole = ctx?.effectiveRole ?? session.user.role
-  const effectiveUserId = ctx?.effectiveUserId ?? session.user.id
-
-  const user = await getAppUser(session.user.id)
-  const needsAgreement = !user?.agreedToTermsAt
+  if (!ctx) redirect("/login")
+  const { session, effectiveRole, effectiveUserId } = ctx
 
   return (
     <>
@@ -56,9 +49,16 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       </div>
       <BottomNav role={effectiveRole} />
       <Toaster richColors position="top-center" />
-      <TermsAgreementModal show={needsAgreement} />
+      <Suspense fallback={null}>
+        <AgreementGate userId={session.user.id} />
+      </Suspense>
     </>
   )
+}
+
+async function AgreementGate({ userId }: { userId: string }) {
+  const user = await getAppUser(userId)
+  return <TermsAgreementModal show={!user?.agreedToTermsAt} />
 }
 
 async function getAppUser(userId: string) {

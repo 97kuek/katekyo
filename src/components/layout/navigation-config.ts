@@ -8,9 +8,65 @@ import {
   LayoutDashboard,
   Receipt,
   TreePine,
+  CircleHelp,
+  Settings,
+  UserRound,
 } from "lucide-react"
 
 export type AppRole = "teacher" | "student" | "parent"
+
+export type MoreNavigationGroup = {
+  label: string
+  items: Array<{
+    href: string
+    label: string
+    description: string
+    icon: typeof UserRound
+  }>
+}
+
+const accountMoreGroup: MoreNavigationGroup = {
+  label: "アカウント",
+  items: [
+    { href: "/profile", label: "プロフィール", description: "名前とパスワード", icon: UserRound },
+    { href: "/settings", label: "設定", description: "通知・連携・科目タグ", icon: Settings },
+  ],
+}
+
+const supportMoreGroup: MoreNavigationGroup = {
+  label: "サポート",
+  items: [
+    { href: "/help", label: "使い方ガイド", description: "機能と操作方法を確認", icon: CircleHelp },
+  ],
+}
+
+export function getMoreNavigation(role: AppRole): MoreNavigationGroup[] {
+  const roleGroup: MoreNavigationGroup = role === "teacher"
+    ? {
+        label: "学習管理",
+        items: [
+          { href: "/grades", label: "成績", description: "記録と推移", icon: BarChart2 },
+          { href: "/billing", label: "請求", description: "請求額と入金状況", icon: Receipt },
+        ],
+      }
+    : role === "parent"
+      ? {
+          label: "学習",
+          items: [
+            { href: "/homework", label: "宿題", description: "提出状況を確認", icon: BookOpen },
+            { href: "/garden", label: "学習の森", description: "学習の積み重ね", icon: TreePine },
+          ],
+        }
+      : {
+          label: "学習",
+          items: [
+            { href: "/garden", label: "学習の森", description: "学習の積み重ね", icon: TreePine },
+            { href: "/materials", label: "教材", description: "登録されている教材", icon: BookOpen },
+          ],
+        }
+
+  return [roleGroup, accountMoreGroup, supportMoreGroup]
+}
 
 export const desktopNavigation = {
   teacher: [

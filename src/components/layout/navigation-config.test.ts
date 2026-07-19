@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { getPageTitle, mobileNavigation } from "./navigation-config"
+import { getMoreNavigation, getPageTitle, mobileNavigation } from "./navigation-config"
 
 describe("NFR-UI navigation", () => {
   it("keeps every mobile role at five primary destinations", () => {
@@ -21,5 +21,27 @@ describe("NFR-UI navigation", () => {
     expect(getPageTitle("/students/example/parents")).toBe("保護者管理")
     expect(getPageTitle("/garden")).toBe("学習の森")
     expect(getPageTitle("/more")).toBe("その他")
+  })
+
+  it("groups the teacher's secondary destinations by task before account and support", () => {
+    const groups = getMoreNavigation("teacher")
+
+    expect(groups.map((group) => group.label)).toEqual(["学習管理", "アカウント", "サポート"])
+    expect(groups.flatMap((group) => group.items.map((item) => item.href))).toEqual([
+      "/grades",
+      "/billing",
+      "/profile",
+      "/settings",
+      "/help",
+    ])
+  })
+
+  it("keeps profile before settings and help for every role", () => {
+    for (const role of ["teacher", "student", "parent"] as const) {
+      const paths = getMoreNavigation(role).flatMap((group) => group.items.map((item) => item.href))
+      expect(paths.indexOf("/profile")).toBeLessThan(paths.indexOf("/settings"))
+      expect(paths.indexOf("/settings")).toBeLessThan(paths.indexOf("/help"))
+      expect(new Set(paths).size).toBe(paths.length)
+    }
   })
 })

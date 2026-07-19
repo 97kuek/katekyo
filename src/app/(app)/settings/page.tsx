@@ -1,19 +1,18 @@
-import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { redirect } from "next/navigation"
 import { GoogleAuthSettings, LineSettings, MeetLinkSettings, DeleteParentAccountButton } from "./settings-client"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { NameForm } from "../profile/name-form"
-import { PasswordForm } from "../profile/password-form"
 import SubjectForm from "../subjects/subject-form"
 import { DeleteSubjectButton } from "../subjects/delete-button"
 import { SubjectColorEditor } from "../subjects/subject-color-editor"
 import { PageHeader } from "@/components/ui/page-header"
 import { Disclosure } from "@/components/ui/disclosure"
+import { getViewingContext } from "@/lib/view-as"
 
 export default async function SettingsPage() {
-  const session = await auth()
-  if (!session) redirect("/login")
+  const ctx = await getViewingContext()
+  if (!ctx) redirect("/login")
+  const { session } = ctx
 
   const isParent = session.user.role === "parent"
 
@@ -34,35 +33,17 @@ export default async function SettingsPage() {
   return (
     <div className="max-w-2xl mx-auto space-y-4">
       <PageHeader title="設定" description="変更したい項目を選んでください。" />
-      <Disclosure title="アカウント" description={`${session.user.email}・名前・パスワード・Google連携`}>
-        <div className="space-y-4">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">名前の変更</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <NameForm currentName={session.user.name ?? ""} />
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">パスワードの変更</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <PasswordForm />
-          </CardContent>
-        </Card>
+      <Disclosure title="ログイン・外部連携" description={`${session.user.email}・Google ${user?.identityAccesses.length ? "連携済み" : "未連携"}`}>
         <GoogleAuthSettings isLinked={Boolean(user?.identityAccesses.length)} />
-        </div>
       </Disclosure>
 
       {!isParent && (
         <Disclosure title="通知・オンライン授業" description={`LINE ${user?.lineUserId ? "連携済み" : "未連携"}${session.user.role === "teacher" ? `・Meet ${user?.meetLink ? "設定済み" : "未設定"}` : ""}`}>
           <div className="space-y-4">
-          <LineSettings isLinked={!!user?.lineUserId} />
-          {session.user.role === "teacher" && (
-            <MeetLinkSettings currentMeetLink={user?.meetLink ?? null} />
-          )}
+            <LineSettings isLinked={!!user?.lineUserId} />
+            {session.user.role === "teacher" && (
+              <MeetLinkSettings currentMeetLink={user?.meetLink ?? null} />
+            )}
           </div>
         </Disclosure>
       )}

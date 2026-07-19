@@ -4,17 +4,16 @@ import { db } from "@/lib/db"
 import Link from "next/link"
 import { buttonVariants } from "@/components/ui/button"
 import { StatusBadge } from "@/components/homework/status-badge"
-import { DeleteHomeworkButton } from "./delete-homework-button"
 import { CancelSubmissionButton } from "@/app/(app)/homework/cancel-button"
 import { relativeDeadline, deadlineColorClass, formatDate } from "@/lib/date-utils"
 import { isPendingStatus, HOMEWORK_EVENT_LABELS } from "@/lib/homework-status"
-import { ExtendDeadlineButton } from "./extend-deadline"
-import { AlertCircle, CheckCircle2, Inbox, MoreHorizontal, RotateCcw } from "lucide-react"
+import { AlertCircle, CheckCircle2, Inbox, RotateCcw } from "lucide-react"
 import { DifficultyBars } from "@/components/homework/difficulty-bars"
 import { MarkFeedbackSeen } from "./mark-feedback-seen"
 import { createHomeworkPhotoSignedUrl } from "@/lib/supabase-storage"
 import { PageHeader } from "@/components/ui/page-header"
 import { Disclosure } from "@/components/ui/disclosure"
+import { HomeworkDetailActions } from "./homework-detail-actions"
 
 const DIFFICULTY_LABELS: Record<number, { label: string; color: string }> = {
   1: { label: "かんたん",    color: "text-foreground bg-primary/10 border border-primary/20" },
@@ -114,26 +113,15 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
           </span>
         }
         action={primaryAction ? <span className="hidden sm:inline-flex">{primaryAction}</span> : undefined}
-        secondaryAction={isTeacher ? (
-          <details className="group relative">
-            <summary
-              aria-label="宿題のその他の操作"
-              className="flex min-h-10 min-w-10 cursor-pointer list-none items-center justify-center rounded-full border bg-background hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden"
-            >
-              <MoreHorizontal className="h-4 w-4" aria-hidden />
-            </summary>
-            <div className="absolute right-0 top-[calc(100%+0.5rem)] z-30 w-56 space-y-2 rounded-lg border bg-popover p-3 shadow-lg">
-              {isPendingStatus(homework.status) && (
-                <Link href={`/homework/${id}/edit`} className={buttonVariants({ variant: "outline", size: "sm", className: "w-full" })}>
-                  宿題を編集
-                </Link>
-              )}
-              <ExtendDeadlineButton homeworkId={id} currentDueDate={homework.dueDate.toISOString().slice(0, 10)} />
-              <div className="border-t pt-2"><DeleteHomeworkButton homeworkId={id} /></div>
-            </div>
-          </details>
-        ) : undefined}
       />
+
+      {isTeacher && (
+        <HomeworkDetailActions
+          homeworkId={id}
+          currentDueDate={homework.dueDate.toISOString().slice(0, 10)}
+          canEdit={isPendingStatus(homework.status)}
+        />
+      )}
 
       {/* 差し戻しフィードバック — 生徒向け目立つバナー */}
       {!isTeacher && !isParent && homework.status === "rejected" && (

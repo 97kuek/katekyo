@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import type { ComponentProps } from "react"
+import type { ComponentProps, ReactNode } from "react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
@@ -15,6 +15,7 @@ type Props = {
   triggerVariant?: ComponentProps<typeof Button>["variant"]
   triggerSize?: ComponentProps<typeof Button>["size"]
   triggerClassName?: string
+  triggerIcon?: ReactNode
 }
 
 export function InlineConfirmAction({
@@ -27,6 +28,7 @@ export function InlineConfirmAction({
   triggerVariant = "ghost",
   triggerSize = "xs",
   triggerClassName,
+  triggerIcon,
 }: Props) {
   const [confirming, setConfirming] = useState(false)
   const [isPending, startTransition] = useTransition()
@@ -40,6 +42,7 @@ export function InlineConfirmAction({
         className={cn(destructive && "text-destructive hover:bg-muted hover:text-destructive", triggerClassName)}
         onClick={() => setConfirming(true)}
       >
+        {triggerIcon}
         {triggerLabel}
       </Button>
     )
