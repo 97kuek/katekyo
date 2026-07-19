@@ -7,15 +7,30 @@ if (process.env.VERCEL_ENV !== "production") {
   process.exit(0)
 }
 
-if (!process.env.DIRECT_URL && !process.env.DATABASE_URL) {
-  console.error("[migrate] DIRECT_URL or DATABASE_URL is required in production")
+const directUrl = process.env.DIRECT_URL
+if (!directUrl) {
+  console.error("[migrate] DIRECT_URL is required in production; do not use the transaction pooler for migrations")
+  process.exit(1)
+}
+
+let migrationUrl
+try {
+  migrationUrl = new URL(directUrl)
+} catch {
+  console.error("[migrate] DIRECT_URL is not a valid URL")
+  process.exit(1)
+}
+
+if (migrationUrl.port === "6543") {
+  console.error("[migrate] DIRECT_URL must use a direct connection or the Supabase session pooler on port 5432, not port 6543")
   process.exit(1)
 }
 
 console.log("[migrate] applying production database migrations")
 const result = spawnSync("npx", ["prisma", "migrate", "deploy"], {
-  env: process.env,
+  env: { ...process.env, DIRECT_URL: directUrl },
   stdio: "inherit",
+  timeout: 120_000,
 })
 
 if (result.error) {
