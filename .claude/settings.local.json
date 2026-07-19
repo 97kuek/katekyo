@@ -73,7 +73,20 @@
       "Bash(java -version)",
       "Bash(gh run *)",
       "Bash(curl -s --max-time 20 -X POST --data-binary @docs/diagrams/sequence-lesson-reminder.puml -H \"Content-Type: text/plain\" https://kroki.io/plantuml/svg)",
-      "Bash(curl *)"
+      "Bash(curl *)",
+      "Bash(awk '{print $NF}')",
+      "Bash(grep -o '^DATABASE_URL=.\\\\{0,45\\\\}' .env)",
+      "Bash(docker --version)",
+      "Bash(brew list *)",
+      "Bash(docker run *)",
+      "Bash(open -a Docker)",
+      "Bash(docker info *)",
+      "Bash(break)",
+      "Bash(docker exec *)",
+      "Bash(DATABASE_URL=\"postgresql://postgres:qa@localhost:5433/postgres\" npx prisma migrate deploy)",
+      "Bash(DATABASE_URL=\"postgresql://postgres:qa@localhost:5433/postgres\" npx prisma db push --skip-generate)",
+      "Bash(DATABASE_URL=\"postgresql://postgres:qa@localhost:5433/postgres\" npx prisma db push --skip-generate --accept-data-loss)",
+      "Bash(npx tsx *)"
     ],
     "additionalDirectories": [
       "c:\\Users\\yamashita\\Documents\\katekyo\\.claude"

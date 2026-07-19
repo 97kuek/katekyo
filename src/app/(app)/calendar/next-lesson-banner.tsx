@@ -9,10 +9,10 @@ export function NextLessonBanner({ lessons, isTeacher }: { lessons: Lesson[]; is
   const next = lessons.find((l) => l.date > now)
   if (!next) return null
 
-  // カレンダー日付の差（時刻を除く）で計算することで正確な「明日/明後日」を表示
-  const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  const lessonMidnight = new Date(next.date.getFullYear(), next.date.getMonth(), next.date.getDate())
-  const diffDays = Math.round((lessonMidnight.getTime() - todayMidnight.getTime()) / (1000 * 60 * 60 * 24))
+  // 「明日/明後日」は表示と同じ JST のカレンダー日付で数える（端末が海外時間でもズレない）
+  const jstDateMs = (d: Date) =>
+    new Date(d.toLocaleDateString("en-CA", { timeZone: "Asia/Tokyo" }) + "T00:00:00Z").getTime()
+  const diffDays = Math.round((jstDateMs(next.date) - jstDateMs(now)) / (1000 * 60 * 60 * 24))
   const when = diffDays === 0 ? "今日" : diffDays === 1 ? "明日" : diffDays === 2 ? "明後日" : `${diffDays}日後`
 
   return (
@@ -24,8 +24,8 @@ export function NextLessonBanner({ lessons, isTeacher }: { lessons: Lesson[]; is
         <p className="text-sm font-semibold">
           次の授業: <span className="text-primary">{when}</span>
           {" — "}
-          {next.date.toLocaleDateString("ja-JP", { month: "short", day: "numeric", weekday: "short" })}{" "}
-          {next.date.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })}
+          {next.date.toLocaleDateString("ja-JP", { timeZone: "Asia/Tokyo", month: "numeric", day: "numeric", weekday: "short" })}{" "}
+          {next.date.toLocaleTimeString("ja-JP", { timeZone: "Asia/Tokyo", hour: "2-digit", minute: "2-digit" })}
         </p>
         <p className="text-xs text-muted-foreground mt-0.5 truncate">
           {isTeacher ? `${next.student.user.name} · ` : ""}

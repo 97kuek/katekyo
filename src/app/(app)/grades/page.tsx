@@ -17,13 +17,6 @@ import { TEST_TYPE_LABELS } from "@/lib/test-types"
 import { scorePercentage } from "@/lib/grade-record"
 import { EmptyState } from "@/components/ui/empty-state"
 
-const TEST_TYPE_BADGE: Record<string, string> = {
-  mock:  "bg-muted text-foreground",
-  exam:  "bg-muted text-foreground",
-  quiz:  "bg-muted text-foreground",
-  other: "bg-muted text-foreground",
-}
-
 function DiffBadge({ diff }: { diff: number | null }) {
   if (diff == null || Math.abs(diff) < 0.5) return null
   const up = diff > 0
@@ -73,6 +66,63 @@ function previousDiffs<T extends GradeComparable>(grades: T[], keyForGrade?: (gr
     olderByKey.set(key, grade)
   }
   return diffs
+}
+
+type GradeCardData = {
+  testName: string
+  testType: string
+  date: Date
+  subjectIds: string[]
+  score: number | null
+  maxScore: number | null
+  avgScore: number | null
+  deviation: number | null
+  rank: number | null
+  totalStudents: number | null
+}
+
+/**
+ * モバイル用の成績カード本体。ラベル付き項目の羅列をやめ、
+ * 主要な数値を大きく1つ、残りは「·」区切りの1行に圧縮する。
+ */
+function GradeCard({ g, diff, subjectMap, studentName, comment }: {
+  g: GradeCardData
+  diff: number | null
+  subjectMap: Map<string, string>
+  studentName?: string
+  comment?: string | null
+}) {
+  const typeLabel = TEST_TYPE_LABELS[g.testType as keyof typeof TEST_TYPE_LABELS] ?? g.testType
+  const primary = g.score != null
+    ? `${g.score}${g.maxScore != null ? `/${g.maxScore}` : ""}`
+    : g.deviation != null ? `偏差値 ${g.deviation}` : null
+  const secondary = [
+    g.score != null && g.deviation != null ? `偏差値 ${g.deviation}` : null,
+    g.rank != null ? `${g.rank}${g.totalStudents != null ? `/${g.totalStudents}` : ""}位` : null,
+    g.score != null && g.avgScore != null ? `平均${g.score - g.avgScore >= 0 ? "+" : ""}${g.score - g.avgScore}点` : null,
+  ].filter(Boolean).join(" · ")
+
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="font-medium truncate">{g.testName}</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            {[studentName, typeLabel, formatDate(g.date)].filter(Boolean).join(" · ")}
+          </p>
+          <SubjectTags ids={g.subjectIds} map={subjectMap} />
+        </div>
+        {primary && (
+          <p className="shrink-0 text-lg font-bold leading-tight tabular-nums">
+            {primary}
+            <DiffBadge diff={diff} />
+          </p>
+        )}
+      </div>
+      {secondary && <p className="text-xs text-muted-foreground">{secondary}</p>}
+      {comment && <p className="whitespace-pre-wrap border-l-2 pl-2 text-xs text-muted-foreground">{comment}</p>}
+    </div>
+  )
 }
 
 export default async function GradesPage({
@@ -181,35 +231,7 @@ async function TeacherGradesPage({
           <div className="lg:hidden space-y-2">
             {grades.map((g, i) => (
               <GradeSwipeRow key={g.id} gradeId={g.id}>
-                <div className="space-y-2">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <p className="font-medium truncate">{g.testName}</p>
-                      <SubjectTags ids={g.subjectIds} map={subjectMap} />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {g.student.user.name} · {formatDate(g.date)}
-                      </p>
-                    </div>
-                    <span className={`text-xs rounded-full px-2 py-0.5 shrink-0 ${TEST_TYPE_BADGE[g.testType] ?? TEST_TYPE_BADGE.other}`}>
-                      {TEST_TYPE_LABELS[g.testType as keyof typeof TEST_TYPE_LABELS] ?? g.testType}
-                    </span>
-                  </div>
-                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
-                    {g.score != null && (
-                      <span>
-                        得点: {g.maxScore != null ? `${g.score}/${g.maxScore}` : g.score}
-                        <DiffBadge diff={prevDiff[i]} />
-                      </span>
-                    )}
-                    {g.avgScore != null && g.score != null && (
-                      <span className="flex items-center gap-1">対平均: <VsAvg score={g.score} avgScore={g.avgScore} /></span>
-                    )}
-                    {g.deviation != null && <span>偏差値: {g.deviation}</span>}
-                    {g.rank != null && (
-                      <span>順位: {g.rank}{g.totalStudents != null ? `/${g.totalStudents}` : ""}</span>
-                    )}
-                    </div>
-                </div>
+                <GradeCard g={g} diff={prevDiff[i]} subjectMap={subjectMap} studentName={g.student.user.name} />
               </GradeSwipeRow>
             ))}
           </div>
@@ -233,7 +255,7 @@ async function TeacherGradesPage({
                 {grades.map((g, i) => (
                   <tr key={g.id} className="hover:bg-muted">
                     <td className="px-4 py-3">
-                      <span className={`text-xs rounded-full px-2 py-0.5 ${TEST_TYPE_BADGE[g.testType] ?? TEST_TYPE_BADGE.other}`}>
+                      <span className="text-xs text-muted-foreground">
                         {TEST_TYPE_LABELS[g.testType as keyof typeof TEST_TYPE_LABELS] ?? g.testType}
                       </span>
                     </td>
@@ -302,33 +324,8 @@ async function StudentGradesPage({ userId }: { userId: string }) {
           {/* モバイル: カード表示 */}
           <div className="md:hidden space-y-2">
             {grades.map((g, i) => (
-              <div key={g.id} className="rounded-lg border bg-card p-4 space-y-2">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className="font-medium truncate">{g.testName}</p>
-                    <SubjectTags ids={g.subjectIds} map={subjectMap} />
-                    <p className="text-xs text-muted-foreground mt-1">{formatDate(g.date)}</p>
-                  </div>
-                  <span className={`text-xs rounded-full px-2 py-0.5 shrink-0 ${TEST_TYPE_BADGE[g.testType] ?? TEST_TYPE_BADGE.other}`}>
-                    {TEST_TYPE_LABELS[g.testType as keyof typeof TEST_TYPE_LABELS] ?? g.testType}
-                  </span>
-                </div>
-                <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
-                  {g.score != null && (
-                    <span>
-                      得点: {g.maxScore != null ? `${g.score}/${g.maxScore}` : g.score}
-                      <DiffBadge diff={prevDiff[i]} />
-                    </span>
-                  )}
-                  {g.avgScore != null && g.score != null && (
-                    <span className="flex items-center gap-1">対平均: <VsAvg score={g.score} avgScore={g.avgScore} /></span>
-                  )}
-                  {g.deviation != null && <span>偏差値: {g.deviation}</span>}
-                  {g.rank != null && (
-                    <span>順位: {g.rank}{g.totalStudents != null ? `/${g.totalStudents}` : ""}</span>
-                  )}
-                </div>
-                {g.comment && <p className="text-xs text-muted-foreground border-l-2 pl-2 whitespace-pre-wrap">{g.comment}</p>}
+              <div key={g.id} className="rounded-lg border bg-card p-4">
+                <GradeCard g={g} diff={prevDiff[i]} subjectMap={subjectMap} comment={g.comment} />
               </div>
             ))}
           </div>
@@ -355,7 +352,7 @@ async function StudentGradesPage({ userId }: { userId: string }) {
                       <SubjectTags ids={g.subjectIds} map={subjectMap} />
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`text-xs rounded-full px-2 py-0.5 ${TEST_TYPE_BADGE[g.testType] ?? TEST_TYPE_BADGE.other}`}>
+                      <span className="text-xs text-muted-foreground">
                         {TEST_TYPE_LABELS[g.testType as keyof typeof TEST_TYPE_LABELS] ?? g.testType}
                       </span>
                     </td>
@@ -463,25 +460,8 @@ async function ParentGradesPage({
           <GradeRadar grades={chartGrades} subjects={subjects} />
           <div className="md:hidden space-y-2">
             {grades.map((g, i) => (
-              <div key={g.id} className="rounded-lg border bg-card p-4 space-y-2">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className="font-medium truncate">{g.testName}</p>
-                    <SubjectTags ids={g.subjectIds} map={subjectMap} />
-                    <p className="text-xs text-muted-foreground mt-1">{formatDate(g.date)}</p>
-                  </div>
-                  <span className={`text-xs rounded-full px-2 py-0.5 shrink-0 ${TEST_TYPE_BADGE[g.testType] ?? TEST_TYPE_BADGE.other}`}>
-                    {TEST_TYPE_LABELS[g.testType as keyof typeof TEST_TYPE_LABELS] ?? g.testType}
-                  </span>
-                </div>
-                <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
-                  {g.score != null && (
-                    <span>得点: {g.maxScore != null ? `${g.score}/${g.maxScore}` : g.score}<DiffBadge diff={prevDiff[i]} /></span>
-                  )}
-                  {g.deviation != null && <span>偏差値: {g.deviation}</span>}
-                  {g.rank != null && <span>順位: {g.rank}{g.totalStudents != null ? `/${g.totalStudents}` : ""}</span>}
-                </div>
-                {g.comment && <p className="text-xs text-muted-foreground border-l-2 pl-2 whitespace-pre-wrap">{g.comment}</p>}
+              <div key={g.id} className="rounded-lg border bg-card p-4">
+                <GradeCard g={g} diff={prevDiff[i]} subjectMap={subjectMap} comment={g.comment} />
               </div>
             ))}
           </div>
@@ -506,7 +486,7 @@ async function ParentGradesPage({
                       <SubjectTags ids={g.subjectIds} map={subjectMap} />
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`text-xs rounded-full px-2 py-0.5 ${TEST_TYPE_BADGE[g.testType] ?? TEST_TYPE_BADGE.other}`}>
+                      <span className="text-xs text-muted-foreground">
                         {TEST_TYPE_LABELS[g.testType as keyof typeof TEST_TYPE_LABELS] ?? g.testType}
                       </span>
                     </td>

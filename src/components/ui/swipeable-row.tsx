@@ -164,18 +164,20 @@ export function SwipeableRow({
     animateTo(snapOpen ? -actionWidth : 0, velocity)
   }
 
-  // オープン中/スワイプ直後はカード内リンクのクリックを抑制
+  // オープン中/スワイプ直後はカード内リンクのクリックを抑制。
+  // didSwipe を先に判定しないと、スワイプで開いた直後に発火する click が
+  // isOpen 分岐に入って行を即座に閉じてしまう（マウス/トラックパッド操作で発生）
   function handleClickCapture(e: React.MouseEvent) {
-    if (isOpen) {
-      e.preventDefault()
-      e.stopPropagation()
-      animateTo(0)
-      return
-    }
     if (didSwipe.current) {
       e.preventDefault()
       e.stopPropagation()
       didSwipe.current = false
+      return
+    }
+    if (isOpen) {
+      e.preventDefault()
+      e.stopPropagation()
+      animateTo(0)
     }
   }
 
