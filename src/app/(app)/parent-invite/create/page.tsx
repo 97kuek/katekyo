@@ -40,7 +40,7 @@ export default function CreateParentInvitePage() {
         <CardContent>
           {state.token ? (
             <div className="space-y-4">
-              <p className="text-sm text-primary bg-primary/10 p-3 rounded-md">
+              <p className="text-sm text-foreground border border-primary/25 bg-primary/10 p-3 rounded-md">
                 招待リンクが生成されました。保護者に送付してください。
               </p>
               <div>
@@ -59,7 +59,7 @@ export default function CreateParentInvitePage() {
           ) : (
             <form action={action} className="space-y-4">
               {state.error && (
-                <p className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">{state.error}</p>
+                <p className="text-sm text-foreground border border-destructive/30 bg-destructive/10 p-3 rounded-md">{state.error}</p>
               )}
               <p className="text-sm text-muted-foreground">
                 ボタンを押すと招待リンクが生成されます。LINEやメールで保護者に送ってください。

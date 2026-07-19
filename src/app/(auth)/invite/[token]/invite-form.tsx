@@ -26,7 +26,7 @@ export default function InviteForm({ token, name, grade }: Props) {
         <form action={action} className="space-y-4">
           <input type="hidden" name="token" value={token} />
           {state.error && (
-            <p className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">{state.error}</p>
+            <p className="text-sm text-foreground border border-destructive/30 bg-destructive/10 p-3 rounded-md">{state.error}</p>
           )}
           <div className="space-y-2">
             <Label>名前</Label>

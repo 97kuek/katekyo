@@ -8,6 +8,8 @@ import GradeRadar from "@/app/(app)/grades/grade-radar"
 import { SubjectTags } from "@/components/ui/subject-tags"
 import { getSubjectsByTeacherId, buildSubjectMap } from "@/lib/queries"
 import { formatDate } from "@/lib/date-utils"
+import { scorePercentage } from "@/lib/grade-record"
+import { EmptyState } from "@/components/ui/empty-state"
 
 function DiffBadge({ diff }: { diff: number | null }) {
   if (diff == null || Math.abs(diff) < 0.5) return null
@@ -68,12 +70,8 @@ export default async function StudentGradesPage({ params }: { params: Promise<{ 
   const prevDiff = grades.map((g, i) => {
     const prev = grades[i + 1]
     if (!prev) return null
-    const cur =
-      g.score != null && g.maxScore != null ? (g.score / g.maxScore) * 100 : g.score ?? g.deviation
-    const pre =
-      prev.score != null && prev.maxScore != null
-        ? (prev.score / prev.maxScore) * 100
-        : prev.score ?? prev.deviation
+    const cur = scorePercentage(g.score, g.maxScore) ?? g.deviation
+    const pre = scorePercentage(prev.score, prev.maxScore) ?? prev.deviation
     return cur != null && pre != null ? cur - pre : null
   })
 
@@ -88,15 +86,14 @@ export default async function StudentGradesPage({ params }: { params: Promise<{ 
       </div>
 
       {grades.length === 0 ? (
-        <div className="rounded-lg border bg-card p-12 text-center">
-          <p className="text-muted-foreground">まだ成績記録がありません</p>
+        <EmptyState title="成績記録がありません" description="この生徒の最初のテスト結果を記録しましょう。" action={(
           <Link
             href="/grades/new"
-            className={buttonVariants({ className: "mt-4 inline-flex" })}
+            className={buttonVariants()}
           >
             成績を記録する
           </Link>
-        </div>
+        )} />
       ) : (
         <>
           <GradeChart grades={chartGrades} subjects={subjects} />

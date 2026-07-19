@@ -145,6 +145,7 @@ class GradeRecord {
   avgScore: Int?
   teacherRating: Int?
   comment: String?
+  gardenEvaluationVersion: Int
   createdAt: DateTime
 }
 
@@ -163,6 +164,7 @@ class GardenItem {
   id: String
   studentId: String
   itemType: GardenItemType
+  sourceGradeId: String?
   x: Int
   y: Int
   createdAt: DateTime
@@ -288,6 +290,7 @@ Student "1" -- "0..*" Lesson
 Student "1" -- "0..*" GradeRecord
 Student "1" -- "0..*" ExamEvent
 Student "1" -- "0..*" GardenItem
+GradeRecord "0..1" -- "0..1" GardenItem : sourceGradeId
 Student "1" -- "0..*" StudentMaterial
 Student "1" -- "0..*" MonthlyPayment
 Student "1" -- "0..*" ParentInviteToken

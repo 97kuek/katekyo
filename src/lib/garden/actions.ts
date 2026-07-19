@@ -38,18 +38,23 @@ function isUniqueConstraintError(err: unknown): boolean {
 
 const PLANT_MAX_ATTEMPTS = 3
 
-export async function plantGardenItem(studentId: string, forcedType?: GardenItemType) {
+export async function plantGardenItem(studentId: string, forcedType?: GardenItemType, sourceGradeId?: string) {
   for (let attempt = 1; attempt <= PLANT_MAX_ATTEMPTS; attempt++) {
     const existing = await db.gardenItem.findMany({
       where: { studentId },
-      select: { x: true, y: true },
+      select: { x: true, y: true, sourceGradeId: true },
     })
 
     let occupied = new Set(existing.map(({ x, y }) => `${x},${y}`))
 
     // 64個満杯 → 世代リセット
     if (occupied.size >= GRID_SIZE * GRID_SIZE) {
+      const completedGradeIds = existing.flatMap((item) => item.sourceGradeId ? [item.sourceGradeId] : [])
       await db.$transaction([
+        db.gradeRecord.updateMany({
+          where: { id: { in: completedGradeIds } },
+          data: { gardenEvaluationVersion: 2 },
+        }),
         db.gardenItem.deleteMany({ where: { studentId } }),
         db.student.update({
           where: { id: studentId },
@@ -69,11 +74,32 @@ export async function plantGardenItem(studentId: string, forcedType?: GardenItem
     const [x, y] = empty[Math.floor(Math.random() * empty.length)]
     const itemType = forcedType ?? ITEM_WEIGHTS[Math.floor(Math.random() * ITEM_WEIGHTS.length)]
     try {
-      await db.gardenItem.create({ data: { studentId, x, y, itemType } })
+      await db.gardenItem.create({ data: { studentId, x, y, itemType, sourceGradeId } })
       return
     } catch (err) {
       if (!isUniqueConstraintError(err) || attempt === PLANT_MAX_ATTEMPTS) throw err
       // 別の並列承認が同じマスに植えた → 空きマスを取り直して再試行
     }
   }
+}
+
+export async function syncGradeGardenItem(
+  gradeId: string,
+  studentId: string,
+  itemType: GardenItemType | null
+) {
+  const existing = await db.gardenItem.findUnique({
+    where: { sourceGradeId: gradeId },
+    select: { id: true },
+  })
+
+  if (!itemType) {
+    if (existing) await db.gardenItem.delete({ where: { id: existing.id } })
+    return
+  }
+  if (existing) {
+    await db.gardenItem.update({ where: { id: existing.id }, data: { itemType } })
+    return
+  }
+  await plantGardenItem(studentId, itemType, gradeId)
 }

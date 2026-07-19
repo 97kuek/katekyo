@@ -228,6 +228,14 @@ function calcFee(durationMin, hourlyRate, travelExpense) {
 
 - **主観評価（`teacherRating`）**: UI 非使用・廃止済み。DB 列は残存
 
+### 入力整合性
+
+- 得点と満点はセット。`0 <= score <= maxScore <= 10000`
+- 平均点を入力する場合は満点も必須。`0 <= avgScore <= maxScore`
+- 順位と受験者数はセット。`1 <= rank <= totalStudents <= 1000000`
+- 偏差値は `0..100`、コメントは2000文字以内
+- 満点のない得点を割合やグラフ値として扱わない
+
 ---
 
 ## 学習の森（Garden）
@@ -250,7 +258,11 @@ function calcFee(durationMin, hourlyRate, travelExpense) {
 | 成績 偏差値 50 未満 | `flower` |
 | 数値データなし | 植わらない |
 
-得点と偏差値が両方ある場合は得点を優先（`scoreToGardenItemType` の判定ロジック）。  
+評価軸はテスト種別で決める。模試は偏差値を優先し、定期テスト・小テスト・その他は得点率を優先する。優先値がない場合だけもう一方へフォールバックする。
+
+成績由来の `GardenItem.sourceGradeId` は成績と1:1で、成績編集時は植物種別を再評価し、成績削除時は対応する植物も削除する。
+
+移行前の成績は既存植物との対応を復元できないため `gardenEvaluationVersion=0` のまま保持し、編集時も植物を追加しない。新規成績はversion 1として追跡する。森の世代リセットで植物を収穫した成績はversion 2とし、後日の編集で再付与しない。
 差し戻し歴がある宿題を承認した場合は植物が育たない（`plantForHomeworkApproval`）。  
 遅延提出（`submittedAt > dueDate`）の宿題を承認した場合も植物が育たない。
 

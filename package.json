@@ -10,7 +10,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "docs:check": "node scripts/check-docs.mjs"
+    "docs:check": "node scripts/check-docs.mjs",
+    "ui:check": "node scripts/check-ui-consistency.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",

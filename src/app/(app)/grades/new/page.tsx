@@ -55,7 +55,7 @@ export default async function NewGradePage() {
       <Card>
         <CardHeader>
           <CardTitle>成績を記録する</CardTitle>
-          <CardDescription>テスト結果を入力してください（得点・偏差値はすべて任意）</CardDescription>
+          <CardDescription>得点と満点、順位と受験者数はセットで入力します。数値結果がなくても記録できます。</CardDescription>
         </CardHeader>
         <CardContent>
           <CreateGradeForm students={students} subjects={subjects} examEvents={examEvents.map((e) => ({

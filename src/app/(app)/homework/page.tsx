@@ -14,6 +14,7 @@ import { relativeDeadline, deadlineColorClass, formatDate } from "@/lib/date-uti
 import { isPendingStatus } from "@/lib/homework-status"
 import { SubjectTags } from "@/components/ui/subject-tags"
 import { SwipeableHomeworkCard } from "./swipeable-card"
+import { EmptyState } from "@/components/ui/empty-state"
 
 export default async function HomeworkPage({
   searchParams,
@@ -171,16 +172,15 @@ async function TeacherHomeworkPage({
       )}
 
       {homeworks.length === 0 && (
-        <div className="rounded-lg border bg-card p-12 text-center">
-          <p className="text-muted-foreground">
-            {studentIdFilter ? "この生徒の宿題はありません" : "まだ宿題が登録されていません"}
-          </p>
-          {!studentIdFilter && (
-            <Link href="/homework/new" className={buttonVariants({ className: "mt-4 inline-flex" })}>
+        <EmptyState
+          title={studentIdFilter ? "この生徒の宿題はありません" : "宿題が登録されていません"}
+          description={!studentIdFilter ? "最初の宿題を作成しましょう。" : undefined}
+          action={!studentIdFilter ? (
+            <Link href="/homework/new" className={buttonVariants()}>
               最初の宿題を作成する
             </Link>
-          )}
-        </div>
+          ) : undefined}
+        />
       )}
     </div>
   )

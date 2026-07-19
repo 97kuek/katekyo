@@ -14,6 +14,8 @@ import { GradeTypeFilter } from "./grade-type-filter"
 import { GradeStudentFilter } from "./grade-student-filter"
 import { GradeSubjectFilter } from "./grade-subject-filter"
 import { TEST_TYPE_LABELS } from "@/lib/test-types"
+import { scorePercentage } from "@/lib/grade-record"
+import { EmptyState } from "@/components/ui/empty-state"
 
 const TEST_TYPE_BADGE: Record<string, string> = {
   mock:  "bg-muted text-foreground",
@@ -51,8 +53,7 @@ type GradeComparable = {
 }
 
 function gradeComparableValue(grade: GradeComparable): number | null {
-  if (grade.score != null && grade.maxScore != null) return (grade.score / grade.maxScore) * 100
-  return grade.score ?? grade.deviation
+  return scorePercentage(grade.score, grade.maxScore) ?? grade.deviation
 }
 
 function calcGradeDiff(current: GradeComparable, previous: GradeComparable): number | null {
@@ -165,14 +166,15 @@ async function TeacherGradesPage({
       )}
 
       {grades.length === 0 ? (
-        <div className="rounded-lg border bg-card p-12 text-center">
-          <p className="text-muted-foreground">成績記録がありません</p>
-          {!typeFilter && (
+        <EmptyState
+          title="成績記録がありません"
+          description={typeFilter ? "別のテスト種別を選ぶと記録が見つかる場合があります。" : "最初のテスト結果を記録しましょう。"}
+          action={!typeFilter ? (
             <Link href="/grades/new" className={buttonVariants({ className: "mt-4 inline-flex" })}>
               最初の成績を記録する
             </Link>
-          )}
-        </div>
+          ) : undefined}
+        />
       ) : (
         <>
           {/* モバイル: カード表示 */}
@@ -291,9 +293,7 @@ async function StudentGradesPage({ userId }: { userId: string }) {
     <div className="space-y-3">
 
       {grades.length === 0 ? (
-        <div className="rounded-lg border bg-card p-12 text-center">
-          <p className="text-muted-foreground">まだ成績記録がありません</p>
-        </div>
+        <EmptyState title="成績記録がありません" />
       ) : (
         <>
           <GradeChart grades={chartGrades} subjects={subjects} />
@@ -396,9 +396,7 @@ async function ParentGradesPage({
   })
   if (links.length === 0) {
     return (
-      <div className="rounded-lg border bg-card p-12 text-center text-sm text-muted-foreground">
-        まだお子様の情報が登録されていません
-      </div>
+      <EmptyState title="お子様の情報が登録されていません" description="先生から保護者招待を受け取ってください。" />
     )
   }
 
@@ -458,9 +456,7 @@ async function ParentGradesPage({
       )}
 
       {grades.length === 0 ? (
-        <div className="rounded-lg border bg-card p-12 text-center text-muted-foreground text-sm">
-          まだ成績記録がありません
-        </div>
+        <EmptyState title="成績記録がありません" />
       ) : (
         <>
           <GradeChart grades={chartGrades} subjects={subjects} />

@@ -96,7 +96,7 @@ export function LessonForm({ students, defaultDate, subjects }: { students: Stud
       <h3 className="font-medium text-sm">授業を追加</h3>
       <form action={action} className="space-y-3">
         {state.error && (
-          <p className="text-xs text-destructive bg-destructive/10 p-2 rounded">{state.error}</p>
+          <p className="text-xs text-foreground border border-destructive/30 bg-destructive/10 p-2 rounded">{state.error}</p>
         )}
 
         <div className="space-y-1.5">

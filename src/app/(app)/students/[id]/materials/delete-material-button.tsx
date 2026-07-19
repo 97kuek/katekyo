@@ -1,22 +1,16 @@
 "use client"
 
-import { useTransition } from "react"
 import { deleteMaterial } from "./actions"
+import { InlineConfirmAction } from "@/components/ui/inline-confirm-action"
 
 export function DeleteMaterialButton({ materialId, studentId }: { materialId: string; studentId: string }) {
-  const [isPending, startTransition] = useTransition()
-
   return (
-    <button
-      disabled={isPending}
-      onClick={() =>
-        startTransition(async () => {
-          await deleteMaterial(materialId, studentId)
-        })
-      }
-      className="text-xs text-destructive hover:text-destructive/80 disabled:opacity-50"
-    >
-      {isPending ? "削除中..." : "削除"}
-    </button>
+    <InlineConfirmAction
+      triggerLabel="削除"
+      confirmLabel="削除する"
+      message="この教材を削除しますか？"
+      pendingLabel="削除中..."
+      onConfirm={async () => { await deleteMaterial(materialId, studentId) }}
+    />
   )
 }

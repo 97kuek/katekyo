@@ -81,7 +81,7 @@ export function HomeworkForm({ students, defaultDate }: { students: Student[]; d
     <div className="rounded-lg border bg-card p-3 space-y-3 w-full">
       <h3 className="font-medium text-sm">宿題を追加</h3>
       <form action={action} className="space-y-3">
-        {state.error && <p className="text-xs text-destructive bg-destructive/10 p-2 rounded">{state.error}</p>}
+        {state.error && <p className="text-xs text-foreground border border-destructive/30 bg-destructive/10 p-2 rounded">{state.error}</p>}
         <div className="space-y-2">
           <div className="space-y-1">
             <Label className="text-xs">生徒</Label>
@@ -152,7 +152,7 @@ export function ExamEventForm({ students, defaultDate }: { students: Student[]; 
       <h3 className="font-medium text-sm">テストを追加</h3>
       <form action={action} className="space-y-3">
         {state.error && (
-          <p className="text-xs text-destructive bg-destructive/10 p-2 rounded">{state.error}</p>
+          <p className="text-xs text-foreground border border-destructive/30 bg-destructive/10 p-2 rounded">{state.error}</p>
         )}
         <div className="space-y-2">
           <div className="space-y-1">

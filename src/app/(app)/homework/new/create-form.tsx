@@ -41,7 +41,7 @@ export default function CreateHomeworkForm({
   return (
     <form action={action} className="space-y-4">
       {state.error && (
-        <p className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">{state.error}</p>
+        <p className="text-sm text-foreground border border-destructive/30 bg-destructive/10 p-3 rounded-md">{state.error}</p>
       )}
       <p className="text-xs text-muted-foreground"><span className="text-destructive font-medium">*</span> は必須項目です</p>
       <div className="space-y-2">

@@ -51,7 +51,7 @@ export function LessonEditForm({ lesson, onClose, subjects }: { lesson: Lesson; 
     <form action={action} className="mt-3 space-y-3 border-t pt-3">
       <input type="hidden" name="lessonId" value={lesson.id} />
       {state.error && (
-        <p className="text-xs text-destructive bg-destructive/10 p-2 rounded">{state.error}</p>
+        <p className="text-xs text-foreground border border-destructive/30 bg-destructive/10 p-2 rounded">{state.error}</p>
       )}
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">

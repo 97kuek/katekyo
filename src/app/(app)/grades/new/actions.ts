@@ -3,31 +3,9 @@
 import { db } from "@/lib/db"
 import { requireTeacher } from "@/lib/action-guards"
 import { redirect } from "next/navigation"
-import { z } from "zod"
 import { plantGardenItem } from "@/lib/garden/actions"
-import { scoreToGardenItemType } from "@/lib/garden/utils"
 import { validateTeacherSubjectIds } from "@/lib/tenant-validation"
-
-function toOptionalInt(val: FormDataEntryValue | null): number | null {
-  if (!val || val === "") return null
-  const n = parseInt(val as string, 10)
-  return isNaN(n) ? null : n
-}
-
-function toOptionalFloat(val: FormDataEntryValue | null): number | null {
-  if (!val || val === "") return null
-  const n = parseFloat(val as string)
-  return isNaN(n) ? null : n
-}
-
-const TEST_TYPES = ["mock", "exam", "quiz", "other"] as const
-
-const schema = z.object({
-  studentId: z.string().min(1, "生徒を選択してください"),
-  testName: z.string().min(1, "テスト名を入力してください"),
-  date: z.string().min(1, "日付を入力してください"),
-  testType: z.enum(TEST_TYPES).default("other"),
-})
+import { evaluateGrade, gradeDateFromInput, gradeRecordInputFromFormData } from "@/lib/grade-record"
 
 export async function createGradeRecord(
   _prevState: { error: string },
@@ -38,15 +16,11 @@ export async function createGradeRecord(
     return { error: "権限がありません" }
   }
 
-  const result = schema.safeParse({
-    studentId: formData.get("studentId"),
-    testName: formData.get("testName"),
-    date: formData.get("date"),
-    testType: formData.get("testType"),
-  })
+  const result = gradeRecordInputFromFormData(formData)
   if (!result.success) return { error: result.error.issues[0].message }
 
-  const { studentId, testName, date, testType } = result.data
+  const { studentId, testName, date, testType, score, maxScore, avgScore, rank, totalStudents, deviation, comment } = result.data
+  if (!studentId) return { error: "生徒を選択してください" }
 
   const student = await db.student.findFirst({
     where: { id: studentId, teacherId: teacher.teacherId },
@@ -56,33 +30,29 @@ export async function createGradeRecord(
   const subjectIds = await validateTeacherSubjectIds(teacher.teacherId, formData.getAll("subjectIds") as string[])
   if (!subjectIds) return { error: "無効な科目が含まれています" }
 
-  const score = toOptionalInt(formData.get("score"))
-  const maxScore = toOptionalInt(formData.get("maxScore"))
-  const deviation = toOptionalFloat(formData.get("deviation"))
-
-  await db.gradeRecord.create({
+  const grade = await db.gradeRecord.create({
     data: {
       teacherId: teacher.teacherId,
       studentId,
       testName,
       testType,
-      date: new Date(date),
+      date: gradeDateFromInput(date),
       score,
       maxScore,
-      avgScore: toOptionalInt(formData.get("avgScore")),
-      rank: toOptionalInt(formData.get("rank")),
-      totalStudents: toOptionalInt(formData.get("totalStudents")),
+      avgScore,
+      rank,
+      totalStudents,
       deviation,
-      teacherRating: toOptionalInt(formData.get("teacherRating")),
-      comment: (formData.get("comment") as string) || null,
+      comment,
+      gardenEvaluationVersion: 1,
       subjectIds,
     },
   })
 
-  const itemType = scoreToGardenItemType(score, maxScore, deviation)
-  if (itemType) {
+  const evaluation = evaluateGrade({ testType, score, maxScore, deviation })
+  if (evaluation) {
     try {
-      await plantGardenItem(studentId, itemType)
+      await plantGardenItem(studentId, evaluation.itemType, grade.id)
     } catch (err) {
       console.error("[garden] grade plant failed:", err)
     }

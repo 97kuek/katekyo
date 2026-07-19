@@ -4,6 +4,7 @@ import { db } from "@/lib/db"
 import Link from "next/link"
 import { ChevronRight } from "lucide-react"
 import { buttonVariants } from "@/components/ui/button"
+import { EmptyState } from "@/components/ui/empty-state"
 import { StudentSort } from "./student-sort"
 import { StudentRow } from "./student-row"
 import { formatDate } from "@/lib/date-utils"
@@ -45,12 +46,11 @@ export default async function StudentsPage({
       <p className="text-xs text-muted-foreground">{students.length}名の生徒</p>
 
       {students.length === 0 ? (
-        <div className="rounded-lg border bg-card p-12 text-center">
-          <p className="text-muted-foreground">まだ生徒が登録されていません</p>
-          <Link href="/students/invite" className={buttonVariants({ className: "mt-4 inline-flex" })}>
+        <EmptyState title="生徒が登録されていません" description="招待リンクを作成して最初の生徒を登録しましょう。" action={(
+          <Link href="/students/invite" className={buttonVariants()}>
             最初の生徒を招待する
           </Link>
-        </div>
+        )} />
       ) : (
         <>
           {/* モバイル: カード表示 */}

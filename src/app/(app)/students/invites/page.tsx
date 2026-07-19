@@ -43,7 +43,7 @@ export default async function InvitesPage() {
 
       {pending.length > 0 && (
         <section className="space-y-3">
-          <h2 className="text-sm font-semibold text-primary bg-primary/10 px-3 py-1.5 rounded-md inline-flex items-center gap-1.5">
+          <h2 className="text-sm font-semibold text-foreground border border-primary/25 bg-primary/10 px-3 py-1.5 rounded-md inline-flex items-center gap-1.5">
             <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs">
               {pending.length}
             </span>

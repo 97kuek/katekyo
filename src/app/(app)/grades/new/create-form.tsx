@@ -8,6 +8,7 @@ import { StickyFormActions } from "@/components/ui/sticky-form-actions"
 import { Label } from "@/components/ui/label"
 import { Select } from "@/components/ui/select"
 import { TEST_TYPE_OPTIONS } from "@/lib/test-types"
+import { FormMessage } from "@/components/ui/form-message"
 
 type Student = { id: string; grade: string; user: { name: string } }
 type Subject = { id: string; name: string }
@@ -49,7 +50,7 @@ export default function CreateGradeForm({
   return (
     <form action={action} className="space-y-5">
       {state.error && (
-        <p className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">{state.error}</p>
+        <FormMessage type="error">{state.error}</FormMessage>
       )}
 
       {examEvents.length > 0 && (

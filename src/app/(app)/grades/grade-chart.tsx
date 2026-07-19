@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { TEST_TYPE_OPTIONS } from "@/lib/test-types"
 import { FALLBACK_LINE_COLORS } from "@/lib/subject-colors"
+import { scorePercentage } from "@/lib/grade-record"
 
 type Grade = {
   id: string
@@ -30,8 +31,8 @@ type Subject = { id: string; name: string; color?: string | null }
 
 function computeValue(g: Grade, mode: "score" | "deviation"): number | null {
   if (mode === "score") {
-    if (g.score != null && g.maxScore != null) return Math.round((g.score / g.maxScore) * 100)
-    return g.score
+    const percentage = scorePercentage(g.score, g.maxScore)
+    return percentage == null ? null : Math.round(percentage)
   }
   return g.deviation
 }

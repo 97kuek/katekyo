@@ -21,7 +21,7 @@ export default function ParentInviteForm({ token, defaultEmail }: { token: strin
         <form action={action} className="space-y-4">
           <input type="hidden" name="token" value={token} />
           {state.error && (
-            <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md space-y-1">
+            <div className="text-sm text-foreground border border-destructive/30 bg-destructive/10 p-3 rounded-md space-y-1">
               <p>{state.error}</p>
               {state.loginRedirect && (
                 <Link href={state.loginRedirect} className="underline font-medium">

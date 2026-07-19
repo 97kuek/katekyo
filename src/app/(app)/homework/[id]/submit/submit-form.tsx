@@ -95,7 +95,7 @@ export default function SubmitForm({ id, rejectedFeedback, requiresPhoto = false
           <input type="hidden" name="id" value={id} />
           <input type="hidden" name="difficultyRating" value={difficulty ?? ""} />
           {state.error && (
-            <p className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">{state.error}</p>
+            <p className="text-sm text-foreground border border-destructive/30 bg-destructive/10 p-3 rounded-md">{state.error}</p>
           )}
 
           {rejectedFeedback && (
@@ -129,7 +129,7 @@ export default function SubmitForm({ id, rejectedFeedback, requiresPhoto = false
             <div className="flex items-center gap-2">
               <Label>提出写真</Label>
               {requiresPhoto ? (
-                <span className="text-xs font-medium text-destructive bg-destructive/10 px-1.5 py-0.5 rounded">必須</span>
+                <span className="text-xs font-medium text-foreground border border-destructive/30 bg-destructive/10 px-1.5 py-0.5 rounded">必須</span>
               ) : (
                 <span className="text-xs text-muted-foreground">任意</span>
               )}
@@ -157,7 +157,7 @@ export default function SubmitForm({ id, rejectedFeedback, requiresPhoto = false
                     variant="outline"
                     size="sm"
                     onClick={handleRemovePhoto}
-                    className="border-destructive/40 text-destructive hover:bg-destructive/5"
+                    className="border-destructive/40 text-destructive hover:bg-muted"
                   >
                     写真を削除
                   </Button>

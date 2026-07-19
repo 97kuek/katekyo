@@ -3,29 +3,9 @@
 import { db } from "@/lib/db"
 import { requireTeacher } from "@/lib/action-guards"
 import { redirect } from "next/navigation"
-import { z } from "zod"
 import { validateTeacherSubjectIds } from "@/lib/tenant-validation"
-
-function toOptionalInt(val: FormDataEntryValue | null): number | null {
-  if (!val || val === "") return null
-  const n = parseInt(val as string, 10)
-  return isNaN(n) ? null : n
-}
-
-function toOptionalFloat(val: FormDataEntryValue | null): number | null {
-  if (!val || val === "") return null
-  const n = parseFloat(val as string)
-  return isNaN(n) ? null : n
-}
-
-const TEST_TYPES = ["mock", "exam", "quiz", "other"] as const
-
-const schema = z.object({
-  id: z.string().min(1),
-  testName: z.string().min(1, "テスト名を入力してください"),
-  date: z.string().min(1, "日付を入力してください"),
-  testType: z.enum(TEST_TYPES).default("other"),
-})
+import { evaluateGrade, gradeDateFromInput, gradeRecordInputFromFormData } from "@/lib/grade-record"
+import { syncGradeGardenItem } from "@/lib/garden/actions"
 
 export async function updateGradeRecord(
   _prevState: { error: string },
@@ -34,15 +14,12 @@ export async function updateGradeRecord(
   const teacher = await requireTeacher()
   if (!teacher) return { error: "権限がありません" }
 
-  const result = schema.safeParse({
-    id: formData.get("id"),
-    testName: formData.get("testName"),
-    date: formData.get("date"),
-    testType: formData.get("testType"),
-  })
+  const id = formData.get("id")?.toString()
+  if (!id) return { error: "成績記録が見つかりません" }
+  const result = gradeRecordInputFromFormData(formData)
   if (!result.success) return { error: result.error.issues[0].message }
 
-  const { id, testName, date, testType } = result.data
+  const { testName, date, testType, score, maxScore, avgScore, rank, totalStudents, deviation, comment } = result.data
   const subjectIds = await validateTeacherSubjectIds(teacher.teacherId, formData.getAll("subjectIds") as string[])
   if (!subjectIds) return { error: "無効な科目が含まれています" }
 
@@ -54,18 +31,23 @@ export async function updateGradeRecord(
     data: {
       testName,
       testType,
-      date: new Date(date),
-      score: toOptionalInt(formData.get("score")),
-      maxScore: toOptionalInt(formData.get("maxScore")),
-      avgScore: toOptionalInt(formData.get("avgScore")),
-      rank: toOptionalInt(formData.get("rank")),
-      totalStudents: toOptionalInt(formData.get("totalStudents")),
-      deviation: toOptionalFloat(formData.get("deviation")),
-      teacherRating: toOptionalInt(formData.get("teacherRating")),
-      comment: (formData.get("comment") as string) || null,
+      date: gradeDateFromInput(date),
+      score,
+      maxScore,
+      avgScore,
+      rank,
+      totalStudents,
+      deviation,
+      comment,
       subjectIds,
     },
   })
+
+  // 移行前の成績は由来を追跡できず、重複付与する恐れがあるため同期対象にしない。
+  if (existing.gardenEvaluationVersion === 1) {
+    const evaluation = evaluateGrade({ testType, score, maxScore, deviation })
+    await syncGradeGardenItem(id, existing.studentId, evaluation?.itemType ?? null)
+  }
 
   redirect("/grades?toast=saved")
 }

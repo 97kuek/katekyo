@@ -11,8 +11,8 @@ export function PasswordForm() {
 
   return (
     <form action={action} className="space-y-3">
-      {state.error && <p className="text-sm text-destructive bg-destructive/10 p-2 rounded">{state.error}</p>}
-      {state.success && <p className="text-sm text-primary bg-primary/10 p-2 rounded">{state.success}</p>}
+      {state.error && <p className="text-sm text-foreground border border-destructive/30 bg-destructive/10 p-2 rounded">{state.error}</p>}
+      {state.success && <p className="text-sm text-foreground border border-primary/25 bg-primary/10 p-2 rounded">{state.success}</p>}
       <div className="space-y-1.5">
         <Label htmlFor="currentPassword">現在のパスワード</Label>
         <Input id="currentPassword" name="currentPassword" type="password" required />

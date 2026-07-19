@@ -13,6 +13,7 @@ import { LessonLogCard } from "./lesson-log-card"
 import { StatusBadge } from "@/components/homework/status-badge"
 import { UnreadBadge } from "@/components/ui/unread-badge"
 import { Skeleton as Sk } from "@/components/ui/skeleton"
+import { scorePercentage } from "@/lib/grade-record"
 
 export default async function DashboardPage() {
   const ctx = await getViewingContext()
@@ -325,8 +326,7 @@ async function GradeTrendsSection({ teacherId }: { teacherId: string }) {
   })
 
   type Grade = typeof students[0]["grades"][0]
-  const val = (g: Grade) =>
-    g.score != null && g.maxScore != null ? (g.score / g.maxScore) * 100 : g.deviation
+  const val = (g: Grade) => scorePercentage(g.score, g.maxScore) ?? g.deviation
 
   const gradeTrends = students
     .filter((s) => s.grades.length >= 2)
@@ -657,7 +657,7 @@ async function StudentGardenPreview({ userId }: { userId: string }) {
             <p className="text-xs text-muted-foreground mt-0.5">/ {max} アイテム</p>
           </div>
           {generation > 1 && !isFull && (
-            <span className="ml-auto text-xs font-medium text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-full">第{generation}世代</span>
+            <span className="ml-auto rounded-full border border-primary/25 bg-primary/10 px-2 py-0.5 text-xs font-medium text-foreground">第{generation}世代</span>
           )}
           {isFull && (
             <span className="ml-auto rounded-full border border-warning/30 bg-warning/15 px-2 py-0.5 text-xs font-bold text-foreground">満開達成</span>

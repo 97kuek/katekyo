@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { deleteGradeRecord } from "./[id]/actions"
+import { InlineConfirmAction } from "@/components/ui/inline-confirm-action"
 
 export function GradeActionsCell({ gradeId }: { gradeId: string }) {
   return (
@@ -9,17 +10,16 @@ export function GradeActionsCell({ gradeId }: { gradeId: string }) {
       <Link href={`/grades/${gradeId}/edit`} className="text-xs text-primary hover:underline">
         編集
       </Link>
-      <form
-        action={deleteGradeRecord}
-        onSubmit={(e) => {
-          if (!confirm("この成績記録を削除しますか？")) e.preventDefault()
+      <InlineConfirmAction
+        triggerLabel="削除"
+        confirmLabel="削除する"
+        message="この成績記録を削除しますか？"
+        onConfirm={async () => {
+          const formData = new FormData()
+          formData.set("gradeId", gradeId)
+          await deleteGradeRecord(formData)
         }}
-      >
-        <input type="hidden" name="gradeId" value={gradeId} />
-        <button type="submit" className="text-xs text-destructive hover:text-destructive/80 hover:underline">
-          削除
-        </button>
-      </form>
+      />
     </div>
   )
 }

@@ -26,7 +26,7 @@ export default function InviteParentForm({ studentId }: { studentId: string }) {
   if (state.token) {
     return (
       <div className="space-y-4">
-        <p className="text-sm text-primary bg-primary/10 p-3 rounded-md">
+        <p className="text-sm text-foreground border border-primary/25 bg-primary/10 p-3 rounded-md">
           招待リンクが生成されました。保護者に送付してください（7日間有効）。
         </p>
         <div>
@@ -49,7 +49,7 @@ export default function InviteParentForm({ studentId }: { studentId: string }) {
     <form action={action} className="space-y-4">
       <input type="hidden" name="studentId" value={studentId} />
       {state.error && (
-        <p className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">{state.error}</p>
+        <p className="text-sm text-foreground border border-destructive/30 bg-destructive/10 p-3 rounded-md">{state.error}</p>
       )}
       <div className="space-y-2">
         <Label htmlFor="email">保護者のメールアドレス <span className="text-xs text-muted-foreground font-normal">（任意）</span></Label>

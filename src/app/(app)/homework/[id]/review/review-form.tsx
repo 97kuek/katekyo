@@ -22,7 +22,7 @@ export default function ReviewForm({ id }: { id: string }) {
         <form action={action} className="space-y-4">
           <input type="hidden" name="id" value={id} />
           {state.error && (
-            <p className="text-sm text-destructive bg-destructive/10 p-3 rounded-md animate-shake">
+            <p className="text-sm text-foreground border border-destructive/30 bg-destructive/10 p-3 rounded-md animate-shake">
               {state.error}
             </p>
           )}
@@ -55,7 +55,7 @@ export default function ReviewForm({ id }: { id: string }) {
               name="action"
               value="rejected"
               variant="outline"
-              className="flex-1 border-destructive/40 text-destructive hover:bg-destructive/5"
+              className="flex-1 border-destructive/40 text-destructive hover:bg-muted"
               disabled={isPending}
               onClick={() => { setPendingAction("rejected"); haptic.error() }}
             >

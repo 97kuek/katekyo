@@ -106,34 +106,34 @@ export function GradeFormFields({
         <div className="space-y-2">
           <Label htmlFor="score">得点 <span className="text-xs text-muted-foreground font-normal">（任意）</span></Label>
           {mode === "create" ? (
-            <Input id="score" name="score" type="number" inputMode="numeric" min="0" placeholder="82" />
+            <Input id="score" name="score" type="number" inputMode="numeric" min="0" max="10000" placeholder="82" />
           ) : (
-            <Input id="score" name="score" type="number" min="0" defaultValue={defaultValues.score} />
+            <Input id="score" name="score" type="number" min="0" max="10000" defaultValue={defaultValues.score} />
           )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="maxScore">満点 <span className="text-xs text-muted-foreground font-normal">（任意）</span></Label>
           {mode === "create" ? (
-            <Input id="maxScore" name="maxScore" type="number" inputMode="numeric" min="1" placeholder="100" />
+            <Input id="maxScore" name="maxScore" type="number" inputMode="numeric" min="1" max="10000" placeholder="100" />
           ) : (
-            <Input id="maxScore" name="maxScore" type="number" min="1" defaultValue={defaultValues.maxScore} />
+            <Input id="maxScore" name="maxScore" type="number" min="1" max="10000" defaultValue={defaultValues.maxScore} />
           )}
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="rank">順位 <span className="text-xs text-muted-foreground font-normal">（任意）</span></Label>
           {mode === "create" ? (
-            <Input id="rank" name="rank" type="number" inputMode="numeric" min="1" placeholder="15" />
+            <Input id="rank" name="rank" type="number" inputMode="numeric" min="1" max="1000000" placeholder="15" />
           ) : (
-            <Input id="rank" name="rank" type="number" min="1" defaultValue={defaultValues.rank} />
+            <Input id="rank" name="rank" type="number" min="1" max="1000000" defaultValue={defaultValues.rank} />
           )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="totalStudents">受験者数 <span className="text-xs text-muted-foreground font-normal">（任意）</span></Label>
           {mode === "create" ? (
-            <Input id="totalStudents" name="totalStudents" type="number" inputMode="numeric" min="1" placeholder="200" />
+            <Input id="totalStudents" name="totalStudents" type="number" inputMode="numeric" min="1" max="1000000" placeholder="200" />
           ) : (
-            <Input id="totalStudents" name="totalStudents" type="number" min="1" defaultValue={defaultValues.totalStudents} />
+            <Input id="totalStudents" name="totalStudents" type="number" min="1" max="1000000" defaultValue={defaultValues.totalStudents} />
           )}
         </div>
 
@@ -157,19 +157,25 @@ export function GradeFormFields({
         <div className="space-y-2">
           <Label htmlFor="avgScore">クラス平均点 <span className="text-xs text-muted-foreground font-normal">（任意）</span></Label>
           {mode === "create" ? (
-            <Input id="avgScore" name="avgScore" type="number" inputMode="numeric" min="0" placeholder="65" />
+            <Input id="avgScore" name="avgScore" type="number" inputMode="numeric" min="0" max="10000" placeholder="65" />
           ) : (
             <Input
               id="avgScore"
               name="avgScore"
               type="number"
               min="0"
+              max="10000"
               defaultValue={defaultValues.avgScore}
             />
           )}
         </div>
 
       </div>
+
+      <p className="rounded-lg border border-primary/20 bg-primary/10 p-3 text-xs leading-relaxed text-foreground">
+        学習の森は、模試では偏差値を、それ以外では得点率を優先して評価します。優先値がない場合はもう一方を使います。
+        得点と満点、順位と受験者数はそれぞれセットで入力してください。
+      </p>
 
       {subjects.length > 0 && (
         <div className="space-y-2">
@@ -197,6 +203,7 @@ export function GradeFormFields({
           id="comment"
           name="comment"
           rows={3}
+          maxLength={2000}
           defaultValue={defaultValues.comment}
           className="resize-none"
           placeholder={commentPlaceholder}

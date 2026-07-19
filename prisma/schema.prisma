@@ -294,25 +294,27 @@ model HomeworkEvent {
 }
 
 model GradeRecord {
-  id            String   @id @default(uuid())
-  studentId     String
-  teacherId     String
-  testName      String
-  date          DateTime @db.Timestamptz(3)
-  subjectIds    String[]
-  score         Int?
-  maxScore      Int?
-  rank          Int?
-  totalStudents Int?
-  deviation     Float?
-  testType      TestType @default(other)
-  avgScore      Int?
-  teacherRating Int?
-  comment       String?
-  createdAt     DateTime @default(now()) @db.Timestamptz(3)
+  id                      String   @id @default(uuid())
+  studentId               String
+  teacherId               String
+  testName                String
+  date                    DateTime @db.Timestamptz(3)
+  subjectIds              String[]
+  score                   Int?
+  maxScore                Int?
+  rank                    Int?
+  totalStudents           Int?
+  deviation               Float?
+  testType                TestType @default(other)
+  avgScore                Int?
+  teacherRating           Int?
+  comment                 String?
+  gardenEvaluationVersion Int      @default(0)
+  createdAt               DateTime @default(now()) @db.Timestamptz(3)
 
-  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  teacher User    @relation("TeacherGrades", fields: [teacherId], references: [id], onDelete: Cascade)
+  student    Student     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  teacher    User        @relation("TeacherGrades", fields: [teacherId], references: [id], onDelete: Cascade)
+  gardenItem GardenItem?
 
   @@index([studentId])
   @@index([teacherId, testType])
@@ -364,14 +366,16 @@ model ExamEvent {
 }
 
 model GardenItem {
-  id        String         @id @default(uuid())
-  studentId String
-  x         Int
-  y         Int
-  itemType  GardenItemType
-  createdAt DateTime       @default(now()) @db.Timestamptz(3)
+  id            String         @id @default(uuid())
+  studentId     String
+  x             Int
+  y             Int
+  itemType      GardenItemType
+  sourceGradeId String?        @unique
+  createdAt     DateTime       @default(now()) @db.Timestamptz(3)
 
-  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  student     Student      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  sourceGrade GradeRecord? @relation(fields: [sourceGradeId], references: [id], onDelete: Cascade)
 
   @@unique([studentId, x, y])
 }

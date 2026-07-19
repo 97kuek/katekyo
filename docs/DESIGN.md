@@ -128,6 +128,13 @@ import { Button, buttonVariants } from "@/components/ui/button"
 - フィルターバー等の**コンパクトな操作系**（`h-8`/`h-9`）は別系統。フォーム入力には使わない
 - 送信ボタンは長いフォームではモバイルで `StickyFormActions` により画面下部に固定（[architecture.md](architecture.md#モバイル操作safe-area) 参照）
 
+## 状態表示と確認操作
+
+- 空状態は `EmptyState` を使い、アイコン・見出し・説明・CTAの余白を統一する
+- フォームの成功・エラーは `FormMessage` を使い、意味色は背景と同色の文字ではなくアイコンと枠線で示す
+- 一覧内の削除・解除確認は `InlineConfirmAction` を使い、「操作を開始 → 内容確認 → 実行」の2段階にする
+- `window.confirm` は画面やブラウザで見た目が変わるため使用しない
+
 ## レイアウト・ビューポート
 
 **外側コンテナ** (`src/app/(app)/layout.tsx`): `fixed inset-0 flex flex-col bg-muted overflow-hidden`

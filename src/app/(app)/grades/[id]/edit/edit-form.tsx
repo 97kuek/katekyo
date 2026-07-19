@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { StickyFormActions } from "@/components/ui/sticky-form-actions"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { FormMessage } from "@/components/ui/form-message"
 
 type Grade = {
   id: string
@@ -40,7 +41,7 @@ export default function EditGradeForm({
     <form action={action} className="space-y-5">
       <input type="hidden" name="id" value={grade.id} />
       {state.error && (
-        <p className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">{state.error}</p>
+        <FormMessage type="error">{state.error}</FormMessage>
       )}
       <p className="text-xs text-muted-foreground"><span className="text-destructive font-medium">*</span> は必須項目です</p>
 

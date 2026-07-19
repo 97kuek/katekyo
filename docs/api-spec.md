@@ -138,14 +138,14 @@ bulkApproveHomework(ids: string[]): Promise<{ error: string; approved: number }>
 
 | Action | ロール | 概要 |
 | --- | --- | --- |
-| `createGradeRecord` | teacher | 成績登録。数値データがあれば `plantGardenItem` も呼ぶ |
+| `createGradeRecord` | teacher | 成績登録。テスト種別に応じた評価値があれば、由来を追跡できるGardenItemも作成 |
 
 #### `grades/[id]/actions.ts`
 
 | Action | ロール | 概要 |
 | --- | --- | --- |
-| `updateGradeRecord` | teacher | 成績編集 |
-| `deleteGradeRecord` | teacher | 成績削除。成功時 `redirect("/grades?toast=deleted")` |
+| `updateGradeRecord` | teacher | 成績編集。入力整合性を検証し、対応するGardenItemを再評価 |
+| `deleteGradeRecord` | teacher | 成績削除。対応するGardenItemもFK cascadeで削除し、成功時リダイレクト |
 
 ```typescript
 // updateGradeRecord 入力（FormData）
@@ -155,14 +155,13 @@ bulkApproveHomework(ids: string[]): Promise<{ error: string; approved: number }>
   date: string
   testType: "mock" | "exam" | "quiz" | "other"
   subjectIds: string[] (getAll)
-  score?: number (int)
-  maxScore?: number (int)
-  avgScore?: number (int)
-  rank?: number (int)
-  totalStudents?: number (int)
-  deviation?: number (float)
-  teacherRating?: number (int 1–5)
-  comment?: string
+  score?: number (int, maxScoreとセット, 0..maxScore)
+  maxScore?: number (int, scoreとセット, 1..10000)
+  avgScore?: number (int, maxScore必須, 0..maxScore)
+  rank?: number (int, totalStudentsとセット)
+  totalStudents?: number (int, rankとセット, rank以上)
+  deviation?: number (float, 0..100)
+  comment?: string (max 2000)
 }
 // 返り値: { error: string }  成功時 redirect("/grades?toast=saved")
 ```

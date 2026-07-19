@@ -27,7 +27,7 @@ export default function RegisterPage() {
       <CardContent>
         <form action={action} className="space-y-4">
           {state.error && (
-            <p className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">
+            <p className="text-sm text-foreground border border-destructive/30 bg-destructive/10 p-3 rounded-md">
               {state.error}
             </p>
           )}

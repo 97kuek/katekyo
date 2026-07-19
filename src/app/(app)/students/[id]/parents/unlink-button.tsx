@@ -40,7 +40,7 @@ export function UnlinkParentButton({ parentId, studentId, parentName }: {
       variant="ghost"
       size="xs"
       onClick={() => setConfirming(true)}
-      className="text-destructive hover:text-destructive hover:bg-destructive/10"
+      className="text-destructive hover:text-destructive hover:bg-muted"
     >
       解除
     </Button>

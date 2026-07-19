@@ -213,7 +213,10 @@ GradeRecord {
   avgScore      Int?                                 # 平均点
   teacherRating Int?                                 # 主観評価（1–5）※現在 UI 非使用・廃止予定（列は残存）
   comment       String?
+  gardenEvaluationVersion Int @default(0)         # 0=移行前、1=追跡中、2=世代リセットで収穫済み
   createdAt     DateTime @default(now()) @db.Timestamptz(3)
+
+  gardenItem GardenItem?                         # 成績から育った植物（最大1件）
 
   @@index([teacherId])
   @@index([studentId])
@@ -222,7 +225,7 @@ GradeRecord {
 }
 ```
 
-**GardenItem への連携:** `createGradeRecord` 実行時、得点データがあれば `plantGardenItem` を呼ぶ。判定ロジックは `src/lib/garden/` 参照。
+**GardenItem への連携:** 模試は偏差値、その他は得点率を優先して植物を判定する。`GardenItem.sourceGradeId` で元の成績を追跡し、編集時の再評価と削除時の連動を保証する。既存の由来不明な植物は `sourceGradeId=null` のまま保持する。
 
 ---
 
@@ -257,6 +260,7 @@ GardenItem {
   itemType  GardenItemType
   x         Int                                      # 0–7（グリッド座標）
   y         Int                                      # 0–7
+  sourceGradeId String? @unique                      # 成績由来の場合のGradeRecord.id
   createdAt DateTime       @default(now()) @db.Timestamptz(3)
 
   @@unique([studentId, x, y])                        # 同座標に2つ置けない
@@ -265,8 +269,8 @@ GardenItem {
 ```
 
 **アイテム付与ロジック（`src/lib/garden/`）:**
-- 宿題承認時: `plantForHomeworkApproval` を呼ぶ。差し戻し歴あり → `cherry` / `big_tree` 等レアアイテム、なし → 通常 or `mushroom`（≈5%）
-- 成績登録時: 得点率・偏差値に応じてアイテムランクが変わる
+- 宿題承認時: `plantForHomeworkApproval` を呼ぶ。差し戻し歴または期限後提出があれば付与せず、それ以外は通常植物（5回ごとに大木）
+- 成績登録時: 模試は偏差値、その他は得点率を優先してアイテムランクを決める
 - グリッド満杯（64マス）で `gardenGeneration` をインクリメントし全アイテムをリセット
 
 ---

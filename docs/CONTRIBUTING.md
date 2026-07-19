@@ -154,6 +154,7 @@ END $$;
 
 ```bash
 npm run docs:check
+npm run ui:check      # 絵文字・標準confirm・同系色背景/文字の混入検査
 ```
 
 ```bash
