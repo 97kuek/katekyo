@@ -1,5 +1,9 @@
 import { spawnSync } from "node:child_process"
+import { readdirSync } from "node:fs"
 import { Pool } from "pg"
+
+const MIGRATIONS_DIRECTORY = new URL("../prisma/migrations/", import.meta.url)
+const MAX_DEPLOY_ATTEMPTS = 3
 
 // Preview deployments may share neither the production database nor its migration
 // lifecycle. Only the production Vercel build is allowed to mutate the production DB.
@@ -35,11 +39,17 @@ if (migrationUrl.port === "6543") {
 }
 
 const migrationEnv = { ...process.env, DIRECT_URL: migrationUrl.toString() }
+const repositoryMigrations = readdirSync(MIGRATIONS_DIRECTORY, { withFileTypes: true })
+  .filter((entry) => entry.isDirectory())
+  .map((entry) => entry.name)
+  .sort()
 const pool = new Pool({
   connectionString: migrationUrl.toString(),
   connectionTimeoutMillis: 15_000,
   max: 1,
 })
+
+let pendingMigrations = []
 
 try {
   const [historyResult, schemaResult] = await Promise.all([
@@ -120,7 +130,10 @@ try {
       console.error(`[migrate] failed to reconcile ${migration.name}`)
       process.exit(1)
     }
+    applied.add(migration.name)
   }
+
+  pendingMigrations = repositoryMigrations.filter((migrationName) => !applied.has(migrationName))
 } catch (error) {
   console.error("[migrate] failed to inspect the production schema:", error instanceof Error ? error.message : error)
   process.exit(1)
@@ -128,16 +141,36 @@ try {
   await pool.end()
 }
 
-console.log("[migrate] applying production database migrations")
-const result = spawnSync("npx", ["prisma", "migrate", "deploy"], {
-  env: migrationEnv,
-  stdio: "inherit",
-  timeout: 120_000,
-})
-
-if (result.error) {
-  console.error("[migrate] failed to start Prisma:", result.error.message)
-  process.exit(1)
+if (pendingMigrations.length === 0) {
+  console.log("[migrate] production database is already up to date")
+  process.exit(0)
 }
 
-process.exit(result.status ?? 1)
+console.log(`[migrate] applying ${pendingMigrations.length} production database migration(s)`)
+let lastStatus = 1
+
+for (let attempt = 1; attempt <= MAX_DEPLOY_ATTEMPTS; attempt += 1) {
+  const result = spawnSync("npx", ["prisma", "migrate", "deploy"], {
+    env: migrationEnv,
+    stdio: "inherit",
+    timeout: 120_000,
+  })
+
+  if (!result.error && result.status === 0) process.exit(0)
+
+  lastStatus = result.status ?? 1
+  if (result.error) {
+    console.error(`[migrate] Prisma attempt ${attempt} failed to start:`, result.error.message)
+  } else {
+    console.error(`[migrate] Prisma attempt ${attempt} exited with status ${lastStatus}`)
+  }
+
+  if (attempt < MAX_DEPLOY_ATTEMPTS) {
+    const delayMs = attempt * 2_000
+    console.warn(`[migrate] retrying in ${delayMs / 1_000}s`)
+    await new Promise((resolve) => setTimeout(resolve, delayMs))
+  }
+}
+
+console.error(`[migrate] failed after ${MAX_DEPLOY_ATTEMPTS} attempts`)
+process.exit(lastStatus)

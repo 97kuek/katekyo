@@ -121,7 +121,7 @@ npx prisma migrate dev
 npm run dev
 ```
 
-> **注意**: `db push` はマイグレーション履歴（`prisma/migrations/`）を更新しない。スキーマのドリフト解消や開発初期のみ使用し、本番環境では `prisma migrate deploy` を使うこと。`npm run build` は `VERCEL_ENV=production` のときだけビルド前に `prisma migrate deploy` を実行する。Preview / ローカルビルドではDBを変更しない。本番の `DIRECT_URL` には Direct connection または Session pooler（ポート `5432`）を設定する。未設定で `DATABASE_URL` がTransaction pooler（ポート `6543`）の場合は、ビルド中のみSession pooler（ポート `5432`）へ変換して使用する。
+> **注意**: `db push` はマイグレーション履歴（`prisma/migrations/`）を更新しない。スキーマのドリフト解消や開発初期のみ使用し、本番環境では `prisma migrate deploy` を使うこと。`npm run build` は `VERCEL_ENV=production` のときだけDBの適用履歴を確認し、未適用マイグレーションがある場合に限って `prisma migrate deploy` を最大3回実行する。適用対象が0件なら別プロセスでの再接続を省略する。Preview / ローカルビルドではDBを変更しない。本番の `DIRECT_URL` には Direct connection または Session pooler（ポート `5432`）を設定する。未設定で `DATABASE_URL` がTransaction pooler（ポート `6543`）の場合は、ビルド中のみSession pooler（ポート `5432`）へ変換して使用する。
 
 ## 年次データクリーンアップ（手動実行）
 
