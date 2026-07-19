@@ -121,7 +121,7 @@ npx prisma migrate dev
 npm run dev
 ```
 
-> **注意**: `db push` はマイグレーション履歴（`prisma/migrations/`）を更新しない。スキーマのドリフト解消や開発初期のみ使用し、本番環境では `prisma migrate deploy` を使うこと。`npm run build` は `VERCEL_ENV=production` のときだけビルド前に `prisma migrate deploy` を実行する。Preview / ローカルビルドではDBを変更しない。本番の `DIRECT_URL` には Direct connection または Session pooler（ポート `5432`）を設定し、Transaction pooler（ポート `6543`）は使わない。
+> **注意**: `db push` はマイグレーション履歴（`prisma/migrations/`）を更新しない。スキーマのドリフト解消や開発初期のみ使用し、本番環境では `prisma migrate deploy` を使うこと。`npm run build` は `VERCEL_ENV=production` のときだけビルド前に `prisma migrate deploy` を実行する。Preview / ローカルビルドではDBを変更しない。本番の `DIRECT_URL` には Direct connection または Session pooler（ポート `5432`）を設定する。未設定で `DATABASE_URL` がTransaction pooler（ポート `6543`）の場合は、ビルド中のみSession pooler（ポート `5432`）へ変換して使用する。
 
 ## 年次データクリーンアップ（手動実行）
 
@@ -175,7 +175,7 @@ npx prisma migrate dev --name <name>  # マイグレーション作成（→ /mi
 
 ```bash
 DATABASE_URL=                   # Supabase 接続文字列（pooler）
-DIRECT_URL=                     # 必須: Supabase Direct URL / Session pooler :5432（本番マイグレーション用。:6543は禁止）
+DIRECT_URL=                     # 推奨: Supabase Direct URL / Session pooler :5432（本番マイグレーション用）
 NEXTAUTH_SECRET=                 # openssl rand -base64 32
 NEXTAUTH_URL=                    # 開発時: http://localhost:3000
 AUTH_GOOGLE_ID=                  # Google OAuth 2.0 クライアントID（任意。SECRETと同時設定）
