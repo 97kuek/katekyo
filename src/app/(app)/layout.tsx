@@ -32,7 +32,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             <Suspense fallback={<Header name={session.user.name ?? ""} notificationData={emptyNotifications(effectiveRole)} />}>
               <HeaderWithNotifications name={session.user.name ?? ""} userId={effectiveUserId} role={effectiveRole} />
             </Suspense>
-            <main className="flex-1 overflow-y-auto overflow-x-hidden overscroll-y-none p-4 md:p-6 pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-6">
+            <main className="flex-1 overflow-y-auto overflow-x-hidden overscroll-y-none p-4 pb-[calc(var(--mobile-nav-clearance)+1rem)] md:p-6 md:pb-6">
               <Suspense>
                 <SearchParamsToast />
               </Suspense>

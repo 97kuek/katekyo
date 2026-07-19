@@ -23,7 +23,7 @@ function StickyFormActions({
       <div className="h-16 md:hidden" aria-hidden />
       <div
         className={cn(
-          "fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] left-0 right-0 z-30 border-t border-border bg-background/95 px-4 py-3 backdrop-blur",
+          "translucent-chrome fixed bottom-[var(--mobile-nav-clearance)] left-0 right-0 z-30 border-t border-border bg-background/95 px-4 py-3 backdrop-blur",
           "md:static md:bottom-auto md:left-auto md:right-auto md:z-auto md:border-0 md:bg-transparent md:px-0 md:py-0 md:backdrop-blur-none",
           className
         )}

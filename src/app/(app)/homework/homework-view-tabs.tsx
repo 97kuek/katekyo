@@ -24,7 +24,7 @@ export function HomeworkViewTabs({
             href={`/homework?${search.toString()}`}
             prefetch={true}
             aria-current={active ? "page" : undefined}
-            className={`flex min-h-10 flex-1 items-center justify-center whitespace-nowrap rounded-md px-3 text-sm font-medium transition-colors ${active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
+            className={`flex min-h-11 flex-1 items-center justify-center whitespace-nowrap rounded-md px-3 text-sm font-medium transition-[background-color,opacity] active:opacity-75 motion-reduce:transition-none ${active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
           >
             {item.label}<span className="ml-1 tabular-nums">{item.count}</span>
           </Link>

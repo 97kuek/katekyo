@@ -196,7 +196,7 @@ async function TeacherGradesPage({
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
           <GradeStudentFilter students={students} />
           <details className="group relative">
-            <summary className="flex min-h-10 cursor-pointer list-none items-center justify-center rounded-full border bg-background px-4 text-sm font-medium hover:bg-muted [&::-webkit-details-marker]:hidden">絞り込み</summary>
+            <summary className="flex min-h-11 cursor-pointer list-none items-center justify-center rounded-full border bg-background px-4 text-sm font-medium hover:bg-muted active:opacity-75 [&::-webkit-details-marker]:hidden">絞り込み</summary>
             <div className="absolute right-0 top-[calc(100%+0.5rem)] z-30 w-[min(22rem,calc(100vw-2rem))] space-y-3 rounded-lg border bg-popover p-4 shadow-lg">
               <GradeSubjectFilter subjects={subjects} />
               <GradeTypeFilter />
@@ -578,7 +578,7 @@ function GradeModeTabs({ current, params }: { current: "list" | "analysis"; para
         const search = new URLSearchParams()
         Object.entries(params).forEach(([key, value]) => { if (value) search.set(key, value) })
         search.set("mode", item.value)
-        return <Link key={item.value} href={`/grades?${search.toString()}`} prefetch={true} aria-current={current === item.value ? "page" : undefined} className={`flex min-h-10 flex-1 items-center justify-center rounded-md text-sm font-medium ${current === item.value ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}>{item.label}</Link>
+        return <Link key={item.value} href={`/grades?${search.toString()}`} prefetch={true} aria-current={current === item.value ? "page" : undefined} className={`flex min-h-11 flex-1 items-center justify-center rounded-md text-sm font-medium active:opacity-75 ${current === item.value ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}>{item.label}</Link>
       })}
     </nav>
   )
@@ -588,7 +588,7 @@ function LearningModeTabs({ current, studentId }: { current: "trend" | "history"
   return (
     <nav aria-label="成績の表示" className="flex rounded-lg border bg-card p-1">
       {[{ value: "trend", label: "推移" }, { value: "history", label: "履歴" }].map((item) => (
-        <Link key={item.value} href={`/grades?mode=${item.value}${studentId ? `&studentId=${studentId}` : ""}`} prefetch={true} aria-current={current === item.value ? "page" : undefined} className={`flex min-h-10 flex-1 items-center justify-center rounded-md text-sm font-medium ${current === item.value ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}>{item.label}</Link>
+        <Link key={item.value} href={`/grades?mode=${item.value}${studentId ? `&studentId=${studentId}` : ""}`} prefetch={true} aria-current={current === item.value ? "page" : undefined} className={`flex min-h-11 flex-1 items-center justify-center rounded-md text-sm font-medium active:opacity-75 ${current === item.value ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}>{item.label}</Link>
       ))}
     </nav>
   )

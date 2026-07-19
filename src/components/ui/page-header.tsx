@@ -24,7 +24,7 @@ export function PageHeader({
       {backHref && (
         <Link
           href={backHref}
-          className="inline-flex min-h-9 items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+          className="inline-flex min-h-11 items-center gap-1 rounded-md text-sm text-muted-foreground transition-colors hover:text-foreground active:opacity-70"
         >
           <ArrowLeft className="h-4 w-4" aria-hidden />
           {backLabel}

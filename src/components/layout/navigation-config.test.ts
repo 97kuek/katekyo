@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { getMoreNavigation, getPageTitle, mobileNavigation } from "./navigation-config"
+import { getMoreNavigation, getPageTitle, isMobileNavigationItemActive, mobileNavigation } from "./navigation-config"
 
 describe("NFR-UI navigation", () => {
   it("keeps every mobile role at five primary destinations", () => {
@@ -43,5 +43,22 @@ describe("NFR-UI navigation", () => {
       expect(paths.indexOf("/settings")).toBeLessThan(paths.indexOf("/help"))
       expect(new Set(paths).size).toBe(paths.length)
     }
+  })
+
+  it("keeps grouped mobile tabs selected on their child destinations", () => {
+    const studentMore = mobileNavigation.student.find((item) => item.label === "その他")!
+    const teacherMore = mobileNavigation.teacher.find((item) => item.label === "その他")!
+    const parentMore = mobileNavigation.parent.find((item) => item.label === "その他")!
+
+    expect(isMobileNavigationItemActive("/garden", studentMore)).toBe(true)
+    expect(isMobileNavigationItemActive("/billing", teacherMore)).toBe(true)
+    expect(isMobileNavigationItemActive("/homework/example", parentMore)).toBe(true)
+    expect(isMobileNavigationItemActive("/calendar", teacherMore)).toBe(false)
+  })
+
+  it("uses direct labels for tabs that open a specific destination", () => {
+    expect(mobileNavigation.student.map((item) => item.label)).toContain("成績")
+    expect(mobileNavigation.parent.map((item) => item.label)).toContain("成績")
+    expect(mobileNavigation.student.map((item) => item.label)).not.toContain("学習")
   })
 })

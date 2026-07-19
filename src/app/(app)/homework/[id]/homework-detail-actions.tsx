@@ -59,10 +59,10 @@ export function HomeworkDetailActions({
         <form action={action} className="mt-4 grid gap-2 border-t pt-4 sm:grid-cols-[minmax(0,12rem)_auto_auto] sm:items-center">
           <input type="hidden" name="id" value={homeworkId} />
           <Input name="dueDate" type="date" required defaultValue={currentDueDate} aria-label="新しい期限" className="md:h-10" />
-          <Button type="submit" size="sm" disabled={isPending} className="h-10">
+          <Button type="submit" disabled={isPending}>
             {isPending ? "更新中..." : "期限を更新"}
           </Button>
-          <Button type="button" variant="outline" size="sm" className="h-10" onClick={() => setChangingDeadline(false)}>
+          <Button type="button" variant="outline" onClick={() => setChangingDeadline(false)}>
             キャンセル
           </Button>
           {state.error && <p className="text-xs text-destructive sm:col-span-3">{state.error}</p>}

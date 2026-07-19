@@ -88,7 +88,7 @@ prisma/
 | `src/components/layout/pull-to-refresh.tsx` | プルダウン更新 | Client Component。`<main>` 最上部から下に引くと `router.refresh()`。デスクトップでは無効 |
 | `src/components/layout/sidebar.tsx` | デスクトップ左サイドバー | `hidden md:flex`、md=w-16（アイコンのみ）、lg=w-60（ラベルあり） |
 | `src/components/layout/header.tsx` | ページタイトルヘッダー | `PAGE_TITLES` 配列でパスからタイトル解決。モバイルはタイトル or "katekyo" |
-| `src/components/layout/bottom-nav.tsx` | モバイル固定ボトムナビ | `md:hidden`、先生6項目・生徒5項目・保護者4項目。アクティブアイコンは scale(1.1) |
+| `src/components/layout/bottom-nav.tsx` | モバイル固定ボトムナビ | `md:hidden`、全ロール5項目。単一のLiquid Glass風機能層と明示的な選択状態を使用 |
 
 ## ページ一覧（保護者）
 
@@ -148,9 +148,9 @@ prisma/
 
 **先生ボトムナビ(5):** ホーム / 生徒 / 宿題 / 予定 / その他
 
-**生徒ボトムナビ(5):** ホーム / 宿題 / 予定 / 学習 / その他
+**生徒ボトムナビ(5):** ホーム / 宿題 / 予定 / 成績 / その他
 
-**保護者ボトムナビ(5):** ホーム / 予定 / 学習 / 請求 / その他
+**保護者ボトムナビ(5):** ホーム / 予定 / 成績 / 請求 / その他
 
 **設定（サイドバー下部・全ロール共通）:** 設定 / 使い方ガイド
 
@@ -166,7 +166,7 @@ prisma/
 | `1024px+` (lg) | サイドバーにラベル表示（w-60） |
 
 - テーブルは `overflow-hidden overflow-x-auto` + `min-w-[Xpx]` でモバイル対応
-- main の padding: `p-4 md:p-6 pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-6`（ボトムナビ + iOS ホームインジケーター分の余白）
+- main の下余白、固定CTA、宿題詳細の主要操作は `--mobile-nav-clearance` を共有し、浮いたボトムナビとiOSホームインジケーターを避ける
 
 ## CSR / SSR / SSG の使い分け
 

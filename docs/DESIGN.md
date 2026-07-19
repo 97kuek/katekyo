@@ -84,10 +84,10 @@ katekyo アプリのデザイントークン・コンポーネント規則。`sr
 | size | 高さ | 用途 |
 |---|---|---|
 | `lg` | 44px | 目立つ CTA |
-| `default` | 40px | 標準 |
-| `sm` | 32px | コンパクト |
-| `xs` | 28px | テーブル内・狭い場所 |
-| `icon-lg` / `icon` / `icon-sm` / `icon-xs` | 44/40/32/28px | アイコンのみボタン |
+| `default` | モバイル44px / デスクトップ40px | 標準 |
+| `sm` | モバイル44px / デスクトップ32px | コンパクト |
+| `xs` | モバイル44px / デスクトップ28px | テーブル内・狭い場所 |
+| `icon-lg` / `icon` / `icon-sm` / `icon-xs` | モバイル44px、デスクトップは44/40/32/28px | アイコンのみボタン |
 
 ### 使用パターン
 
@@ -143,9 +143,9 @@ import { Button, buttonVariants } from "@/components/ui/button"
 - `overflow-hidden`: コンテンツがコンテナ外にはみ出さない
 - スクロールは内側の `<main>`（`overflow-y-auto`）が担当
 
-**main**: `flex-1 overflow-y-auto overflow-x-hidden overscroll-y-none p-4 md:p-6 pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-6`
+**main**: モバイル下余白は `--mobile-nav-clearance + 1rem`、デスクトップは `md:pb-6`
 
-- 下余白はモバイルのボトムナビ（`md:hidden`, 高さ ≈80px）+ iOS の safe-area 分
+- `--mobile-nav-clearance` はガラス面の高さと iOS safe-area を一元管理し、本文・固定CTA・宿題の主要操作で共有する
 
 **html/body** (`globals.css`): `overscroll-behavior: none` — iOS の elastic bounce を無効化
 
@@ -153,16 +153,16 @@ import { Button, buttonVariants } from "@/components/ui/button"
 
 ### ページ遷移
 
-`src/components/layout/page-content.tsx`（Client Component）が `usePathname()` を `key` に使い、ルート変更のたびにコンテンツをアンマウント→マウントして CSS アニメーションを再生する。
+`src/components/layout/page-content.tsx`（Client Component）が `usePathname()` を `key` に使い、ルート変更時は空間的な根拠のないスライドを避け、短いクロスフェードだけを再生する。
 
 ```css
 /* globals.css */
 @keyframes page-in {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 .animate-page-in {
-  animation: page-in 0.22s ease-out both;
+  animation: page-in 0.18s ease-out both;
 }
 ```
 
@@ -189,7 +189,10 @@ import { Button, buttonVariants } from "@/components/ui/button"
 ### ナビゲーション
 
 - **Sidebar**: `transition-all duration-150` でアクティブ背景が滑らかに切り替わる。非アクティブ項目はクリック時に `scale(0.97)` で沈む
-- **BottomNav**: アクティブアイコンは `scale(1.10)` に拡大、タップ時は `opacity: 0.6` でフィードバック
+- **BottomNav**: コンテンツ層から浮く単一の `liquid-glass-chrome` 面を使い、ガラス面を重ねない。選択項目は不透明なprimaryのアイコン背景で示す
+- Liquid Glass風の半透明素材はナビ・ツールバー・シートなどの機能層に限定し、コンテンツカードには使わない
+- `prefers-reduced-transparency` では不透明背景、`prefers-contrast: more` では高コントラストの枠線へフォールバックする
+- 「学習」「その他」のような集約タブは、配下画面でも選択状態を維持し現在地を見失わせない
 
 ### ローディング（Skeleton）
 
@@ -218,8 +221,8 @@ import { Button, buttonVariants } from "@/components/ui/button"
 | ロール | 項目 |
 | --- | --- |
 | 先生 | ホーム / 生徒 / 宿題 / 予定 / その他 |
-| 生徒 | ホーム / 宿題 / 予定 / 学習 / その他 |
-| 保護者 | ホーム / 予定 / 学習 / 請求 / その他 |
+| 生徒 | ホーム / 宿題 / 予定 / 成績 / その他 |
+| 保護者 | ホーム / 予定 / 成績 / 請求 / その他 |
 
 画面上の用語は「カレンダー」ではなく、利用目的を表す「予定」に統一する。
 

@@ -23,7 +23,7 @@ export default async function MorePage() {
                 key={href}
                 href={href}
                 prefetch={true}
-                className={`flex min-h-16 items-center gap-3 px-4 py-3 transition-colors hover:bg-muted ${index > 0 ? "border-t" : ""}`}
+                className={`flex min-h-16 items-center gap-3 px-4 py-3 transition-[background-color,transform] hover:bg-muted active:scale-[0.99] motion-reduce:transform-none motion-reduce:transition-none ${index > 0 ? "border-t" : ""}`}
               >
                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
                   <Icon className="h-4 w-4" aria-hidden />

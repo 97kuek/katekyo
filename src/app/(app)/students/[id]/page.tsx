@@ -30,6 +30,19 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
 
   const isFull = gardenCount >= GARDEN_CAPACITY
   const isWithered = problemCount > 0 && gardenCount > 0
+  const homeworkOverview = reviewCount > 0
+    ? {
+        href: `/homework?studentId=${student.id}&view=review`,
+        label: "確認待ち",
+        count: reviewCount,
+        description: `期限超過・差し戻し ${problemCount}件`,
+      }
+    : {
+        href: `/homework?studentId=${student.id}&view=active`,
+        label: problemCount > 0 ? "対応が必要" : "宿題の要対応",
+        count: problemCount,
+        description: problemCount > 0 ? "期限超過または差し戻し" : "現在はありません",
+      }
 
   const navLinks = [
     { href: `/homework?studentId=${student.id}`, Icon: ClipboardList, label: "宿題" },
@@ -57,18 +70,18 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
       <section aria-labelledby="student-overview" className="space-y-3">
         <h2 id="student-overview" className="text-sm font-semibold">現在の状況</h2>
         <div className="grid gap-3 sm:grid-cols-3">
-          <Link href={`/homework?studentId=${student.id}&view=review`} className="rounded-lg border bg-card p-4 transition-colors hover:bg-muted">
-            <p className="text-xs text-muted-foreground">確認待ち</p>
-            <p className="mt-1 text-2xl font-bold tabular-nums">{reviewCount}<span className="ml-1 text-sm font-normal text-muted-foreground">件</span></p>
-            <p className="mt-1 text-xs text-muted-foreground">期限超過・差し戻し {problemCount}件</p>
+          <Link href={homeworkOverview.href} className="rounded-lg border bg-card p-4 transition-[background-color,transform] hover:bg-muted active:scale-[0.99] motion-reduce:transform-none motion-reduce:transition-none">
+            <p className="text-xs text-muted-foreground">{homeworkOverview.label}</p>
+            <p className="mt-1 text-2xl font-bold tabular-nums">{homeworkOverview.count}<span className="ml-1 text-sm font-normal text-muted-foreground">件</span></p>
+            <p className="mt-1 text-xs text-muted-foreground">{homeworkOverview.description}</p>
           </Link>
-          <Link href={`/calendar?studentId=${student.id}`} className="rounded-lg border bg-card p-4 transition-colors hover:bg-muted">
+          <Link href={`/calendar?studentId=${student.id}`} className="rounded-lg border bg-card p-4 transition-[background-color,transform] hover:bg-muted active:scale-[0.99] motion-reduce:transform-none motion-reduce:transition-none">
             <p className="text-xs text-muted-foreground">次回授業</p>
             {nextLesson ? (
               <p className="mt-1 font-semibold">{nextLesson.date.toLocaleDateString("ja-JP", { timeZone: "Asia/Tokyo", month: "numeric", day: "numeric", weekday: "short" })}<span className="ml-2 text-sm font-normal text-muted-foreground">{nextLesson.date.toLocaleTimeString("ja-JP", { timeZone: "Asia/Tokyo", hour: "2-digit", minute: "2-digit" })}</span></p>
             ) : <p className="mt-1 text-sm text-muted-foreground">予定はありません</p>}
           </Link>
-          <Link href={`/grades?studentId=${student.id}`} className="rounded-lg border bg-card p-4 transition-colors hover:bg-muted">
+          <Link href={`/grades?studentId=${student.id}`} className="rounded-lg border bg-card p-4 transition-[background-color,transform] hover:bg-muted active:scale-[0.99] motion-reduce:transform-none motion-reduce:transition-none">
             <p className="text-xs text-muted-foreground">直近の成績</p>
             {latestGrade ? (
               <><p className="mt-1 truncate font-semibold">{latestGrade.testName}</p><p className="mt-1 text-sm text-muted-foreground">{latestGrade.score != null ? `${latestGrade.score}${latestGrade.maxScore != null ? `/${latestGrade.maxScore}` : ""}` : latestGrade.deviation != null ? `偏差値 ${latestGrade.deviation}` : "記録あり"}</p></>
@@ -84,7 +97,7 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
             <Link
               key={href}
               href={href}
-              className={`flex min-h-14 items-center gap-3 px-4 py-3 transition-colors hover:bg-muted ${index > 0 ? "border-t sm:border-t-0" : ""} ${index >= 2 ? "sm:border-t" : ""} ${index % 2 === 1 ? "sm:border-l" : ""}`}
+              className={`flex min-h-14 items-center gap-3 px-4 py-3 transition-[background-color,transform] hover:bg-muted active:scale-[0.99] motion-reduce:transform-none motion-reduce:transition-none ${index > 0 ? "border-t sm:border-t-0" : ""} ${index >= 2 ? "sm:border-t" : ""} ${index % 2 === 1 ? "sm:border-l" : ""}`}
             >
               <Icon className="h-4 w-4 text-muted-foreground shrink-0" aria-hidden />
               <span className="font-medium text-sm">{label}</span>

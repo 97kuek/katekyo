@@ -274,7 +274,7 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
       )}
 
       {primaryAction && (
-        <div className="sticky bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-20 -mx-2 rounded-xl border bg-background/95 p-2 shadow-lg backdrop-blur sm:hidden">
+        <div className="translucent-chrome sticky bottom-[var(--mobile-nav-clearance)] z-20 -mx-2 rounded-xl border bg-background/95 p-2 shadow-lg backdrop-blur sm:hidden">
           <div className="grid">{primaryAction}</div>
         </div>
       )}

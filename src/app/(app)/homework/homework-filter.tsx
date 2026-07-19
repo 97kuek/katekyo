@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation"
 import { useEffect, useState, useTransition } from "react"
-import { ListFilter, Search, X } from "lucide-react"
+import { ListFilter, LoaderCircle, Search, X } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
@@ -66,7 +66,7 @@ export function HomeworkFilter({ students, subjects }: { students: Student[]; su
   }
 
   return (
-    <div className={`space-y-2 transition-opacity duration-150 ${isPending ? "opacity-50 pointer-events-none" : ""}`}>
+    <div className="space-y-2" aria-busy={isPending}>
       <div className="flex items-center gap-2">
         <label className="relative min-w-0 flex-1">
           <span className="sr-only">宿題を検索</span>
@@ -76,8 +76,11 @@ export function HomeworkFilter({ students, subjects }: { students: Student[]; su
             placeholder="宿題を検索"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="pl-9 md:h-9"
+            className="pl-9 pr-9 md:h-9"
           />
+          {isPending && (
+            <LoaderCircle className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground motion-reduce:animate-none" aria-hidden />
+          )}
         </label>
         <details className="group relative">
           <summary className="flex min-h-11 cursor-pointer list-none items-center gap-1.5 rounded-full border bg-background px-3 text-sm font-medium hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden">

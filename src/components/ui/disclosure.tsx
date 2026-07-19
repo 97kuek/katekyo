@@ -21,7 +21,7 @@ export function Disclosure({
           <span className="block text-sm font-medium">{title}</span>
           {description && <span className="mt-0.5 block text-xs text-muted-foreground">{description}</span>}
         </span>
-        <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
+        <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180 motion-reduce:transition-none" aria-hidden />
       </summary>
       <div className="border-t px-4 py-4">{children}</div>
     </details>

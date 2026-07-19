@@ -15,6 +15,13 @@ import {
 
 export type AppRole = "teacher" | "student" | "parent"
 
+export type MobileNavigationItem = {
+  href: string
+  label: string
+  icon: typeof LayoutDashboard
+  activePaths?: readonly string[]
+}
+
 export type MoreNavigationGroup = {
   label: string
   items: Array<{
@@ -94,29 +101,49 @@ export const desktopNavigation = {
   ],
 } as const
 
-export const mobileNavigation = {
+export const mobileNavigation: Record<AppRole, MobileNavigationItem[]> = {
   teacher: [
     { href: "/dashboard", label: "ホーム", icon: LayoutDashboard },
     { href: "/students", label: "生徒", icon: GraduationCap },
     { href: "/homework", label: "宿題", icon: ClipboardList },
     { href: "/calendar", label: "予定", icon: CalendarDays },
-    { href: "/more", label: "その他", icon: Grid2X2 },
+    {
+      href: "/more",
+      label: "その他",
+      icon: Grid2X2,
+      activePaths: ["/more", "/grades", "/billing", "/profile", "/settings", "/help"],
+    },
   ],
   student: [
     { href: "/dashboard", label: "ホーム", icon: LayoutDashboard },
     { href: "/homework", label: "宿題", icon: ClipboardList },
     { href: "/calendar", label: "予定", icon: CalendarDays },
-    { href: "/grades", label: "学習", icon: BarChart2 },
-    { href: "/more", label: "その他", icon: Grid2X2 },
+    { href: "/grades", label: "成績", icon: BarChart2 },
+    {
+      href: "/more",
+      label: "その他",
+      icon: Grid2X2,
+      activePaths: ["/more", "/garden", "/materials", "/profile", "/settings", "/help", "/parent-invite"],
+    },
   ],
   parent: [
     { href: "/dashboard", label: "ホーム", icon: LayoutDashboard },
     { href: "/calendar", label: "予定", icon: CalendarDays },
-    { href: "/grades", label: "学習", icon: BarChart2 },
+    { href: "/grades", label: "成績", icon: BarChart2 },
     { href: "/billing", label: "請求", icon: Receipt },
-    { href: "/more", label: "その他", icon: Grid2X2 },
+    {
+      href: "/more",
+      label: "その他",
+      icon: Grid2X2,
+      activePaths: ["/more", "/homework", "/garden", "/profile", "/settings", "/help"],
+    },
   ],
-} as const
+}
+
+export function isMobileNavigationItemActive(pathname: string, item: MobileNavigationItem): boolean {
+  const paths = item.activePaths ?? [item.href]
+  return paths.some((path) => pathname === path || pathname.startsWith(`${path}/`))
+}
 
 export function normalizeRole(role: string): AppRole {
   return role === "teacher" || role === "parent" ? role : "student"

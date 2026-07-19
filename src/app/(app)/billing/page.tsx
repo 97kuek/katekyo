@@ -140,7 +140,7 @@ export default async function BillingPage({
 
           <nav aria-label="支払い状態" className="flex rounded-lg border bg-card p-1">
             {[{ value: "unpaid", label: "未入金", count: unpaidCount }, { value: "paid", label: "入金済み", count: paidCount }].map((item) => (
-              <Link key={item.value} href={`/billing?year=${year}&month=${month + 1}&status=${item.value}`} prefetch={true} aria-current={currentStatus === item.value ? "page" : undefined} className={`flex min-h-10 flex-1 items-center justify-center rounded-md text-sm font-medium ${currentStatus === item.value ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}>{item.label} {item.count}</Link>
+              <Link key={item.value} href={`/billing?year=${year}&month=${month + 1}&status=${item.value}`} prefetch={true} aria-current={currentStatus === item.value ? "page" : undefined} className={`flex min-h-11 flex-1 items-center justify-center rounded-md text-sm font-medium active:opacity-75 ${currentStatus === item.value ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}>{item.label} {item.count}</Link>
             ))}
           </nav>
 
