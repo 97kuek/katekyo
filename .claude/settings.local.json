@@ -69,7 +69,11 @@
       "Bash(echo \"TSC_EXIT:$?\")",
       "Bash(node scripts/check-ui-consistency.mjs)",
       "Bash(npm test *)",
-      "Bash(node *)"
+      "Bash(node *)",
+      "Bash(java -version)",
+      "Bash(gh run *)",
+      "Bash(curl -s --max-time 20 -X POST --data-binary @docs/diagrams/sequence-lesson-reminder.puml -H \"Content-Type: text/plain\" https://kroki.io/plantuml/svg)",
+      "Bash(curl *)"
     ],
     "additionalDirectories": [
       "c:\\Users\\yamashita\\Documents\\katekyo\\.claude"

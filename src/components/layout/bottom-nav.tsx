@@ -42,6 +42,7 @@ export default function BottomNav({ role }: { role: string }) {
             <Link
               key={href}
               href={href}
+              aria-current={active ? "page" : undefined}
               className={cn(
                 "relative flex flex-1 flex-col items-center justify-center py-3 gap-1 font-medium transition-all duration-200 active:opacity-60",
                 "text-[11px]",

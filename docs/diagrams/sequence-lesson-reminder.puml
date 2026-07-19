@@ -7,10 +7,10 @@ autonumber
 actor "先生" as Teacher
 participant "calendar action" as Action
 participant "QStash adapter" as Adapter
-cloud "Upstash QStash" as Qstash
+queue "Upstash QStash" as Qstash
 participant "lesson-reminder webhook / cron" as Handler
 database "PostgreSQL\nPrisma" as DB
-cloud "LINE Messaging API" as Line
+participant "LINE Messaging API" as Line
 
 Teacher -> Action : online授業を作成・更新
 Action -> DB : Lessonを保存\n[teacherIdで生徒を所有確認]

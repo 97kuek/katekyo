@@ -12,6 +12,8 @@ type Props = {
   actionWidth?: number
   /** カード本体に付ける追加クラス */
   className?: string
+  /** アクション領域の開閉が確定した時に呼ばれる（閉時に確認状態を戻す等に使う） */
+  onOpenChange?: (open: boolean) => void
   children: React.ReactNode
 }
 
@@ -26,6 +28,7 @@ export function SwipeableRow({
   actions,
   actionWidth = 112,
   className,
+  onOpenChange,
   children,
 }: Props) {
   const [offset, setOffset] = useState(0)
@@ -42,6 +45,11 @@ export function SwipeableRow({
   const spring = useRef<SpringHandle | null>(null)
   // リリース速度算出用の直近の移動履歴
   const history = useRef<{ x: number; t: number }[]>([])
+  const isOpenRef = useRef(false)
+  const onOpenChangeRef = useRef(onOpenChange)
+  useEffect(() => {
+    onOpenChangeRef.current = onOpenChange
+  })
 
   const minOffset = -(actionWidth + 18)
 
@@ -65,7 +73,12 @@ export function SwipeableRow({
         response: 0.3,
         onUpdate: setPosition,
       })
-      setIsOpen(target !== 0)
+      const nextOpen = target !== 0
+      if (isOpenRef.current !== nextOpen) {
+        isOpenRef.current = nextOpen
+        onOpenChangeRef.current?.(nextOpen)
+      }
+      setIsOpen(nextOpen)
     },
     [setPosition]
   )

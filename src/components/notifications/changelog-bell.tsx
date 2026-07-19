@@ -17,8 +17,14 @@ function formatTime(iso: string) {
 
 export default function ChangelogBell({ notificationData }: { notificationData: NotificationData }) {
   const [hasUnread, setHasUnread] = useState(false)
-  const [open, setOpen] = useState(false)
+  // mounted は DOM の有無、visible は enter/exit トランジションの状態。
+  // 退出アニメーションを見せるため、閉じる時は visible → (遅延) → mounted の順に落とす
+  const [mounted, setMounted] = useState(false)
+  const [visible, setVisible] = useState(false)
   const panelRef = useRef<HTMLDivElement>(null)
+  const bellRef = useRef<HTMLButtonElement>(null)
+  const closeButtonRef = useRef<HTMLButtonElement>(null)
+  const closeTimer = useRef(0)
 
   // localStorage（クライアント専用ストア）をハイドレーション後に読む必要があるため effect で行う
   useEffect(() => {
@@ -26,31 +32,55 @@ export default function ChangelogBell({ notificationData }: { notificationData: 
     setHasUnread(localStorage.getItem(STORAGE_KEY) !== LATEST_CHANGELOG_ID)
   }, [])
 
+  // マウント直後の1フレーム後に visible にして enter トランジションを発火させ、
+  // フォーカスをパネル内（閉じるボタン）へ移す
   useEffect(() => {
-    if (!open) return
-    function handleClick(e: MouseEvent) {
+    if (!mounted) return
+    const raf = requestAnimationFrame(() => setVisible(true))
+    closeButtonRef.current?.focus()
+    return () => cancelAnimationFrame(raf)
+  }, [mounted])
+
+  useEffect(() => {
+    if (!mounted) return
+    function handlePointerDown(e: PointerEvent) {
       if (panelRef.current && !panelRef.current.contains(e.target as Node)) handleClose()
     }
-    document.addEventListener("mousedown", handleClick)
-    return () => document.removeEventListener("mousedown", handleClick)
-  }, [open])
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") handleClose()
+    }
+    document.addEventListener("pointerdown", handlePointerDown)
+    document.addEventListener("keydown", handleKeyDown)
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown)
+      document.removeEventListener("keydown", handleKeyDown)
+    }
+  }, [mounted])
+
+  useEffect(() => () => window.clearTimeout(closeTimer.current), [])
 
   function handleOpen() {
-    setOpen(true)
+    window.clearTimeout(closeTimer.current)
+    setMounted(true)
     setHasUnread(false)
     localStorage.setItem(STORAGE_KEY, LATEST_CHANGELOG_ID)
   }
 
   function handleClose() {
-    setOpen(false)
+    setVisible(false)
+    window.clearTimeout(closeTimer.current)
+    closeTimer.current = window.setTimeout(() => setMounted(false), 250)
+    bellRef.current?.focus()
   }
 
   return (
     <>
       <button
+        ref={bellRef}
         onClick={handleOpen}
         className="relative inline-flex items-center justify-center rounded-full p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
         aria-label="通知"
+        aria-expanded={mounted}
       >
         <Bell className="h-4 w-4" />
         {hasUnread && (
@@ -58,16 +88,22 @@ export default function ChangelogBell({ notificationData }: { notificationData: 
         )}
       </button>
 
-      {open && (
-        <div className="fixed inset-0 z-50 bg-black/30">
+      {mounted && (
+        <div
+          className={`fixed inset-0 z-50 bg-black/30 transition-opacity duration-200 ${visible ? "opacity-100" : "opacity-0"}`}
+        >
           <div
             ref={panelRef}
-            className="absolute right-0 top-0 h-full w-full max-w-sm bg-background shadow-xl flex flex-col border-l border-border"
+            role="dialog"
+            aria-modal="true"
+            aria-label="通知"
+            className={`absolute right-0 top-0 h-full w-full max-w-sm bg-background shadow-xl flex flex-col border-l border-border transition-transform duration-[250ms] ease-out motion-reduce:transition-none ${visible ? "translate-x-0" : "translate-x-full"}`}
           >
             {/* Header */}
             <div className="flex items-center justify-between border-b border-border px-5 py-4 shrink-0">
               <h2 className="font-semibold text-sm">通知</h2>
               <button
+                ref={closeButtonRef}
                 onClick={handleClose}
                 className="rounded-full p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
                 aria-label="閉じる"

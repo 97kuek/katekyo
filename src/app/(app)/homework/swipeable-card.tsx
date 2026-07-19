@@ -2,13 +2,13 @@
 
 import { useState, useTransition } from "react"
 import Link from "next/link"
-import { Pencil, Trash2 } from "lucide-react"
 import { deleteHomework } from "@/app/(app)/homework/[id]/actions"
 import { StatusBadge } from "@/components/homework/status-badge"
 import { deadlineColorClass, relativeDeadline, formatDate } from "@/lib/date-utils"
 import { isPendingStatus } from "@/lib/homework-status"
 import { haptic } from "@/lib/haptic"
 import { SwipeableRow } from "@/components/ui/swipeable-row"
+import { SwipeEditDeleteActions } from "@/components/ui/swipe-edit-delete-actions"
 import type { HomeworkStatus } from "@/generated/prisma/enums"
 
 type Props = {
@@ -43,34 +43,17 @@ export function SwipeableHomeworkCard({
     <SwipeableRow
       className={isOverdue ? "border-destructive/40" : ""}
       actionWidth={176}
+      onOpenChange={(open) => {
+        if (!open) setConfirming(false)
+      }}
       actions={
-        confirming ? (
-          <div className="flex w-full items-center justify-center gap-2 bg-destructive/10 px-2">
-            <button className="min-h-11 px-2 text-xs text-muted-foreground" onClick={() => setConfirming(false)}>戻る</button>
-            <button className="min-h-11 rounded-full bg-destructive px-3 text-xs font-semibold text-destructive-foreground disabled:opacity-50" disabled={isPending} onClick={handleDelete}>
-              {isPending ? "削除中..." : "削除する"}
-            </button>
-          </div>
-        ) : <>
-          {canEdit && (
-            <Link
-              href={`/homework/${id}/edit`}
-              className="flex-1 flex flex-col items-center justify-center gap-1 text-muted-foreground text-[11px] font-medium hover:text-foreground transition-colors"
-              onClick={() => haptic.tap()}
-            >
-              <Pencil className="h-[18px] w-[18px]" />
-              編集
-            </Link>
-          )}
-          <button
-            onClick={() => setConfirming(true)}
-            disabled={isPending}
-            className={`flex flex-col items-center justify-center gap-1 text-destructive text-[11px] font-medium transition-opacity hover:opacity-70 disabled:opacity-50 ${canEdit ? "flex-1 border-l border-border/60" : "w-full"}`}
-          >
-            <Trash2 className="h-[18px] w-[18px]" />
-            削除
-          </button>
-        </>
+        <SwipeEditDeleteActions
+          editHref={canEdit ? `/homework/${id}/edit` : undefined}
+          confirming={confirming}
+          onConfirmingChange={setConfirming}
+          isPending={isPending}
+          onDelete={handleDelete}
+        />
       }
     >
       <Link href={`/homework/${id}`} className="block">
