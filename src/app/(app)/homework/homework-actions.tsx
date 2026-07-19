@@ -22,12 +22,12 @@ export function HomeworkActions({
   return (
     <div className={`flex flex-wrap items-center justify-end gap-2 ${className}`}>
       {showDetails && (
-        <Link href={`/homework/${homeworkId}`} className={buttonVariants({ variant: "outline", size })}>
+        <Link href={`/homework/${homeworkId}`} className={buttonVariants({ variant: "ghost", size })}>
           <Eye aria-hidden />詳細
         </Link>
       )}
       {canEdit && (
-        <Link href={`/homework/${homeworkId}/edit`} className={buttonVariants({ variant: "outline", size })}>
+        <Link href={`/homework/${homeworkId}/edit`} className={buttonVariants({ variant: "ghost", size })}>
           <Pencil aria-hidden />編集
         </Link>
       )}

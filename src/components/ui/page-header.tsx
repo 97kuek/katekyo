@@ -29,9 +29,14 @@ export function PageHeader({
   useEffect(() => {
     const scrollContainer = headerRef.current?.closest("main")
     if (!scrollContainer) return
+    const desktopQuery = window.matchMedia("(min-width: 768px)")
 
     const update = () => {
       frameRef.current = null
+      if (!desktopQuery.matches) {
+        setCompact(false)
+        return
+      }
       const scrollTop = scrollContainer.scrollTop
       // Hysteresis prevents the toolbar from flickering while its own height changes.
       setCompact((current) => (current ? scrollTop > 12 : scrollTop > 48))
@@ -42,8 +47,10 @@ export function PageHeader({
 
     update()
     scrollContainer.addEventListener("scroll", onScroll, { passive: true })
+    desktopQuery.addEventListener("change", update)
     return () => {
       scrollContainer.removeEventListener("scroll", onScroll)
+      desktopQuery.removeEventListener("change", update)
       if (frameRef.current !== null) cancelAnimationFrame(frameRef.current)
     }
   }, [])
@@ -53,7 +60,7 @@ export function PageHeader({
       ref={headerRef}
       data-compact={compact || undefined}
       className={cn(
-        "sticky top-0 z-40 -mx-3 rounded-b-3xl px-3 transition-[padding,background-color,border-color,box-shadow,backdrop-filter] duration-300 motion-reduce:transition-none",
+        "-mx-1 px-1 md:sticky md:top-0 md:z-40 md:-mx-3 md:rounded-b-2xl md:px-3 transition-[padding,background-color,border-color,box-shadow,backdrop-filter] duration-300 motion-reduce:transition-none",
         compact ? "liquid-glass-chrome py-2 shadow-sm" : "border-transparent py-0",
         className
       )}

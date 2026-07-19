@@ -2,7 +2,7 @@ import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { db } from "@/lib/db"
 import Link from "next/link"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import CreateHomeworkForm from "./create-form"
 import { PageHeader } from "@/components/ui/page-header"
 
@@ -53,12 +53,8 @@ export default async function NewHomeworkPage({ searchParams }: { searchParams: 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <PageHeader backHref="/homework" backLabel="宿題一覧" title="宿題を作成" description="生徒に新しい宿題を割り当てます。" />
-      <Card>
-        <CardHeader>
-          <CardTitle>宿題を作成する</CardTitle>
-          <CardDescription>生徒に新しい宿題を割り当てます</CardDescription>
-        </CardHeader>
-        <CardContent>
+      <Card size="sm">
+        <CardContent className="py-1">
           <CreateHomeworkForm students={students} materialsByStudent={materialsByStudent} subjects={subjects} defaultStudentId={studentId} />
         </CardContent>
       </Card>

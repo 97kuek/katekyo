@@ -137,7 +137,7 @@ import { Button, buttonVariants } from "@/components/ui/button"
 | `apple-interactive-card` | カード全体が遷移する場合の押下・ホバー反応 |
 | `ActionList` | iOSの設定画面に近い、編集・変更・削除などの明示的な操作行 |
 | `Sheet` | 一覧を離れずに作成・編集する浮遊タスク面 |
-| `PageHeader` | 大きなページタイトル。スクロール後はコンパクトなガラスツールバーへ連続的に変化 |
+| `PageHeader` | 大きなページタイトル。デスクトップではスクロール後にコンパクトなガラスツールバーへ変化 |
 | `ChoiceControl` | チェック／ラジオ選択を、44pxの押下領域とチェックアイコンを持つ共通ピルへ統一 |
 
 - 通常カードは透明にしない。可読性と情報階層を守るため、`apple-card-surface` は実体色を使う
@@ -165,6 +165,7 @@ import { Button, buttonVariants } from "@/components/ui/button"
 
 - フィルターバー等の**コンパクトな操作系**（`h-8`/`h-9`）は別系統。フォーム入力には使わない
 - 送信ボタンは長いフォームではモバイルで `StickyFormActions` により画面下部に固定する。シート内では `contained` を指定し、シート内下端に留める（[architecture.md](architecture.md#モバイル操作safe-area) 参照）
+- 作成フォームは必須項目を先に置き、説明・教材・科目・料金などの補足項目は1つの「詳細設定／補足設定」にまとめる。短いフォームでは固定CTAを使わず、末尾の小さな主要ボタン1つにする
 - 必須／任意を色だけで区別せず、必ず文字で表示する
 - `Card` / `CardContent` / `FormField` / 各入力部品は `min-width: 0` と `max-width: 100%` を持ち、日付入力や長い値でもモバイルのカード外へ出さない
 - 大文字・小文字、全角・半角、ハイフンや単位の要否が迷いやすい項目は入力欄の直下に明記する
@@ -176,6 +177,7 @@ import { Button, buttonVariants } from "@/components/ui/button"
 - 空状態は `EmptyState` を使い、アイコン・見出し・説明・CTAの余白を統一する
 - フォームの成功・エラーは `FormMessage` を使い、意味色は背景と同色の文字ではなくアイコンと枠線で示す
 - 一覧内の削除・解除確認は `InlineConfirmAction` を使い、「操作を開始 → 内容確認 → 実行」の2段階にする
+- インライン確認は操作列の次の行へ全幅で展開する。カード本文と横幅を取り合う位置や、本文へ重なる位置には置かない
 - `window.confirm` は画面やブラウザで見た目が変わるため使用しない
 
 ## レイアウト・ビューポート
@@ -189,7 +191,7 @@ import { Button, buttonVariants } from "@/components/ui/button"
 **main**: モバイル下余白は `--mobile-nav-clearance + 1rem`、デスクトップは `md:pb-6`
 
 - `--mobile-nav-clearance` はガラス面の高さと iOS safe-area を一元管理し、本文・固定CTA・宿題の主要操作で共有する
-- ページ先頭では大きなタイトルで現在地を示し、`main`を48px以上スクロールすると同じタイトルをコンパクトなガラスツールバーへ縮める。戻る導線と主要操作は位置を保ち、説明文だけを折りたたむ
+- ページ先頭では大きなタイトルで現在地を示す。デスクトップでは`main`を48px以上スクロールすると同じタイトルをコンパクトなガラスツールバーへ縮める。モバイルは固定ブランドHeaderと本文が重ならないよう、ページタイトルを通常フローのままスクロールさせる
 
 **html/body** (`globals.css`): `overscroll-behavior: none` — iOS の elastic bounce を無効化
 

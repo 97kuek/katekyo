@@ -41,8 +41,13 @@ export function HomeworkForm({ students, defaultDate, embedded = false, onClose 
   if (!open) return null
 
   return (
-    <div className="apple-card-surface rounded-2xl p-3 space-y-3 w-full">
-      <h3 className="font-medium text-sm">宿題を追加</h3>
+    <section className="w-full min-w-0 rounded-xl border border-border/60 bg-background/70 p-3">
+      <div className="mb-3 flex min-w-0 items-center justify-between gap-2">
+        <h3 className="truncate text-sm font-semibold">宿題を追加</h3>
+        <Button type="button" variant="ghost" size="icon-xs" aria-label="宿題登録を閉じる" onClick={() => { setOpen(false); onClose?.() }}>
+          <X aria-hidden />
+        </Button>
+      </div>
       <form action={action} className="space-y-3">
         <PendingStatus pending={isPending} label="宿題を追加しています" />
         {state.error && <FormMessage type="error">{state.error} 入力内容を確認してください。</FormMessage>}
@@ -75,18 +80,17 @@ export function HomeworkForm({ students, defaultDate, embedded = false, onClose 
             <Input id={`${fieldPrefix}-homework-date`} name="dueDate" type="date" required defaultValue={defaultDate} className="md:h-9" />
           </FormField>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center justify-end gap-1.5 border-t border-border/60 pt-3">
+          <Button type="button" variant="ghost" size="sm" onClick={() => { setOpen(false); onClose?.() }}>
+            キャンセル
+          </Button>
           <Button type="submit" size="sm" disabled={isPending}>
             <Plus aria-hidden />
             {isPending ? "追加中..." : "追加"}
           </Button>
-          <Button type="button" variant="outline" size="sm" onClick={() => { setOpen(false); onClose?.() }}>
-            <X aria-hidden />
-            キャンセル
-          </Button>
         </div>
       </form>
-    </div>
+    </section>
   )
 }
 

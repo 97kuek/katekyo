@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { ChevronRight, CheckCircle2, FileText, Pencil, Plus, X } from "lucide-react"
+import { ChevronRight, CheckCircle2, Clock3, ExternalLink, FileText, Pencil, Plus, X } from "lucide-react"
 import { LessonForm } from "./lesson-form"
 import { LessonEditForm } from "./lesson-edit-form"
 import { Button, buttonVariants } from "@/components/ui/button"
@@ -40,15 +40,17 @@ export function DayDetail({
   const [addType, setAddType] = useState<"lesson" | "homework" | "exam" | "menu" | null>(null)
 
   return (
-    <div className="apple-card-surface rounded-2xl p-4 space-y-3">
-      <h2 className="font-semibold text-sm">{dateStr}</h2>
-      {isTeacher && (
+    <div className="min-w-0 space-y-3">
+      <div className="flex min-w-0 items-center justify-between gap-2 px-1">
+        <h2 className="min-w-0 truncate text-sm font-semibold">{dateStr}</h2>
+        {isTeacher && addType === null && (
+          <Button variant="secondary" size="icon-sm" aria-label="予定を追加" onClick={() => setAddType("menu")}><Plus aria-hidden /></Button>
+        )}
+      </div>
+      {isTeacher && addType !== null && (
         <div className="space-y-2">
-          {addType === null && (
-            <Button variant="secondary" size="icon-sm" aria-label="予定を追加" onClick={() => setAddType("menu")}><Plus aria-hidden /></Button>
-          )}
           {addType === "menu" && (
-            <div className="apple-card-surface max-w-sm overflow-hidden rounded-2xl p-1">
+            <div className="apple-card-surface w-full overflow-hidden rounded-2xl p-1 sm:max-w-sm">
               <div className="flex items-center justify-between px-2 py-1">
                 <span className="text-xs font-medium text-muted-foreground">追加する予定</span>
                 <Button size="icon-sm" variant="ghost" aria-label="追加メニューを閉じる" onClick={() => setAddType(null)}><X aria-hidden /></Button>
@@ -73,42 +75,27 @@ export function DayDetail({
             const now = new Date()
             const isPast = l.date < now
             return (
-              <div key={l.id} className="apple-card-surface rounded-2xl px-3 py-3">
-                <div className="flex items-start justify-between gap-2">
-                  {isTeacher && (isPast || !!l.completedAt) && (
-                    <LessonCompletionControl lessonId={l.id} completed={!!l.completedAt} />
-                  )}
-                  <div className="min-w-0 flex flex-1 items-center gap-x-2 gap-y-0.5 flex-wrap">
-                    {(isTeacher || showStudentNames) && <span className="text-sm font-medium">{l.student.user.name}</span>}
-                    <span className="text-xs text-muted-foreground">
+              <article key={l.id} className="apple-card-surface min-w-0 overflow-hidden rounded-2xl p-3">
+                <div className="min-w-0">
+                  <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+                    {(isTeacher || showStudentNames) && <h3 className="min-w-0 max-w-full truncate text-sm font-semibold">{l.student.user.name}</h3>}
+                    <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">
                       {l.type === "online" ? "オンライン" : "対面"}
                     </span>
-                    {l.durationMin && (
-                      <span className="text-xs text-muted-foreground">{l.durationMin}分</span>
-                    )}
                     {l.completedAt && (
-                      <span className="flex items-center gap-1 text-xs font-medium text-primary"><CheckCircle2 className="h-3.5 w-3.5" aria-hidden />完了</span>
+                      <span className="flex shrink-0 items-center gap-1 text-[11px] font-medium text-primary"><CheckCircle2 className="size-3.5" aria-hidden />完了</span>
                     )}
                   </div>
-                  {isTeacher && (
-                    <div className="flex items-center gap-1 shrink-0">
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={() => setEditingLessonId(editingLessonId === l.id ? null : l.id)}
-                        aria-label={editingLessonId === l.id ? "授業の編集を閉じる" : "授業を編集"}
-                      >
-                        {editingLessonId === l.id ? <X className="h-4 w-4" aria-hidden /> : <Pencil className="h-4 w-4" aria-hidden />}
-                      </Button>
-                      <DeleteLessonButton lessonId={l.id} />
-                    </div>
-                  )}
+                  <div className="mt-1.5 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                    <span className="inline-flex items-center gap-1 whitespace-nowrap">
+                      <Clock3 className="size-3.5" aria-hidden />
+                      {l.date.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })}〜
+                    </span>
+                    {l.durationMin && <span className="whitespace-nowrap">{l.durationMin}分</span>}
+                  </div>
                 </div>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  {l.date.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })}〜
-                </p>
                 {l.subjectIds.length > 0 && (
-                  <div className="flex gap-1 flex-wrap mt-1">
+                  <div className="mt-2 flex min-w-0 flex-wrap gap-1">
                     {l.subjectIds.map((sid) => {
                       const sub = subjects.find((s) => s.id === sid)
                       return sub ? (
@@ -117,23 +104,23 @@ export function DayDetail({
                     })}
                   </div>
                 )}
-                {l.notes && <p className="mt-1 flex items-start gap-1 text-xs text-muted-foreground"><FileText className="mt-0.5 h-3 w-3 shrink-0" aria-hidden />{l.notes}</p>}
+                {l.notes && <p className="mt-2 flex min-w-0 items-start gap-1.5 break-words text-xs leading-relaxed text-muted-foreground"><FileText className="mt-0.5 size-3.5 shrink-0" aria-hidden /><span className="min-w-0">{l.notes}</span></p>}
                 {l.type === "online" && l.meetLink && (
                   <a
                     href={l.meetLink}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={buttonVariants({ size: "xs" }) + " mt-1.5"}
+                    className={buttonVariants({ variant: "outline", size: "xs", className: "mt-2" })}
                   >
-                    Meet に参加する →
+                    <ExternalLink aria-hidden />Meet に参加
                   </a>
                 )}
                 {(isTeacher ? l.lessonLog : (l.lessonLogPublic ? l.lessonLog : null)) && (
-                  <div className="mt-2 bg-card border border-border rounded-md p-3">
+                  <div className="mt-2 min-w-0 rounded-xl border border-border/60 bg-muted/35 p-3">
                     <p className="text-xs font-medium text-muted-foreground mb-1">
                       授業ログ{isTeacher && l.lessonLogPublic && <span className="ml-1 text-primary">（生徒に公開中）</span>}
                     </p>
-                    <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">{l.lessonLog}</p>
+                    <p className="break-words whitespace-pre-wrap text-sm leading-relaxed text-foreground">{l.lessonLog}</p>
                   </div>
                 )}
                 {isTeacher && (l.hourlyRate || l.travelExpense != null) && (
@@ -142,10 +129,28 @@ export function DayDetail({
                     {l.travelExpense != null && l.travelExpense > 0 ? ` + 交通費¥${l.travelExpense.toLocaleString()}` : ""}
                   </p>
                 )}
+                {isTeacher && (
+                  <div className="mt-3 flex min-w-0 flex-wrap items-center gap-1 border-t border-border/60 pt-2">
+                    {(isPast || !!l.completedAt) && (
+                      <LessonCompletionControl lessonId={l.id} completed={!!l.completedAt} />
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="xs"
+                      onClick={() => setEditingLessonId(editingLessonId === l.id ? null : l.id)}
+                      aria-label={editingLessonId === l.id ? "授業の編集を閉じる" : "授業を編集"}
+                      className="ml-auto"
+                    >
+                      {editingLessonId === l.id ? <X aria-hidden /> : <Pencil aria-hidden />}
+                      {editingLessonId === l.id ? "閉じる" : "編集"}
+                    </Button>
+                    <DeleteLessonButton lessonId={l.id} />
+                  </div>
+                )}
                 {isTeacher && editingLessonId === l.id && (
                   <LessonEditForm lesson={l} onClose={() => setEditingLessonId(null)} subjects={subjects} />
                 )}
-              </div>
+              </article>
             )
           })}
         </div>

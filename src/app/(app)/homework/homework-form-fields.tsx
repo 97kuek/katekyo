@@ -14,9 +14,11 @@ type Subject = { id: string; name: string }
 export function HomeworkCoreFields({
   mode,
   defaults,
+  includeDescription = true,
 }: {
   mode: "create" | "edit"
   defaults?: { title?: string; description?: string; dueDate?: string }
+  includeDescription?: boolean
 }) {
   const isCreate = mode === "create"
   return (
@@ -32,20 +34,32 @@ export function HomeworkCoreFields({
           maxLength={100}
         />
       </FormField>
-      <FormField htmlFor="description" label="内容" hint="ページ範囲、提出方法、注意事項など、タイトルだけでは分からない指示を入力します。" example="教科書p.30〜35。途中式もノートに残してください">
-        <Textarea
-          id="description"
-          name="description"
-          rows={3}
-          className="resize-none"
-          defaultValue={defaults?.description}
-          placeholder={isCreate ? "ページ範囲や注意事項を入力" : undefined}
-        />
-      </FormField>
+      {includeDescription && <HomeworkDescriptionField mode={mode} defaultValue={defaults?.description} />}
       <FormField htmlFor="dueDate" label="期限" required hint="生徒の端末では日付選択として表示されます。">
         <Input id="dueDate" name="dueDate" type="date" required defaultValue={defaults?.dueDate} />
       </FormField>
     </>
+  )
+}
+
+export function HomeworkDescriptionField({
+  mode,
+  defaultValue,
+}: {
+  mode: "create" | "edit"
+  defaultValue?: string
+}) {
+  return (
+    <FormField htmlFor="description" label="内容" hint="ページ範囲、提出方法、注意事項など、タイトルだけでは分からない指示を入力します。" example="教科書p.30〜35。途中式もノートに残してください">
+      <Textarea
+        id="description"
+        name="description"
+        rows={3}
+        className="resize-none"
+        defaultValue={defaultValue}
+        placeholder={mode === "create" ? "ページ範囲や注意事項を入力" : undefined}
+      />
+    </FormField>
   )
 }
 

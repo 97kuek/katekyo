@@ -39,6 +39,7 @@ export function InlineConfirmAction({
         type="button"
         variant={triggerVariant}
         size={triggerSize}
+        aria-expanded={false}
         className={cn(destructive && "text-destructive hover:bg-muted hover:text-destructive", triggerClassName)}
         onClick={() => setConfirming(true)}
       >
@@ -49,20 +50,30 @@ export function InlineConfirmAction({
   }
 
   return (
-    <div className={`flex flex-wrap items-center justify-end gap-2 rounded-lg border p-2 origin-right animate-in fade-in-0 zoom-in-95 duration-150 motion-reduce:animate-none ${destructive ? "border-destructive/25 bg-destructive/10" : "border-border bg-muted"}`}>
-      <span className="text-xs text-foreground">{message}</span>
-      <Button type="button" variant="ghost" size="xs" disabled={isPending} onClick={() => setConfirming(false)}>
-        戻る
-      </Button>
-      <Button
-        type="button"
-        variant={destructive ? "destructive" : "default"}
-        size="xs"
-        disabled={isPending}
-        onClick={() => startTransition(onConfirm)}
-      >
-        {isPending ? pendingLabel : confirmLabel}
-      </Button>
+    <div
+      role="group"
+      aria-label={message}
+      className={cn(
+        "basis-full min-w-0 w-full rounded-xl border p-2.5 origin-top animate-in fade-in-0 slide-in-from-top-1 duration-150 motion-reduce:animate-none",
+        destructive ? "border-destructive/25 bg-destructive/8" : "border-border bg-muted/70"
+      )}
+    >
+      <p className="break-words text-xs leading-relaxed text-foreground">{message}</p>
+      <div className="mt-2 flex items-center justify-end gap-1.5">
+        <Button type="button" variant="ghost" size="xs" disabled={isPending} onClick={() => setConfirming(false)}>
+          戻る
+        </Button>
+        <Button
+          type="button"
+          variant={destructive ? "ghost" : "default"}
+          size="xs"
+          className={destructive ? "text-destructive hover:bg-muted hover:text-destructive" : undefined}
+          disabled={isPending}
+          onClick={() => startTransition(onConfirm)}
+        >
+          {isPending ? pendingLabel : confirmLabel}
+        </Button>
+      </div>
     </div>
   )
 }

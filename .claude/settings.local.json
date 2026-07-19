@@ -86,7 +86,8 @@
       "Bash(DATABASE_URL=\"postgresql://postgres:qa@localhost:5433/postgres\" npx prisma migrate deploy)",
       "Bash(DATABASE_URL=\"postgresql://postgres:qa@localhost:5433/postgres\" npx prisma db push --skip-generate)",
       "Bash(DATABASE_URL=\"postgresql://postgres:qa@localhost:5433/postgres\" npx prisma db push --skip-generate --accept-data-loss)",
-      "Bash(npx tsx *)"
+      "Bash(npx tsx *)",
+      "Bash(docker rm *)"
     ],
     "additionalDirectories": [
       "c:\\Users\\yamashita\\Documents\\katekyo\\.claude"

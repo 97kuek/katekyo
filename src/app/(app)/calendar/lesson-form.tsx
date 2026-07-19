@@ -11,7 +11,7 @@ import { FormMessage } from "@/components/ui/form-message"
 import { PendingStatus } from "@/components/ui/pending-status"
 import { FormField, FormFieldLabel } from "@/components/ui/form-field"
 import { ChoiceControl } from "@/components/ui/choice-control"
-import { Plus, X } from "lucide-react"
+import { ChevronDown, Plus, SlidersHorizontal, X } from "lucide-react"
 
 const DURATION_KEY = "lesson_default_duration"
 
@@ -100,8 +100,13 @@ export function LessonForm({ students, defaultDate, subjects, embedded = false, 
   if (!open) return null
 
   return (
-    <div className="apple-card-surface rounded-2xl p-4 space-y-3 w-full">
-      <h3 className="font-medium text-sm">授業を追加</h3>
+    <section className="w-full min-w-0 rounded-xl border border-border/60 bg-background/70 p-3">
+      <div className="mb-3 flex min-w-0 items-center justify-between gap-2">
+        <h3 className="truncate text-sm font-semibold">授業を追加</h3>
+        <Button type="button" variant="ghost" size="icon-xs" aria-label="授業登録を閉じる" onClick={() => { setOpen(false); onClose?.() }}>
+          <X aria-hidden />
+        </Button>
+      </div>
       <form action={action} className="space-y-3">
         {state.error && <FormMessage type="error">{state.error} 日付・時刻・金額の入力を確認してください。</FormMessage>}
         <FormProgress />
@@ -148,12 +153,14 @@ export function LessonForm({ students, defaultDate, subjects, embedded = false, 
           </div>
         </div>
 
-        <details className="group rounded-lg border bg-muted/30">
-          <summary className="flex min-h-11 cursor-pointer list-none items-center px-3 text-sm font-medium text-muted-foreground hover:text-foreground [&::-webkit-details-marker]:hidden">
-            詳細設定（時間・料金・科目・繰り返し）
+        <details className="group min-w-0 rounded-xl border border-border/60 bg-muted/25">
+          <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 px-3 text-sm font-medium text-muted-foreground hover:text-foreground [&::-webkit-details-marker]:hidden">
+            <SlidersHorizontal className="size-4 shrink-0" aria-hidden />
+            <span className="min-w-0 flex-1 truncate">詳細設定</span>
+            <ChevronDown className="size-4 shrink-0 transition-transform group-open:rotate-180 motion-reduce:transition-none" aria-hidden />
           </summary>
-          <div className="space-y-3 border-t p-3">
-        <p className="text-xs leading-relaxed text-muted-foreground">時間・金額は半角数字で入力します。カンマ、単位、ハイフンは不要です。</p>
+          <div className="min-w-0 space-y-3 border-t border-border/60 p-3">
+        <p className="text-xs leading-relaxed text-muted-foreground">時間・料金・科目・繰り返しを必要な場合だけ設定できます。数値は半角、カンマ・単位・ハイフンなしで入力してください。</p>
 
         <FormField htmlFor="durationMin" label="時間（分）" hint="半角数字で入力します。単位は不要です。">
           <Input
@@ -234,17 +241,16 @@ export function LessonForm({ students, defaultDate, subjects, embedded = false, 
           </div>
         </details>
 
-        <div className="flex gap-2 pt-1">
+        <div className="flex items-center justify-end gap-1.5 border-t border-border/60 pt-3">
+          <Button type="button" variant="ghost" size="sm" onClick={() => { setOpen(false); onClose?.() }}>
+            キャンセル
+          </Button>
           <Button type="submit" size="sm" disabled={isPending}>
             <Plus aria-hidden />
             {isPending ? "追加中..." : "追加"}
           </Button>
-          <Button type="button" variant="outline" size="sm" onClick={() => { setOpen(false); onClose?.() }}>
-            <X aria-hidden />
-            キャンセル
-          </Button>
         </div>
       </form>
-    </div>
+    </section>
   )
 }

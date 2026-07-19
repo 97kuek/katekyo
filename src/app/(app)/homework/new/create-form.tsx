@@ -5,15 +5,14 @@ import Link from "next/link"
 import { createHomework } from "./actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { StickyFormActions } from "@/components/ui/sticky-form-actions"
 import { Select } from "@/components/ui/select"
-import { HomeworkCoreFields, SubjectCheckboxes } from "../homework-form-fields"
+import { HomeworkCoreFields, HomeworkDescriptionField, SubjectCheckboxes } from "../homework-form-fields"
 import { FormField } from "@/components/ui/form-field"
 import { FormProgress } from "@/components/ui/form-progress"
 import { FormMessage } from "@/components/ui/form-message"
 import { PendingStatus } from "@/components/ui/pending-status"
 import { ChoiceControl } from "@/components/ui/choice-control"
-import { Plus } from "lucide-react"
+import { ChevronDown, Plus, SlidersHorizontal } from "lucide-react"
 
 type Student = {
   id: string
@@ -49,7 +48,7 @@ export default function CreateHomeworkForm({
   const materials = selectedStudentId ? (materialsByStudent[selectedStudentId] ?? []) : []
 
   return (
-    <form action={action} className="space-y-4">
+    <form action={action} className="min-w-0 space-y-4">
       {state.error && <FormMessage type="error">{state.error} 該当する項目を確認して、もう一度保存してください。</FormMessage>}
       <FormProgress />
       <PendingStatus pending={isPending} label="宿題を作成しています" />
@@ -76,36 +75,48 @@ export default function CreateHomeworkForm({
           </Select>
         )}
       </FormField>
-      <HomeworkCoreFields mode="create" defaults={{ dueDate: tomorrowISO() }} />
-      {selectedStudentId && (
-        <FormField htmlFor="materialId" label="使用教材" hint="登録済み教材を選ぶと、生徒がどの教材を使うか迷いません。">
-          {materials.length === 0 ? (
-            <p className="text-xs text-muted-foreground">
-              この生徒の教材が未登録です。
-              <Link href={`/students/${selectedStudentId}/materials`} className="ml-1 inline-flex min-h-11 items-center underline">
-                教材を登録する
-              </Link>
-            </p>
-          ) : (
-            <Select id="materialId" name="materialId">
-              <option value="">指定しない</option>
-              {materials.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.name}
-                </option>
-              ))}
-            </Select>
+      <HomeworkCoreFields mode="create" defaults={{ dueDate: tomorrowISO() }} includeDescription={false} />
+
+      <details className="group min-w-0 rounded-xl border border-border/60 bg-muted/25">
+        <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 px-3 text-sm font-medium text-muted-foreground hover:text-foreground [&::-webkit-details-marker]:hidden">
+          <SlidersHorizontal className="size-4 shrink-0" aria-hidden />
+          <span className="min-w-0 flex-1 truncate">補足設定</span>
+          <ChevronDown className="size-4 shrink-0 transition-transform group-open:rotate-180 motion-reduce:transition-none" aria-hidden />
+        </summary>
+        <div className="min-w-0 space-y-4 border-t border-border/60 p-3">
+          <HomeworkDescriptionField mode="create" />
+          {selectedStudentId && (
+            <FormField htmlFor="materialId" label="使用教材" hint="登録済み教材を選ぶと、生徒がどの教材を使うか迷いません。">
+              {materials.length === 0 ? (
+                <p className="text-xs text-muted-foreground">
+                  この生徒の教材が未登録です。
+                  <Link href={`/students/${selectedStudentId}/materials`} className="ml-1 inline-flex min-h-11 items-center underline">
+                    教材を登録する
+                  </Link>
+                </p>
+              ) : (
+                <Select id="materialId" name="materialId">
+                  <option value="">指定しない</option>
+                  {materials.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.name}
+                    </option>
+                  ))}
+                </Select>
+              )}
+            </FormField>
           )}
-        </FormField>
-      )}
-      <SubjectCheckboxes label="科目タグ（任意・複数選択可）" subjects={subjects} />
-      <ChoiceControl type="checkbox" name="requiresPhoto" id="requiresPhoto" value="1" label="写真提出を必須にする" />
-      <StickyFormActions>
-        <Button type="submit" className="w-full md:w-auto" disabled={isPending}>
+          <SubjectCheckboxes label="科目タグ（複数選択可）" subjects={subjects} />
+          <ChoiceControl type="checkbox" name="requiresPhoto" id="requiresPhoto" value="1" label="写真提出を必須にする" />
+        </div>
+      </details>
+
+      <div className="flex items-center justify-end border-t border-border/60 pt-3">
+        <Button type="submit" size="sm" disabled={isPending}>
           <Plus aria-hidden />
           {isPending ? "作成中..." : "作成"}
         </Button>
-      </StickyFormActions>
+      </div>
     </form>
   )
 }

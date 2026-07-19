@@ -25,10 +25,10 @@ export function HomeworkCard({
   const canEdit = isPendingStatus(status)
 
   return (
-    <article className={`apple-card-surface rounded-2xl p-4 ${isOverdue ? "border-destructive/40" : ""}`}>
+    <article className={`apple-card-surface min-w-0 overflow-hidden rounded-2xl p-4 ${isOverdue ? "border-destructive/40" : ""}`}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <Link href={`/homework/${id}`} className="inline-flex min-h-11 items-center font-medium hover:underline">{title}</Link>
+          <Link href={`/homework/${id}`} className="inline-flex min-h-11 max-w-full items-center break-words font-medium hover:underline">{title}</Link>
           <p className="mt-0.5 text-sm text-muted-foreground">{studentName}</p>
           {subjectNames.length > 0 && (
             <div className="mt-1.5 flex flex-wrap gap-1">
@@ -48,7 +48,7 @@ export function HomeworkCard({
         homeworkId={id}
         canEdit={canEdit}
         showDetails
-        className="mt-3 border-t pt-3"
+        className="mt-3 min-w-0 border-t border-border/60 pt-2"
       />
     </article>
   )
