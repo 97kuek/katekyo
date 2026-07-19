@@ -2,7 +2,7 @@ import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { db } from "@/lib/db"
 import Link from "next/link"
-import { buttonVariants } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { revokeInvite } from "./actions"
 import { CopyInviteLink } from "./copy-link"
 import { formatDate } from "@/lib/date-utils"
@@ -76,12 +76,14 @@ export default async function InvitesPage() {
                         <CopyInviteLink token={i.token} />
                         <form action={revokeInvite}>
                           <input type="hidden" name="id" value={i.id} />
-                          <button
+                          <Button
                             type="submit"
-                            className="text-xs text-destructive hover:text-destructive/80 hover:underline"
+                            variant="ghost"
+                            size="xs"
+                            className="text-destructive hover:text-destructive"
                           >
                             取り消す
-                          </button>
+                          </Button>
                         </form>
                       </div>
                     </td>
@@ -117,12 +119,14 @@ export default async function InvitesPage() {
                     <td className="px-4 py-3 text-right">
                       <form action={revokeInvite}>
                         <input type="hidden" name="id" value={i.id} />
-                        <button
+                        <Button
                           type="submit"
-                          className="text-xs text-muted-foreground hover:text-destructive hover:underline"
+                          variant="ghost"
+                          size="xs"
+                          className="text-destructive hover:text-destructive"
                         >
                           削除
-                        </button>
+                        </Button>
                       </form>
                     </td>
                   </tr>

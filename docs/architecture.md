@@ -39,12 +39,12 @@ src/
 │       └── help/
 ├── components/
 │   ├── ui/               # 基本コンポーネント（button, card, input, label,
-│   │                     #   textarea, select, swipeable-row, sticky-form-actions 等）
+│   │                     #   textarea, select, inline-confirm-action, sticky-form-actions 等）
 │   ├── homework/         # StatusBadge 等
 │   └── layout/           # header.tsx, sidebar.tsx, bottom-nav.tsx,
 │                         #   page-content.tsx, pull-to-refresh.tsx
 ├── lib/
-│   ├── haptic.ts             # navigator.vibrate() ラッパー（タップ/成功/エラー/スナップ）
+│   ├── haptic.ts             # navigator.vibrate() ラッパー（タップ/成功/エラー）
 │   ├── auth.ts               # NextAuth 設定
 │   ├── db.ts                 # Prisma クライアント（シングルトン）
 │   ├── garden/
@@ -175,7 +175,7 @@ Next.js App Router では **Server Component がデフォルト**。`"use client
 | レンダリング方式 | 使う場面 | 例 |
 |---|---|---|
 | **SSR（Server Component）** | DB アクセス・認証・初期データ取得 | `page.tsx`、`layout.tsx`（ほぼ全ページ） |
-| **CSR（Client Component）** | インタラクション・ブラウザ API・状態管理 | フォーム・フィルター・チャート・スワイプ |
+| **CSR（Client Component）** | インタラクション・ブラウザ API・状態管理 | フォーム・フィルター・チャート・確認ボタン |
 | **SSG（Static）** | 変化しないコンテンツ | 現状未使用（全データが動的テナントのため） |
 
 ### `"use client"` を付ける条件（どれか1つ以上を満たす場合のみ）
@@ -348,7 +348,7 @@ DB依存処理をすべてE2Eへ寄せず、認可やエラー分岐はIntegrati
 ## モバイル操作・safe-area
 
 - **safe-area 対応**: `viewport` に `viewportFit: "cover"` を設定。ボトムナビは `pb-[env(safe-area-inset-bottom)]`、main の下余白も safe-area を加味（iPhone のホームインジケーターに被らない）
-- **スワイプ操作**（`components/ui/swipeable-row.tsx`）: 宿題一覧・成績一覧のモバイルカードを左スワイプで編集/削除を露出。露出トレイは**ニュートラル背景（`bg-muted`）に統一**し、編集=`text-muted-foreground`／削除=`text-destructive` のアイコン+極小ラベルで色のみ差別化（パステル薄塗りは使わない）。左端まで振り切ると `onFullSwipe`（削除）を実行し、その間は赤一色スラブ＋「離して削除」を表示（opacity の二段階アームは廃止）。Pointer Events + `touch-action: pan-y`、`haptic` で触覚フィードバック。閉じている間は右端に控えめなシェブロンでスワイプ可能を示唆
+- **一覧操作**: 宿題・成績カードの詳細／編集／削除は、モバイルでも隠さずラベル付きボタンとして表示。削除は `InlineConfirmAction` による2段階確認を必須とする
 - **スティッキー送信ボタン**（`components/ui/sticky-form-actions.tsx`）: 長いフォームの送信ボタンをモバイルで画面下部（ボトムナビの上）に固定。同じ高さのスペーサーで最後の入力欄が隠れないようにする。デスクトップでは通常フロー
 - **プルダウン更新**（`components/layout/pull-to-refresh.tsx`）: `<main>` 最上部から引くと `router.refresh()`
 - **ボトムナビ**: アクティブ項目は上部にインジケーターバー + アイコン拡大。タップで `active:opacity-60`

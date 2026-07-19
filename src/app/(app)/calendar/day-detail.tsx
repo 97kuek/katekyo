@@ -87,7 +87,7 @@ export function DayDetail({
                     <div className="flex items-center gap-1 shrink-0">
                       {isPast && !l.completedAt && (
                         completingLessonId === l.id ? (
-                          <button aria-label="完了入力を閉じる" onClick={() => setCompletingLessonId(null)} className="flex min-h-11 min-w-11 items-center justify-center text-muted-foreground hover:text-foreground"><X className="h-4 w-4" aria-hidden /></button>
+                          <Button type="button" aria-label="完了入力を閉じる" variant="ghost" size="icon-sm" onClick={() => setCompletingLessonId(null)}><X className="h-4 w-4" aria-hidden /></Button>
                         ) : (
                           <Button
                             onClick={() => { setCompletingLessonId(l.id); setEditingLessonId(null) }}

@@ -5,6 +5,14 @@ import process from "node:process"
 const root = process.cwd()
 const sourceRoot = join(root, "src")
 const errors = []
+const rawButtonAllowlist = new Set([
+  "src/app/(app)/calendar/calendar-view.tsx",
+  "src/app/(app)/homework/[id]/submit/submit-form.tsx",
+  "src/app/(app)/subjects/subject-color-editor.tsx",
+  "src/app/(app)/subjects/subject-form.tsx",
+  "src/components/ui/pending-submit-button.tsx",
+  "src/components/ui/segmented-control.tsx",
+])
 
 function walk(directory) {
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
@@ -16,6 +24,14 @@ function walk(directory) {
 for (const file of walk(sourceRoot).filter((path) => [".ts", ".tsx", ".css"].includes(extname(path)))) {
   if (file.includes(`${join("src", "generated")}`)) continue
   const lines = readFileSync(file, "utf8").split("\n")
+  const relativeFile = relative(root, file).split("\\").join("/")
+  const source = lines.join("\n")
+  if (/<button\b/.test(source) && !rawButtonAllowlist.has(relativeFile)) {
+    errors.push(`${relativeFile}: 通常の操作は生の<button>ではなく共通Buttonを使用してください`)
+  }
+  if (/SwipeableRow|SwipeEditDeleteActions|GradeSwipeRow|SwipeableHomeworkCard/.test(source)) {
+    errors.push(`${relativeFile}: 一覧操作をスワイプに隠さず明示ボタンを使用してください`)
+  }
   lines.forEach((line, index) => {
     const location = `${relative(root, file)}:${index + 1}`
     if (/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}]/u.test(line)) {

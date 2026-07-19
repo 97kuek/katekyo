@@ -12,7 +12,8 @@ import { BulkApproveSection } from "./bulk-approve-section"
 import { relativeDeadline, deadlineColorClass, formatDate } from "@/lib/date-utils"
 import { isPendingStatus } from "@/lib/homework-status"
 import { SubjectTags } from "@/components/ui/subject-tags"
-import { SwipeableHomeworkCard } from "./swipeable-card"
+import { HomeworkCard } from "./homework-card"
+import { HomeworkActions } from "./homework-actions"
 import { EmptyState } from "@/components/ui/empty-state"
 import { PageHeader } from "@/components/ui/page-header"
 import { HomeworkViewTabs } from "./homework-view-tabs"
@@ -109,19 +110,19 @@ async function TeacherHomeworkPage({
       {currentView !== "review" && visibleHomeworks.length > 0 && (
         <section className="space-y-3">
           <h2 className="sr-only">{currentView === "active" ? "進行中の宿題" : "完了した宿題"}</h2>
-          {/* モバイル: スワイプカード */}
+          {/* モバイル: 明示的な操作ボタン付きカード */}
           <div className="md:hidden space-y-2">
             {visibleHomeworks.map((h) => {
               const overdue = h.dueDate < now && (isPendingStatus(h.status))
               const subjectNames = h.subjectIds.map((sid) => subjectMap.get(sid)).filter(Boolean) as string[]
               return (
-                <SwipeableHomeworkCard
+                <HomeworkCard
                   key={h.id}
                   id={h.id}
                   title={h.title}
                   studentName={h.student.user.name}
                   status={h.status}
-                  dueDateStr={h.dueDate.toISOString()}
+                  dueDate={h.dueDate}
                   subjectNames={subjectNames}
                   isOverdue={overdue}
                 />
@@ -137,6 +138,7 @@ async function TeacherHomeworkPage({
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">生徒</th>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">期限</th>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">状態</th>
+                  <th className="px-4 py-3 text-right font-medium text-muted-foreground">操作</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
@@ -159,6 +161,9 @@ async function TeacherHomeworkPage({
                       </td>
                       <td className="px-4 py-3">
                         <StatusBadge status={h.status} />
+                      </td>
+                      <td className="px-4 py-3">
+                        <HomeworkActions homeworkId={h.id} canEdit={isPendingStatus(h.status)} showDetails size="xs" />
                       </td>
                     </tr>
                   )

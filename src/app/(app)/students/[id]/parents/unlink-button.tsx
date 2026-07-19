@@ -19,17 +19,18 @@ export function UnlinkParentButton({ parentId, studentId, parentName }: {
         <form action={action} className="flex items-center gap-2">
           <input type="hidden" name="parentId" value={parentId} />
           <input type="hidden" name="studentId" value={studentId} />
-          <button
+          <Button
             type="submit"
+            variant="destructive"
+            size="xs"
             disabled={isPending}
-            className="text-xs font-medium text-destructive hover:text-destructive/80 disabled:opacity-50"
           >
             {isPending ? "解除中..." : `${parentName}を解除`}
-          </button>
+          </Button>
         </form>
-        <button onClick={() => setConfirming(false)} className="text-xs text-muted-foreground hover:text-foreground">
+        <Button type="button" variant="outline" size="xs" onClick={() => setConfirming(false)}>
           キャンセル
-        </button>
+        </Button>
         {state.error && <span className="text-xs text-destructive">{state.error}</span>}
       </div>
     )

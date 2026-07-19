@@ -3,6 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation"
 import { useOptimistic, useTransition } from "react"
 import { TEST_TYPE_OPTIONS } from "@/lib/test-types"
+import { Button } from "@/components/ui/button"
 
 export function GradeTypeFilter() {
   const router = useRouter()
@@ -24,28 +25,26 @@ export function GradeTypeFilter() {
     })
   }
 
-  const base = "px-2 py-1 rounded-md text-xs font-medium transition-colors whitespace-nowrap"
-  const active = "bg-primary text-primary-foreground"
-  const inactive = "text-muted-foreground hover:text-foreground"
-
   return (
     <div className="flex items-center gap-0.5 rounded-lg border border-input bg-background p-0.5 overflow-x-auto" aria-busy={isPending}>
-      <button
+      <Button
         type="button"
+        size="xs"
+        variant={optimisticCurrent === "" ? "default" : "ghost"}
         onClick={() => setType("")}
-        className={`${base} ${optimisticCurrent === "" ? active : inactive}`}
       >
         すべて
-      </button>
+      </Button>
       {TEST_TYPE_OPTIONS.map(([value, label]) => (
-        <button
+        <Button
           key={value}
           type="button"
+          size="xs"
+          variant={optimisticCurrent === value ? "default" : "ghost"}
           onClick={() => setType(value)}
-          className={`${base} ${optimisticCurrent === value ? active : inactive}`}
         >
           {label}
-        </button>
+        </Button>
       ))}
     </div>
   )

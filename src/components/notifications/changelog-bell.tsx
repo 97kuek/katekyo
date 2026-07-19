@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react"
 import { Bell, BookOpen, Calendar, X } from "lucide-react"
 import Link from "next/link"
 import { CHANGELOG, LATEST_CHANGELOG_ID, type NotificationData } from "@/lib/changelog"
+import { Button } from "@/components/ui/button"
 
 const STORAGE_KEY = "lastSeenChangelogId"
 
@@ -78,10 +79,13 @@ export default function ChangelogBell({ notificationData }: { notificationData: 
 
   return (
     <>
-      <button
+      <Button
         ref={bellRef}
+        type="button"
+        variant="ghost"
+        size="icon-sm"
         onClick={handleOpen}
-        className="relative inline-flex items-center justify-center rounded-full p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+        className="relative text-muted-foreground"
         aria-label={actionCount > 0 ? `通知、要対応${actionCount}件` : "通知とアップデート情報"}
         aria-expanded={mounted}
       >
@@ -89,7 +93,7 @@ export default function ChangelogBell({ notificationData }: { notificationData: 
         {(hasUnread || actionCount > 0) && (
           <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-destructive"><span className="sr-only">新着あり</span></span>
         )}
-      </button>
+      </Button>
 
       {mounted && (
         <div
@@ -105,14 +109,16 @@ export default function ChangelogBell({ notificationData }: { notificationData: 
             {/* Header */}
             <div className="flex items-center justify-between border-b border-border px-5 py-4 shrink-0">
               <h2 className="font-semibold text-sm">通知</h2>
-              <button
+              <Button
                 ref={closeButtonRef}
+                type="button"
+                variant="ghost"
+                size="icon-sm"
                 onClick={handleClose}
-                className="rounded-full p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
                 aria-label="閉じる"
               >
                 <X className="h-4 w-4" />
-              </button>
+              </Button>
             </div>
 
             <div className="flex-1 overflow-y-auto">

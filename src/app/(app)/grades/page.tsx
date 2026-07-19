@@ -9,7 +9,6 @@ import { buttonVariants } from "@/components/ui/button"
 import GradeChart from "./grade-chart"
 import GradeRadar from "./grade-radar"
 import { GradeActionsCell } from "./grade-actions-cell"
-import { GradeSwipeRow } from "./grade-swipe-row"
 import { GradeTypeFilter } from "./grade-type-filter"
 import { GradeStudentFilter } from "./grade-student-filter"
 import { GradeSubjectFilter } from "./grade-subject-filter"
@@ -230,9 +229,10 @@ async function TeacherGradesPage({
           {/* モバイル: カード表示 */}
           <div className="lg:hidden space-y-2">
             {grades.map((g, i) => (
-              <GradeSwipeRow key={g.id} gradeId={g.id}>
+              <div key={g.id} className="rounded-lg border bg-card p-4">
                 <GradeCard g={g} diff={prevDiff[i]} subjectMap={subjectMap} studentName={g.student.user.name} />
-              </GradeSwipeRow>
+                <GradeActionsCell gradeId={g.id} size="sm" className="mt-3 border-t pt-3" />
+              </div>
             ))}
           </div>
           {/* デスクトップ: テーブル表示 */}

@@ -109,15 +109,16 @@ export function HomeworkFilter({ students, subjects }: { students: Student[]; su
               <legend className="text-xs font-medium text-muted-foreground">並び順</legend>
               <div className="grid grid-cols-2 gap-2">
                 {[{ value: "created", label: "作成日" }, { value: "due", label: "期限" }].map((option) => (
-                  <button
+                  <Button
                     type="button"
                     key={option.value}
                     aria-pressed={currentSort === option.value}
                     onClick={() => update("sort", option.value)}
-                    className={`min-h-10 rounded-lg border px-3 text-sm ${currentSort === option.value ? "border-primary bg-primary/10 text-foreground" : "hover:bg-muted"}`}
+                    variant={currentSort === option.value ? "default" : "outline"}
+                    className="w-full"
                   >
                     {option.label}
-                  </button>
+                  </Button>
                 ))}
               </div>
             </fieldset>
@@ -128,15 +129,16 @@ export function HomeworkFilter({ students, subjects }: { students: Student[]; su
                   {subjects.map((s) => {
                     const active = currentSubjects.includes(s.id)
                     return (
-                      <button
+                      <Button
                         type="button"
                         key={s.id}
                         aria-pressed={active}
                         onClick={() => toggleSubject(s.id)}
-                        className={`min-h-9 rounded-full border px-3 text-xs ${active ? "border-primary bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}
+                        variant={active ? "default" : "outline"}
+                        size="sm"
                       >
                         {s.name}
-                      </button>
+                      </Button>
                     )
                   })}
                 </div>

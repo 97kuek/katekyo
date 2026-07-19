@@ -4,6 +4,7 @@ import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { agreeToTerms } from "@/app/(app)/terms-actions"
+import { Button } from "@/components/ui/button"
 
 export function TermsAgreementModal({ show }: { show: boolean }) {
   const [checked, setChecked] = useState(false)
@@ -64,13 +65,14 @@ export function TermsAgreementModal({ show }: { show: boolean }) {
             </span>
           </label>
 
-          <button
+          <Button
+            type="button"
             onClick={handleAgree}
             disabled={!checked || isPending}
-            className="w-full py-2.5 rounded-full bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            className="w-full"
           >
             {isPending ? "処理中..." : "同意してはじめる"}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

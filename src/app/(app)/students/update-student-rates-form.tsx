@@ -31,13 +31,14 @@ export function UpdateStudentRatesForm({ studentId, defaultHourlyRate, defaultTr
 
   if (!open) {
     return (
-      <button
+      <Button
         type="button"
+        variant="outline"
+        size="xs"
         onClick={() => setOpen(true)}
-        className="text-xs text-muted-foreground hover:text-foreground hover:underline"
       >
         {summary ?? "時給・交通費を設定"}
-      </button>
+      </Button>
     )
   }
 
@@ -92,10 +93,10 @@ export function UpdateStudentRatesForm({ studentId, defaultHourlyRate, defaultTr
           ))}
         </div>
       )}
-      <Button type="submit" disabled={isPending} size="sm" className="h-10 sm:h-7">
+      <Button type="submit" disabled={isPending} size="sm" className="h-10 sm:h-8">
         保存
       </Button>
-      <Button type="button" variant="ghost" size="sm" className="h-10 sm:h-7" onClick={() => setOpen(false)}>
+      <Button type="button" variant="outline" size="sm" className="h-10 sm:h-8" onClick={() => setOpen(false)}>
         キャンセル
       </Button>
     </form>

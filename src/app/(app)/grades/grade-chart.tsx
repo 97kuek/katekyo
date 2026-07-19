@@ -116,14 +116,15 @@ export default function GradeChart({
           <div className="flex items-center gap-1 flex-wrap">
             <span className="text-xs text-muted-foreground mr-1">種別</span>
             {TEST_TYPE_OPTIONS.filter(([v]) => availableTypes.includes(v)).map(([value, label]) => (
-              <button
+              <Button
                 key={value}
                 type="button"
+                size="xs"
+                variant={typeFilter === value ? "default" : "outline"}
                 onClick={() => { setInternalTypeFilter(value); setActiveSubject(null) }}
-                className={`px-2.5 py-1 rounded-md text-xs border transition-colors ${typeFilter === value ? "bg-primary text-primary-foreground border-primary" : "bg-card text-muted-foreground border-input hover:bg-muted"}`}
               >
                 {label}
-              </button>
+              </Button>
             ))}
           </div>
         )}
@@ -252,17 +253,17 @@ export default function GradeChart({
               const active = activeSubject === sid
               const dimmed = activeSubject !== null && !active
               return (
-                <button
+                <Button
                   key={sid}
                   type="button"
+                  size="xs"
+                  variant={active ? "secondary" : "outline"}
                   onClick={() => setActiveSubject((prev) => (prev === sid ? null : sid))}
-                  className={`flex items-center gap-1.5 shrink-0 rounded-full border px-2.5 py-1 text-xs transition-colors ${
-                    active ? "border-foreground/30 bg-muted" : "border-border bg-card"
-                  } ${dimmed ? "opacity-40" : ""}`}
+                  className={dimmed ? "opacity-40" : ""}
                 >
                   <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: colorOf(sid, i) }} />
                   {subjectMap.get(sid) ?? sid}
-                </button>
+                </Button>
               )
             })}
           </div>

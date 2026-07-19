@@ -2,6 +2,7 @@
 
 import { Eye } from "lucide-react"
 import { stopViewingAs } from "@/app/(app)/view-as-actions"
+import { Button } from "@/components/ui/button"
 
 export function ViewAsBanner({ studentName }: { studentName: string }) {
   return (
@@ -11,12 +12,14 @@ export function ViewAsBanner({ studentName }: { studentName: string }) {
         <span>{studentName}さんの画面を表示中（閲覧のみ・操作は反映されません）</span>
       </div>
       <form action={stopViewingAs}>
-        <button
+        <Button
           type="submit"
-          className="text-xs text-warning-foreground underline underline-offset-2 whitespace-nowrap hover:text-warning-foreground/70"
+          variant="outline"
+          size="xs"
+          className="border-warning/40 bg-transparent text-warning-foreground hover:bg-warning/10 hover:text-warning-foreground"
         >
           閲覧を終了
-        </button>
+        </Button>
       </form>
     </div>
   )

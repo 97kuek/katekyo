@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { UnreadBadge } from "@/components/ui/unread-badge"
 import { markLessonLogSeen } from "./actions"
+import { Button } from "@/components/ui/button"
 
 type Props = {
   date: string
@@ -48,12 +49,15 @@ export function LessonLogCard({ date, subjectNames, log, lessonId, unread }: Pro
         {log}
       </p>
       {needsClamp && (
-        <button
+        <Button
+          type="button"
+          variant="ghost"
+          size="xs"
           onClick={(e) => { e.stopPropagation(); setExpanded((v) => !v); acknowledge() }}
-          className="text-xs text-primary hover:underline"
+          className="px-0 text-primary hover:bg-transparent hover:underline"
         >
           {expanded ? "閉じる" : "続きを見る"}
-        </button>
+        </Button>
       )}
     </div>
   )

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation"
 import { auth, signOut } from "@/lib/auth"
 import InviteForm from "./invite-form"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 
 export default async function InvitePage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params
@@ -24,12 +25,9 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
               await signOut({ redirectTo: `/invite/${token}` })
             }}
           >
-            <button
-              type="submit"
-              className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-            >
+            <Button type="submit">
               ログアウトして招待を受ける
-            </button>
+            </Button>
           </form>
         </CardContent>
       </Card>

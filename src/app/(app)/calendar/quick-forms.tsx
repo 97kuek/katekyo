@@ -47,9 +47,9 @@ export function CompleteLessonLogForm({ lessonId, onClose }: { lessonId: string;
         <Button onClick={() => submit(false)} disabled={isPending} variant="ghost" size="xs">
           スキップ
         </Button>
-        <button onClick={onClose} className="text-xs text-muted-foreground hover:text-foreground ml-auto">
+        <Button type="button" onClick={onClose} variant="outline" size="xs" className="ml-auto">
           キャンセル
-        </button>
+        </Button>
       </div>
     </div>
   )

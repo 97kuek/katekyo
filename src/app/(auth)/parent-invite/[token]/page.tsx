@@ -2,7 +2,7 @@ import { db } from "@/lib/db"
 import { notFound } from "next/navigation"
 import { auth } from "@/lib/auth"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { buttonVariants } from "@/components/ui/button"
+import { Button } from "@/components/ui/button"
 import { linkExistingParent } from "./actions"
 import ParentInviteForm from "./parent-invite-form"
 
@@ -47,9 +47,9 @@ export default async function ParentInvitePage({ params }: { params: Promise<{ t
               await linkExistingParent(token)
             }}
           >
-            <button type="submit" className={buttonVariants()}>
+            <Button type="submit">
               追加して続ける
-            </button>
+            </Button>
           </form>
         </CardContent>
       </Card>

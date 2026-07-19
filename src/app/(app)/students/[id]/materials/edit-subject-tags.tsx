@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react"
 import { updateMaterialSubjects } from "./actions"
 import { Pencil } from "lucide-react"
+import { Button } from "@/components/ui/button"
 
 type Subject = { id: string; name: string }
 
@@ -46,13 +47,16 @@ export function EditSubjectTags({
 
   if (!editing) {
     return (
-      <button
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon-xs"
         onClick={() => setEditing(true)}
-        className="text-muted-foreground hover:text-primary transition-colors"
         title="科目タグを編集"
+        aria-label="科目タグを編集"
       >
         <Pencil className="h-3.5 w-3.5" />
-      </button>
+      </Button>
     )
   }
 
@@ -72,16 +76,17 @@ export function EditSubjectTags({
         ))}
       </div>
       <div className="flex gap-3">
-        <button
+        <Button
+          type="button"
+          size="xs"
           onClick={save}
           disabled={isPending}
-          className="text-xs font-medium text-primary hover:text-primary/80 disabled:opacity-50"
         >
           {isPending ? "保存中..." : "保存"}
-        </button>
-        <button onClick={cancel} className="text-xs text-muted-foreground hover:text-foreground">
+        </Button>
+        <Button type="button" variant="outline" size="xs" onClick={cancel}>
           キャンセル
-        </button>
+        </Button>
       </div>
     </div>
   )

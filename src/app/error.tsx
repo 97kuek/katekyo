@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect } from "react"
+import { Button } from "@/components/ui/button"
 
 export default function RootError({
   error,
@@ -20,12 +21,9 @@ export default function RootError({
         <p className="text-sm text-muted-foreground max-w-sm">
           予期しない問題が起きました。ページを再読み込みしてください。
         </p>
-        <button
-          onClick={reset}
-          className="px-4 py-2 border border-border rounded-full text-sm hover:bg-muted"
-        >
+        <Button type="button" variant="outline" onClick={reset}>
           再読み込み
-        </button>
+        </Button>
       </body>
     </html>
   )

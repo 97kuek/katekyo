@@ -47,7 +47,7 @@ export function ResetPasswordButton({ studentId }: { studentId: string }) {
         </Button>
       </form>
       {state.error && <span className="text-xs text-destructive">{state.error}</span>}
-      <Button type="button" variant="ghost" size="sm" className="h-10 sm:h-7" onClick={() => setOpen(false)}>
+      <Button type="button" variant="outline" size="sm" className="h-10 sm:h-8" onClick={() => setOpen(false)}>
         <X className="h-4 w-4" aria-label="閉じる" />
       </Button>
     </div>
