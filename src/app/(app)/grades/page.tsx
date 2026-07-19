@@ -16,6 +16,10 @@ import { GradeSubjectFilter } from "./grade-subject-filter"
 import { TEST_TYPE_LABELS } from "@/lib/test-types"
 import { scorePercentage } from "@/lib/grade-record"
 import { EmptyState } from "@/components/ui/empty-state"
+import { PageHeader } from "@/components/ui/page-header"
+import { Disclosure } from "@/components/ui/disclosure"
+import { ParentStudentSwitcher } from "@/components/parent-student-switcher"
+import { resolveParentStudentId } from "@/lib/parent-student-context"
 
 function DiffBadge({ diff }: { diff: number | null }) {
   if (diff == null || Math.abs(diff) < 0.5) return null
@@ -23,17 +27,6 @@ function DiffBadge({ diff }: { diff: number | null }) {
   return (
     <span className={`ml-1.5 text-xs font-medium ${up ? "text-primary" : "text-destructive"}`}>
       {up ? "+" : ""}{Math.round(diff)}
-    </span>
-  )
-}
-
-function VsAvg({ score, avgScore }: { score: number | null; avgScore: number | null }) {
-  if (score == null || avgScore == null) return <span className="text-muted-foreground">-</span>
-  const diff = score - avgScore
-  const up = diff >= 0
-  return (
-    <span className={`text-sm font-medium ${up ? "text-primary" : "text-destructive"}`}>
-      {up ? "+" : ""}{diff}点
     </span>
   )
 }
@@ -128,20 +121,20 @@ function GradeCard({ g, diff, subjectMap, studentName, comment }: {
 export default async function GradesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ type?: string; studentId?: string; subjectId?: string }>
+  searchParams: Promise<{ type?: string; studentId?: string; subjectId?: string; mode?: string }>
 }) {
   const ctx = await getViewingContext()
   if (!ctx) redirect("/login")
 
-  const { type, studentId, subjectId } = await searchParams
+  const { type, studentId, subjectId, mode } = await searchParams
 
   if (ctx.effectiveRole === "teacher") {
-    return <TeacherGradesPage teacherId={ctx.effectiveUserId} typeFilter={type} studentIdFilter={studentId} subjectIdFilter={subjectId} />
+    return <TeacherGradesPage teacherId={ctx.effectiveUserId} typeFilter={type} studentIdFilter={studentId} subjectIdFilter={subjectId} mode={mode} />
   }
   if (ctx.effectiveRole === "parent") {
-    return <ParentGradesPage parentId={ctx.effectiveUserId} studentIdFilter={studentId} typeFilter={type} />
+    return <ParentGradesPage parentId={ctx.effectiveUserId} studentIdFilter={studentId} typeFilter={type} mode={mode} />
   }
-  return <StudentGradesPage userId={ctx.effectiveUserId} />
+  return <StudentGradesPage userId={ctx.effectiveUserId} mode={mode} />
 }
 
 async function TeacherGradesPage({
@@ -149,11 +142,13 @@ async function TeacherGradesPage({
   typeFilter,
   studentIdFilter,
   subjectIdFilter,
+  mode,
 }: {
   teacherId: string
   typeFilter?: string
   studentIdFilter?: string
   subjectIdFilter?: string
+  mode?: string
 }) {
   const validTypes = ["mock", "exam", "quiz", "other"] as const
   type ValidType = (typeof validTypes)[number]
@@ -181,7 +176,8 @@ async function TeacherGradesPage({
 
   const subjectMap = buildSubjectMap(subjects)
 
-  const prevDiff = previousDiffs(grades, (g) => g.studentId)
+  const prevDiff = previousDiffs(grades, (g) => `${g.studentId}:${g.testType}:${[...g.subjectIds].sort().join(",")}`)
+  const currentMode = mode === "analysis" ? "analysis" : "list"
 
   const chartGrades = studentIdFilter ? grades.map((g) => ({
     id: g.id,
@@ -197,25 +193,33 @@ async function TeacherGradesPage({
 
   return (
     <div className="space-y-3">
+      <PageHeader title="成績" description="記録の一覧と、生徒ごとの推移を分けて確認できます。" action={
+        <Link href={studentIdFilter ? `/grades/new?studentId=${studentIdFilter}` : "/grades/new"} className={buttonVariants({ size: "sm" })}>成績を記録</Link>
+      } />
+      <GradeModeTabs current={currentMode} params={{ studentId: studentIdFilter, type: typeFilter, subjectId: subjectIdFilter }} />
       <div className="space-y-2">
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] sm:items-center">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
           <GradeStudentFilter students={students} />
-          <GradeSubjectFilter subjects={subjects} />
-          <Link href="/grades/new" className={buttonVariants({ size: "sm", className: "w-full justify-center sm:w-auto sm:shrink-0" })}>
-            成績を記録
-          </Link>
+          <details className="group relative">
+            <summary className="flex min-h-10 cursor-pointer list-none items-center justify-center rounded-full border bg-background px-4 text-sm font-medium hover:bg-muted [&::-webkit-details-marker]:hidden">絞り込み</summary>
+            <div className="absolute right-0 top-[calc(100%+0.5rem)] z-30 w-[min(22rem,calc(100vw-2rem))] space-y-3 rounded-lg border bg-popover p-4 shadow-lg">
+              <GradeSubjectFilter subjects={subjects} />
+              <GradeTypeFilter />
+            </div>
+          </details>
         </div>
-        <GradeTypeFilter />
       </div>
 
-      {studentIdFilter && chartGrades.length > 0 && (
+      {currentMode === "analysis" && studentIdFilter && chartGrades.length > 0 && (
         <>
           <GradeChart grades={chartGrades} subjects={subjects} typeFilter={typeFilter} />
-          <GradeRadar grades={chartGrades} subjects={subjects} />
+          <Disclosure title="科目バランスを見る"><GradeRadar grades={chartGrades} subjects={subjects} /></Disclosure>
         </>
       )}
 
-      {grades.length === 0 ? (
+      {currentMode === "analysis" && !studentIdFilter && <EmptyState title="分析する生徒を選択してください" description="上の生徒選択から1人を選ぶと、成績推移が表示されます。" />}
+
+      {currentMode === "list" && (grades.length === 0 ? (
         <EmptyState
           title="成績記録がありません"
           description={typeFilter ? "別のテスト種別を選ぶと記録が見つかる場合があります。" : "最初のテスト結果を記録しましょう。"}
@@ -237,17 +241,13 @@ async function TeacherGradesPage({
           </div>
           {/* デスクトップ: テーブル表示 */}
           <div className="hidden lg:block rounded-lg border bg-card overflow-hidden overflow-x-auto">
-            <table className="w-full text-sm min-w-[780px]">
+            <table className="w-full text-sm">
               <thead className="border-b bg-muted">
                 <tr>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">種別</th>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">テスト名</th>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">生徒</th>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">日付</th>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">得点</th>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">対平均</th>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">順位</th>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">偏差値</th>
+                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">結果</th>
                   <th className="px-4 py-3"></th>
                 </tr>
               </thead>
@@ -255,12 +255,8 @@ async function TeacherGradesPage({
                 {grades.map((g, i) => (
                   <tr key={g.id} className="hover:bg-muted">
                     <td className="px-4 py-3">
-                      <span className="text-xs text-muted-foreground">
-                        {TEST_TYPE_LABELS[g.testType as keyof typeof TEST_TYPE_LABELS] ?? g.testType}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
                       <p className="font-medium">{g.testName}</p>
+                      <p className="text-xs text-muted-foreground">{TEST_TYPE_LABELS[g.testType as keyof typeof TEST_TYPE_LABELS] ?? g.testType}</p>
                       <SubjectTags ids={g.subjectIds} map={subjectMap} />
                     </td>
                     <td className="px-4 py-3 text-muted-foreground">{g.student.user.name}</td>
@@ -268,12 +264,8 @@ async function TeacherGradesPage({
                     <td className="px-4 py-3">
                       {g.score != null ? (g.maxScore != null ? `${g.score}/${g.maxScore}` : g.score) : "-"}
                       <DiffBadge diff={prevDiff[i]} />
+                      <p className="mt-0.5 text-xs text-muted-foreground">{[g.deviation != null ? `偏差値${g.deviation}` : null, g.rank != null ? `${g.rank}${g.totalStudents != null ? `/${g.totalStudents}` : ""}位` : null].filter(Boolean).join(" · ")}</p>
                     </td>
-                    <td className="px-4 py-3"><VsAvg score={g.score} avgScore={g.avgScore} /></td>
-                    <td className="px-4 py-3">
-                      {g.rank != null ? (g.totalStudents != null ? `${g.rank}/${g.totalStudents}` : g.rank) : "-"}
-                    </td>
-                    <td className="px-4 py-3">{g.deviation ?? "-"}</td>
                     <td className="px-4 py-3"><GradeActionsCell gradeId={g.id} /></td>
                   </tr>
                 ))}
@@ -281,12 +273,12 @@ async function TeacherGradesPage({
             </table>
           </div>
         </>
-      )}
+      ))}
     </div>
   )
 }
 
-async function StudentGradesPage({ userId }: { userId: string }) {
+async function StudentGradesPage({ userId, mode }: { userId: string; mode?: string }) {
   const student = await getStudentByUserId(userId)
   if (!student) redirect("/dashboard")
 
@@ -309,20 +301,27 @@ async function StudentGradesPage({ userId }: { userId: string }) {
     subjectIds: g.subjectIds,
   }))
 
-  const prevDiff = previousDiffs(grades)
+  const prevDiff = previousDiffs(grades, (grade) => `${grade.testType}:${[...grade.subjectIds].sort().join(",")}`)
+  const currentMode = mode === "history" ? "history" : "trend"
+  const latest = grades[0]
 
   return (
     <div className="space-y-3">
+      <PageHeader title="成績" description="最新の結果と、これまでの変化を確認できます。" />
+      {latest && <LatestGradeSummary grade={latest} diff={prevDiff[0]} />}
+      <LearningModeTabs current={currentMode} />
 
       {grades.length === 0 ? (
-        <EmptyState title="成績記録がありません" />
+        <EmptyState title="成績記録がありません" description="先生が成績を登録すると、ここに推移が表示されます。" />
       ) : (
         <>
-          <GradeChart grades={chartGrades} subjects={subjects} />
-          <GradeRadar grades={chartGrades} subjects={subjects} />
+          {currentMode === "trend" && <>
+            <GradeChart grades={chartGrades} subjects={subjects} />
+            <Disclosure title="科目バランスを見る"><GradeRadar grades={chartGrades} subjects={subjects} /></Disclosure>
+          </>}
 
           {/* モバイル: カード表示 */}
-          <div className="md:hidden space-y-2">
+          <div className={`${currentMode === "history" ? "md:hidden" : "hidden"} space-y-2`}>
             {grades.map((g, i) => (
               <div key={g.id} className="rounded-lg border bg-card p-4">
                 <GradeCard g={g} diff={prevDiff[i]} subjectMap={subjectMap} comment={g.comment} />
@@ -330,18 +329,14 @@ async function StudentGradesPage({ userId }: { userId: string }) {
             ))}
           </div>
           {/* デスクトップ: テーブル表示 */}
-          <div className="hidden md:block rounded-lg border bg-card overflow-hidden overflow-x-auto">
-            <table className="w-full text-sm min-w-[600px]">
+          <div className={`${currentMode === "history" ? "hidden md:block" : "hidden"} rounded-lg border bg-card overflow-hidden overflow-x-auto`}>
+            <table className="w-full text-sm">
               <thead className="border-b bg-muted">
                 <tr>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">テスト名</th>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">種別</th>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">日付</th>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">得点</th>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">対平均</th>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">順位</th>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">偏差値</th>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">コメント</th>
+                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">結果</th>
+                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">詳細</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
@@ -351,22 +346,15 @@ async function StudentGradesPage({ userId }: { userId: string }) {
                       <p className="font-medium">{g.testName}</p>
                       <SubjectTags ids={g.subjectIds} map={subjectMap} />
                     </td>
-                    <td className="px-4 py-3">
-                      <span className="text-xs text-muted-foreground">
-                        {TEST_TYPE_LABELS[g.testType as keyof typeof TEST_TYPE_LABELS] ?? g.testType}
-                      </span>
-                    </td>
                     <td className="px-4 py-3 text-muted-foreground">{formatDate(g.date)}</td>
                     <td className="px-4 py-3">
                       {g.score != null ? (g.maxScore != null ? `${g.score}/${g.maxScore}` : g.score) : "-"}
                       <DiffBadge diff={prevDiff[i]} />
                     </td>
-                    <td className="px-4 py-3"><VsAvg score={g.score} avgScore={g.avgScore} /></td>
                     <td className="px-4 py-3">
-                      {g.rank != null ? (g.totalStudents != null ? `${g.rank}/${g.totalStudents}` : g.rank) : "-"}
+                      <p className="text-xs text-muted-foreground">{[g.deviation != null ? `偏差値 ${g.deviation}` : null, g.rank != null ? `${g.rank}${g.totalStudents != null ? `/${g.totalStudents}` : ""}位` : null].filter(Boolean).join(" · ") || "-"}</p>
+                      {g.comment && <p className="mt-1 max-w-xs truncate text-xs text-muted-foreground">{g.comment}</p>}
                     </td>
-                    <td className="px-4 py-3">{g.deviation ?? "-"}</td>
-                    <td className="px-4 py-3 text-muted-foreground max-w-xs truncate">{g.comment ?? "-"}</td>
                   </tr>
                 ))}
               </tbody>
@@ -382,10 +370,12 @@ async function ParentGradesPage({
   parentId,
   studentIdFilter,
   typeFilter,
+  mode,
 }: {
   parentId: string
   studentIdFilter?: string
   typeFilter?: string
+  mode?: string
 }) {
   const links = await db.parentStudent.findMany({
     where: { parentId },
@@ -398,9 +388,7 @@ async function ParentGradesPage({
   }
 
   const allowedStudentIds = links.map((l) => l.studentId)
-  const effectiveStudentId = studentIdFilter && allowedStudentIds.includes(studentIdFilter)
-    ? studentIdFilter
-    : allowedStudentIds[0]
+  const effectiveStudentId = await resolveParentStudentId(allowedStudentIds, studentIdFilter)
 
   const validTypes = ["mock", "exam", "quiz", "other"] as const
   const isValidType = (v: string | undefined): v is (typeof validTypes)[number] =>
@@ -430,52 +418,41 @@ async function ParentGradesPage({
     subjectIds: g.subjectIds,
   }))
 
-  const prevDiff = previousDiffs(grades)
+  const prevDiff = previousDiffs(grades, (grade) => `${grade.testType}:${[...grade.subjectIds].sort().join(",")}`)
+  const currentMode = mode === "history" ? "history" : "trend"
+  const latest = grades[0]
 
   return (
     <div className="space-y-3">
-      {links.length > 1 && (
-        <div className="flex items-center gap-2 flex-wrap">
-          {links.map(({ student }) => (
-            <a
-              key={student.id}
-              href={`/grades?studentId=${student.id}`}
-              className={`text-sm px-3 py-1.5 rounded-full border transition-colors ${
-                student.id === effectiveStudentId
-                  ? "bg-primary text-primary-foreground border-primary"
-                  : "bg-card text-foreground border-border hover:bg-muted"
-              }`}
-            >
-              {student.user.name}
-            </a>
-          ))}
-        </div>
-      )}
+      <PageHeader title="成績" description="お子さまの最新結果と推移を確認できます。" />
+      <ParentStudentSwitcher students={links.map(({ student }) => ({ id: student.id, name: student.user.name }))} selectedStudentId={effectiveStudentId} />
+
+      {latest && <LatestGradeSummary grade={latest} diff={prevDiff[0]} />}
+      <LearningModeTabs current={currentMode} studentId={effectiveStudentId} />
 
       {grades.length === 0 ? (
         <EmptyState title="成績記録がありません" />
       ) : (
         <>
-          <GradeChart grades={chartGrades} subjects={subjects} />
-          <GradeRadar grades={chartGrades} subjects={subjects} />
-          <div className="md:hidden space-y-2">
+          {currentMode === "trend" && <>
+            <GradeChart grades={chartGrades} subjects={subjects} />
+            <Disclosure title="科目バランスを見る"><GradeRadar grades={chartGrades} subjects={subjects} /></Disclosure>
+          </>}
+          <div className={`${currentMode === "history" ? "md:hidden" : "hidden"} space-y-2`}>
             {grades.map((g, i) => (
               <div key={g.id} className="rounded-lg border bg-card p-4">
                 <GradeCard g={g} diff={prevDiff[i]} subjectMap={subjectMap} comment={g.comment} />
               </div>
             ))}
           </div>
-          <div className="hidden md:block rounded-lg border bg-card overflow-hidden overflow-x-auto">
-            <table className="w-full text-sm min-w-[500px]">
+          <div className={`${currentMode === "history" ? "hidden md:block" : "hidden"} rounded-lg border bg-card overflow-hidden overflow-x-auto`}>
+            <table className="w-full text-sm">
               <thead className="border-b bg-muted">
                 <tr>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">テスト名</th>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">種別</th>
                   <th className="px-4 py-3 text-left font-medium text-muted-foreground">日付</th>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">得点</th>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">偏差値</th>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">順位</th>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">コメント</th>
+                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">結果</th>
+                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">詳細</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
@@ -485,19 +462,15 @@ async function ParentGradesPage({
                       <p className="font-medium">{g.testName}</p>
                       <SubjectTags ids={g.subjectIds} map={subjectMap} />
                     </td>
-                    <td className="px-4 py-3">
-                      <span className="text-xs text-muted-foreground">
-                        {TEST_TYPE_LABELS[g.testType as keyof typeof TEST_TYPE_LABELS] ?? g.testType}
-                      </span>
-                    </td>
                     <td className="px-4 py-3 text-muted-foreground">{formatDate(g.date)}</td>
                     <td className="px-4 py-3">
                       {g.score != null ? (g.maxScore != null ? `${g.score}/${g.maxScore}` : g.score) : "-"}
                       <DiffBadge diff={prevDiff[i]} />
                     </td>
-                    <td className="px-4 py-3">{g.deviation ?? "-"}</td>
-                    <td className="px-4 py-3">{g.rank != null ? (g.totalStudents != null ? `${g.rank}/${g.totalStudents}` : g.rank) : "-"}</td>
-                    <td className="px-4 py-3 text-muted-foreground max-w-xs truncate">{g.comment ?? "-"}</td>
+                    <td className="px-4 py-3">
+                      <p className="text-xs text-muted-foreground">{[g.deviation != null ? `偏差値 ${g.deviation}` : null, g.rank != null ? `${g.rank}${g.totalStudents != null ? `/${g.totalStudents}` : ""}位` : null].filter(Boolean).join(" · ") || "-"}</p>
+                      {g.comment && <p className="mt-1 max-w-xs truncate text-xs text-muted-foreground">{g.comment}</p>}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -505,6 +478,39 @@ async function ParentGradesPage({
           </div>
         </>
       )}
+    </div>
+  )
+}
+
+function GradeModeTabs({ current, params }: { current: "list" | "analysis"; params: Record<string, string | undefined> }) {
+  return (
+    <nav aria-label="成績の表示" className="flex rounded-lg border bg-card p-1">
+      {[{ value: "list", label: "一覧" }, { value: "analysis", label: "分析" }].map((item) => {
+        const search = new URLSearchParams()
+        Object.entries(params).forEach(([key, value]) => { if (value) search.set(key, value) })
+        search.set("mode", item.value)
+        return <Link key={item.value} href={`/grades?${search.toString()}`} aria-current={current === item.value ? "page" : undefined} className={`flex min-h-10 flex-1 items-center justify-center rounded-md text-sm font-medium ${current === item.value ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}>{item.label}</Link>
+      })}
+    </nav>
+  )
+}
+
+function LearningModeTabs({ current, studentId }: { current: "trend" | "history"; studentId?: string }) {
+  return (
+    <nav aria-label="成績の表示" className="flex rounded-lg border bg-card p-1">
+      {[{ value: "trend", label: "推移" }, { value: "history", label: "履歴" }].map((item) => (
+        <Link key={item.value} href={`/grades?mode=${item.value}${studentId ? `&studentId=${studentId}` : ""}`} aria-current={current === item.value ? "page" : undefined} className={`flex min-h-10 flex-1 items-center justify-center rounded-md text-sm font-medium ${current === item.value ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}>{item.label}</Link>
+      ))}
+    </nav>
+  )
+}
+
+function LatestGradeSummary({ grade, diff }: { grade: GradeCardData; diff: number | null }) {
+  const primary = grade.score != null ? `${grade.score}${grade.maxScore != null ? `/${grade.maxScore}` : ""}` : grade.deviation != null ? `偏差値 ${grade.deviation}` : "記録あり"
+  return (
+    <div className="flex items-end justify-between gap-3 rounded-lg border bg-card p-4">
+      <div className="min-w-0"><p className="text-xs text-muted-foreground">最新の結果</p><p className="mt-1 truncate font-semibold">{grade.testName}</p><p className="mt-1 text-xs text-muted-foreground">{formatDate(grade.date)}</p></div>
+      <p className="shrink-0 text-2xl font-bold tabular-nums">{primary}<DiffBadge diff={diff} /></p>
     </div>
   )
 }

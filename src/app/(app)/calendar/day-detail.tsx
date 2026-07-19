@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { ChevronRight, CheckCheck, CheckCircle2, FileText, Pencil, X } from "lucide-react"
+import { ChevronRight, CheckCheck, CheckCircle2, FileText, Pencil, Plus, X } from "lucide-react"
 import { LessonForm } from "./lesson-form"
 import { LessonEditForm } from "./lesson-edit-form"
 import { Button, buttonVariants } from "@/components/ui/button"
@@ -20,6 +20,7 @@ export function DayDetail({
   isTeacher,
   students,
   subjects,
+  showStudentNames = false,
   editingLessonId,
   setEditingLessonId,
 }: {
@@ -31,19 +32,33 @@ export function DayDetail({
   isTeacher: boolean
   students: Student[]
   subjects: Subject[]
+  showStudentNames?: boolean
   editingLessonId: string | null
   setEditingLessonId: (id: string | null) => void
 }) {
   const [completingLessonId, setCompletingLessonId] = useState<string | null>(null)
+  const [addType, setAddType] = useState<"lesson" | "homework" | "exam" | "menu" | null>(null)
 
   return (
     <div className="rounded-lg border bg-card p-4 space-y-3">
       <h2 className="font-semibold text-sm">{dateStr}</h2>
       {isTeacher && (
-        <div className="flex gap-2 flex-wrap">
-          <LessonForm students={students} defaultDate={dayKey} subjects={subjects} />
-          <HomeworkForm students={students} defaultDate={dayKey} />
-          <ExamEventForm students={students} defaultDate={dayKey} />
+        <div className="space-y-2">
+          {addType === null && (
+            <Button size="sm" onClick={() => setAddType("menu")}><Plus className="h-4 w-4" aria-hidden />追加</Button>
+          )}
+          {addType === "menu" && (
+            <div className="flex flex-wrap items-center gap-2 rounded-lg border bg-muted/40 p-2">
+              <span className="px-1 text-xs font-medium text-muted-foreground">追加する予定</span>
+              <Button size="sm" onClick={() => setAddType("lesson")}>授業</Button>
+              <Button size="sm" variant="outline" onClick={() => setAddType("homework")}>宿題期限</Button>
+              <Button size="sm" variant="outline" onClick={() => setAddType("exam")}>テスト</Button>
+              <Button size="icon-sm" variant="ghost" aria-label="追加メニューを閉じる" onClick={() => setAddType(null)}><X className="h-4 w-4" /></Button>
+            </div>
+          )}
+          {addType === "lesson" && <LessonForm students={students} defaultDate={dayKey} subjects={subjects} embedded onClose={() => setAddType(null)} />}
+          {addType === "homework" && <HomeworkForm students={students} defaultDate={dayKey} embedded onClose={() => setAddType(null)} />}
+          {addType === "exam" && <ExamEventForm students={students} defaultDate={dayKey} embedded onClose={() => setAddType(null)} />}
         </div>
       )}
 
@@ -57,7 +72,7 @@ export function DayDetail({
               <div key={l.id} className="rounded-md px-3 py-2 bg-muted">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0 flex items-center gap-x-2 gap-y-0.5 flex-wrap">
-                    <span className="text-sm font-medium">{l.student.user.name}</span>
+                    {(isTeacher || showStudentNames) && <span className="text-sm font-medium">{l.student.user.name}</span>}
                     <span className="text-xs text-muted-foreground">
                       {l.type === "online" ? "オンライン" : "対面"}
                     </span>
@@ -159,7 +174,7 @@ export function DayDetail({
             >
               <div>
                 <p className="text-sm font-medium">{d.title}</p>
-                {isTeacher && (
+                {(isTeacher || showStudentNames) && (
                   <p className="text-xs text-muted-foreground mt-0.5">{d.studentName}</p>
                 )}
               </div>
@@ -182,7 +197,7 @@ export function DayDetail({
                       {TEST_TYPE_LABELS[e.testType as keyof typeof TEST_TYPE_LABELS] ?? e.testType}
                     </span>
                   </div>
-                  {isTeacher && e.studentName && (
+                  {(isTeacher || showStudentNames) && e.studentName && (
                     <p className="text-xs text-muted-foreground mt-0.5">{e.studentName}</p>
                   )}
                   {e.endDate && (

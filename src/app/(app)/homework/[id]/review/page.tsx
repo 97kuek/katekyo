@@ -1,11 +1,11 @@
 import { auth } from "@/lib/auth"
 import { redirect, notFound } from "next/navigation"
 import { db } from "@/lib/db"
-import Link from "next/link"
 import ReviewForm from "./review-form"
 import { DifficultyBars } from "@/components/homework/difficulty-bars"
 import { formatDate } from "@/lib/date-utils"
 import { createHomeworkPhotoSignedUrl } from "@/lib/supabase-storage"
+import { PageHeader } from "@/components/ui/page-header"
 
 export default async function ReviewHomeworkPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -25,9 +25,7 @@ export default async function ReviewHomeworkPage({ params }: { params: Promise<{
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <Link href="/homework" className="text-sm text-muted-foreground hover:underline">
-        ← 宿題一覧に戻る
-      </Link>
+      <PageHeader backHref="/homework?view=review" backLabel="確認待ち一覧" title="宿題を確認" description={`${homework.student.user.name}・${homework.title}`} />
 
       <div className="rounded-lg border bg-card p-5 space-y-3">
         <div className="flex items-start justify-between gap-4">

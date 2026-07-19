@@ -5,7 +5,13 @@ import { markAsPaid, markAsUnpaid, setPaymentDueDate } from "./actions"
 import { buttonVariants } from "@/components/ui/button"
 import { calcFee } from "@/lib/billing"
 import { formatCurrency } from "@/lib/format"
-import { Check, FileText } from "lucide-react"
+import { Check, ChevronLeft, ChevronRight, Download, FileText } from "lucide-react"
+import { PageHeader } from "@/components/ui/page-header"
+import { EmptyState } from "@/components/ui/empty-state"
+import Link from "next/link"
+import { ParentStudentSwitcher } from "@/components/parent-student-switcher"
+import { resolveParentStudentId } from "@/lib/parent-student-context"
+import { Input } from "@/components/ui/input"
 
 function dueDateLabel(dueDate: Date | null, isPaid: boolean): { text: string; className: string } | null {
   if (!dueDate) return null
@@ -21,7 +27,7 @@ function dueDateLabel(dueDate: Date | null, isPaid: boolean): { text: string; cl
 export default async function BillingPage({
   searchParams,
 }: {
-  searchParams: Promise<{ year?: string; month?: string }>
+  searchParams: Promise<{ year?: string; month?: string; status?: string; studentId?: string }>
 }) {
   const session = await auth()
   if (!session) redirect("/login")
@@ -32,7 +38,7 @@ export default async function BillingPage({
 
   if (session.user.role !== "teacher") redirect("/dashboard")
 
-  const { year: yearStr, month: monthStr } = await searchParams
+  const { year: yearStr, month: monthStr, status } = await searchParams
   const now = new Date()
   const year = yearStr ? parseInt(yearStr) : now.getFullYear()
   const month = monthStr ? parseInt(monthStr) - 1 : now.getMonth()
@@ -81,79 +87,73 @@ export default async function BillingPage({
 
   const totalMinutes = completedLessons.reduce((sum, l) => sum + (l.durationMin ?? 0), 0)
   const hasFeeData = completedLessons.some((l) => calcFee(l) != null)
+  const currentStatus = status === "paid" ? "paid" : "unpaid"
+  const studentEntries = Array.from(studentMap.entries())
+  const paidCount = studentEntries.filter(([studentId]) => paidMap.get(studentId)?.paidAt != null).length
+  const unpaidCount = studentEntries.length - paidCount
+  const visibleStudentEntries = studentEntries.filter(([studentId]) => (paidMap.get(studentId)?.paidAt != null) === (currentStatus === "paid"))
 
   // 月の最終日（デフォルト期限表示用）
   const defaultDueDateStr = new Date(year, month + 1, 0).toLocaleDateString("ja-JP", { month: "numeric", day: "numeric" })
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
+      <PageHeader
+        title="請求"
+        description={`${year}年${month + 1}月の請求と入金状況`}
+        secondaryAction={
+          <a href={`/api/billing/export?year=${year}&month=${month + 1}`} download className={buttonVariants({ variant: "ghost", size: "sm", className: "hidden sm:inline-flex" })}>
+            <Download className="h-4 w-4" aria-hidden />CSV
+          </a>
+        }
+      />
       {/* Month navigator */}
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div className="flex items-center gap-3">
+      <div className="flex items-center justify-center gap-2">
           <a
             href={`/billing?year=${prevYear}&month=${prevMonth}`}
-            className={buttonVariants({ variant: "outline", size: "sm" })}
+            aria-label="前の月"
+            className={buttonVariants({ variant: "ghost", size: "icon-sm" })}
           >
-            ← 前月
+            <ChevronLeft className="h-4 w-4" aria-hidden />
           </a>
-          <span className="font-semibold text-sm">{year}年 {month + 1}月</span>
+          <span className="min-w-28 text-center font-semibold text-sm">{year}年 {month + 1}月</span>
           <a
             href={`/billing?year=${nextYear}&month=${nextMonth}`}
-            className={buttonVariants({ variant: "outline", size: "sm" })}
+            aria-label="次の月"
+            className={buttonVariants({ variant: "ghost", size: "icon-sm" })}
           >
-            翌月 →
+            <ChevronRight className="h-4 w-4" aria-hidden />
           </a>
-        </div>
-        <a
-          href={`/api/billing/export?year=${year}&month=${month + 1}`}
-          download
-          className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-          </svg>
-          CSV
-        </a>
       </div>
 
       {unconfirmedCount > 0 && (
         <div className="rounded-lg border border-warning/30 bg-warning/10 px-4 py-3 flex items-center justify-between gap-3">
           <p className="text-sm text-warning-foreground">
-            <span className="font-semibold">{unconfirmedCount}件</span>の授業が未完了です。カレンダーで完了にすると請求に反映されます。
+            <span className="font-semibold">{unconfirmedCount}件</span>の授業が未完了です。予定から完了にすると請求へ反映されます。
           </p>
-          <a href="/calendar" className="text-xs text-warning underline hover:text-warning-foreground shrink-0">カレンダーへ</a>
+          <a href="/calendar" className="text-xs text-warning underline hover:text-warning-foreground shrink-0">予定へ</a>
         </div>
       )}
 
       {completedLessons.length === 0 ? (
-        <div className="rounded-lg border bg-card p-12 text-center text-muted-foreground text-sm">
-          {lessons.length > 0 ? "完了済みの授業がありません" : "この月の授業記録はありません"}
-        </div>
+        <EmptyState title={lessons.length > 0 ? "完了済みの授業がありません" : "この月の授業記録はありません"} />
       ) : (
         <>
           {/* Summary */}
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            <div className="rounded-lg border bg-card p-4">
-              <p className="text-xs text-muted-foreground">完了授業</p>
-              <p className="text-2xl font-bold mt-1">{completedLessons.length}<span className="text-sm font-normal text-muted-foreground ml-1">回</span></p>
-            </div>
-            <div className="rounded-lg border bg-card p-4">
-              <p className="text-xs text-muted-foreground">合計時間</p>
-              <p className="text-2xl font-bold mt-1">
-                {Math.floor(totalMinutes / 60)}<span className="text-sm font-normal text-muted-foreground ml-0.5">h</span>
-                {totalMinutes % 60 > 0 && <>{totalMinutes % 60}<span className="text-sm font-normal text-muted-foreground ml-0.5">m</span></>}
-              </p>
-            </div>
-            {hasFeeData && (
-              <div className="rounded-lg border bg-card p-4 col-span-2 sm:col-span-1">
-                <p className="text-xs text-muted-foreground">合計金額（目安）</p>
-                <p className="text-2xl font-bold mt-1">{formatCurrency(grandTotal)}</p>
-              </div>
-            )}
+          <div className="rounded-lg border bg-card p-4">
+            <p className="text-xs text-muted-foreground">今月の請求合計</p>
+            <p className="mt-1 text-2xl font-bold">{hasFeeData ? formatCurrency(grandTotal) : "金額未設定"}</p>
+            <p className="mt-2 text-xs text-muted-foreground">完了授業 {completedLessons.length}回 ・ {Math.floor(totalMinutes / 60)}時間{totalMinutes % 60 > 0 ? `${totalMinutes % 60}分` : ""}</p>
           </div>
 
+          <nav aria-label="支払い状態" className="flex rounded-lg border bg-card p-1">
+            {[{ value: "unpaid", label: "未入金", count: unpaidCount }, { value: "paid", label: "入金済み", count: paidCount }].map((item) => (
+              <Link key={item.value} href={`/billing?year=${year}&month=${month + 1}&status=${item.value}`} aria-current={currentStatus === item.value ? "page" : undefined} className={`flex min-h-10 flex-1 items-center justify-center rounded-md text-sm font-medium ${currentStatus === item.value ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}>{item.label} {item.count}</Link>
+            ))}
+          </nav>
+
           {/* Per-student breakdown */}
-          {Array.from(studentMap.entries()).map(([sid, { name, lessons: sLessons }]) => {
+          {visibleStudentEntries.map(([sid, { name, lessons: sLessons }]) => {
             const studentTotal = sLessons.reduce((sum, l) => {
               const fee = calcFee(l)
               return fee != null ? sum + fee : sum
@@ -168,8 +168,8 @@ export default async function BillingPage({
               : ""
 
             return (
-              <div key={name} className="rounded-lg border bg-card overflow-hidden">
-                <div className="px-4 py-3 border-b bg-muted space-y-2">
+              <div key={sid} className="rounded-lg border bg-card overflow-hidden">
+                <div className="px-4 py-3 bg-muted space-y-2">
                   {/* 1行目: 名前・ステータス / 金額 */}
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-2 flex-wrap min-w-0">
@@ -189,18 +189,29 @@ export default async function BillingPage({
                       <p className="text-muted-foreground text-xs">{sLessons.length}回 · {Math.floor(studentMin / 60)}h{studentMin % 60 > 0 ? `${studentMin % 60}m` : ""}</p>
                     </div>
                   </div>
-                  {/* 2行目: 期限設定 / 入金確認 */}
+                  {!isPaid && (
+                    <form action={markAsPaid} className="flex justify-end">
+                      <input type="hidden" name="studentId" value={sid} /><input type="hidden" name="year" value={year} /><input type="hidden" name="month" value={month + 1} />
+                      <button type="submit" className={buttonVariants({ size: "sm" })}>入金確認</button>
+                    </form>
+                  )}
+                </div>
+                <details className="group border-t">
+                  <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between px-4 text-sm font-medium text-muted-foreground hover:bg-muted [&::-webkit-details-marker]:hidden">
+                    期限・授業内訳を見る <ChevronRight className="h-4 w-4 transition-transform group-open:rotate-90" aria-hidden />
+                  </summary>
+                  <div className="space-y-3 border-t p-4">
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                     <form action={setPaymentDueDate} className="flex w-full min-w-0 items-center gap-2 sm:w-auto">
                       <input type="hidden" name="studentId" value={sid} />
                       <input type="hidden" name="year" value={year} />
                       <input type="hidden" name="month" value={month + 1} />
                       <span className="text-xs text-muted-foreground shrink-0">期限</span>
-                      <input
+                      <Input
                         type="date"
                         name="dueDate"
                         defaultValue={currentDueDateValue}
-                        className="h-11 min-w-0 flex-1 rounded-lg border border-input bg-background px-3 text-base text-foreground md:h-7 md:w-32 md:flex-none md:px-2 md:text-xs"
+                        className="min-w-0 flex-1 md:h-9 md:w-40 md:flex-none md:text-sm"
                       />
                       <button
                         type="submit"
@@ -213,7 +224,7 @@ export default async function BillingPage({
                         設定
                       </button>
                     </form>
-                    <form action={isPaid ? markAsUnpaid : markAsPaid} className="w-full shrink-0 sm:ml-auto sm:w-auto">
+                    {isPaid && <form action={markAsUnpaid} className="w-full shrink-0 sm:ml-auto sm:w-auto">
                       <input type="hidden" name="studentId" value={sid} />
                       <input type="hidden" name="year" value={year} />
                       <input type="hidden" name="month" value={month + 1} />
@@ -221,18 +232,17 @@ export default async function BillingPage({
                         type="submit"
                         className={
                           buttonVariants({
-                            variant: isPaid ? "outline" : "default",
+                            variant: "outline",
                             size: "xs",
                             className: "h-10 w-full px-3 text-sm md:h-7 md:w-auto md:px-2.5 md:text-xs",
-                          }) + (isPaid ? " border-primary/30 text-primary bg-transparent" : "")
+                          }) + " border-primary/30 bg-transparent text-primary"
                         }
                       >
-                        {isPaid ? <><Check className="h-3.5 w-3.5" aria-hidden />入金済み</> : "入金確認"}
+                          <><Check className="h-3.5 w-3.5" aria-hidden />入金済みを解除</>
                       </button>
-                    </form>
+                    </form>}
                   </div>
-                </div>
-                <div className="divide-y">
+                <div className="divide-y rounded-lg border">
                   {sLessons.map((l) => {
                     const fee = calcFee(l)
                     const dateLabel = l.date.toLocaleDateString("ja-JP", { timeZone: "Asia/Tokyo", month: "numeric", day: "numeric", weekday: "short" })
@@ -260,9 +270,13 @@ export default async function BillingPage({
                     )
                   })}
                 </div>
+                  </div>
+                </details>
               </div>
             )
           })}
+
+          {visibleStudentEntries.length === 0 && <EmptyState title={currentStatus === "paid" ? "入金済みの請求はありません" : "未入金の請求はありません"} />}
 
           {!hasFeeData && (
             <p className="text-xs text-muted-foreground text-center">
@@ -280,16 +294,19 @@ async function ParentBillingPage({
   searchParams,
 }: {
   parentId: string
-  searchParams: Promise<{ year?: string; month?: string }>
+  searchParams: Promise<{ year?: string; month?: string; studentId?: string }>
 }) {
-  const { year: yearStr, month: monthStr } = await searchParams
+  const { year: yearStr, month: monthStr, studentId } = await searchParams
   const now = new Date()
   const year = yearStr ? parseInt(yearStr) : now.getFullYear()
   const month = monthStr ? parseInt(monthStr) - 1 : now.getMonth()
   const monthStart = new Date(year, month, 1)
   const monthEnd = new Date(year, month + 1, 0, 23, 59, 59)
 
-  const links = await db.parentStudent.findMany({ where: { parentId } })
+  const links = await db.parentStudent.findMany({
+    where: { parentId },
+    include: { student: { include: { user: { select: { name: true } } } } },
+  })
   if (links.length === 0) {
     return (
       <div className="rounded-lg border bg-card p-12 text-center text-sm text-muted-foreground">
@@ -299,14 +316,15 @@ async function ParentBillingPage({
   }
 
   const studentIds = links.map((l) => l.studentId)
+  const effectiveStudentId = await resolveParentStudentId(studentIds, studentId)
   const [lessons, payments] = await Promise.all([
     db.lesson.findMany({
-      where: { studentId: { in: studentIds }, date: { gte: monthStart, lte: monthEnd }, completedAt: { not: null } },
+      where: { studentId: effectiveStudentId, date: { gte: monthStart, lte: monthEnd }, completedAt: { not: null } },
       include: { student: { include: { user: { select: { name: true } } } } },
       orderBy: { date: "asc" },
     }),
     db.monthlyPayment.findMany({
-      where: { studentId: { in: studentIds }, year, month: month + 1 },
+      where: { studentId: effectiveStudentId, year, month: month + 1 },
     }),
   ])
 
@@ -318,7 +336,10 @@ async function ParentBillingPage({
   const nextMonth = month === 11 ? 1 : month + 2
 
   // Group by student
-  const studentMap = new Map<string, { name: string; lessons: typeof lessons }>()
+  const selectedLink = links.find((link) => link.studentId === effectiveStudentId)!
+  const studentMap = new Map<string, { name: string; lessons: typeof lessons }>([
+    [effectiveStudentId, { name: selectedLink.student.user.name, lessons: [] }],
+  ])
   for (const l of lessons) {
     if (!studentMap.has(l.studentId)) {
       studentMap.set(l.studentId, { name: l.student.user.name, lessons: [] })
@@ -327,17 +348,16 @@ async function ParentBillingPage({
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <a href={`/billing?year=${prevYear}&month=${prevMonth}`} className={buttonVariants({ variant: "outline", size: "sm" })}>← 前月</a>
-        <span className="font-semibold text-sm">{year}年 {month + 1}月</span>
-        <a href={`/billing?year=${nextYear}&month=${nextMonth}`} className={buttonVariants({ variant: "outline", size: "sm" })}>翌月 →</a>
+    <div className="space-y-5">
+      <PageHeader title="請求" description="請求額・期限・入金状況を確認できます。" />
+      <ParentStudentSwitcher students={links.map(({ student }) => ({ id: student.id, name: student.user.name }))} selectedStudentId={effectiveStudentId} />
+      <div className="flex items-center justify-center gap-2">
+        <a aria-label="前の月" href={`/billing?year=${prevYear}&month=${prevMonth}&studentId=${effectiveStudentId}`} className={buttonVariants({ variant: "ghost", size: "icon-sm" })}><ChevronLeft className="h-4 w-4" aria-hidden /></a>
+        <span className="min-w-28 text-center font-semibold text-sm">{year}年 {month + 1}月</span>
+        <a aria-label="次の月" href={`/billing?year=${nextYear}&month=${nextMonth}&studentId=${effectiveStudentId}`} className={buttonVariants({ variant: "ghost", size: "icon-sm" })}><ChevronRight className="h-4 w-4" aria-hidden /></a>
       </div>
 
-      {lessons.length === 0 ? (
-        <div className="rounded-lg border bg-card p-12 text-center text-muted-foreground text-sm">この月の授業記録はありません</div>
-      ) : (
-        <div className="space-y-4">
+      <div className="space-y-4">
           {Array.from(studentMap.entries()).map(([sid, { name, lessons: sLessons }]) => {
             const paymentRecord = paidMap.get(sid)
             const isPaid = paymentRecord?.paidAt != null
@@ -349,9 +369,10 @@ async function ParentBillingPage({
             const dueDateInfo = dueDateLabel(paymentRecord?.dueDate ?? null, isPaid)
             return (
               <div key={sid} className="rounded-lg border bg-card overflow-hidden">
-                <div className="flex items-center justify-between px-5 py-3 border-b bg-muted gap-3 flex-wrap">
+                <div className="space-y-3 bg-muted px-5 py-4">
+                  <p className="text-xs text-muted-foreground">{name}・今月の請求</p>
+                  <div className="flex items-end justify-between gap-3">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <p className="font-medium text-sm">{name}</p>
                     {isPaid && (
                       <span className="rounded-full border border-primary/25 bg-primary/15 px-2 py-0.5 text-xs font-medium text-foreground">入金済み</span>
                     )}
@@ -360,10 +381,14 @@ async function ParentBillingPage({
                     )}
                   </div>
                   {hasFee && (
-                    <span className="text-sm font-semibold">{formatCurrency(studentTotal)}</span>
+                    <span className="text-2xl font-bold">{formatCurrency(studentTotal)}</span>
                   )}
+                  {!hasFee && <span className="text-sm text-muted-foreground">請求金額は未設定です</span>}
+                  </div>
                 </div>
-                <div className="divide-y">
+                {sLessons.length > 0 ? <details className="group border-t">
+                  <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between px-4 text-sm font-medium text-muted-foreground hover:bg-muted [&::-webkit-details-marker]:hidden">授業の内訳（{sLessons.length}回）<ChevronRight className="h-4 w-4 transition-transform group-open:rotate-90" aria-hidden /></summary>
+                  <div className="divide-y border-t">
                   {sLessons.map((l) => {
                     const fee = calcFee(l)
                     const dateLabel = l.date.toLocaleDateString("ja-JP", { timeZone: "Asia/Tokyo", month: "numeric", day: "numeric", weekday: "short" })
@@ -381,12 +406,12 @@ async function ParentBillingPage({
                       </div>
                     )
                   })}
-                </div>
+                  </div>
+                </details> : <p className="border-t px-4 py-5 text-sm text-muted-foreground">この月の完了済み授業はありません。</p>}
               </div>
             )
           })}
         </div>
-      )}
     </div>
   )
 }

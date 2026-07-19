@@ -1,10 +1,10 @@
 import { auth } from "@/lib/auth"
 import { redirect, notFound } from "next/navigation"
 import { db } from "@/lib/db"
-import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { isPendingStatus } from "@/lib/homework-status"
 import EditHomeworkForm from "./edit-form"
+import { PageHeader } from "@/components/ui/page-header"
 
 export default async function EditHomeworkPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -24,9 +24,7 @@ export default async function EditHomeworkPage({ params }: { params: Promise<{ i
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <Link href={`/homework/${id}`} className="text-sm text-muted-foreground hover:underline">
-        ← 宿題詳細に戻る
-      </Link>
+      <PageHeader backHref={`/homework/${id}`} backLabel="宿題詳細" title="宿題を編集" description={`${homework.student.user.name}・${homework.title}`} />
       <Card>
         <CardHeader>
           <CardTitle>宿題を編集</CardTitle>

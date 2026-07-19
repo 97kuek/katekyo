@@ -48,6 +48,17 @@ async function registerInvitedStudent(page: Page, inviteUrl: string, email: stri
   await login(page, email)
 }
 
+async function registerInvitedParent(page: Page, inviteUrl: string, email: string) {
+  await page.context().clearCookies()
+  await page.goto(inviteUrl, { waitUntil: "domcontentloaded" })
+  await page.getByLabel("お名前").fill("Codex UI Flow Parent")
+  await page.getByLabel("メールアドレス").fill(email)
+  await page.getByLabel("パスワード（8文字以上）").fill(password)
+  await page.getByRole("button", { name: "アカウントを作成する" }).click()
+  await expect(page).toHaveURL(/\/login/, { timeout: 30_000 })
+  await login(page, email)
+}
+
 async function login(page: Page, email: string) {
   await page.context().clearCookies()
   await page.goto(`${baseURL}/login`, { waitUntil: "domcontentloaded" })
@@ -89,6 +100,14 @@ async function createInvite(page: Page, studentName: string) {
   await assertMainControlUsable(page, "招待リンクを生成")
   await assertMobileFormControlsComfortable(page, "teacher-invite-form")
   await page.getByRole("button", { name: "招待リンクを生成" }).click()
+  await expect(page.getByText("招待リンクが生成されました")).toBeVisible({ timeout: 30_000 })
+  return await page.locator('input[readonly]').inputValue()
+}
+
+async function createParentInvite(page: Page) {
+  await page.goto(`${baseURL}/parent-invite/create`, { waitUntil: "domcontentloaded" })
+  await assertMainControlUsable(page, "招待リンクを生成する")
+  await page.getByRole("button", { name: "招待リンクを生成する" }).click()
   await expect(page.getByText("招待リンクが生成されました")).toBeVisible({ timeout: 30_000 })
   return await page.locator('input[readonly]').inputValue()
 }
@@ -152,9 +171,11 @@ async function createGrade(page: Page, testName: string, subjectName: string) {
 
 async function createCalendarItems(page: Page, lessonNote: string, calendarHomeworkTitle: string, examName: string) {
   await page.goto(`${baseURL}/calendar`, { waitUntil: "domcontentloaded" })
-  await page.getByRole("button", { name: "授業を追加" }).click()
+  await page.getByRole("button", { name: "追加", exact: true }).click()
+  await page.getByRole("button", { name: "授業", exact: true }).click()
   await page.getByLabel("時刻").fill("16:30")
   await page.getByLabel("対面").check()
+  await page.getByText("詳細設定（時間・料金・科目・繰り返し）", { exact: true }).click()
   await page.getByLabel("時間（分）").fill("75")
   await page.getByLabel("交通費（円・任意）").fill("500")
   await page.getByLabel("メモ（任意）").fill(lessonNote)
@@ -162,7 +183,8 @@ async function createCalendarItems(page: Page, lessonNote: string, calendarHomew
   await page.getByRole("button", { name: "追加" }).first().click()
   await expect(page.getByText(lessonNote)).toBeVisible({ timeout: 30_000 })
 
-  await page.getByRole("button", { name: "宿題を追加" }).click()
+  await page.getByRole("button", { name: "追加", exact: true }).click()
+  await page.getByRole("button", { name: "宿題期限", exact: true }).click()
   const calendarHomeworkInput = page.getByPlaceholder("例: 数学 p.30-35")
   await calendarHomeworkInput.fill(calendarHomeworkTitle)
   await assertMobileFormControlsComfortable(page, "teacher-calendar-homework-form")
@@ -174,7 +196,8 @@ async function createCalendarItems(page: Page, lessonNote: string, calendarHomew
   })
   await expect(visibleText(page, calendarHomeworkTitle)).toBeVisible({ timeout: 30_000 })
 
-  await page.getByRole("button", { name: "テストを追加" }).click()
+  await page.getByRole("button", { name: "追加", exact: true }).click()
+  await page.getByRole("button", { name: "テスト", exact: true }).click()
   const examInput = page.getByPlaceholder("例: 英語期末テスト")
   await examInput.fill(examName)
   await assertMobileFormControlsComfortable(page, "teacher-calendar-exam-form")
@@ -208,7 +231,7 @@ async function submitHomework(page: Page, title: string) {
   await page.getByRole("button", { name: "提出する" }).last().click()
   await expect(page).toHaveURL(/\/homework/, { timeout: 30_000 })
   await expect(visibleText(page, title)).toBeVisible({ timeout: 30_000 })
-  await expect(page.getByText(/承認待ち/)).toBeVisible({ timeout: 30_000 })
+  await expect(page.getByText(/確認中/)).toBeVisible({ timeout: 30_000 })
 }
 
 async function approveHomework(page: Page, title: string) {
@@ -239,12 +262,13 @@ test.describe("interactive UI flow audit", () => {
     }
   })
 
-  test("teacher and student workflows stay usable across devices", async ({ page }, testInfo) => {
+  test("teacher, student, and parent workflows stay usable across devices", async ({ page }, testInfo) => {
     test.setTimeout(420_000)
 
     const slug = projectSlug(testInfo)
     const teacherEmail = `${emailPrefix}-${slug}-teacher@example.com`
     const studentEmail = `${emailPrefix}-${slug}-student@example.com`
+    const parentEmail = `${emailPrefix}-${slug}-parent@example.com`
     const studentName = `UI Flow Student ${slug}`
     const subjectName = `UI Flow Math ${slug}`
     const materialName = `UI Flow Material ${slug}`
@@ -288,6 +312,16 @@ test.describe("interactive UI flow audit", () => {
     await snapshotAndCheck(page, testInfo, "teacher-calendar-created")
 
     await login(page, studentEmail)
+    const parentInviteUrl = await createParentInvite(page)
+    await snapshotAndCheck(page, testInfo, "student-parent-invite-created")
+
+    await registerInvitedParent(page, parentInviteUrl, parentEmail)
+    for (const route of ["dashboard", "homework", "calendar", "grades", "billing", "garden", "more"]) {
+      await page.goto(`${baseURL}/${route}`, { waitUntil: "domcontentloaded" })
+      await snapshotAndCheck(page, testInfo, `parent-${route}`)
+    }
+
+    await login(page, studentEmail)
     await submitHomework(page, homeworkTitle)
     await snapshotAndCheck(page, testInfo, "student-homework-submitted")
 
@@ -296,7 +330,7 @@ test.describe("interactive UI flow audit", () => {
     await snapshotAndCheck(page, testInfo, "teacher-homework-approved")
 
     await login(page, studentEmail)
-    await page.goto(`${baseURL}/homework`, { waitUntil: "domcontentloaded" })
+    await page.goto(`${baseURL}/homework?view=completed`, { waitUntil: "domcontentloaded" })
     await expect(visibleText(page, homeworkTitle)).toBeVisible({ timeout: 30_000 })
     await expect(visibleText(page, "承認済み")).toBeVisible({ timeout: 30_000 })
     await snapshotAndCheck(page, testInfo, "student-homework-approved")

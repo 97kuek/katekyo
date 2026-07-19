@@ -7,7 +7,6 @@ import { buttonVariants } from "@/components/ui/button"
 import { Plus } from "lucide-react"
 import { StatusBadge } from "@/components/homework/status-badge"
 import { UnreadBadge } from "@/components/ui/unread-badge"
-import { CancelSubmissionButton } from "./cancel-button"
 import { HomeworkFilter } from "./homework-filter"
 import { BulkApproveSection } from "./bulk-approve-section"
 import { relativeDeadline, deadlineColorClass, formatDate } from "@/lib/date-utils"
@@ -15,24 +14,28 @@ import { isPendingStatus } from "@/lib/homework-status"
 import { SubjectTags } from "@/components/ui/subject-tags"
 import { SwipeableHomeworkCard } from "./swipeable-card"
 import { EmptyState } from "@/components/ui/empty-state"
+import { PageHeader } from "@/components/ui/page-header"
+import { HomeworkViewTabs } from "./homework-view-tabs"
+import { ParentStudentSwitcher } from "@/components/parent-student-switcher"
+import { resolveParentStudentId } from "@/lib/parent-student-context"
 
 export default async function HomeworkPage({
   searchParams,
 }: {
-  searchParams: Promise<{ studentId?: string; sort?: string; q?: string; subjects?: string }>
+  searchParams: Promise<{ studentId?: string; sort?: string; q?: string; subjects?: string; view?: string }>
 }) {
   const ctx = await getViewingContext()
   if (!ctx) redirect("/login")
 
-  const { studentId, sort, q, subjects } = await searchParams
+  const { studentId, sort, q, subjects, view } = await searchParams
 
   if (ctx.effectiveRole === "teacher") {
-    return <TeacherHomeworkPage teacherId={ctx.effectiveUserId} studentIdFilter={studentId} sort={sort} q={q} subjectFilter={subjects} />
+    return <TeacherHomeworkPage teacherId={ctx.effectiveUserId} studentIdFilter={studentId} sort={sort} q={q} subjectFilter={subjects} view={view} />
   }
   if (ctx.effectiveRole === "parent") {
-    return <ParentHomeworkPage parentId={ctx.effectiveUserId} studentIdFilter={studentId} />
+    return <ParentHomeworkPage parentId={ctx.effectiveUserId} studentIdFilter={studentId} view={view} />
   }
-  return <StudentHomeworkPage userId={ctx.effectiveUserId} />
+  return <StudentHomeworkPage userId={ctx.effectiveUserId} view={view} />
 }
 
 async function TeacherHomeworkPage({
@@ -41,12 +44,14 @@ async function TeacherHomeworkPage({
   sort,
   q,
   subjectFilter,
+  view,
 }: {
   teacherId: string
   studentIdFilter?: string
   sort?: string
   q?: string
   subjectFilter?: string
+  view?: string
 }) {
   const subjectIds = subjectFilter?.split(",").filter(Boolean) ?? []
   const orderBy = sort === "due" ? { dueDate: "asc" as const } : { createdAt: "desc" as const }
@@ -93,27 +98,52 @@ async function TeacherHomeworkPage({
   const subjectMap = buildSubjectMap(subjects)
   const now = new Date()
   const submitted = homeworks.filter((h) => h.status === "submitted")
-  const others = homeworks.filter((h) => h.status !== "submitted")
+  const active = homeworks.filter((h) => h.status === "assigned" || h.status === "rejected")
+  const completed = homeworks.filter((h) => h.status === "approved")
+  const currentView = view === "active" || view === "completed" || view === "review"
+    ? view
+    : submitted.length > 0 ? "review" : "active"
+  const visibleHomeworks = currentView === "active" ? active : completed
 
   return (
     <div className="space-y-4">
-      <HomeworkFilter students={students} subjects={subjects}>
-        <Link href="/homework/new" className={buttonVariants({ size: "sm", className: "gap-1.5 shrink-0" })}>
+      <PageHeader
+        title="宿題"
+        description="確認が必要な宿題から順に整理しています。"
+        action={
+          <Link href={studentIdFilter ? `/homework/new?studentId=${studentIdFilter}` : "/homework/new"} className={buttonVariants({ size: "sm", className: "gap-1.5 shrink-0" })}>
           <Plus className="h-4 w-4 shrink-0" />
           宿題を作成
-        </Link>
-      </HomeworkFilter>
+          </Link>
+        }
+      />
 
-      {submitted.length > 0 && (
+      <HomeworkViewTabs
+        current={currentView}
+        items={[
+          { value: "review", label: "確認待ち", count: submitted.length },
+          { value: "active", label: "進行中", count: active.length },
+          { value: "completed", label: "完了", count: completed.length },
+        ]}
+        params={{ studentId: studentIdFilter, sort, q, subjects: subjectFilter }}
+      />
+
+      <HomeworkFilter students={students} subjects={subjects} />
+
+      {currentView === "review" && submitted.length > 0 && (
         <BulkApproveSection submitted={submitted} subjectMap={subjectMap} />
       )}
 
-      {others.length > 0 && (
+      {currentView === "review" && submitted.length === 0 && (
+        <EmptyState title="確認待ちの宿題はありません" description="提出されるとここに表示されます。" />
+      )}
+
+      {currentView !== "review" && visibleHomeworks.length > 0 && (
         <section className="space-y-3">
-          <h2 className="text-sm font-medium text-muted-foreground">すべての宿題</h2>
+          <h2 className="sr-only">{currentView === "active" ? "進行中の宿題" : "完了した宿題"}</h2>
           {/* モバイル: スワイプカード */}
           <div className="md:hidden space-y-2">
-            {others.map((h) => {
+            {visibleHomeworks.map((h) => {
               const overdue = h.dueDate < now && (isPendingStatus(h.status))
               const subjectNames = h.subjectIds.map((sid) => subjectMap.get(sid)).filter(Boolean) as string[]
               return (
@@ -142,7 +172,7 @@ async function TeacherHomeworkPage({
                 </tr>
               </thead>
               <tbody className="divide-y">
-                {others.map((h) => {
+                {visibleHomeworks.map((h) => {
                   const overdue = h.dueDate < now && (isPendingStatus(h.status))
                   const relLabel = relativeDeadline(h.dueDate)
                   const relColor = deadlineColorClass(h.dueDate)
@@ -171,6 +201,10 @@ async function TeacherHomeworkPage({
         </section>
       )}
 
+      {currentView !== "review" && visibleHomeworks.length === 0 && homeworks.length > 0 && (
+        <EmptyState title={currentView === "active" ? "進行中の宿題はありません" : "完了した宿題はありません"} />
+      )}
+
       {homeworks.length === 0 && (
         <EmptyState
           title={studentIdFilter ? "この生徒の宿題はありません" : "宿題が登録されていません"}
@@ -186,7 +220,7 @@ async function TeacherHomeworkPage({
   )
 }
 
-async function ParentHomeworkPage({ parentId, studentIdFilter }: { parentId: string; studentIdFilter?: string }) {
+async function ParentHomeworkPage({ parentId, studentIdFilter, view }: { parentId: string; studentIdFilter?: string; view?: string }) {
   const links = await db.parentStudent.findMany({
     where: { parentId },
     include: { student: { include: { user: { select: { name: true } } } } },
@@ -200,9 +234,7 @@ async function ParentHomeworkPage({ parentId, studentIdFilter }: { parentId: str
   }
 
   const allowedStudentIds = links.map((l) => l.studentId)
-  const effectiveStudentId = studentIdFilter && allowedStudentIds.includes(studentIdFilter)
-    ? studentIdFilter
-    : allowedStudentIds[0]
+  const effectiveStudentId = await resolveParentStudentId(allowedStudentIds, studentIdFilter)
 
   const homeworks = await db.homework.findMany({
     where: { studentId: effectiveStudentId },
@@ -213,34 +245,36 @@ async function ParentHomeworkPage({ parentId, studentIdFilter }: { parentId: str
   const subjects = teacherId ? await getSubjectsByTeacherId(teacherId) : []
   const subjectMap = buildSubjectMap(subjects)
   const now = new Date()
+  const active = homeworks.filter((h) => h.status === "assigned" || h.status === "rejected")
+  const waiting = homeworks.filter((h) => h.status === "submitted")
+  const completed = homeworks.filter((h) => h.status === "approved")
+  const currentView = view === "waiting" || view === "completed" ? view : "active"
+  const visibleHomeworks = currentView === "active" ? active : currentView === "waiting" ? waiting : completed
 
   return (
     <div className="space-y-4">
-      {links.length > 1 && (
-        <div className="flex items-center gap-2 flex-wrap">
-          {links.map(({ student }) => (
-            <a
-              key={student.id}
-              href={`/homework?studentId=${student.id}`}
-              className={`text-sm px-3 py-1.5 rounded-full border transition-colors ${
-                student.id === effectiveStudentId
-                  ? "bg-primary text-primary-foreground border-primary"
-                  : "bg-card text-foreground border-border hover:bg-muted"
-              }`}
-            >
-              {student.user.name}
-            </a>
-          ))}
-        </div>
-      )}
+      <PageHeader title="宿題" description="お子さまの提出状況を確認できます。" />
+      <ParentStudentSwitcher students={links.map(({ student }) => ({ id: student.id, name: student.user.name }))} selectedStudentId={effectiveStudentId} />
+
+      <HomeworkViewTabs
+        current={currentView}
+        items={[
+          { value: "active", label: "要対応", count: active.length },
+          { value: "waiting", label: "確認中", count: waiting.length },
+          { value: "completed", label: "完了", count: completed.length },
+        ]}
+        params={{ studentId: effectiveStudentId }}
+      />
 
       {homeworks.length === 0 ? (
         <div className="rounded-lg border bg-card p-12 text-center text-muted-foreground text-sm">
           宿題はまだありません
         </div>
+      ) : visibleHomeworks.length === 0 ? (
+        <EmptyState title="該当する宿題はありません" />
       ) : (
         <div className="space-y-2">
-          {homeworks.map((h) => {
+          {visibleHomeworks.map((h) => {
             const overdue = h.dueDate < now && (isPendingStatus(h.status))
             const relLabel = relativeDeadline(h.dueDate)
             const relColor = deadlineColorClass(h.dueDate)
@@ -270,7 +304,7 @@ async function ParentHomeworkPage({ parentId, studentIdFilter }: { parentId: str
   )
 }
 
-async function StudentHomeworkPage({ userId }: { userId: string }) {
+async function StudentHomeworkPage({ userId, view }: { userId: string; view?: string }) {
   const student = await getStudentByUserId(userId)
   if (!student) redirect("/dashboard")
 
@@ -284,14 +318,23 @@ async function StudentHomeworkPage({ userId }: { userId: string }) {
   const active = homeworks.filter((h) => isPendingStatus(h.status))
   const submitted = homeworks.filter((h) => h.status === "submitted")
   const approvedAll = homeworks.filter((h) => h.status === "approved")
-  const approved = approvedAll.slice(0, 5)
-  const approvedRemainder = approvedAll.length - approved.length
+  const currentView = view === "waiting" || view === "completed" ? view : "active"
 
   return (
     <div className="space-y-4">
-      {active.length > 0 && (
+      <PageHeader title="宿題" description="今取り組む宿題を優先して表示します。" />
+      <HomeworkViewTabs
+        current={currentView}
+        items={[
+          { value: "active", label: "要対応", count: active.length },
+          { value: "waiting", label: "確認中", count: submitted.length },
+          { value: "completed", label: "完了", count: approvedAll.length },
+        ]}
+      />
+
+      {currentView === "active" && active.length > 0 && (
         <section className="space-y-3">
-          <h2 className="text-sm font-medium text-muted-foreground">やること</h2>
+          <h2 className="sr-only">要対応の宿題</h2>
           <div className="space-y-2">
             {active.map((h) => {
               const overdue = h.dueDate < now
@@ -305,16 +348,12 @@ async function StudentHomeworkPage({ userId }: { userId: string }) {
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <p className="font-medium truncate">{h.title}</p>
-                      <StatusBadge status={h.status} />
                     </div>
                     <p className={`text-sm mt-0.5 ${relColor}`}>
                       期限: {formatDate(h.dueDate)}
                       <span className="ml-1.5 text-xs">（{relLabel}）</span>
                     </p>
                     <SubjectTags ids={h.subjectIds} map={subjectMap} />
-                    {h.description && (
-                      <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap line-clamp-2">{h.description}</p>
-                    )}
                     {h.status === "rejected" && h.teacherFeedback && (
                       <p className="text-sm text-destructive mt-2 border-l-2 border-destructive/30 pl-3 whitespace-pre-wrap">
                         先生のコメント: {h.teacherFeedback}
@@ -334,9 +373,9 @@ async function StudentHomeworkPage({ userId }: { userId: string }) {
         </section>
       )}
 
-      {submitted.length > 0 && (
+      {currentView === "waiting" && submitted.length > 0 && (
         <section className="space-y-3">
-          <h2 className="text-sm font-semibold">承認待ち（{submitted.length}件）</h2>
+          <h2 className="sr-only">先生が確認中の宿題</h2>
           <div className="space-y-2">
             {submitted.map((h) => (
               <div key={h.id} className="rounded-lg border bg-card p-4 flex items-start justify-between gap-4">
@@ -347,18 +386,18 @@ async function StudentHomeworkPage({ userId }: { userId: string }) {
                   </p>
                   <SubjectTags ids={h.subjectIds} map={subjectMap} />
                 </div>
-                <CancelSubmissionButton homeworkId={h.id} />
+                <Link href={`/homework/${h.id}`} className={buttonVariants({ variant: "outline", size: "sm" })}>詳細</Link>
               </div>
             ))}
           </div>
         </section>
       )}
 
-      {approved.length > 0 && (
+      {currentView === "completed" && approvedAll.length > 0 && (
         <section className="space-y-3">
-          <h2 className="text-sm font-medium text-muted-foreground">完了（{approvedAll.length}件）</h2>
+          <h2 className="sr-only">完了した宿題</h2>
           <div className="space-y-2">
-            {approved.map((h) => {
+            {approvedAll.map((h) => {
               const unseenFeedback = !!h.teacherFeedback && h.feedbackSeenAt === null
               return (
                 <Link
@@ -391,12 +430,15 @@ async function StudentHomeworkPage({ userId }: { userId: string }) {
                 </Link>
               )
             })}
-            {approvedRemainder > 0 && (
-              <p className="py-1 text-center text-xs text-muted-foreground">他 {approvedRemainder} 件</p>
-            )}
           </div>
         </section>
       )}
+
+      {homeworks.length > 0 && (
+        (currentView === "active" && active.length === 0) ||
+        (currentView === "waiting" && submitted.length === 0) ||
+        (currentView === "completed" && approvedAll.length === 0)
+      ) && <EmptyState title="該当する宿題はありません" />}
 
       {homeworks.length === 0 && (
         <div className="rounded-lg border bg-card p-12 text-center">

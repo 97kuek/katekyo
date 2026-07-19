@@ -5,6 +5,10 @@ import { getStudentByUserId, getGardenState } from "@/lib/queries"
 import GardenCanvas from "./garden-canvas"
 import { TreePine, Trophy, Star } from "lucide-react"
 import { GARDEN_CAPACITY } from "@/lib/garden/utils"
+import { PageHeader } from "@/components/ui/page-header"
+import { Disclosure } from "@/components/ui/disclosure"
+import { ParentStudentSwitcher } from "@/components/parent-student-switcher"
+import { resolveParentStudentId } from "@/lib/parent-student-context"
 
 export default async function GardenPage({
   searchParams,
@@ -31,6 +35,7 @@ export default async function GardenPage({
 
   return (
     <div className="space-y-5 max-w-2xl mx-auto">
+      <PageHeader title="学習の森" description="学習の積み重ねが、少しずつ森を育てます。" />
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-2">
           {generation > 1 && (
@@ -88,8 +93,8 @@ export default async function GardenPage({
         </div>
       )}
 
-      <div className="rounded-lg border bg-card p-4 space-y-4 text-sm">
-        <p className="font-medium">学習の森とは？</p>
+      <Disclosure title="森のしくみを見る" description="植物の種類と育ち方">
+        <div className="space-y-4 text-sm">
         <p className="text-muted-foreground text-xs leading-relaxed">
           勉強の頑張りが森として育っていきます。宿題を提出して承認されたり、テストで好成績を取ると植物が1つ増えます。最大64個まで育てられます。
         </p>
@@ -137,7 +142,8 @@ export default async function GardenPage({
             <p>期限切れや差し戻しの宿題があると古い植物が枯れます。提出すれば回復します。</p>
           )}
         </div>
-      </div>
+        </div>
+      </Disclosure>
     </div>
   )
 }
@@ -162,10 +168,7 @@ async function ParentGardenPage({
   }
 
   const allowedStudentIds = links.map((l) => l.studentId)
-  const effectiveStudentId =
-    studentIdParam && allowedStudentIds.includes(studentIdParam)
-      ? studentIdParam
-      : allowedStudentIds[0]
+  const effectiveStudentId = await resolveParentStudentId(allowedStudentIds, studentIdParam)
 
   const student = links.find((l) => l.studentId === effectiveStudentId)!.student
 
@@ -176,23 +179,8 @@ async function ParentGardenPage({
 
   return (
     <div className="space-y-5 max-w-2xl mx-auto">
-      {links.length > 1 && (
-        <div className="flex items-center gap-2 flex-wrap">
-          {links.map(({ student: s }) => (
-            <a
-              key={s.id}
-              href={`/garden?studentId=${s.id}`}
-              className={`text-sm px-3 py-1.5 rounded-full border transition-colors ${
-                s.id === effectiveStudentId
-                  ? "bg-primary text-primary-foreground border-primary"
-                  : "bg-card text-foreground border-border hover:bg-muted"
-              }`}
-            >
-              {s.user.name}
-            </a>
-          ))}
-        </div>
-      )}
+      <PageHeader title="学習の森" description={`${student.user.name}さんの学習の積み重ね`} />
+      <ParentStudentSwitcher students={links.map(({ student: linkedStudent }) => ({ id: linkedStudent.id, name: linkedStudent.user.name }))} selectedStudentId={effectiveStudentId} />
 
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-2">

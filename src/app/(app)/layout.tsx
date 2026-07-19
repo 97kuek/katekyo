@@ -111,7 +111,29 @@ async function fetchNotifications(
   }
 
   if (role === "parent") {
-    return { role: "student", homework: [], lessons: [] }
+    const links = await db.parentStudent.findMany({
+      where: { parentId: userId },
+      select: { studentId: true },
+    })
+    const studentIds = links.map((link) => link.studentId)
+    if (studentIds.length === 0) return { role: "parent", homework: [], lessons: [] }
+    const [homework, lessons] = await Promise.all([
+      db.homework.findMany({
+        where: { studentId: { in: studentIds }, status: { in: PENDING_STATUSES }, dueDate: { lte: todayEnd } },
+        select: { id: true, title: true, dueDate: true, student: { select: { user: { select: { name: true } } } } },
+        orderBy: { dueDate: "asc" },
+      }),
+      db.lesson.findMany({
+        where: { studentId: { in: studentIds }, date: { gte: todayStart, lte: todayEnd } },
+        select: { id: true, date: true, type: true, student: { select: { user: { select: { name: true } } } } },
+        orderBy: { date: "asc" },
+      }),
+    ])
+    return {
+      role: "parent",
+      homework: homework.map((item) => ({ id: item.id, title: item.title, studentName: item.student.user.name, isOverdue: item.dueDate < todayStart })),
+      lessons: lessons.map((lesson) => ({ id: lesson.id, date: lesson.date.toISOString(), type: lesson.type, studentName: lesson.student.user.name })),
+    }
   }
 
   const student = await db.student.findFirst({

@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { DifficultyBars } from "@/components/homework/difficulty-bars"
+import { StickyFormActions } from "@/components/ui/sticky-form-actions"
 
 const DIFFICULTIES = [
   { value: 1, label: "かんたん" },
@@ -106,26 +107,6 @@ export default function SubmitForm({ id, rejectedFeedback, requiresPhoto = false
           )}
 
           <div className="space-y-2">
-            <Label>この宿題の難易度（任意）</Label>
-            <div className="flex gap-2">
-              {DIFFICULTIES.map((d) => (
-                <button
-                  key={d.value}
-                  type="button"
-                  onClick={() => setDifficulty(difficulty === d.value ? null : d.value)}
-                  className={`flex-1 py-2.5 rounded-md text-sm border-2 font-medium transition-colors flex flex-col items-center gap-1.5
-                    ${difficulty === d.value
-                      ? "bg-primary border-primary text-primary-foreground"
-                      : "border-input text-muted-foreground hover:bg-muted"}`}
-                >
-                  <DifficultyBars level={d.value} className="w-5 h-3" />
-                  <span className="text-xs">{d.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="space-y-2">
             <div className="flex items-center gap-2">
               <Label>提出写真</Label>
               {requiresPhoto ? (
@@ -181,6 +162,19 @@ export default function SubmitForm({ id, rejectedFeedback, requiresPhoto = false
             </label>
           </div>
 
+          <details className="group rounded-lg border bg-muted/30">
+            <summary className="flex min-h-11 cursor-pointer list-none items-center px-3 text-sm font-medium text-muted-foreground hover:text-foreground [&::-webkit-details-marker]:hidden">任意項目（難易度・コメント）</summary>
+            <div className="space-y-4 border-t p-3">
+          <div className="space-y-2">
+            <Label>この宿題の難易度</Label>
+            <div className="flex gap-2">
+              {DIFFICULTIES.map((d) => (
+                <button key={d.value} type="button" aria-pressed={difficulty === d.value} onClick={() => setDifficulty(difficulty === d.value ? null : d.value)} className={`flex min-h-14 flex-1 flex-col items-center justify-center gap-1 rounded-md border-2 text-sm font-medium ${difficulty === d.value ? "border-primary bg-primary text-primary-foreground" : "border-input text-muted-foreground hover:bg-muted"}`}>
+                  <DifficultyBars level={d.value} className="h-3 w-5" /><span className="text-xs">{d.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
           <div className="space-y-2">
             <Label htmlFor="note">先生へのコメント（任意）</Label>
             <Textarea
@@ -191,6 +185,8 @@ export default function SubmitForm({ id, rejectedFeedback, requiresPhoto = false
               placeholder="質問や報告があれば入力してください"
             />
           </div>
+            </div>
+          </details>
           {isPending && preview && (
             <div className="flex items-center gap-2.5 rounded-md bg-primary/5 border border-primary/20 px-4 py-3">
               <svg className="animate-spin h-4 w-4 text-primary shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -203,9 +199,11 @@ export default function SubmitForm({ id, rejectedFeedback, requiresPhoto = false
               </div>
             </div>
           )}
-          <Button type="submit" className="w-full" disabled={isSubmitDisabled}>
-            {isPending ? "提出中..." : isCompressing ? "写真を処理中..." : requiresPhoto && !preview ? "写真を添付してください" : "提出する"}
-          </Button>
+          <StickyFormActions>
+            <Button type="submit" className="w-full md:w-auto" disabled={isSubmitDisabled}>
+              {isPending ? "提出中..." : isCompressing ? "写真を処理中..." : requiresPhoto && !preview ? "写真を添付してください" : "提出する"}
+            </Button>
+          </StickyFormActions>
         </form>
       </CardContent>
     </Card>

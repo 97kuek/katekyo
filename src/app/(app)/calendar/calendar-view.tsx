@@ -1,12 +1,14 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { NextLessonBanner } from "./next-lesson-banner"
 import { DayDetail } from "./day-detail"
 import { pad, toDateKey, DOW_LABELS } from "./calendar-types"
 import type { Lesson, HomeworkDeadline, ExamEvent, Student, Subject } from "./calendar-types"
+import { SegmentedControl } from "@/components/ui/segmented-control"
 
 type Props = {
   lessons: Lesson[]
@@ -15,15 +17,21 @@ type Props = {
   students: Student[]
   subjects: Subject[]
   isTeacher: boolean
+  showStudentNames?: boolean
+  initialYear: number
+  initialMonth: number
 }
 
-export default function CalendarView({ lessons, deadlines, examEvents, students, subjects, isTeacher }: Props) {
+export default function CalendarView({ lessons, deadlines, examEvents, students, subjects, isTeacher, showStudentNames = false, initialYear, initialMonth }: Props) {
+  const router = useRouter()
+  const searchParams = useSearchParams()
   const today = new Date()
-  const [year, setYear] = useState(today.getFullYear())
-  const [month, setMonth] = useState(today.getMonth())
-  const [selectedDay, setSelectedDay] = useState<string | null>(toDateKey(today))
+  const year = initialYear
+  const month = initialMonth
+  const referenceDate = year === today.getFullYear() && month === today.getMonth() ? today : new Date(year, month, 1)
+  const [selectedDay, setSelectedDay] = useState<string | null>(toDateKey(referenceDate))
   const [editingLessonId, setEditingLessonId] = useState<string | null>(null)
-  const [viewMode, setViewMode] = useState<"month" | "week">("week")
+  const [viewMode, setViewMode] = useState<"month" | "week">(searchParams.get("view") === "month" ? "month" : "week")
   const [weekOffset, setWeekOffset] = useState(0)
 
   // 選択日が変わったら編集中の授業をレンダー中に derived state として閉じる
@@ -62,29 +70,46 @@ export default function CalendarView({ lessons, deadlines, examEvents, students,
     }
   }
 
+  function navigateToMonth(targetYear: number, targetMonth: number, mode = viewMode) {
+    const params = new URLSearchParams(searchParams.toString())
+    params.set("year", String(targetYear))
+    params.set("month", String(targetMonth + 1))
+    params.set("view", mode)
+    router.push(`/calendar?${params.toString()}`)
+  }
   function prevMonth() {
-    if (month === 0) { setYear(y => y - 1); setMonth(11) }
-    else setMonth(m => m - 1)
+    navigateToMonth(month === 0 ? year - 1 : year, month === 0 ? 11 : month - 1)
   }
   function nextMonth() {
-    if (month === 11) { setYear(y => y + 1); setMonth(0) }
-    else setMonth(m => m + 1)
+    navigateToMonth(month === 11 ? year + 1 : year, month === 11 ? 0 : month + 1)
   }
   function goToToday() {
-    setYear(today.getFullYear())
-    setMonth(today.getMonth())
-    setSelectedDay(toDateKey(today))
-    setWeekOffset(0)
+    if (year !== today.getFullYear() || month !== today.getMonth()) {
+      navigateToMonth(today.getFullYear(), today.getMonth())
+    } else {
+      setSelectedDay(toDateKey(today))
+      setWeekOffset(0)
+    }
   }
 
   // Week view helpers
-  const weekSundayBase = new Date(today)
-  weekSundayBase.setDate(today.getDate() - today.getDay())
+  const weekSundayBase = new Date(referenceDate)
+  weekSundayBase.setDate(referenceDate.getDate() - referenceDate.getDay())
   const weekDays = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(weekSundayBase)
     d.setDate(weekSundayBase.getDate() + i + weekOffset * 7)
     return d
   })
+
+  function shiftWeek(direction: -1 | 1) {
+    const target = new Date(weekDays[0])
+    target.setDate(target.getDate() + direction * 7)
+    if (target.getFullYear() !== year || target.getMonth() !== month) {
+      navigateToMonth(target.getFullYear(), target.getMonth(), "week")
+      return
+    }
+    setWeekOffset((offset) => offset + direction)
+  }
 
   const firstDay = new Date(year, month, 1).getDay()
   const daysInMonth = new Date(year, month + 1, 0).getDate()
@@ -102,29 +127,17 @@ export default function CalendarView({ lessons, deadlines, examEvents, students,
 
   return (
     <div className="space-y-4">
-      <NextLessonBanner lessons={lessons} isTeacher={isTeacher} />
+      <NextLessonBanner lessons={lessons} isTeacher={isTeacher} showStudentNames={showStudentNames} />
 
       {/* ナビゲーションバー: ビュー切替 + 期間移動 */}
       <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-1 rounded-lg border border-input bg-background p-0.5 shrink-0">
-          <button
-            onClick={() => setViewMode("month")}
-            className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${viewMode === "month" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
-          >
-            月
-          </button>
-          <button
-            onClick={() => setViewMode("week")}
-            className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${viewMode === "week" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
-          >
-            週
-          </button>
-        </div>
+        <SegmentedControl label="予定の表示形式" value={viewMode} options={[{ value: "week", label: "週" }, { value: "month", label: "月" }]} onChange={setViewMode} />
         <div className="flex items-center gap-0.5 min-w-0">
           <Button
-            onClick={viewMode === "month" ? prevMonth : () => setWeekOffset((w) => w - 1)}
+            onClick={viewMode === "month" ? prevMonth : () => shiftWeek(-1)}
             variant="ghost"
             size="icon-sm"
+            aria-label={viewMode === "month" ? "前の月" : "前の週"}
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
@@ -134,9 +147,10 @@ export default function CalendarView({ lessons, deadlines, examEvents, students,
               : `${weekDays[0].getMonth() + 1}/${weekDays[0].getDate()} 〜 ${weekDays[6].getMonth() + 1}/${weekDays[6].getDate()}`}
           </span>
           <Button
-            onClick={viewMode === "month" ? nextMonth : () => setWeekOffset((w) => w + 1)}
+            onClick={viewMode === "month" ? nextMonth : () => shiftWeek(1)}
             variant="ghost"
             size="icon-sm"
+            aria-label={viewMode === "month" ? "次の月" : "次の週"}
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
@@ -171,6 +185,8 @@ export default function CalendarView({ lessons, deadlines, examEvents, students,
                   <button
                     key={key}
                     onClick={() => setSelectedDay(key)}
+                    aria-pressed={isSelected}
+                    aria-label={`${month + 1}月${day}日${hasLesson ? `、授業${lessonMap.get(key)?.length ?? 0}件` : ""}${hasDeadline ? `、宿題期限${deadlineMap.get(key)?.length ?? 0}件` : ""}${hasExam ? `、テスト${examEventMap.get(key)?.length ?? 0}件` : ""}`}
                     className={`aspect-square flex flex-col items-center justify-start pt-1.5 gap-0.5 text-xs transition-colors
                       ${isSelected ? "bg-primary/10" : "hover:bg-muted"}
                       ${dow === 0 ? "text-calendar-sun" : dow === 6 ? "text-calendar-sat" : ""}
@@ -212,6 +228,7 @@ export default function CalendarView({ lessons, deadlines, examEvents, students,
               subjects={subjects}
               editingLessonId={editingLessonId}
               setEditingLessonId={setEditingLessonId}
+              showStudentNames={showStudentNames}
             />
           )}
         </>
@@ -231,6 +248,8 @@ export default function CalendarView({ lessons, deadlines, examEvents, students,
                   <button
                     key={key}
                     onClick={() => setSelectedDay(key)}
+                    aria-pressed={isSelected}
+                    aria-label={`${d.getMonth() + 1}月${d.getDate()}日${hasLesson ? `、授業${lessonMap.get(key)?.length ?? 0}件` : ""}${hasDeadline ? `、宿題期限${deadlineMap.get(key)?.length ?? 0}件` : ""}${hasExam ? `、テスト${examEventMap.get(key)?.length ?? 0}件` : ""}`}
                     className={`flex flex-col items-center gap-1 py-3 transition-colors ${isSelected ? "bg-primary/10" : "hover:bg-muted"} ${i === 0 ? "text-calendar-sun" : i === 6 ? "text-calendar-sat" : ""}`}
                   >
                     <span className="text-xs text-muted-foreground">{DOW_LABELS[i]}</span>
@@ -260,6 +279,7 @@ export default function CalendarView({ lessons, deadlines, examEvents, students,
               subjects={subjects}
               editingLessonId={editingLessonId}
               setEditingLessonId={setEditingLessonId}
+              showStudentNames={showStudentNames}
             />
           )}
         </>

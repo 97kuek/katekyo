@@ -4,10 +4,12 @@ import { db } from "@/lib/db"
 import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import CreateGradeForm from "./create-form"
+import { PageHeader } from "@/components/ui/page-header"
 
-export default async function NewGradePage() {
+export default async function NewGradePage({ searchParams }: { searchParams: Promise<{ studentId?: string }> }) {
   const session = await auth()
   if (!session || session.user.role !== "teacher") redirect("/dashboard")
+  const { studentId } = await searchParams
 
   const now = new Date()
   const pastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
@@ -32,9 +34,7 @@ export default async function NewGradePage() {
   if (students.length === 0) {
     return (
       <div className="max-w-2xl mx-auto space-y-6">
-        <Link href="/grades" className="text-sm text-muted-foreground hover:underline">
-          ← 成績一覧に戻る
-        </Link>
+        <PageHeader backHref="/grades" backLabel="成績一覧" title="成績を記録" />
         <div className="rounded-lg border bg-card p-12 text-center">
           <p className="text-muted-foreground">生徒が登録されていません</p>
           <p className="text-sm text-muted-foreground mt-1">
@@ -49,9 +49,7 @@ export default async function NewGradePage() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <Link href="/grades" className="text-sm text-muted-foreground hover:underline">
-        ← 成績一覧に戻る
-      </Link>
+      <PageHeader backHref="/grades" backLabel="成績一覧" title="成績を記録" description="テスト結果と生徒へのフィードバックを記録します。" />
       <Card>
         <CardHeader>
           <CardTitle>成績を記録する</CardTitle>
@@ -65,7 +63,7 @@ export default async function NewGradePage() {
             date: e.date.toISOString().slice(0, 10),
             studentId: e.studentId,
             studentName: e.student.user.name ?? "",
-          }))} />
+          }))} defaultStudentId={studentId} />
         </CardContent>
       </Card>
     </div>

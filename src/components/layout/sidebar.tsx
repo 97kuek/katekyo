@@ -2,33 +2,9 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { BookOpen, GraduationCap, LayoutDashboard, ClipboardList, BarChart2, CalendarDays, HelpCircle, TreePine, Receipt, Settings } from "lucide-react"
+import { BookOpen, HelpCircle, Settings } from "lucide-react"
 import { cn } from "@/lib/utils"
-
-const teacherNav = [
-  { href: "/dashboard", label: "ホーム", icon: LayoutDashboard },
-  { href: "/students", label: "生徒", icon: GraduationCap },
-  { href: "/homework", label: "宿題", icon: ClipboardList },
-  { href: "/grades", label: "成績", icon: BarChart2 },
-  { href: "/calendar", label: "カレンダー", icon: CalendarDays },
-  { href: "/billing", label: "請求", icon: Receipt },
-]
-
-const studentNav = [
-  { href: "/dashboard", label: "ホーム", icon: LayoutDashboard },
-  { href: "/homework", label: "宿題", icon: ClipboardList },
-  { href: "/grades", label: "成績", icon: BarChart2 },
-  { href: "/calendar", label: "カレンダー", icon: CalendarDays },
-  { href: "/materials", label: "教材", icon: BookOpen },
-  { href: "/garden", label: "学習の森", icon: TreePine },
-]
-
-const parentNav = [
-  { href: "/dashboard", label: "ホーム", icon: LayoutDashboard },
-  { href: "/grades", label: "成績", icon: BarChart2 },
-  { href: "/calendar", label: "カレンダー", icon: CalendarDays },
-  { href: "/billing", label: "請求", icon: Receipt },
-]
+import { desktopNavigation, normalizeRole } from "./navigation-config"
 
 const navLinkClass = (active: boolean) =>
   cn(
@@ -40,7 +16,7 @@ const navLinkClass = (active: boolean) =>
 
 export default function Sidebar({ role }: { role: string }) {
   const pathname = usePathname()
-  const navItems = role === "teacher" ? teacherNav : role === "parent" ? parentNav : studentNav
+  const navItems = desktopNavigation[normalizeRole(role)]
 
   return (
     <aside className="w-16 lg:w-60 shrink-0 bg-background border-r border-border hidden md:flex flex-col">

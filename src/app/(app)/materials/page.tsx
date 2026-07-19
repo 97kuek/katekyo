@@ -2,6 +2,8 @@ import { redirect } from "next/navigation"
 import { getViewingContext } from "@/lib/view-as"
 import { db } from "@/lib/db"
 import { BookOpen } from "lucide-react"
+import { PageHeader } from "@/components/ui/page-header"
+import { EmptyState } from "@/components/ui/empty-state"
 
 export default async function StudentMaterialsPage() {
   const ctx = await getViewingContext()
@@ -25,13 +27,10 @@ export default async function StudentMaterialsPage() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <p className="text-sm text-muted-foreground">先生に登録してもらった教材の一覧です</p>
+      <PageHeader title="教材" description="先生に登録してもらった教材の一覧です。" />
 
       {materials.length === 0 ? (
-        <div className="rounded-lg border bg-card p-10 text-center space-y-2">
-          <BookOpen className="h-8 w-8 text-muted-foreground mx-auto" />
-          <p className="text-sm text-muted-foreground">教材が登録されていません</p>
-        </div>
+        <EmptyState title="教材が登録されていません" description="教材は先生が登録すると、ここに表示されます。" />
       ) : (
         <div className="rounded-lg border bg-card divide-y">
           {materials.map((m) => (

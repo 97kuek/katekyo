@@ -10,6 +10,7 @@ import { haptic } from "@/lib/haptic"
 import { SwipeableRow } from "@/components/ui/swipeable-row"
 import { SwipeEditDeleteActions } from "@/components/ui/swipe-edit-delete-actions"
 import type { HomeworkStatus } from "@/generated/prisma/enums"
+import { RowActions } from "@/components/ui/row-actions"
 
 type Props = {
   id: string
@@ -56,7 +57,8 @@ export function SwipeableHomeworkCard({
         />
       }
     >
-      <Link href={`/homework/${id}`} className="block">
+      <div className="relative">
+      <Link href={`/homework/${id}`} className="block pb-7">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
             <p className="font-medium truncate">{title}</p>
@@ -78,6 +80,8 @@ export function SwipeableHomeworkCard({
           {canEdit && <span className="ml-1.5">（{relLabel}）</span>}
         </p>
       </Link>
+      <RowActions editHref={canEdit ? `/homework/${id}/edit` : undefined} confirming={confirming} onConfirmingChange={setConfirming} isPending={isPending} onDelete={handleDelete} className="absolute bottom-0 right-0" />
+      </div>
     </SwipeableRow>
   )
 }

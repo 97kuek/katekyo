@@ -8,6 +8,8 @@ import { PasswordForm } from "../profile/password-form"
 import SubjectForm from "../subjects/subject-form"
 import { DeleteSubjectButton } from "../subjects/delete-button"
 import { SubjectColorEditor } from "../subjects/subject-color-editor"
+import { PageHeader } from "@/components/ui/page-header"
+import { Disclosure } from "@/components/ui/disclosure"
 
 export default async function SettingsPage() {
   const session = await auth()
@@ -30,10 +32,10 @@ export default async function SettingsPage() {
   ])
 
   return (
-    <div className="max-w-2xl mx-auto space-y-8">
-      <section className="space-y-4">
-        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">アカウント</h2>
-        <p className="text-sm text-muted-foreground -mt-2">{session.user.email}</p>
+    <div className="max-w-2xl mx-auto space-y-4">
+      <PageHeader title="設定" description="変更したい項目を選んでください。" />
+      <Disclosure title="アカウント" description={`${session.user.email}・名前・パスワード・Google連携`}>
+        <div className="space-y-4">
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base">名前の変更</CardTitle>
@@ -51,21 +53,22 @@ export default async function SettingsPage() {
           </CardContent>
         </Card>
         <GoogleAuthSettings isLinked={Boolean(user?.identityAccesses.length)} />
-      </section>
+        </div>
+      </Disclosure>
 
       {!isParent && (
-        <section className="space-y-4">
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">通知</h2>
+        <Disclosure title="通知・オンライン授業" description={`LINE ${user?.lineUserId ? "連携済み" : "未連携"}${session.user.role === "teacher" ? `・Meet ${user?.meetLink ? "設定済み" : "未設定"}` : ""}`}>
+          <div className="space-y-4">
           <LineSettings isLinked={!!user?.lineUserId} />
           {session.user.role === "teacher" && (
             <MeetLinkSettings currentMeetLink={user?.meetLink ?? null} />
           )}
-        </section>
+          </div>
+        </Disclosure>
       )}
 
       {session.user.role === "teacher" && (
-        <section className="space-y-4">
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">タグ管理</h2>
+        <Disclosure title="科目タグ" description={`${subjects.length}件の科目を登録済み`}>
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base">科目タグ</CardTitle>
@@ -88,12 +91,11 @@ export default async function SettingsPage() {
               )}
             </CardContent>
           </Card>
-        </section>
+        </Disclosure>
       )}
 
       {isParent && (
-        <section className="space-y-4">
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">アカウントの削除</h2>
+        <Disclosure title="アカウントの削除" description="閲覧権限を含むすべてのデータを削除" className="border-destructive/30">
           <Card className="border-destructive/30">
             <CardHeader className="pb-3">
               <CardTitle className="text-base text-destructive">アカウントを削除する</CardTitle>
@@ -105,7 +107,7 @@ export default async function SettingsPage() {
               <DeleteParentAccountButton />
             </CardContent>
           </Card>
-        </section>
+        </Disclosure>
       )}
     </div>
   )

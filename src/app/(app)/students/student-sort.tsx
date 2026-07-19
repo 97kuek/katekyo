@@ -1,6 +1,7 @@
 "use client"
 
 import { useRouter, useSearchParams } from "next/navigation"
+import { Select } from "@/components/ui/select"
 
 export function StudentSort() {
   const router = useRouter()
@@ -10,7 +11,7 @@ export function StudentSort() {
   function setSort(sort: string) {
     const params = new URLSearchParams(searchParams.toString())
     params.set("sort", sort)
-    router.push(`/students?${params.toString()}`)
+    router.replace(`/students?${params.toString()}`)
   }
 
   const options = [
@@ -20,19 +21,11 @@ export function StudentSort() {
   ]
 
   return (
-    <div className="flex items-center gap-2">
-      <span className="text-xs text-muted-foreground">並び替え:</span>
-      <div className="flex items-center gap-1 rounded-md border border-input bg-background p-0.5">
-        {options.map((o) => (
-          <button
-            key={o.value}
-            onClick={() => setSort(o.value)}
-            className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${current === o.value ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
-          >
-            {o.label}
-          </button>
-        ))}
-      </div>
-    </div>
+    <label className="flex items-center gap-2 text-xs text-muted-foreground">
+      並び替え
+      <Select value={current} onChange={(event) => setSort(event.target.value)} containerClassName="w-auto" className="h-9 min-w-28 text-xs">
+        {options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+      </Select>
+    </label>
   )
 }

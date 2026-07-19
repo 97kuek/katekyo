@@ -6,7 +6,7 @@ import { matchesPathSegment } from "@/lib/security-validation"
 const { auth } = NextAuth(authConfig)
 
 // 保護者が閲覧できるパスのプレフィックス
-const PARENT_ALLOWED = ["/dashboard", "/grades", "/calendar", "/billing", "/settings", "/help", "/parent-invite", "/homework", "/garden"]
+const PARENT_ALLOWED = ["/dashboard", "/grades", "/calendar", "/billing", "/settings", "/profile", "/more", "/help", "/parent-invite", "/homework", "/garden"]
 
 // 生徒がアクセス不可のパスのプレフィックス
 const STUDENT_BLOCKED = ["/students", "/billing", "/grades/new"]

@@ -55,13 +55,14 @@ export function CompleteLessonLogForm({ lessonId, onClose }: { lessonId: string;
   )
 }
 
-export function HomeworkForm({ students, defaultDate }: { students: Student[]; defaultDate: string }) {
-  const [open, setOpen] = useState(false)
+export function HomeworkForm({ students, defaultDate, embedded = false, onClose }: { students: Student[]; defaultDate: string; embedded?: boolean; onClose?: () => void }) {
+  const [open, setOpen] = useState(embedded)
   const [state, action, isPending] = useActionState(
     async (prev: { error: string; timestamp?: number }, formData: FormData) => {
       const result = await createHomeworkFromCalendar(prev, formData)
       if (result.timestamp) {
         setOpen(false)
+        onClose?.()
         toast.success("宿題を追加しました")
       }
       return result
@@ -69,13 +70,15 @@ export function HomeworkForm({ students, defaultDate }: { students: Student[]; d
     { error: "" }
   )
 
-  if (!open) {
+  if (!open && !embedded) {
     return (
       <Button onClick={() => setOpen(true)} size="sm" variant="outline">
         宿題を追加
       </Button>
     )
   }
+
+  if (!open) return null
 
   return (
     <div className="rounded-lg border bg-card p-3 space-y-3 w-full">
@@ -116,7 +119,7 @@ export function HomeworkForm({ students, defaultDate }: { students: Student[]; d
           <Button type="submit" size="sm" disabled={isPending}>
             {isPending ? "追加中..." : "追加"}
           </Button>
-          <Button type="button" variant="outline" size="sm" onClick={() => setOpen(false)}>
+          <Button type="button" variant="outline" size="sm" onClick={() => { setOpen(false); onClose?.() }}>
             キャンセル
           </Button>
         </div>
@@ -125,13 +128,14 @@ export function HomeworkForm({ students, defaultDate }: { students: Student[]; d
   )
 }
 
-export function ExamEventForm({ students, defaultDate }: { students: Student[]; defaultDate: string }) {
-  const [open, setOpen] = useState(false)
+export function ExamEventForm({ students, defaultDate, embedded = false, onClose }: { students: Student[]; defaultDate: string; embedded?: boolean; onClose?: () => void }) {
+  const [open, setOpen] = useState(embedded)
   const [state, action, isPending] = useActionState(
     async (prev: { error: string; timestamp?: number }, formData: FormData) => {
       const result = await createExamEvent(prev, formData)
       if (result.timestamp) {
         setOpen(false)
+        onClose?.()
         toast.success("テストを追加しました")
       }
       return result
@@ -139,13 +143,15 @@ export function ExamEventForm({ students, defaultDate }: { students: Student[]; 
     { error: "" }
   )
 
-  if (!open) {
+  if (!open && !embedded) {
     return (
       <Button onClick={() => setOpen(true)} size="sm" variant="outline">
         テストを追加
       </Button>
     )
   }
+
+  if (!open) return null
 
   return (
     <div className="rounded-lg border bg-card p-3 space-y-3 w-full">
@@ -206,7 +212,7 @@ export function ExamEventForm({ students, defaultDate }: { students: Student[]; 
           <Button type="submit" size="sm" disabled={isPending}>
             {isPending ? "追加中..." : "追加"}
           </Button>
-          <Button type="button" variant="outline" size="sm" onClick={() => setOpen(false)}>
+          <Button type="button" variant="outline" size="sm" onClick={() => { setOpen(false); onClose?.() }}>
             キャンセル
           </Button>
         </div>

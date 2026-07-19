@@ -2,8 +2,8 @@ import { auth } from "@/lib/auth"
 import { redirect, notFound } from "next/navigation"
 import { db } from "@/lib/db"
 import Link from "next/link"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { BarChart2, BookOpen, TreePine, Users, ChevronRight } from "lucide-react"
+import { Card, CardContent } from "@/components/ui/card"
+import { BarChart2, BookOpen, CalendarDays, CheckCircle2, ClipboardList, TreePine, Users, ChevronRight } from "lucide-react"
 import { UpdateGradeForm } from "../update-grade-form"
 import { UpdateStudentRatesForm } from "../update-student-rates-form"
 import { ViewAsButton } from "../view-as-button"
@@ -11,6 +11,9 @@ import { ResetPasswordButton } from "../reset-password-button"
 import { DeleteStudentButton } from "../delete-student-button"
 import { formatDate } from "@/lib/date-utils"
 import { GARDEN_CAPACITY } from "@/lib/garden/utils"
+import { PageHeader } from "@/components/ui/page-header"
+import { Disclosure } from "@/components/ui/disclosure"
+import { buttonVariants } from "@/components/ui/button"
 
 export default async function StudentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
@@ -32,7 +35,7 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
 
   if (!student) notFound()
 
-  const [gardenCount, problemCount] = await Promise.all([
+  const [gardenCount, problemCount, reviewCount, nextLesson, latestGrade] = await Promise.all([
     db.gardenItem.count({ where: { studentId: student.id } }),
     db.homework.count({
       where: {
@@ -44,39 +47,87 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
         ],
       },
     }),
+    db.homework.count({ where: { teacherId: session.user.id, studentId: student.id, status: "submitted" } }),
+    db.lesson.findFirst({
+      where: { teacherId: session.user.id, studentId: student.id, date: { gte: now } },
+      orderBy: { date: "asc" },
+    }),
+    db.gradeRecord.findFirst({
+      where: { teacherId: session.user.id, studentId: student.id },
+      orderBy: { date: "desc" },
+    }),
   ])
 
   const isFull = gardenCount >= GARDEN_CAPACITY
   const isWithered = problemCount > 0 && gardenCount > 0
 
   const navLinks = [
-    { href: `/students/${student.id}/grades`, Icon: BarChart2, label: "成績" },
+    { href: `/homework?studentId=${student.id}`, Icon: ClipboardList, label: "宿題" },
+    { href: `/calendar?studentId=${student.id}`, Icon: CalendarDays, label: "予定" },
+    { href: `/grades?studentId=${student.id}`, Icon: BarChart2, label: "成績" },
     { href: `/students/${student.id}/materials`, Icon: BookOpen, label: "教材" },
     { href: `/students/${student.id}/garden`, Icon: TreePine, label: "学習の森", garden: true },
     { href: `/students/${student.id}/parents`, Icon: Users, label: "保護者管理" },
   ]
 
   return (
-    <div className="space-y-6 max-w-3xl mx-auto">
-      <div>
-        <Link href="/students" className="text-sm text-muted-foreground hover:underline">
-          ← 生徒一覧に戻る
-        </Link>
-        <div className="mt-2 flex items-center justify-between gap-3 flex-wrap">
-          <div className="flex items-baseline gap-3">
-            <h1 className="text-2xl font-bold">{student.user.name}</h1>
-            <span className="text-sm text-muted-foreground">{student.grade}</span>
-          </div>
-          <ViewAsButton studentId={student.id} />
-        </div>
-      </div>
+    <div className="mx-auto max-w-4xl space-y-5">
+      <PageHeader
+        backHref="/students"
+        backLabel="生徒一覧"
+        title={student.user.name}
+        description={student.grade}
+        action={
+          <Link href={`/homework/new?studentId=${student.id}`} className={buttonVariants({ size: "sm" })}>
+            宿題を出す
+          </Link>
+        }
+      />
 
-      {/* 基本情報 */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">基本情報</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4 text-sm">
+      <section aria-labelledby="student-overview" className="space-y-3">
+        <h2 id="student-overview" className="text-sm font-semibold">現在の状況</h2>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <Link href={`/homework?studentId=${student.id}&view=review`} className="rounded-lg border bg-card p-4 transition-colors hover:bg-muted">
+            <p className="text-xs text-muted-foreground">確認待ち</p>
+            <p className="mt-1 text-2xl font-bold tabular-nums">{reviewCount}<span className="ml-1 text-sm font-normal text-muted-foreground">件</span></p>
+            <p className="mt-1 text-xs text-muted-foreground">期限超過・差し戻し {problemCount}件</p>
+          </Link>
+          <Link href={`/calendar?studentId=${student.id}`} className="rounded-lg border bg-card p-4 transition-colors hover:bg-muted">
+            <p className="text-xs text-muted-foreground">次回授業</p>
+            {nextLesson ? (
+              <p className="mt-1 font-semibold">{nextLesson.date.toLocaleDateString("ja-JP", { timeZone: "Asia/Tokyo", month: "numeric", day: "numeric", weekday: "short" })}<span className="ml-2 text-sm font-normal text-muted-foreground">{nextLesson.date.toLocaleTimeString("ja-JP", { timeZone: "Asia/Tokyo", hour: "2-digit", minute: "2-digit" })}</span></p>
+            ) : <p className="mt-1 text-sm text-muted-foreground">予定はありません</p>}
+          </Link>
+          <Link href={`/grades?studentId=${student.id}`} className="rounded-lg border bg-card p-4 transition-colors hover:bg-muted">
+            <p className="text-xs text-muted-foreground">直近の成績</p>
+            {latestGrade ? (
+              <><p className="mt-1 truncate font-semibold">{latestGrade.testName}</p><p className="mt-1 text-sm text-muted-foreground">{latestGrade.score != null ? `${latestGrade.score}${latestGrade.maxScore != null ? `/${latestGrade.maxScore}` : ""}` : latestGrade.deviation != null ? `偏差値 ${latestGrade.deviation}` : "記録あり"}</p></>
+            ) : <p className="mt-1 text-sm text-muted-foreground">まだ記録がありません</p>}
+          </Link>
+        </div>
+      </section>
+
+      <section aria-labelledby="student-sections" className="space-y-3">
+        <h2 id="student-sections" className="text-sm font-semibold">学習情報</h2>
+        <div className="overflow-hidden rounded-lg border bg-card sm:grid sm:grid-cols-2">
+          {navLinks.map(({ href, Icon, label, garden }, index) => (
+            <Link
+              key={href}
+              href={href}
+              className={`flex min-h-14 items-center gap-3 px-4 py-3 transition-colors hover:bg-muted ${index > 0 ? "border-t sm:border-t-0" : ""} ${index >= 2 ? "sm:border-t" : ""} ${index % 2 === 1 ? "sm:border-l" : ""}`}
+            >
+              <Icon className="h-4 w-4 text-muted-foreground shrink-0" aria-hidden />
+              <span className="font-medium text-sm">{label}</span>
+              {garden && isFull && <span className="text-[10px] font-bold text-warning-foreground">満開</span>}
+              {garden && isWithered && !isFull && <span className="inline-block h-2 w-2 rounded-full bg-warning shrink-0" />}
+              <ChevronRight className="h-4 w-4 text-muted-foreground ml-auto shrink-0" aria-hidden />
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <Disclosure title="生徒設定" description="基本情報・料金・標準授業設定">
+        <div className="space-y-4 text-sm">
           <div className="flex items-center justify-between gap-4">
             <span className="text-muted-foreground">メールアドレス</span>
             <span className="truncate">{student.user.email}</span>
@@ -103,40 +154,23 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
               subjects={subjects.map((sub) => ({ id: sub.id, name: sub.name }))}
             />
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </Disclosure>
 
-      {/* 各種ページへのナビ */}
-      <div className="grid grid-cols-2 gap-3">
-        {navLinks.map(({ href, Icon, label, garden }) => (
-          <Link
-            key={href}
-            href={href}
-            className="rounded-lg border bg-card p-4 flex items-center gap-3 hover:bg-muted transition-colors"
-          >
-            <Icon className="h-5 w-5 text-muted-foreground shrink-0" />
-            <span className="font-medium text-sm">{label}</span>
-            {garden && isFull && (
-              <span className="text-[10px] font-bold text-warning-foreground bg-warning/20 px-1.5 py-0.5 rounded">満開</span>
-            )}
-            {garden && isWithered && !isFull && (
-              <span className="inline-block h-2 w-2 rounded-full bg-warning shrink-0" />
-            )}
-            <ChevronRight className="h-4 w-4 text-muted-foreground ml-auto shrink-0" />
-          </Link>
-        ))}
-      </div>
-
-      {/* アカウント操作 */}
-      <Card className="border-destructive/30">
-        <CardHeader>
-          <CardTitle className="text-base">アカウント操作</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-wrap items-center gap-3">
-          <ResetPasswordButton studentId={student.id} />
-          <DeleteStudentButton studentId={student.id} studentName={student.user.name ?? ""} />
-        </CardContent>
-      </Card>
+      <Disclosure title="その他の操作" description="生徒としての表示・アカウント管理">
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 text-sm"><CheckCircle2 className="h-4 w-4 text-muted-foreground" aria-hidden /><ViewAsButton studentId={student.id} /></div>
+          <Card className="border-destructive/30 py-3">
+            <CardContent className="space-y-3">
+              <p className="text-sm font-medium">アカウント管理</p>
+              <div className="flex flex-wrap items-center gap-3">
+                <ResetPasswordButton studentId={student.id} />
+                <DeleteStudentButton studentId={student.id} studentName={student.user.name ?? ""} />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </Disclosure>
     </div>
   )
 }

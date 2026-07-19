@@ -4,20 +4,35 @@ import { db } from "@/lib/db"
 import { getStudentByUserId } from "@/lib/queries"
 import { PENDING_STATUSES } from "@/lib/homework-status"
 import CalendarView from "./calendar-view"
+import Link from "next/link"
+import { PageHeader } from "@/components/ui/page-header"
+import { ParentStudentSwitcher } from "@/components/parent-student-switcher"
+import { resolveParentStudentId } from "@/lib/parent-student-context"
 
-export default async function CalendarPage() {
+export default async function CalendarPage({ searchParams }: { searchParams: Promise<{ year?: string; month?: string; studentId?: string }> }) {
   const ctx = await getViewingContext()
   if (!ctx) redirect("/login")
 
   const isTeacher = ctx.effectiveRole === "teacher"
   const now = new Date()
-  const monthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1)
-  const monthEnd = new Date(now.getFullYear(), now.getMonth() + 2, 0)
+  const params = await searchParams
+  const parsedYear = Number(params.year)
+  const parsedMonth = Number(params.month)
+  const year = Number.isInteger(parsedYear) && parsedYear >= 2000 && parsedYear <= 2100 ? parsedYear : now.getFullYear()
+  const month = Number.isInteger(parsedMonth) && parsedMonth >= 1 && parsedMonth <= 12 ? parsedMonth - 1 : now.getMonth()
+  const monthStart = new Date(year, month - 1, 1)
+  const monthEnd = new Date(year, month + 2, 0, 23, 59, 59)
 
   if (isTeacher) {
-    const [lessons, homeworks, students, examEvents, subjects] = await Promise.all([
+    const students = await db.student.findMany({
+      where: { teacherId: ctx.effectiveUserId },
+      include: { user: { select: { name: true } } },
+      orderBy: { createdAt: "desc" },
+    })
+    const selectedStudentId = params.studentId && students.some((student) => student.id === params.studentId) ? params.studentId : undefined
+    const [lessons, homeworks, examEvents, subjects] = await Promise.all([
       db.lesson.findMany({
-        where: { teacherId: ctx.effectiveUserId, date: { gte: monthStart, lte: monthEnd } },
+        where: { teacherId: ctx.effectiveUserId, ...(selectedStudentId ? { studentId: selectedStudentId } : {}), date: { gte: monthStart, lte: monthEnd } },
         include: {
           student: { include: { user: { select: { name: true } } } },
           teacher: { select: { meetLink: true } },
@@ -25,17 +40,12 @@ export default async function CalendarPage() {
         orderBy: { date: "asc" },
       }),
       db.homework.findMany({
-        where: { teacherId: ctx.effectiveUserId, status: { in: ["assigned", "rejected", "submitted"] }, dueDate: { gte: monthStart, lte: monthEnd } },
+        where: { teacherId: ctx.effectiveUserId, ...(selectedStudentId ? { studentId: selectedStudentId } : {}), status: { in: ["assigned", "rejected", "submitted"] }, dueDate: { gte: monthStart, lte: monthEnd } },
         include: { student: { include: { user: { select: { name: true } } } } },
         orderBy: { dueDate: "asc" },
       }),
-      db.student.findMany({
-        where: { teacherId: ctx.effectiveUserId },
-        include: { user: { select: { name: true } } },
-        orderBy: { createdAt: "desc" },
-      }),
       db.examEvent.findMany({
-        where: { teacherId: ctx.effectiveUserId, date: { gte: monthStart, lte: monthEnd } },
+        where: { teacherId: ctx.effectiveUserId, ...(selectedStudentId ? { studentId: selectedStudentId } : {}), date: { gte: monthStart, lte: monthEnd } },
         include: { student: { include: { user: { select: { name: true } } } } },
         orderBy: { date: "asc" },
       }),
@@ -47,6 +57,13 @@ export default async function CalendarPage() {
 
     return (
       <div className="space-y-4">
+        <PageHeader title="予定" description="授業・宿題期限・テストをまとめて確認できます。" />
+        {selectedStudentId && (
+          <div className="flex items-center justify-between rounded-lg border bg-card px-4 py-2 text-sm">
+            <span>{students.find((student) => student.id === selectedStudentId)?.user.name}の予定</span>
+            <Link href={`/calendar?year=${year}&month=${month + 1}`} className="text-primary hover:underline">すべての生徒</Link>
+          </div>
+        )}
         <CalendarView
           lessons={lessons.map((l) => ({ ...l, type: l.type as "online" | "offline", meetLink: l.teacher.meetLink }))}
           deadlines={homeworks.map((h) => ({
@@ -63,7 +80,7 @@ export default async function CalendarPage() {
             testType: e.testType,
             studentName: e.student.user.name,
           }))}
-          students={students.map((s) => ({
+          students={students.filter((s) => !selectedStudentId || s.id === selectedStudentId).map((s) => ({
             id: s.id,
             grade: s.grade,
             user: s.user,
@@ -74,6 +91,8 @@ export default async function CalendarPage() {
           }))}
           subjects={subjects.map((s) => ({ id: s.id, name: s.name }))}
           isTeacher={true}
+          initialYear={year}
+          initialMonth={month}
         />
       </div>
     )
@@ -86,10 +105,11 @@ export default async function CalendarPage() {
     })
     if (links.length === 0) redirect("/dashboard")
 
-    const studentIds = links.map((l) => l.studentId)
+    const allowedStudentIds = links.map((l) => l.studentId)
+    const effectiveStudentId = await resolveParentStudentId(allowedStudentIds, params.studentId)
     const [lessons, homeworks, examEvents] = await Promise.all([
       db.lesson.findMany({
-        where: { studentId: { in: studentIds }, date: { gte: monthStart, lte: monthEnd } },
+        where: { studentId: effectiveStudentId, date: { gte: monthStart, lte: monthEnd } },
         include: {
           student: { include: { user: { select: { name: true } } } },
           teacher: { select: { meetLink: true } },
@@ -97,12 +117,12 @@ export default async function CalendarPage() {
         orderBy: { date: "asc" },
       }),
       db.homework.findMany({
-        where: { studentId: { in: studentIds }, status: { in: PENDING_STATUSES }, dueDate: { gte: monthStart, lte: monthEnd } },
+        where: { studentId: effectiveStudentId, status: { in: PENDING_STATUSES }, dueDate: { gte: monthStart, lte: monthEnd } },
         include: { student: { include: { user: { select: { name: true } } } } },
         orderBy: { dueDate: "asc" },
       }),
       db.examEvent.findMany({
-        where: { studentId: { in: studentIds }, date: { gte: monthStart, lte: monthEnd } },
+        where: { studentId: effectiveStudentId, date: { gte: monthStart, lte: monthEnd } },
         include: { student: { include: { user: { select: { name: true } } } } },
         orderBy: { date: "asc" },
       }),
@@ -110,6 +130,8 @@ export default async function CalendarPage() {
 
     return (
       <div className="space-y-4">
+        <PageHeader title="予定" description="お子さまの授業・期限・テストを確認できます。" />
+        <ParentStudentSwitcher students={links.map(({ student }) => ({ id: student.id, name: student.user.name }))} selectedStudentId={effectiveStudentId} />
         <CalendarView
           lessons={lessons.map((l) => ({ ...l, type: l.type as "online" | "offline", meetLink: l.teacher.meetLink }))}
           deadlines={homeworks.map((h) => ({ id: h.id, title: h.title, dueDate: h.dueDate, studentName: h.student.user.name }))}
@@ -120,6 +142,9 @@ export default async function CalendarPage() {
           students={[]}
           subjects={[]}
           isTeacher={false}
+          showStudentNames={true}
+          initialYear={year}
+          initialMonth={month}
         />
       </div>
     )
@@ -150,6 +175,7 @@ export default async function CalendarPage() {
 
   return (
     <div className="space-y-4">
+      <PageHeader title="予定" description="次の授業や宿題期限を確認できます。" />
       <CalendarView
         lessons={lessons.map((l) => ({ ...l, type: l.type as "online" | "offline", meetLink: l.teacher.meetLink }))}
         deadlines={homeworks.map((h) => ({
@@ -168,6 +194,8 @@ export default async function CalendarPage() {
         students={[]}
         subjects={[]}
         isTeacher={false}
+        initialYear={year}
+        initialMonth={month}
       />
     </div>
   )

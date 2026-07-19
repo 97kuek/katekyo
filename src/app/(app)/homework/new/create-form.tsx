@@ -27,14 +27,17 @@ export default function CreateHomeworkForm({
   students,
   materialsByStudent,
   subjects,
+  defaultStudentId,
 }: {
   students: Student[]
   materialsByStudent: Record<string, Material[]>
   subjects: Subject[]
+  defaultStudentId?: string
 }) {
   const [state, action, isPending] = useActionState(createHomework, { error: "" })
   const singleStudent = students.length === 1 ? students[0] : null
-  const [selectedStudentId, setSelectedStudentId] = useState(singleStudent?.id ?? "")
+  const validDefaultStudentId = students.some((student) => student.id === defaultStudentId) ? defaultStudentId : undefined
+  const [selectedStudentId, setSelectedStudentId] = useState(singleStudent?.id ?? validDefaultStudentId ?? "")
 
   const materials = selectedStudentId ? (materialsByStudent[selectedStudentId] ?? []) : []
 

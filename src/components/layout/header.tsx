@@ -2,38 +2,12 @@
 
 import { signOut } from "next-auth/react"
 import { Button } from "@/components/ui/button"
-import { BookOpen, LogOut, HelpCircle, Settings } from "lucide-react"
+import { BookOpen, ChevronDown, HelpCircle, LogOut, Settings, UserRound } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import ChangelogBell from "@/components/notifications/changelog-bell"
 import type { NotificationData } from "@/lib/changelog"
-
-const PAGE_TITLES: { pattern: (p: string) => boolean; label: string }[] = [
-  { pattern: (p) => p === "/dashboard", label: "ホーム" },
-  { pattern: (p) => p === "/students/invite", label: "生徒を招待" },
-  { pattern: (p) => p === "/students/invites", label: "招待管理" },
-  { pattern: (p) => p.startsWith("/students/") && p.endsWith("/grades"), label: "生徒の成績" },
-  { pattern: (p) => p.startsWith("/students/") && p.endsWith("/materials"), label: "教材" },
-  { pattern: (p) => p === "/students", label: "生徒" },
-  { pattern: (p) => p === "/homework/new", label: "宿題を作成" },
-  { pattern: (p) => p === "/billing", label: "請求" },
-  { pattern: (p) => p.endsWith("/review"), label: "宿題を確認" },
-  { pattern: (p) => p.endsWith("/submit"), label: "宿題を提出" },
-  { pattern: (p) => p.endsWith("/edit"), label: "編集" },
-  { pattern: (p) => p.startsWith("/homework/"), label: "宿題" },
-  { pattern: (p) => p === "/homework", label: "宿題" },
-  { pattern: (p) => p === "/grades/new", label: "成績を記録" },
-  { pattern: (p) => p === "/grades", label: "成績" },
-  { pattern: (p) => p === "/calendar", label: "カレンダー" },
-  { pattern: (p) => p === "/materials", label: "教材" },
-  { pattern: (p) => p === "/profile", label: "プロフィール" },
-  { pattern: (p) => p === "/help", label: "使い方ガイド" },
-  { pattern: (p) => p === "/settings", label: "設定" },
-]
-
-function getPageTitle(pathname: string): string {
-  return PAGE_TITLES.find(({ pattern }) => pattern(pathname))?.label ?? ""
-}
+import { getPageTitle } from "./navigation-config"
 
 export default function Header({ name, notificationData }: { name: string; notificationData: NotificationData }) {
   const pathname = usePathname()
@@ -47,23 +21,37 @@ export default function Header({ name, notificationData }: { name: string; notif
         <span className="font-bold tracking-tight truncate">{title || "katekyo"}</span>
       </div>
       <span className="text-sm font-semibold hidden md:block">{title}</span>
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-1.5">
         <ChangelogBell notificationData={notificationData} />
-        <Link href="/settings" className="inline-flex items-center justify-center rounded-full p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors md:hidden">
-          <Settings className="h-4 w-4" />
-        </Link>
-        <Link href="/help" className="inline-flex items-center justify-center rounded-full p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors md:hidden">
-          <HelpCircle className="h-4 w-4" />
-        </Link>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="gap-2 text-muted-foreground hover:text-foreground"
-          onClick={() => signOut({ callbackUrl: "/login" })}
-        >
-          <LogOut className="h-4 w-4" />
-          <span className="hidden sm:inline text-xs">{name}</span>
-        </Button>
+        <details className="group relative">
+          <summary
+            aria-label="アカウントメニューを開く"
+            className="flex min-h-10 cursor-pointer list-none items-center gap-1 rounded-full px-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden"
+          >
+            <UserRound className="h-4 w-4" aria-hidden />
+            <span className="hidden max-w-28 truncate text-xs sm:inline">{name}</span>
+            <ChevronDown className="hidden h-3.5 w-3.5 transition-transform group-open:rotate-180 sm:block" aria-hidden />
+          </summary>
+          <div className="absolute right-0 top-[calc(100%+0.5rem)] z-50 w-52 overflow-hidden rounded-lg border bg-popover p-1 text-popover-foreground shadow-lg">
+            <Link href="/profile" className="flex min-h-10 items-center gap-2 rounded-md px-3 text-sm hover:bg-muted">
+              <UserRound className="h-4 w-4" aria-hidden />プロフィール
+            </Link>
+            <Link href="/settings" className="flex min-h-10 items-center gap-2 rounded-md px-3 text-sm hover:bg-muted">
+              <Settings className="h-4 w-4" aria-hidden />設定
+            </Link>
+            <Link href="/help" className="flex min-h-10 items-center gap-2 rounded-md px-3 text-sm hover:bg-muted">
+              <HelpCircle className="h-4 w-4" aria-hidden />使い方ガイド
+            </Link>
+            <div className="my-1 border-t" />
+            <Button
+              variant="ghost"
+              className="h-10 w-full justify-start gap-2 rounded-md px-3 text-sm font-normal text-destructive"
+              onClick={() => signOut({ callbackUrl: "/login" })}
+            >
+              <LogOut className="h-4 w-4" aria-hidden />ログアウト
+            </Button>
+          </div>
+        </details>
       </div>
     </header>
   )

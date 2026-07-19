@@ -10,6 +10,7 @@ import { Select } from "@/components/ui/select"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { GRADE_OPTIONS } from "@/lib/grades"
 import Link from "next/link"
+import { PageHeader } from "@/components/ui/page-header"
 
 export default function InvitePage() {
   const [state, action, isPending] = useActionState(createInvite, { error: "", token: null })
@@ -27,12 +28,8 @@ export default function InvitePage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <div className="mb-6">
-        <Link href="/students" className="text-sm text-muted-foreground hover:underline">
-          ← 生徒一覧に戻る
-        </Link>
-      </div>
+    <div className="max-w-2xl mx-auto space-y-6">
+      <PageHeader backHref="/students" backLabel="生徒一覧" title="生徒を招待" description="招待リンクを作成して生徒本人へ送ります。" />
       <Card>
         <CardHeader>
           <CardTitle>生徒を招待する</CardTitle>

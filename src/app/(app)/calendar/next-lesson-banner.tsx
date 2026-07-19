@@ -4,7 +4,7 @@ import { buttonVariants } from "@/components/ui/button"
 import type { Lesson } from "./calendar-types"
 import { CalendarDays } from "lucide-react"
 
-export function NextLessonBanner({ lessons, isTeacher }: { lessons: Lesson[]; isTeacher: boolean }) {
+export function NextLessonBanner({ lessons, isTeacher, showStudentNames = false }: { lessons: Lesson[]; isTeacher: boolean; showStudentNames?: boolean }) {
   const now = new Date()
   const next = lessons.find((l) => l.date > now)
   if (!next) return null
@@ -28,7 +28,7 @@ export function NextLessonBanner({ lessons, isTeacher }: { lessons: Lesson[]; is
           {next.date.toLocaleTimeString("ja-JP", { timeZone: "Asia/Tokyo", hour: "2-digit", minute: "2-digit" })}
         </p>
         <p className="text-xs text-muted-foreground mt-0.5 truncate">
-          {isTeacher ? `${next.student.user.name} · ` : ""}
+          {isTeacher || showStudentNames ? `${next.student.user.name} · ` : ""}
           {next.type === "online" ? "オンライン" : "対面"}
           {next.durationMin ? ` · ${next.durationMin}分` : ""}
         </p>

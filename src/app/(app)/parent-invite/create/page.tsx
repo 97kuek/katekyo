@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link"
 import { buttonVariants } from "@/components/ui/button"
+import { PageHeader } from "@/components/ui/page-header"
 
 export default function CreateParentInvitePage() {
   const [state, action, isPending] = useActionState(createParentInviteAsStudent, { error: "", token: null })
@@ -26,9 +27,7 @@ export default function CreateParentInvitePage() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <Link href="/dashboard" className="text-sm text-muted-foreground hover:underline">
-        ← ダッシュボードに戻る
-      </Link>
+      <PageHeader backHref="/more" backLabel="その他" title="保護者を招待" description="学習状況を共有する保護者向けリンクを作成します。" />
       <Card>
         <CardHeader>
           <CardTitle>保護者を招待する</CardTitle>

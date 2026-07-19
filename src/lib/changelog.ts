@@ -42,3 +42,8 @@ export type NotificationData =
       homework: { id: string; title: string; dueDate: string; isOverdue: boolean }[]
       lessons: { id: string; date: string; type: string }[]
     }
+  | {
+      role: "parent"
+      homework: { id: string; title: string; studentName: string; isOverdue: boolean }[]
+      lessons: { id: string; date: string; type: string; studentName: string }[]
+    }

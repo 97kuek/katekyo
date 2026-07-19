@@ -25,10 +25,12 @@ export default function CreateGradeForm({
   students,
   subjects,
   examEvents = [],
+  defaultStudentId,
 }: {
   students: Student[]
   subjects: Subject[]
   examEvents?: ExamEvent[]
+  defaultStudentId?: string
 }) {
   const [state, action, isPending] = useActionState(createGradeRecord, { error: "" })
   const singleStudent = students.length === 1 ? students[0] : null
@@ -36,7 +38,8 @@ export default function CreateGradeForm({
   const [testName, setTestName] = useState("")
   const [date, setDate] = useState(todayISO())
   const [testType, setTestType] = useState<string>(TEST_TYPE_OPTIONS[0][0])
-  const [studentId, setStudentId] = useState(singleStudent?.id ?? "")
+  const validDefaultStudentId = students.some((student) => student.id === defaultStudentId) ? defaultStudentId : undefined
+  const [studentId, setStudentId] = useState(singleStudent?.id ?? validDefaultStudentId ?? "")
 
   function applyExamEvent(eventId: string) {
     const ev = examEvents.find((e) => e.id === eventId)

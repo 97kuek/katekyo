@@ -4,7 +4,6 @@ import { db } from "@/lib/db"
 import { getStudentByUserId, getSubjectsByTeacherId, buildSubjectMap } from "@/lib/queries"
 import Link from "next/link"
 import { Suspense } from "react"
-import { buttonVariants } from "@/components/ui/button"
 import { PENDING_STATUSES, isPendingStatus } from "@/lib/homework-status"
 import { GARDEN_CAPACITY } from "@/lib/garden/utils"
 import { relativeDeadline, deadlineColorClass } from "@/lib/date-utils"
@@ -13,6 +12,7 @@ import { LessonLogCard } from "./lesson-log-card"
 import { UnreadBadge } from "@/components/ui/unread-badge"
 import { Skeleton as Sk } from "@/components/ui/skeleton"
 import { scorePercentage } from "@/lib/grade-record"
+import { PageHeader } from "@/components/ui/page-header"
 
 export default async function DashboardPage() {
   const ctx = await getViewingContext()
@@ -71,7 +71,8 @@ function SectionSkeleton({ rows = 3 }: { rows?: number }) {
 
 function TeacherDashboard({ teacherId }: { teacherId: string }) {
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
+      <PageHeader title="ホーム" description="今日対応することを優先して表示します。" />
       <Suspense fallback={<SectionSkeleton />}>
         <TeacherActionSection teacherId={teacherId} />
       </Suspense>
@@ -279,7 +280,8 @@ async function TeacherStudentsSection({ teacherId }: { teacherId: string }) {
 
 function StudentDashboard({ userId }: { userId: string }) {
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
+      <PageHeader title="ホーム" description="今日やることと、次の予定を確認しましょう。" />
       <Suspense fallback={<SectionSkeleton />}>
         <StudentTodoSection userId={userId} />
       </Suspense>
@@ -292,9 +294,6 @@ function StudentDashboard({ userId }: { userId: string }) {
       <Suspense fallback={null}>
         <StudentRecentLogs userId={userId} />
       </Suspense>
-      <Suspense fallback={null}>
-        <StudentParentInvitePrompt userId={userId} />
-      </Suspense>
     </div>
   )
 }
@@ -304,7 +303,7 @@ async function StudentTodoSection({ userId }: { userId: string }) {
   const student = await getStudentByUserId(userId)
   if (!student) return null
 
-  const [feedbacks, active] = await Promise.all([
+  const [feedbacks, active, activeCount] = await Promise.all([
     db.homework.findMany({
       where: {
         studentId: student.id,
@@ -313,21 +312,22 @@ async function StudentTodoSection({ userId }: { userId: string }) {
         status: { in: ["approved", "rejected"] },
       },
       orderBy: { reviewedAt: "desc" },
-      take: 2,
+      take: 1,
       select: { id: true, title: true, teacherFeedback: true },
     }),
     db.homework.findMany({
       where: { studentId: student.id, status: { in: PENDING_STATUSES } },
       orderBy: { dueDate: "asc" },
-      take: 4,
+      take: 1,
       select: { id: true, title: true, dueDate: true },
     }),
+    db.homework.count({ where: { studentId: student.id, status: { in: PENDING_STATUSES } } }),
   ])
   if (feedbacks.length === 0 && active.length === 0) return null
 
   return (
     <section className="space-y-3">
-      <SectionHeader title="やること" count={active.length} href="/homework" />
+      <SectionHeader title="やること" count={activeCount + feedbacks.length} href="/homework" />
       <div className="rounded-lg border bg-card divide-y">
         {feedbacks.map((h) => (
           <Link
@@ -490,7 +490,7 @@ async function StudentRecentLogs({ userId }: { userId: string }) {
       lessonLog: { not: null },
     },
     orderBy: { date: "desc" },
-    take: 3,
+    take: 1,
     select: { id: true, date: true, lessonLog: true, subjectIds: true, lessonLogSeenAt: true },
   })
   if (lessons.length === 0) return null
@@ -526,28 +526,12 @@ async function StudentRecentLogs({ userId }: { userId: string }) {
   )
 }
 
-async function StudentParentInvitePrompt({ userId }: { userId: string }) {
-  const student = await getStudentByUserId(userId)
-  if (!student) return null
-
-  const hasParent = await db.parentStudent.findFirst({ where: { studentId: student.id } })
-  if (hasParent) return null
-
-  return (
-    <div className="flex items-center justify-between gap-3 rounded-lg border border-dashed bg-card p-4">
-      <p className="text-sm text-muted-foreground">保護者に学習状況を共有できます</p>
-      <Link href="/parent-invite/create" className={buttonVariants({ variant: "outline", size: "sm" })}>
-        保護者を招待
-      </Link>
-    </div>
-  )
-}
-
 // ─── Parent ──────────────────────────────────────────────────────────────────
 
 function ParentDashboard({ parentId }: { parentId: string }) {
   return (
     <div className="space-y-6">
+      <PageHeader title="ホーム" description="お子さまごとの要対応と最新状況を確認できます。" />
       <Suspense fallback={<Sk className="h-48 w-full rounded-lg" />}>
         <ParentStudentList parentId={parentId} />
       </Suspense>
@@ -556,6 +540,7 @@ function ParentDashboard({ parentId }: { parentId: string }) {
 }
 
 async function ParentStudentList({ parentId }: { parentId: string }) {
+  const now = new Date()
   const links = await db.parentStudent.findMany({
     where: { parentId },
     include: {
@@ -574,6 +559,11 @@ async function ParentStudentList({ parentId }: { parentId: string }) {
             take: 1,
             select: { testName: true, score: true, maxScore: true, date: true },
           },
+          monthlyPayments: {
+            where: { year: now.getFullYear(), month: now.getMonth() + 1 },
+            take: 1,
+            select: { paidAt: true, dueDate: true },
+          },
         },
       },
     },
@@ -590,32 +580,30 @@ async function ParentStudentList({ parentId }: { parentId: string }) {
   return (
     <div className="space-y-4">
       {links.map(({ student }) => {
-        const totalHw = student.homeworks.length
-        const approvedHw = student.homeworks.filter((h) => h.status === "approved").length
         const pendingHw = student.homeworks.filter((h) => isPendingStatus(h.status)).length
-        const pct = totalHw > 0 ? Math.round((approvedHw / totalHw) * 100) : null
         const nextLesson = student.lessons[0]
         const latestGrade = student.grades[0]
+        const payment = student.monthlyPayments[0]
 
         return (
           <div key={student.id} className="space-y-4 rounded-lg border bg-card p-5">
-            <div>
+            <div className="flex items-center justify-between gap-3">
               <p className="text-base font-semibold">{student.user.name}</p>
-              <p className="text-xs text-muted-foreground">{student.grade}</p>
+              <span className="text-xs text-muted-foreground">{student.grade}</span>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-              <div className="rounded-md bg-muted p-3">
-                <p className="text-xs text-muted-foreground">宿題</p>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <Link href={`/homework?studentId=${student.id}`} className="rounded-md bg-muted p-3 transition-colors hover:bg-muted/70">
+                <p className="text-xs text-muted-foreground">要対応</p>
                 <p className="mt-0.5 text-xl font-bold">{pendingHw}<span className="ml-1 text-sm font-normal text-muted-foreground">件</span></p>
-              </div>
-              <div className="rounded-md bg-muted p-3">
+              </Link>
+              <Link href={`/calendar?studentId=${student.id}`} className="rounded-md bg-muted p-3 transition-colors hover:bg-muted/70">
                 <p className="text-xs text-muted-foreground">次の授業</p>
                 <p className="mt-0.5 text-sm font-medium">
                   {nextLesson ? fmtDay(nextLesson.date) : <span className="text-muted-foreground">-</span>}
                 </p>
-              </div>
-              <div className="col-span-2 rounded-md bg-muted p-3 sm:col-span-1">
+              </Link>
+              <Link href={`/grades?studentId=${student.id}`} className="rounded-md bg-muted p-3 transition-colors hover:bg-muted/70">
                 <p className="text-xs text-muted-foreground">直近の成績</p>
                 <p className="mt-0.5 text-sm font-medium">
                   {latestGrade
@@ -625,20 +613,12 @@ async function ParentStudentList({ parentId }: { parentId: string }) {
                     : <span className="text-muted-foreground">-</span>
                   }
                 </p>
-              </div>
+              </Link>
+              <Link href={`/billing?studentId=${student.id}`} className="rounded-md bg-muted p-3 transition-colors hover:bg-muted/70">
+                <p className="text-xs text-muted-foreground">今月の請求</p>
+                <p className="mt-0.5 text-sm font-medium">{payment?.paidAt ? "入金済み" : payment ? "未入金" : "記録なし"}</p>
+              </Link>
             </div>
-
-            {pct != null && (
-              <div className="space-y-1">
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span>宿題進捗</span>
-                  <span>{approvedHw}/{totalHw}</span>
-                </div>
-                <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
-                  <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${pct}%` }} />
-                </div>
-              </div>
-            )}
           </div>
         )
       })}

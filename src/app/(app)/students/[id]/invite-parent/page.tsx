@@ -2,9 +2,9 @@ import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { db } from "@/lib/db"
 import { notFound } from "next/navigation"
-import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import InviteParentForm from "./invite-parent-form"
+import { PageHeader } from "@/components/ui/page-header"
 
 export default async function InviteParentPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
@@ -19,9 +19,7 @@ export default async function InviteParentPage({ params }: { params: Promise<{ i
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <Link href="/students" className="text-sm text-muted-foreground hover:underline">
-        ← 生徒一覧に戻る
-      </Link>
+      <PageHeader backHref={`/students/${id}/parents`} backLabel="保護者管理" title="保護者を招待" description={`${student.user.name}さんの保護者向けリンクを作成します。`} />
       <Card>
         <CardHeader>
           <CardTitle>保護者を招待する</CardTitle>

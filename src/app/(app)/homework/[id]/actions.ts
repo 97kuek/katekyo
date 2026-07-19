@@ -97,7 +97,7 @@ export async function submitHomework(
     )
   }
 
-  redirect("/homework?toast=submitted")
+  redirect("/homework?view=waiting&toast=submitted")
 }
 
 const reviewSchema = z.object({
@@ -182,7 +182,7 @@ export async function reviewHomework(
     await plantForHomeworkApproval(homework, wasRejectedEvent !== null)
   }
 
-  redirect("/homework?toast=reviewed")
+  redirect(`/homework?view=${action === "approved" ? "completed" : "active"}&toast=reviewed`)
 }
 
 export async function markFeedbackSeen(homeworkId: string) {

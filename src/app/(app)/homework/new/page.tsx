@@ -4,10 +4,12 @@ import { db } from "@/lib/db"
 import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import CreateHomeworkForm from "./create-form"
+import { PageHeader } from "@/components/ui/page-header"
 
-export default async function NewHomeworkPage() {
+export default async function NewHomeworkPage({ searchParams }: { searchParams: Promise<{ studentId?: string }> }) {
   const session = await auth()
   if (!session || session.user.role !== "teacher") redirect("/dashboard")
+  const { studentId } = await searchParams
 
   const [students, allMaterials, subjects] = await Promise.all([
     db.student.findMany({
@@ -35,11 +37,7 @@ export default async function NewHomeworkPage() {
   if (students.length === 0) {
     return (
       <div className="max-w-2xl mx-auto space-y-6">
-        <div>
-          <Link href="/homework" className="text-sm text-muted-foreground hover:underline">
-            ← 宿題一覧に戻る
-          </Link>
-        </div>
+        <PageHeader backHref="/homework" backLabel="宿題一覧" title="宿題を作成" />
         <div className="rounded-lg border bg-card p-12 text-center">
           <p className="text-muted-foreground">生徒が登録されていません</p>
           <p className="text-sm text-muted-foreground mt-1">
@@ -54,18 +52,14 @@ export default async function NewHomeworkPage() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <div>
-        <Link href="/homework" className="text-sm text-muted-foreground hover:underline">
-          ← 宿題一覧に戻る
-        </Link>
-      </div>
+      <PageHeader backHref="/homework" backLabel="宿題一覧" title="宿題を作成" description="生徒に新しい宿題を割り当てます。" />
       <Card>
         <CardHeader>
           <CardTitle>宿題を作成する</CardTitle>
           <CardDescription>生徒に新しい宿題を割り当てます</CardDescription>
         </CardHeader>
         <CardContent>
-          <CreateHomeworkForm students={students} materialsByStudent={materialsByStudent} subjects={subjects} />
+          <CreateHomeworkForm students={students} materialsByStudent={materialsByStudent} subjects={subjects} defaultStudentId={studentId} />
         </CardContent>
       </Card>
     </div>

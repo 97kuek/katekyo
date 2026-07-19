@@ -22,13 +22,14 @@ type Student = {
 
 type Subject = { id: string; name: string }
 
-export function LessonForm({ students, defaultDate, subjects }: { students: Student[]; defaultDate: string; subjects: Subject[] }) {
-  const [open, setOpen] = useState(false)
+export function LessonForm({ students, defaultDate, subjects, embedded = false, onClose }: { students: Student[]; defaultDate: string; subjects: Subject[]; embedded?: boolean; onClose?: () => void }) {
+  const [open, setOpen] = useState(embedded)
   const [state, action, isPending] = useActionState(
     async (prev: { error: string; timestamp?: number }, formData: FormData) => {
       const result = await createLesson(prev, formData)
       if (result.timestamp) {
         setOpen(false)
+        onClose?.()
         toast.success("授業を追加しました")
       }
       return result
@@ -83,13 +84,15 @@ export function LessonForm({ students, defaultDate, subjects }: { students: Stud
     localStorage.setItem(DURATION_KEY, e.target.value)
   }
 
-  if (!open) {
+  if (!open && !embedded) {
     return (
       <Button onClick={() => setOpen(true)} size="sm">
         授業を追加
       </Button>
     )
   }
+
+  if (!open) return null
 
   return (
     <div className="rounded-lg border bg-card p-4 space-y-3 w-full">
@@ -150,6 +153,12 @@ export function LessonForm({ students, defaultDate, subjects }: { students: Stud
             </label>
           </div>
         </div>
+
+        <details className="group rounded-lg border bg-muted/30">
+          <summary className="flex min-h-11 cursor-pointer list-none items-center px-3 text-sm font-medium text-muted-foreground hover:text-foreground [&::-webkit-details-marker]:hidden">
+            詳細設定（時間・料金・科目・繰り返し）
+          </summary>
+          <div className="space-y-3 border-t p-3">
 
         <div className="space-y-1.5">
           <Label htmlFor="durationMin" className="text-xs font-medium">時間（分）</Label>
@@ -238,12 +247,14 @@ export function LessonForm({ students, defaultDate, subjects }: { students: Stud
           <Label htmlFor="notes" className="text-xs font-medium">メモ（任意）</Label>
           <Input id="notes" name="notes" placeholder="事前メモ" className="md:h-9" />
         </div>
+          </div>
+        </details>
 
         <div className="flex gap-2 pt-1">
           <Button type="submit" size="sm" disabled={isPending}>
             {isPending ? "追加中..." : "追加"}
           </Button>
-          <Button type="button" variant="outline" size="sm" onClick={() => setOpen(false)}>
+          <Button type="button" variant="outline" size="sm" onClick={() => { setOpen(false); onClose?.() }}>
             キャンセル
           </Button>
         </div>

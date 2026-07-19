@@ -25,6 +25,9 @@ export default function ChangelogBell({ notificationData }: { notificationData: 
   const bellRef = useRef<HTMLButtonElement>(null)
   const closeButtonRef = useRef<HTMLButtonElement>(null)
   const closeTimer = useRef(0)
+  const actionCount = notificationData.role === "teacher"
+    ? notificationData.pendingHomework.length
+    : notificationData.homework.length
 
   // localStorage（クライアント専用ストア）をハイドレーション後に読む必要があるため effect で行う
   useEffect(() => {
@@ -79,12 +82,12 @@ export default function ChangelogBell({ notificationData }: { notificationData: 
         ref={bellRef}
         onClick={handleOpen}
         className="relative inline-flex items-center justify-center rounded-full p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-        aria-label="通知"
+        aria-label={actionCount > 0 ? `通知、要対応${actionCount}件` : "通知とアップデート情報"}
         aria-expanded={mounted}
       >
         <Bell className="h-4 w-4" />
-        {hasUnread && (
-          <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-destructive" />
+        {(hasUnread || actionCount > 0) && (
+          <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-destructive"><span className="sr-only">新着あり</span></span>
         )}
       </button>
 
@@ -117,9 +120,9 @@ export default function ChangelogBell({ notificationData }: { notificationData: 
               <div className="px-5 py-4 space-y-4">
                 {notificationData.role === "teacher" ? (
                   <>
-                    <Section icon={<BookOpen className="h-3.5 w-3.5 text-muted-foreground" />} label="提出待ちの宿題">
+                    <Section icon={<BookOpen className="h-3.5 w-3.5 text-muted-foreground" />} label="確認待ちの宿題">
                       {notificationData.pendingHomework.length === 0 ? (
-                        <Empty>提出待ちはありません</Empty>
+                        <Empty>確認待ちはありません</Empty>
                       ) : (
                         notificationData.pendingHomework.map((h) => (
                           <li key={h.id}>
@@ -148,6 +151,27 @@ export default function ChangelogBell({ notificationData }: { notificationData: 
                           </li>
                         ))
                       )}
+                    </Section>
+                  </>
+                ) : notificationData.role === "parent" ? (
+                  <>
+                    <Section icon={<BookOpen className="h-3.5 w-3.5 text-muted-foreground" />} label="期限が近い宿題">
+                      {notificationData.homework.length === 0 ? <Empty>要対応の宿題はありません</Empty> : notificationData.homework.map((homework) => (
+                        <li key={homework.id} className="flex items-center gap-2">
+                          <Link href={`/homework/${homework.id}`} className="text-sm hover:text-primary hover:underline" onClick={handleClose}>
+                            <span className="mr-1 text-xs text-muted-foreground">{homework.studentName}</span>{homework.title}
+                          </Link>
+                          {homework.isOverdue && <span className="shrink-0 text-xs text-destructive">期限切れ</span>}
+                        </li>
+                      ))}
+                    </Section>
+                    <Section icon={<Calendar className="h-3.5 w-3.5 text-muted-foreground" />} label="今日の授業">
+                      {notificationData.lessons.length === 0 ? <Empty>今日の授業はありません</Empty> : notificationData.lessons.map((lesson) => (
+                        <li key={lesson.id} className="flex items-center gap-2 text-sm">
+                          <span className="shrink-0 text-xs text-muted-foreground">{formatTime(lesson.date)}</span>
+                          {lesson.studentName}<span className="text-xs text-muted-foreground">（{lesson.type === "online" ? "オンライン" : "対面"}）</span>
+                        </li>
+                      ))}
                     </Section>
                   </>
                 ) : (

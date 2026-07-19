@@ -9,10 +9,12 @@ import { CancelSubmissionButton } from "@/app/(app)/homework/cancel-button"
 import { relativeDeadline, deadlineColorClass, formatDate } from "@/lib/date-utils"
 import { isPendingStatus, HOMEWORK_EVENT_LABELS } from "@/lib/homework-status"
 import { ExtendDeadlineButton } from "./extend-deadline"
-import { AlertCircle, CheckCircle2, Inbox, RotateCcw } from "lucide-react"
+import { AlertCircle, CheckCircle2, Inbox, MoreHorizontal, RotateCcw } from "lucide-react"
 import { DifficultyBars } from "@/components/homework/difficulty-bars"
 import { MarkFeedbackSeen } from "./mark-feedback-seen"
 import { createHomeworkPhotoSignedUrl } from "@/lib/supabase-storage"
+import { PageHeader } from "@/components/ui/page-header"
+import { Disclosure } from "@/components/ui/disclosure"
 
 const DIFFICULTY_LABELS: Record<number, { label: string; color: string }> = {
   1: { label: "かんたん",    color: "text-foreground bg-primary/10 border border-primary/20" },
@@ -87,28 +89,51 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
   const isStudent = !isTeacher && !isParent
   const hasUnseenFeedback =
     isStudent && !!homework.teacherFeedback && homework.feedbackSeenAt === null
+  const actionLabel = homework.status === "rejected" ? "修正して再提出" : "提出する"
+
+  const primaryAction = isTeacher && homework.status === "submitted"
+    ? <Link href={`/homework/${id}/review`} className={buttonVariants({ className: "justify-center" })}>確認・承認する</Link>
+    : isStudent && isPendingStatus(homework.status)
+      ? <Link href={`/homework/${id}/submit`} className={buttonVariants({ className: "justify-center" })}>{actionLabel}</Link>
+      : null
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       {hasUnseenFeedback && <MarkFeedbackSeen homeworkId={homework.id} />}
-      <div className="flex items-center justify-between gap-2">
-        <Link href="/homework" className="text-sm text-muted-foreground hover:underline">
-          ← 宿題一覧に戻る
-        </Link>
-        {isTeacher && (
-          <div className="flex gap-2 shrink-0">
-            {isPendingStatus(homework.status) && (
-              <Link
-                href={`/homework/${id}/edit`}
-                className={buttonVariants({ variant: "ghost", size: "xs" })}
-              >
-                編集
-              </Link>
-            )}
-            <DeleteHomeworkButton homeworkId={id} />
-          </div>
-        )}
-      </div>
+      <PageHeader
+        backHref="/homework"
+        backLabel="宿題一覧"
+        title={homework.title}
+        description={
+          <span className="flex flex-wrap items-center gap-2">
+            <StatusBadge status={homework.status} />
+            <span className={deadlineColorClass(homework.dueDate)}>
+              期限 {formatDate(homework.dueDate)}（{relativeDeadline(homework.dueDate)}）
+            </span>
+            {(isTeacher || isParent) && <span>・{homework.student.user.name}</span>}
+          </span>
+        }
+        action={primaryAction ? <span className="hidden sm:inline-flex">{primaryAction}</span> : undefined}
+        secondaryAction={isTeacher ? (
+          <details className="group relative">
+            <summary
+              aria-label="宿題のその他の操作"
+              className="flex min-h-10 min-w-10 cursor-pointer list-none items-center justify-center rounded-full border bg-background hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden"
+            >
+              <MoreHorizontal className="h-4 w-4" aria-hidden />
+            </summary>
+            <div className="absolute right-0 top-[calc(100%+0.5rem)] z-30 w-56 space-y-2 rounded-lg border bg-popover p-3 shadow-lg">
+              {isPendingStatus(homework.status) && (
+                <Link href={`/homework/${id}/edit`} className={buttonVariants({ variant: "outline", size: "sm", className: "w-full" })}>
+                  宿題を編集
+                </Link>
+              )}
+              <ExtendDeadlineButton homeworkId={id} currentDueDate={homework.dueDate.toISOString().slice(0, 10)} />
+              <div className="border-t pt-2"><DeleteHomeworkButton homeworkId={id} /></div>
+            </div>
+          </details>
+        ) : undefined}
+      />
 
       {/* 差し戻しフィードバック — 生徒向け目立つバナー */}
       {!isTeacher && !isParent && homework.status === "rejected" && (
@@ -120,9 +145,6 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
           {homework.teacherFeedback && (
             <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-wrap">{homework.teacherFeedback}</p>
           )}
-          <Link href={`/homework/${homework.id}/submit`} className={buttonVariants({ size: "sm" })}>
-            修正して再提出する →
-          </Link>
         </div>
       )}
 
@@ -130,19 +152,11 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
         <div className="space-y-2 sm:flex sm:items-start sm:justify-between sm:gap-4 sm:space-y-0">
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-xl font-bold">{homework.title}</h1>
-              <StatusBadge status={homework.status} />
+              <h2 className="text-sm font-semibold text-muted-foreground">宿題の内容</h2>
             </div>
             {(isTeacher || isParent) && (
               <p className="text-sm text-muted-foreground mt-1">生徒: {homework.student.user.name}</p>
             )}
-          </div>
-          <div className="text-sm sm:text-right sm:shrink-0">
-            <p className="text-muted-foreground">作成: {formatDate(homework.createdAt)}</p>
-            <p className={`mt-0.5 ${deadlineColorClass(homework.dueDate)}`}>
-              期限: {formatDate(homework.dueDate)}
-              <span className="ml-1 text-xs">（{relativeDeadline(homework.dueDate)}）</span>
-            </p>
           </div>
         </div>
 
@@ -170,8 +184,12 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
       </div>
 
       {(homework.studentNote || homework.submittedAt || homework.photoUrl || homework.difficultyRating) && (
-        <div className="rounded-lg border bg-card p-5 space-y-2">
-          <h2 className="text-sm font-semibold">提出情報</h2>
+        <Disclosure
+          title="提出内容"
+          description={homework.submittedAt ? `${homework.submittedAt.toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" })} に提出` : undefined}
+          defaultOpen={isTeacher && homework.status === "submitted"}
+        >
+          <div className="space-y-3">
           {homework.submittedAt && (
             <p className="text-xs text-muted-foreground">
               提出日時: {homework.submittedAt.toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" })}
@@ -203,7 +221,8 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
               <p className="text-sm">{homework.studentNote}</p>
             </div>
           )}
-        </div>
+          </div>
+        </Disclosure>
       )}
 
       {(homework.teacherFeedback || homework.reviewedAt) && (
@@ -223,8 +242,7 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
       )}
 
       {homework.events.length > 0 && (
-        <div className="rounded-lg border bg-card p-5 space-y-3">
-          <h2 className="text-sm font-semibold">やり取り履歴</h2>
+        <Disclosure title="これまでのやり取り" description={`${homework.events.length}件の履歴`}>
           <ol className="relative border-l border-border ml-2 space-y-4">
             {homework.events.map((ev) => {
               const config =
@@ -256,30 +274,20 @@ export default async function HomeworkDetailPage({ params }: { params: Promise<{
               )
             })}
           </ol>
-        </div>
+        </Disclosure>
       )}
 
-      {!isParent && (
-        <div className="flex flex-col sm:flex-row gap-3">
-          {!isTeacher && isPendingStatus(homework.status) && (
-            <Link href={`/homework/${id}/submit`} className={buttonVariants({ className: "justify-center" })}>
-              提出する
-            </Link>
-          )}
+      {!isParent && !primaryAction && (
+        <div className="flex flex-col gap-3 sm:flex-row">
           {!isTeacher && homework.status === "submitted" && (
             <CancelSubmissionButton homeworkId={id} />
           )}
-          {isTeacher && homework.status === "submitted" && (
-            <Link href={`/homework/${id}/review`} className={buttonVariants({ className: "justify-center" })}>
-              確認・承認する
-            </Link>
-          )}
-          {isTeacher && (
-            <ExtendDeadlineButton
-              homeworkId={id}
-              currentDueDate={homework.dueDate.toISOString().slice(0, 10)}
-            />
-          )}
+        </div>
+      )}
+
+      {primaryAction && (
+        <div className="sticky bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-20 -mx-2 rounded-xl border bg-background/95 p-2 shadow-lg backdrop-blur sm:hidden">
+          <div className="grid">{primaryAction}</div>
         </div>
       )}
     </div>

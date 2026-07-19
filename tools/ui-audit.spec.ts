@@ -11,7 +11,7 @@ const email =
   `codex-ui-audit-${Date.now()}-${Math.random().toString(36).slice(2)}@example.com`
 const password = process.env.UI_AUDIT_PASSWORD ?? "codex-ui-audit-password"
 
-const routes = ["/dashboard", "/students", "/homework", "/grades", "/calendar", "/billing", "/settings"]
+const routes = ["/dashboard", "/students", "/homework", "/grades", "/calendar", "/billing", "/settings", "/more"]
 
 async function login(page: Page) {
   await page.goto(`${baseURL}/register`, { waitUntil: "domcontentloaded" })
@@ -51,6 +51,7 @@ test.describe("responsive UI audit", () => {
 
       await assertNoHorizontalOverflow(page, route)
       await assertMobileFormControlsComfortable(page, route)
+      await expect(page.locator("main h1"), `${route} should have one visible page heading`).toHaveCount(1)
     }
 
     expect(consoleErrors).toEqual([])

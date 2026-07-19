@@ -5,45 +5,47 @@ function Skeleton({ className }: { className?: string }) {
 export default function Loading() {
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div className="flex items-center gap-3">
-          <Skeleton className="h-8 w-16" />
-          <Skeleton className="h-5 w-20" />
-          <Skeleton className="h-8 w-16" />
+      <div className="space-y-2">
+        <Skeleton className="h-8 w-24" />
+        <Skeleton className="h-4 w-56" />
+      </div>
+
+      <div className="flex items-center justify-center gap-3">
+        <Skeleton className="h-8 w-8" />
+        <Skeleton className="h-5 w-24" />
+        <Skeleton className="h-8 w-8" />
+      </div>
+
+      <div className="rounded-lg border bg-card p-4">
+        <div className="flex items-center justify-between gap-3">
+          <div className="space-y-2">
+            <Skeleton className="h-3 w-20" />
+            <Skeleton className="h-7 w-28" />
+          </div>
+          <Skeleton className="h-6 w-20 rounded-full" />
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        {[...Array(3)].map((_, i) => (
-          <div key={i} className="rounded-lg border bg-card p-4 space-y-2">
-            <Skeleton className="h-3 w-16" />
-            <Skeleton className="h-8 w-12" />
-          </div>
+      <div className="flex gap-1 rounded-lg bg-muted p-1">
+        {[...Array(2)].map((_, i) => (
+          <Skeleton key={i} className="h-8 flex-1 bg-background" />
         ))}
       </div>
 
-      {[...Array(2)].map((_, i) => (
-        <div key={i} className="rounded-lg border bg-card overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-3 border-b bg-muted gap-3">
-            <Skeleton className="h-4 w-24" />
-            <div className="flex items-center gap-3">
-              <Skeleton className="h-4 w-16" />
-              <Skeleton className="h-7 w-20" />
-            </div>
-          </div>
-          <div className="divide-y">
-            {[...Array(3)].map((_, j) => (
-              <div key={j} className="px-5 py-3 flex items-start justify-between gap-3">
-                <div className="space-y-1.5">
-                  <Skeleton className="h-4 w-32" />
-                  <Skeleton className="h-3 w-24" />
-                </div>
-                <Skeleton className="h-4 w-14 shrink-0" />
+      <div className="rounded-lg border bg-card overflow-hidden">
+        <div className="divide-y">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="flex items-center gap-3 px-4 py-4">
+              <div className="flex-1 space-y-1.5">
+                <Skeleton className="h-4 w-28" />
+                <Skeleton className="h-3 w-36" />
               </div>
-            ))}
-          </div>
+              <Skeleton className="h-5 w-20" />
+              <Skeleton className="h-8 w-8" />
+            </div>
+          ))}
         </div>
-      ))}
+      </div>
     </div>
   )
 }
