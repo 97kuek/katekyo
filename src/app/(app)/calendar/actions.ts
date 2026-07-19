@@ -3,12 +3,13 @@
 import { db } from "@/lib/db"
 import { requireTeacher } from "@/lib/action-guards"
 import { redirect } from "next/navigation"
-import { revalidatePath } from "next/cache"
+import { after } from "next/server"
 import { z } from "zod"
 import { scheduleReminderMessage, cancelReminderMessage } from "@/lib/qstash"
 import { sendLineMessage } from "@/lib/line"
 import { createLessonSchema } from "@/lib/validation"
 import { validateTeacherSubjectIds } from "@/lib/tenant-validation"
+import { invalidateCalendar, invalidateHomework } from "@/lib/cache-invalidation"
 
 export async function createLesson(
   _prevState: { error: string; timestamp?: number },
@@ -32,7 +33,10 @@ export async function createLesson(
 
   const { studentId, date, time, type, durationMin, notes, hourlyRate, travelExpense, repeatWeeks } = result.data
 
-  const student = await db.student.findFirst({ where: { id: studentId, teacherId: teacherGuard.teacherId } })
+  const student = await db.student.findFirst({
+    where: { id: studentId, teacherId: teacherGuard.teacherId },
+    select: { id: true, userId: true },
+  })
   if (!student) return { error: "生徒が見つかりません" }
 
   const baseTime = new Date(`${date}T${time}:00+09:00`)
@@ -85,7 +89,12 @@ export async function createLesson(
     }
   }
 
-  revalidatePath("/calendar")
+  invalidateCalendar({
+    teacherId: teacherGuard.teacherId,
+    studentId,
+    studentUserId: student.userId,
+    affectsBilling: true,
+  })
   return { error: "", timestamp: Date.now() }
 }
 
@@ -130,7 +139,12 @@ export async function updateLesson(
 
   const existing = await db.lesson.findFirst({
     where: { id: lessonId, teacherId: teacherGuard.teacherId },
-    select: { qstashMessageId: true, lessonLog: true },
+    select: {
+      qstashMessageId: true,
+      lessonLog: true,
+      studentId: true,
+      student: { select: { userId: true } },
+    },
   })
   if (!existing) return { error: "授業が見つかりません" }
 
@@ -168,7 +182,12 @@ export async function updateLesson(
     }
   }
 
-  revalidatePath("/calendar")
+  invalidateCalendar({
+    teacherId: teacherGuard.teacherId,
+    studentId: existing.studentId,
+    studentUserId: existing.student.userId,
+    affectsBilling: true,
+  })
   return { error: "", timestamp: Date.now() }
 }
 
@@ -181,14 +200,24 @@ export async function deleteLesson(formData: FormData) {
 
   const lesson = await db.lesson.findFirst({
     where: { id: lessonId, teacherId: teacher.teacherId },
-    select: { qstashMessageId: true },
+    select: {
+      qstashMessageId: true,
+      studentId: true,
+      student: { select: { userId: true } },
+    },
   })
+  if (!lesson) return
   if (lesson?.qstashMessageId) {
     await cancelReminderMessage(lesson.qstashMessageId)
   }
 
   await db.lesson.deleteMany({ where: { id: lessonId, teacherId: teacher.teacherId } })
-  revalidatePath("/calendar")
+  invalidateCalendar({
+    teacherId: teacher.teacherId,
+    studentId: lesson.studentId,
+    studentUserId: lesson.student.userId,
+    affectsBilling: true,
+  })
 }
 
 export async function completeLesson(formData: FormData) {
@@ -199,13 +228,22 @@ export async function completeLesson(formData: FormData) {
   if (!lessonId) return
   const lessonLog = (formData.get("lessonLog") as string) || null
 
+  const lesson = await db.lesson.findFirst({
+    where: { id: lessonId, teacherId: teacher.teacherId },
+    select: { studentId: true, student: { select: { userId: true } } },
+  })
+  if (!lesson) return
+
   await db.lesson.updateMany({
     where: { id: lessonId, teacherId: teacher.teacherId, completedAt: null },
     data: { completedAt: new Date(), ...(lessonLog ? { lessonLog } : {}) },
   })
-  revalidatePath("/calendar")
-  revalidatePath("/dashboard")
-  revalidatePath("/billing")
+  invalidateCalendar({
+    teacherId: teacher.teacherId,
+    studentId: lesson.studentId,
+    studentUserId: lesson.student.userId,
+    affectsBilling: true,
+  })
 }
 
 export async function uncompleteLesson(formData: FormData) {
@@ -215,13 +253,22 @@ export async function uncompleteLesson(formData: FormData) {
   const lessonId = formData.get("lessonId") as string
   if (!lessonId) return
 
+  const lesson = await db.lesson.findFirst({
+    where: { id: lessonId, teacherId: teacher.teacherId },
+    select: { studentId: true, student: { select: { userId: true } } },
+  })
+  if (!lesson) return
+
   await db.lesson.updateMany({
     where: { id: lessonId, teacherId: teacher.teacherId },
     data: { completedAt: null },
   })
-  revalidatePath("/calendar")
-  revalidatePath("/dashboard")
-  revalidatePath("/billing")
+  invalidateCalendar({
+    teacherId: teacher.teacherId,
+    studentId: lesson.studentId,
+    studentUserId: lesson.student.userId,
+    affectsBilling: true,
+  })
 }
 
 const examEventSchema = z.object({
@@ -250,7 +297,10 @@ export async function createExamEvent(
 
   const { studentId, date, endDate, name, testType } = result.data
 
-  const student = await db.student.findFirst({ where: { id: studentId, teacherId: teacher.teacherId } })
+  const student = await db.student.findFirst({
+    where: { id: studentId, teacherId: teacher.teacherId },
+    select: { id: true, userId: true },
+  })
   if (!student) return { error: "生徒が見つかりません" }
 
   await db.examEvent.create({
@@ -264,8 +314,11 @@ export async function createExamEvent(
     },
   })
 
-  revalidatePath("/calendar")
-  revalidatePath("/dashboard")
+  invalidateCalendar({
+    teacherId: teacher.teacherId,
+    studentId,
+    studentUserId: student.userId,
+  })
   return { error: "", timestamp: Date.now() }
 }
 
@@ -276,9 +329,18 @@ export async function deleteExamEvent(formData: FormData) {
   const examEventId = formData.get("examEventId") as string
   if (!examEventId) return
 
+  const examEvent = await db.examEvent.findFirst({
+    where: { id: examEventId, teacherId: teacher.teacherId },
+    select: { studentId: true, student: { select: { userId: true } } },
+  })
+  if (!examEvent) return
+
   await db.examEvent.deleteMany({ where: { id: examEventId, teacherId: teacher.teacherId } })
-  revalidatePath("/calendar")
-  revalidatePath("/dashboard")
+  invalidateCalendar({
+    teacherId: teacher.teacherId,
+    studentId: examEvent.studentId,
+    studentUserId: examEvent.student.userId,
+  })
 }
 
 const calendarHomeworkSchema = z.object({
@@ -304,7 +366,7 @@ export async function createHomeworkFromCalendar(
   const { studentId, title, dueDate } = result.data
   const student = await db.student.findFirst({
     where: { id: studentId, teacherId: teacher.teacherId },
-    include: { user: { select: { lineUserId: true } } },
+    include: { user: { select: { id: true, lineUserId: true } } },
   })
   if (!student) return { error: "生徒が見つかりません" }
 
@@ -321,13 +383,20 @@ export async function createHomeworkFromCalendar(
   if (student.user.lineUserId) {
     const dueStr = new Date(`${dueDate}T00:00:00+09:00`).toLocaleDateString("ja-JP", { month: "numeric", day: "numeric", timeZone: "Asia/Tokyo" })
     const baseUrl = process.env.NEXTAUTH_URL ?? ""
-    await sendLineMessage(
-      student.user.lineUserId,
-      `新しい宿題が追加されました\n\n「${title}」\n期限: ${dueStr}\n\n${baseUrl}/homework/${homework.id}`
-    )
+    const lineUserId = student.user.lineUserId
+    after(async () => {
+      await sendLineMessage(
+        lineUserId,
+        `新しい宿題が追加されました\n\n「${title}」\n期限: ${dueStr}\n\n${baseUrl}/homework/${homework.id}`
+      ).catch((error) => console.error("[createHomeworkFromCalendar] LINE notification failed:", error))
+    })
   }
 
-  revalidatePath("/calendar")
-  revalidatePath("/homework")
+  invalidateHomework({
+    teacherId: teacher.teacherId,
+    studentId,
+    homeworkId: homework.id,
+    studentUserId: student.user.id,
+  })
   return { error: "", timestamp: Date.now() }
 }

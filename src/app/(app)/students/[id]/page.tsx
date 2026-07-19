@@ -14,49 +14,19 @@ import { GARDEN_CAPACITY } from "@/lib/garden/utils"
 import { PageHeader } from "@/components/ui/page-header"
 import { Disclosure } from "@/components/ui/disclosure"
 import { buttonVariants } from "@/components/ui/button"
+import { cacheLife, cacheTag } from "next/cache"
+import { cacheProfiles } from "@/lib/cache-policy"
+import { cacheTags } from "@/lib/cache-tags"
 
 export default async function StudentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
   if (!session || session.user.role !== "teacher") redirect("/dashboard")
 
   const { id } = await params
-  const now = new Date()
-
-  const [student, subjects] = await Promise.all([
-    db.student.findUnique({
-      where: { id, teacherId: session.user.id },
-      include: { user: { select: { name: true, email: true } } },
-    }),
-    db.subject.findMany({
-      where: { teacherId: session.user.id },
-      orderBy: { name: "asc" },
-    }),
-  ])
+  const { student, subjects, gardenCount, problemCount, reviewCount, nextLesson, latestGrade } =
+    await getStudentDetailData(session.user.id, id)
 
   if (!student) notFound()
-
-  const [gardenCount, problemCount, reviewCount, nextLesson, latestGrade] = await Promise.all([
-    db.gardenItem.count({ where: { studentId: student.id } }),
-    db.homework.count({
-      where: {
-        teacherId: session.user.id,
-        studentId: student.id,
-        OR: [
-          { status: "assigned", dueDate: { lt: now } },
-          { status: "rejected" },
-        ],
-      },
-    }),
-    db.homework.count({ where: { teacherId: session.user.id, studentId: student.id, status: "submitted" } }),
-    db.lesson.findFirst({
-      where: { teacherId: session.user.id, studentId: student.id, date: { gte: now } },
-      orderBy: { date: "asc" },
-    }),
-    db.gradeRecord.findFirst({
-      where: { teacherId: session.user.id, studentId: student.id },
-      orderBy: { date: "desc" },
-    }),
-  ])
 
   const isFull = gardenCount >= GARDEN_CAPACITY
   const isWithered = problemCount > 0 && gardenCount > 0
@@ -173,4 +143,41 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
       </Disclosure>
     </div>
   )
+}
+
+async function getStudentDetailData(teacherId: string, studentId: string) {
+  "use cache"
+  cacheLife(cacheProfiles.active)
+  cacheTag(
+    cacheTags.student(studentId),
+    cacheTags.teacherStudents(teacherId),
+    cacheTags.studentHomework(studentId),
+    cacheTags.studentCalendar(studentId),
+    cacheTags.studentGrades(studentId),
+    cacheTags.garden(studentId),
+    cacheTags.subjects(teacherId)
+  )
+  const now = new Date()
+  const [student, subjects, gardenCount, problemCount, reviewCount, nextLesson, latestGrade] = await Promise.all([
+    db.student.findUnique({
+      where: { id: studentId, teacherId },
+      include: { user: { select: { name: true, email: true } } },
+    }),
+    db.subject.findMany({ where: { teacherId }, orderBy: { name: "asc" } }),
+    db.gardenItem.count({ where: { studentId } }),
+    db.homework.count({
+      where: {
+        teacherId,
+        studentId,
+        OR: [
+          { status: "assigned", dueDate: { lt: now } },
+          { status: "rejected" },
+        ],
+      },
+    }),
+    db.homework.count({ where: { teacherId, studentId, status: "submitted" } }),
+    db.lesson.findFirst({ where: { teacherId, studentId, date: { gte: now } }, orderBy: { date: "asc" } }),
+    db.gradeRecord.findFirst({ where: { teacherId, studentId }, orderBy: { date: "desc" } }),
+  ])
+  return { student, subjects, gardenCount, problemCount, reviewCount, nextLesson, latestGrade }
 }

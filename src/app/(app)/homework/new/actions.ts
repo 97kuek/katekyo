@@ -3,7 +3,9 @@
 import { db } from "@/lib/db"
 import { requireTeacher } from "@/lib/action-guards"
 import { redirect } from "next/navigation"
+import { after } from "next/server"
 import { sendLineMessage } from "@/lib/line"
+import { invalidateHomework } from "@/lib/cache-invalidation"
 import { createHomeworkSchema } from "@/lib/validation"
 import { validateTeacherSubjectIds } from "@/lib/tenant-validation"
 
@@ -35,7 +37,7 @@ export async function createHomework(
 
   const student = await db.student.findFirst({
     where: { id: studentId, teacherId: teacher.teacherId },
-    include: { user: { select: { lineUserId: true } } },
+    include: { user: { select: { id: true, lineUserId: true } } },
   })
   if (!student) {
     return { error: "指定された生徒が見つかりません" }
@@ -66,11 +68,21 @@ export async function createHomework(
   if (student.user.lineUserId) {
     const dueStr = new Date(dueDate).toLocaleDateString("ja-JP", { month: "numeric", day: "numeric", timeZone: "Asia/Tokyo" })
     const baseUrl = process.env.NEXTAUTH_URL ?? ""
-    await sendLineMessage(
-      student.user.lineUserId,
-      `新しい宿題が追加されました\n\n「${title}」\n期限: ${dueStr}\n\n${baseUrl}/homework/${homework.id}`
-    )
+    const lineUserId = student.user.lineUserId
+    after(async () => {
+      await sendLineMessage(
+        lineUserId,
+        `新しい宿題が追加されました\n\n「${title}」\n期限: ${dueStr}\n\n${baseUrl}/homework/${homework.id}`
+      ).catch((error) => console.error("[createHomework] LINE notification failed:", error))
+    })
   }
+
+  invalidateHomework({
+    teacherId: teacher.teacherId,
+    studentId,
+    homeworkId: homework.id,
+    studentUserId: student.user.id,
+  })
 
   redirect("/homework")
 }

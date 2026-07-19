@@ -18,24 +18,31 @@ import { PageHeader } from "@/components/ui/page-header"
 import { HomeworkViewTabs } from "./homework-view-tabs"
 import { ParentStudentSwitcher } from "@/components/parent-student-switcher"
 import { resolveParentStudentId } from "@/lib/parent-student-context"
+import { cacheLife, cacheTag } from "next/cache"
+import { cacheProfiles } from "@/lib/cache-policy"
+import { cacheTags } from "@/lib/cache-tags"
+import { PaginationNav } from "@/components/ui/pagination-nav"
+
+const HOMEWORK_PAGE_SIZE = 40
 
 export default async function HomeworkPage({
   searchParams,
 }: {
-  searchParams: Promise<{ studentId?: string; sort?: string; q?: string; subjects?: string; view?: string }>
+  searchParams: Promise<{ studentId?: string; sort?: string; q?: string; subjects?: string; view?: string; page?: string }>
 }) {
   const ctx = await getViewingContext()
   if (!ctx) redirect("/login")
 
-  const { studentId, sort, q, subjects, view } = await searchParams
+  const { studentId, sort, q, subjects, view, page: pageParam } = await searchParams
+  const page = Math.max(1, Number.parseInt(pageParam ?? "1", 10) || 1)
 
   if (ctx.effectiveRole === "teacher") {
-    return <TeacherHomeworkPage teacherId={ctx.effectiveUserId} studentIdFilter={studentId} sort={sort} q={q} subjectFilter={subjects} view={view} />
+    return <TeacherHomeworkPage teacherId={ctx.effectiveUserId} studentIdFilter={studentId} sort={sort} q={q} subjectFilter={subjects} view={view} page={page} />
   }
   if (ctx.effectiveRole === "parent") {
-    return <ParentHomeworkPage parentId={ctx.effectiveUserId} studentIdFilter={studentId} view={view} />
+    return <ParentHomeworkPage parentId={ctx.effectiveUserId} studentIdFilter={studentId} view={view} page={page} />
   }
-  return <StudentHomeworkPage userId={ctx.effectiveUserId} view={view} />
+  return <StudentHomeworkPage userId={ctx.effectiveUserId} view={view} page={page} />
 }
 
 async function TeacherHomeworkPage({
@@ -45,6 +52,7 @@ async function TeacherHomeworkPage({
   q,
   subjectFilter,
   view,
+  page,
 }: {
   teacherId: string
   studentIdFilter?: string
@@ -52,58 +60,18 @@ async function TeacherHomeworkPage({
   q?: string
   subjectFilter?: string
   view?: string
+  page: number
 }) {
-  const subjectIds = subjectFilter?.split(",").filter(Boolean) ?? []
-  const orderBy = sort === "due" ? { dueDate: "asc" as const } : { createdAt: "desc" as const }
-
-  // 科目タグで絞り込む場合、教材経由でマッチする materialId も対象に含める
-  const matchingMaterialIds: string[] = []
-  if (subjectIds.length > 0) {
-    const mats = await db.studentMaterial.findMany({
-      where: { teacherId, subjectIds: { hasSome: subjectIds } },
-      select: { id: true },
-    })
-    matchingMaterialIds.push(...mats.map((m) => m.id))
-  }
-
-  const subjectWhere =
-    subjectIds.length > 0
-      ? {
-          OR: [
-            { subjectIds: { hasSome: subjectIds } },
-            ...(matchingMaterialIds.length > 0 ? [{ materialId: { in: matchingMaterialIds } }] : []),
-          ],
-        }
-      : {}
-
-  const [homeworks, subjects, students] = await Promise.all([
-    db.homework.findMany({
-      where: {
-        teacherId,
-        ...(studentIdFilter ? { studentId: studentIdFilter } : {}),
-        ...(q ? { title: { contains: q, mode: "insensitive" as const } } : {}),
-        ...subjectWhere,
-      },
-      include: { student: { include: { user: { select: { name: true } } } } },
-      orderBy,
-    }),
+  const [{ homeworks, counts, currentView, total, allTotal }, subjects, students] = await Promise.all([
+    getTeacherHomeworks(teacherId, studentIdFilter, sort, q, subjectFilter, view, page),
     getSubjectsByTeacherId(teacherId),
-    db.student.findMany({
-      where: { teacherId },
-      include: { user: { select: { name: true } } },
-      orderBy: { createdAt: "asc" },
-    }),
+    getTeacherHomeworkStudents(teacherId),
   ])
 
   const subjectMap = buildSubjectMap(subjects)
   const now = new Date()
-  const submitted = homeworks.filter((h) => h.status === "submitted")
-  const active = homeworks.filter((h) => h.status === "assigned" || h.status === "rejected")
-  const completed = homeworks.filter((h) => h.status === "approved")
-  const currentView = view === "active" || view === "completed" || view === "review"
-    ? view
-    : submitted.length > 0 ? "review" : "active"
-  const visibleHomeworks = currentView === "active" ? active : completed
+  const submitted = currentView === "review" ? homeworks : []
+  const visibleHomeworks = currentView === "review" ? [] : homeworks
 
   return (
     <div className="space-y-4">
@@ -121,9 +89,9 @@ async function TeacherHomeworkPage({
       <HomeworkViewTabs
         current={currentView}
         items={[
-          { value: "review", label: "確認待ち", count: submitted.length },
-          { value: "active", label: "進行中", count: active.length },
-          { value: "completed", label: "完了", count: completed.length },
+          { value: "review", label: "確認待ち", count: counts.review },
+          { value: "active", label: "進行中", count: counts.active },
+          { value: "completed", label: "完了", count: counts.completed },
         ]}
         params={{ studentId: studentIdFilter, sort, q, subjects: subjectFilter }}
       />
@@ -134,7 +102,7 @@ async function TeacherHomeworkPage({
         <BulkApproveSection submitted={submitted} subjectMap={subjectMap} />
       )}
 
-      {currentView === "review" && submitted.length === 0 && (
+      {currentView === "review" && submitted.length === 0 && allTotal > 0 && (
         <EmptyState title="確認待ちの宿題はありません" description="提出されるとここに表示されます。" />
       )}
 
@@ -201,11 +169,11 @@ async function TeacherHomeworkPage({
         </section>
       )}
 
-      {currentView !== "review" && visibleHomeworks.length === 0 && homeworks.length > 0 && (
+      {currentView !== "review" && visibleHomeworks.length === 0 && allTotal > 0 && (
         <EmptyState title={currentView === "active" ? "進行中の宿題はありません" : "完了した宿題はありません"} />
       )}
 
-      {homeworks.length === 0 && (
+      {allTotal === 0 && (
         <EmptyState
           title={studentIdFilter ? "この生徒の宿題はありません" : "宿題が登録されていません"}
           description={!studentIdFilter ? "最初の宿題を作成しましょう。" : undefined}
@@ -216,15 +184,20 @@ async function TeacherHomeworkPage({
           ) : undefined}
         />
       )}
+
+      <PaginationNav
+        pathname="/homework"
+        page={page}
+        total={total}
+        pageSize={HOMEWORK_PAGE_SIZE}
+        params={{ studentId: studentIdFilter, sort, q, subjects: subjectFilter, view: currentView }}
+      />
     </div>
   )
 }
 
-async function ParentHomeworkPage({ parentId, studentIdFilter, view }: { parentId: string; studentIdFilter?: string; view?: string }) {
-  const links = await db.parentStudent.findMany({
-    where: { parentId },
-    include: { student: { include: { user: { select: { name: true } } } } },
-  })
+async function ParentHomeworkPage({ parentId, studentIdFilter, view, page }: { parentId: string; studentIdFilter?: string; view?: string; page: number }) {
+  const links = await getParentHomeworkLinks(parentId)
   if (links.length === 0) {
     return (
       <div className="rounded-lg border bg-card p-12 text-center text-sm text-muted-foreground">
@@ -236,20 +209,15 @@ async function ParentHomeworkPage({ parentId, studentIdFilter, view }: { parentI
   const allowedStudentIds = links.map((l) => l.studentId)
   const effectiveStudentId = await resolveParentStudentId(allowedStudentIds, studentIdFilter)
 
-  const homeworks = await db.homework.findMany({
-    where: { studentId: effectiveStudentId },
-    orderBy: { dueDate: "asc" },
-  })
-
   const teacherId = links.find((l) => l.studentId === effectiveStudentId)?.teacherId
-  const subjects = teacherId ? await getSubjectsByTeacherId(teacherId) : []
+  const currentView = view === "waiting" || view === "completed" ? view : "active"
+  const [{ homeworks, counts, total, allTotal }, subjects] = await Promise.all([
+    getStudentHomeworks(effectiveStudentId, currentView, page),
+    teacherId ? getSubjectsByTeacherId(teacherId) : Promise.resolve([]),
+  ])
   const subjectMap = buildSubjectMap(subjects)
   const now = new Date()
-  const active = homeworks.filter((h) => h.status === "assigned" || h.status === "rejected")
-  const waiting = homeworks.filter((h) => h.status === "submitted")
-  const completed = homeworks.filter((h) => h.status === "approved")
-  const currentView = view === "waiting" || view === "completed" ? view : "active"
-  const visibleHomeworks = currentView === "active" ? active : currentView === "waiting" ? waiting : completed
+  const visibleHomeworks = homeworks
 
   return (
     <div className="space-y-4">
@@ -259,14 +227,14 @@ async function ParentHomeworkPage({ parentId, studentIdFilter, view }: { parentI
       <HomeworkViewTabs
         current={currentView}
         items={[
-          { value: "active", label: "要対応", count: active.length },
-          { value: "waiting", label: "確認中", count: waiting.length },
-          { value: "completed", label: "完了", count: completed.length },
+          { value: "active", label: "要対応", count: counts.active },
+          { value: "waiting", label: "確認中", count: counts.waiting },
+          { value: "completed", label: "完了", count: counts.completed },
         ]}
         params={{ studentId: effectiveStudentId }}
       />
 
-      {homeworks.length === 0 ? (
+      {allTotal === 0 ? (
         <div className="rounded-lg border bg-card p-12 text-center text-muted-foreground text-sm">
           宿題はまだありません
         </div>
@@ -300,25 +268,26 @@ async function ParentHomeworkPage({ parentId, studentIdFilter, view }: { parentI
           })}
         </div>
       )}
+      <PaginationNav pathname="/homework" page={page} total={total} pageSize={HOMEWORK_PAGE_SIZE} params={{ studentId: effectiveStudentId, view: currentView }} />
     </div>
   )
 }
 
-async function StudentHomeworkPage({ userId, view }: { userId: string; view?: string }) {
+async function StudentHomeworkPage({ userId, view, page }: { userId: string; view?: string; page: number }) {
   const student = await getStudentByUserId(userId)
   if (!student) redirect("/dashboard")
 
-  const [homeworks, subjects] = await Promise.all([
-    db.homework.findMany({ where: { studentId: student.id }, orderBy: { dueDate: "asc" } }),
+  const currentView = view === "waiting" || view === "completed" ? view : "active"
+  const [{ homeworks, counts, total, allTotal }, subjects] = await Promise.all([
+    getStudentHomeworks(student.id, currentView, page),
     getSubjectsByTeacherId(student.teacherId),
   ])
 
   const subjectMap = buildSubjectMap(subjects)
   const now = new Date()
-  const active = homeworks.filter((h) => isPendingStatus(h.status))
-  const submitted = homeworks.filter((h) => h.status === "submitted")
-  const approvedAll = homeworks.filter((h) => h.status === "approved")
-  const currentView = view === "waiting" || view === "completed" ? view : "active"
+  const active = currentView === "active" ? homeworks : []
+  const submitted = currentView === "waiting" ? homeworks : []
+  const approvedAll = currentView === "completed" ? homeworks : []
 
   return (
     <div className="space-y-4">
@@ -326,9 +295,9 @@ async function StudentHomeworkPage({ userId, view }: { userId: string; view?: st
       <HomeworkViewTabs
         current={currentView}
         items={[
-          { value: "active", label: "要対応", count: active.length },
-          { value: "waiting", label: "確認中", count: submitted.length },
-          { value: "completed", label: "完了", count: approvedAll.length },
+          { value: "active", label: "要対応", count: counts.active },
+          { value: "waiting", label: "確認中", count: counts.waiting },
+          { value: "completed", label: "完了", count: counts.completed },
         ]}
       />
 
@@ -434,17 +403,120 @@ async function StudentHomeworkPage({ userId, view }: { userId: string; view?: st
         </section>
       )}
 
-      {homeworks.length > 0 && (
+      {allTotal > 0 && (
         (currentView === "active" && active.length === 0) ||
         (currentView === "waiting" && submitted.length === 0) ||
         (currentView === "completed" && approvedAll.length === 0)
       ) && <EmptyState title="該当する宿題はありません" />}
 
-      {homeworks.length === 0 && (
+      {allTotal === 0 && (
         <div className="rounded-lg border bg-card p-12 text-center">
           <p className="text-muted-foreground">宿題はまだありません</p>
         </div>
       )}
+      <PaginationNav pathname="/homework" page={page} total={total} pageSize={HOMEWORK_PAGE_SIZE} params={{ view: currentView }} />
     </div>
   )
+}
+
+async function getTeacherHomeworks(
+  teacherId: string,
+  studentIdFilter?: string,
+  sort?: string,
+  query?: string,
+  subjectFilter?: string,
+  view?: string,
+  page = 1
+) {
+  "use cache"
+  cacheLife(cacheProfiles.active)
+  cacheTag(cacheTags.teacherHomework(teacherId))
+
+  const subjectIds = subjectFilter?.split(",").filter(Boolean) ?? []
+  const orderBy = sort === "due" ? { dueDate: "asc" as const } : { createdAt: "desc" as const }
+
+  const baseWhere = {
+    teacherId,
+    ...(studentIdFilter ? { studentId: studentIdFilter } : {}),
+    ...(query ? { title: { contains: query, mode: "insensitive" as const } } : {}),
+    ...(subjectIds.length > 0
+      ? {
+          OR: [
+            { subjectIds: { hasSome: subjectIds } },
+            { material: { is: { subjectIds: { hasSome: subjectIds } } } },
+          ],
+        }
+      : {}),
+  }
+  const grouped = await db.homework.groupBy({ by: ["status"], where: baseWhere, _count: { _all: true } })
+  const countFor = (status: string) => grouped.find((row) => row.status === status)?._count._all ?? 0
+  const counts = {
+    review: countFor("submitted"),
+    active: countFor("assigned") + countFor("rejected"),
+    completed: countFor("approved"),
+  }
+  const currentView = view === "active" || view === "completed" || view === "review"
+    ? view
+    : counts.review > 0 ? "review" : "active"
+  const statuses = currentView === "review"
+    ? ["submitted" as const]
+    : currentView === "active"
+      ? ["assigned" as const, "rejected" as const]
+      : ["approved" as const]
+  const homeworks = await db.homework.findMany({
+    where: { ...baseWhere, status: { in: statuses } },
+    include: { student: { include: { user: { select: { name: true } } } } },
+    orderBy,
+    take: HOMEWORK_PAGE_SIZE,
+    skip: (page - 1) * HOMEWORK_PAGE_SIZE,
+  })
+  const total = currentView === "review" ? counts.review : currentView === "active" ? counts.active : counts.completed
+  return { homeworks, counts, currentView, total, allTotal: counts.review + counts.active + counts.completed }
+}
+
+async function getTeacherHomeworkStudents(teacherId: string) {
+  "use cache"
+  cacheLife(cacheProfiles.reference)
+  cacheTag(cacheTags.teacherStudents(teacherId))
+  return db.student.findMany({
+    where: { teacherId },
+    include: { user: { select: { name: true } } },
+    orderBy: { createdAt: "asc" },
+  })
+}
+
+async function getParentHomeworkLinks(parentId: string) {
+  "use cache"
+  cacheLife(cacheProfiles.reference)
+  cacheTag(cacheTags.parentStudents(parentId))
+  return db.parentStudent.findMany({
+    where: { parentId },
+    include: { student: { include: { user: { select: { name: true } } } } },
+  })
+}
+
+async function getStudentHomeworks(studentId: string, view: "active" | "waiting" | "completed", page = 1) {
+  "use cache"
+  cacheLife(cacheProfiles.active)
+  cacheTag(cacheTags.studentHomework(studentId))
+  const grouped = await db.homework.groupBy({ by: ["status"], where: { studentId }, _count: { _all: true } })
+  const countFor = (status: string) => grouped.find((row) => row.status === status)?._count._all ?? 0
+  const counts = {
+    active: countFor("assigned") + countFor("rejected"),
+    waiting: countFor("submitted"),
+    completed: countFor("approved"),
+  }
+  const statuses = view === "active"
+    ? ["assigned" as const, "rejected" as const]
+    : view === "waiting"
+      ? ["submitted" as const]
+      : ["approved" as const]
+  const total = view === "active" ? counts.active : view === "waiting" ? counts.waiting : counts.completed
+  const homeworks = await db.homework.findMany({
+    where: { studentId, status: { in: statuses } },
+    orderBy: view === "completed" ? { reviewedAt: "desc" } : { dueDate: "asc" },
+    take: HOMEWORK_PAGE_SIZE,
+    skip: (page - 1) * HOMEWORK_PAGE_SIZE,
+  })
+  return { homeworks, counts, total, allTotal: counts.active + counts.waiting + counts.completed }
 }

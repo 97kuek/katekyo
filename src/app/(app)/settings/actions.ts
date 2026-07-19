@@ -8,6 +8,7 @@ import { unlinkRichMenuFromUser } from "@/lib/line"
 import { randomBytes } from "node:crypto"
 import { cookies } from "next/headers"
 import { isAllowedMeetUrl } from "@/lib/security-validation"
+import { invalidateUser } from "@/lib/cache-invalidation"
 import {
   GOOGLE_LINK_COOKIE,
   GOOGLE_LINK_TTL_MS,
@@ -107,6 +108,8 @@ export async function unlinkLine(): Promise<{ error?: string }> {
     data: { lineUserId: null },
   })
 
+  invalidateUser(session.user.id)
+
   return {}
 }
 
@@ -139,6 +142,8 @@ export async function saveMeetLink(
     where: { id: teacher.teacherId },
     data: { meetLink: result.data.meetLink || null },
   })
+
+  invalidateUser(teacher.teacherId)
 
   return { success: true }
 }

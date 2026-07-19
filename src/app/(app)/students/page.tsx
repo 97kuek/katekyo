@@ -8,6 +8,9 @@ import { EmptyState } from "@/components/ui/empty-state"
 import { StudentSort } from "./student-sort"
 import { StudentRow } from "./student-row"
 import { PageHeader } from "@/components/ui/page-header"
+import { cacheLife, cacheTag } from "next/cache"
+import { cacheProfiles } from "@/lib/cache-policy"
+import { cacheTags } from "@/lib/cache-tags"
 
 export default async function StudentsPage({
   searchParams,
@@ -19,35 +22,7 @@ export default async function StudentsPage({
 
   const { sort } = await searchParams
 
-  const orderBy =
-    sort === "name" ? { user: { name: "asc" as const } } :
-    sort === "grade" ? { grade: "asc" as const } :
-    { createdAt: "desc" as const }
-
-  const now = new Date()
-  const students = await db.student.findMany({
-    where: { teacherId: session.user.id },
-    include: {
-      user: { select: { name: true } },
-      homeworks: {
-        where: {
-          OR: [
-            { status: "submitted" },
-            { status: "rejected" },
-            { status: "assigned", dueDate: { lt: now } },
-          ],
-        },
-        select: { id: true, status: true },
-      },
-      lessons: {
-        where: { date: { gte: now } },
-        orderBy: { date: "asc" },
-        take: 1,
-        select: { date: true },
-      },
-    },
-    orderBy,
-  })
+  const students = await getStudentsWithSignals(session.user.id, sort)
 
   return (
     <div className="space-y-4">
@@ -112,6 +87,42 @@ export default async function StudentsPage({
       )}
     </div>
   )
+}
+
+async function getStudentsWithSignals(teacherId: string, sort?: string) {
+  "use cache"
+  cacheLife(cacheProfiles.active)
+  cacheTag(cacheTags.teacherStudents(teacherId), cacheTags.teacherHomework(teacherId), cacheTags.teacherCalendar(teacherId))
+
+  const orderBy =
+    sort === "name" ? { user: { name: "asc" as const } } :
+    sort === "grade" ? { grade: "asc" as const } :
+    { createdAt: "desc" as const }
+  const now = new Date()
+
+  return db.student.findMany({
+    where: { teacherId },
+    include: {
+      user: { select: { name: true } },
+      homeworks: {
+        where: {
+          OR: [
+            { status: "submitted" },
+            { status: "rejected" },
+            { status: "assigned", dueDate: { lt: now } },
+          ],
+        },
+        select: { id: true, status: true },
+      },
+      lessons: {
+        where: { date: { gte: now } },
+        orderBy: { date: "asc" },
+        take: 1,
+        select: { date: true },
+      },
+    },
+    orderBy,
+  })
 }
 
 function StudentSignal({

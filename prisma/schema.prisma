@@ -277,6 +277,11 @@ model Homework {
 
   @@index([studentId, status])
   @@index([teacherId, status])
+  @@index([studentId, status, dueDate])
+  @@index([studentId, status, reviewedAt])
+  @@index([teacherId, status, dueDate])
+  @@index([teacherId, status, createdAt])
+  @@index([subjectIds], type: Gin)
   @@index([dueDate])
 }
 
@@ -317,7 +322,12 @@ model GradeRecord {
   gardenItem GardenItem?
 
   @@index([studentId])
+  @@index([studentId, date])
+  @@index([studentId, testType, date])
   @@index([teacherId, testType])
+  @@index([teacherId, date])
+  @@index([teacherId, testType, date])
+  @@index([subjectIds], type: Gin)
   @@index([date])
 }
 
@@ -395,6 +405,7 @@ model StudentMaterial {
 
   @@index([studentId])
   @@index([teacherId])
+  @@index([subjectIds], type: Gin)
 }
 
 model MonthlyPayment {
@@ -412,4 +423,6 @@ model MonthlyPayment {
 
   @@unique([teacherId, studentId, year, month])
   @@index([studentId])
+  @@index([studentId, year, month])
+  @@index([teacherId, year, month])
 }

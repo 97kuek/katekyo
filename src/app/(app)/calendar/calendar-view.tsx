@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useTransition } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -33,6 +33,7 @@ export default function CalendarView({ lessons, deadlines, examEvents, students,
   const [editingLessonId, setEditingLessonId] = useState<string | null>(null)
   const [viewMode, setViewMode] = useState<"month" | "week">(searchParams.get("view") === "month" ? "month" : "week")
   const [weekOffset, setWeekOffset] = useState(0)
+  const [isNavigating, startNavigation] = useTransition()
 
   // 選択日が変わったら編集中の授業をレンダー中に derived state として閉じる
   // （effect 内の同期 setState を避ける React 推奨パターン）
@@ -75,7 +76,7 @@ export default function CalendarView({ lessons, deadlines, examEvents, students,
     params.set("year", String(targetYear))
     params.set("month", String(targetMonth + 1))
     params.set("view", mode)
-    router.push(`/calendar?${params.toString()}`)
+    startNavigation(() => router.push(`/calendar?${params.toString()}`, { scroll: false }))
   }
   function prevMonth() {
     navigateToMonth(month === 0 ? year - 1 : year, month === 0 ? 11 : month - 1)
@@ -126,7 +127,7 @@ export default function CalendarView({ lessons, deadlines, examEvents, students,
     : ""
 
   return (
-    <div className="space-y-4">
+    <div className={`space-y-4 transition-opacity ${isNavigating ? "opacity-70" : "opacity-100"}`} aria-busy={isNavigating}>
       <NextLessonBanner lessons={lessons} isTeacher={isTeacher} showStudentNames={showStudentNames} />
 
       {/* ナビゲーションバー: ビュー切替 + 期間移動 */}

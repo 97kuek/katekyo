@@ -1,5 +1,8 @@
 import { cache } from "react"
+import { cacheLife, cacheTag } from "next/cache"
 import { db } from "./db"
+import { cacheTags } from "./cache-tags"
+import { cacheProfiles } from "./cache-policy"
 import { GARDEN_CAPACITY, GARDEN_MILESTONES } from "./garden/utils"
 import type { GardenItemType } from "./garden/utils"
 
@@ -7,17 +10,27 @@ import type { GardenItemType } from "./garden/utils"
 // The student dashboard renders StudentSummaryCards / StudentUpcomingSection /
 // StudentRecentGrades in separate Suspense boundaries; each used to fire its own
 // db.student.findUnique round-trip. With cache() only the first call hits the DB.
-export const getStudentByUserId = cache(async (userId: string) => {
+async function getStudentByUserIdCached(userId: string) {
+  "use cache"
+  cacheLife(cacheProfiles.reference)
+  cacheTag(cacheTags.user(userId))
   return db.student.findUnique({ where: { userId } })
-})
+}
+
+export const getStudentByUserId = cache(getStudentByUserIdCached)
 
 /** テナントの科目一覧（リクエスト内で重複呼び出ししても DB は1回） */
-export const getSubjectsByTeacherId = cache(async (teacherId: string) => {
+async function getSubjectsByTeacherIdCached(teacherId: string) {
+  "use cache"
+  cacheLife(cacheProfiles.reference)
+  cacheTag(cacheTags.subjects(teacherId))
   return db.subject.findMany({
     where: { teacherId },
     orderBy: { createdAt: "asc" },
   })
-})
+}
+
+export const getSubjectsByTeacherId = cache(getSubjectsByTeacherIdCached)
 
 /** 科目ID → 科目名 の Map を作る（subjectIds の名前解決用） */
 export function buildSubjectMap(subjects: { id: string; name: string }[]): Map<string, string> {
@@ -29,6 +42,9 @@ export function buildSubjectMap(subjects: { id: string; name: string }[]): Map<s
  * 期限切れ・差し戻しの宿題数ぶんだけ古い植物から「枯れた」状態にする。
  */
 export async function getGardenState(studentId: string) {
+  "use cache"
+  cacheLife(cacheProfiles.active)
+  cacheTag(cacheTags.student(studentId), cacheTags.garden(studentId), cacheTags.studentHomework(studentId))
   const now = new Date()
   const [rawItems, overdueCount] = await Promise.all([
     db.gardenItem.findMany({
@@ -71,6 +87,9 @@ export async function getGardenState(studentId: string) {
  * studentIdParam が指定されていれば紐づく生徒の中から選び、無効なら先頭の生徒を返す。
  */
 export async function getParentStudents(parentId: string, studentIdParam?: string) {
+  "use cache"
+  cacheLife(cacheProfiles.reference)
+  cacheTag(cacheTags.parentStudents(parentId))
   const links = await db.parentStudent.findMany({
     where: { parentId },
     include: { student: { include: { user: { select: { name: true } } } } },

@@ -6,6 +6,7 @@ import { redirect } from "next/navigation"
 import { plantGardenItem } from "@/lib/garden/actions"
 import { validateTeacherSubjectIds } from "@/lib/tenant-validation"
 import { evaluateGrade, gradeDateFromInput, gradeRecordInputFromFormData } from "@/lib/grade-record"
+import { invalidateGrades } from "@/lib/cache-invalidation"
 
 export async function createGradeRecord(
   _prevState: { error: string },
@@ -57,6 +58,8 @@ export async function createGradeRecord(
       console.error("[garden] grade plant failed:", err)
     }
   }
+
+  invalidateGrades({ teacherId: teacher.teacherId, studentId })
 
   redirect("/grades?toast=created")
 }

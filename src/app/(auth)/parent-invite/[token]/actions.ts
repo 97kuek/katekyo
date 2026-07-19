@@ -5,6 +5,7 @@ import { db } from "@/lib/db"
 import bcrypt from "bcryptjs"
 import { redirect } from "next/navigation"
 import { z } from "zod"
+import { invalidateParentStudents, invalidateStudent } from "@/lib/cache-invalidation"
 
 const INVALID_INVITE_ERROR = "招待リンクが無効または期限切れです"
 
@@ -63,8 +64,9 @@ export async function acceptParentInvite(
 
   const hashed = await bcrypt.hash(password, 12)
 
+  let createdParentId: string | null = null
   try {
-    await db.$transaction(async (tx) => {
+    createdParentId = await db.$transaction(async (tx) => {
       if (!(await consumeInviteToken(tx, invite.id))) {
         throw new Error(INVALID_INVITE_ERROR)
       }
@@ -74,10 +76,14 @@ export async function acceptParentInvite(
       await tx.parentStudent.create({
         data: { parentId: user.id, studentId: invite.studentId, teacherId: invite.student.teacherId },
       })
+      return user.id
     })
   } catch {
     return { error: INVALID_INVITE_ERROR }
   }
+
+  invalidateParentStudents(createdParentId)
+  invalidateStudent({ teacherId: invite.student.teacherId, studentId: invite.studentId })
 
   redirect("/login?invited=1")
 }
@@ -116,6 +122,9 @@ export async function linkExistingParent(token: string): Promise<{ error: string
   } catch {
     return { error: INVALID_INVITE_ERROR }
   }
+
+  invalidateParentStudents(parentId)
+  invalidateStudent({ teacherId: invite.student.teacherId, studentId: invite.studentId })
 
   redirect("/dashboard")
 }

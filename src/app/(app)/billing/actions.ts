@@ -2,8 +2,8 @@
 
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
+import { invalidateBilling } from "@/lib/cache-invalidation"
 import { redirect } from "next/navigation"
-import { revalidatePath } from "next/cache"
 import { z } from "zod"
 
 const paymentKeySchema = z.object({
@@ -49,7 +49,7 @@ export async function markAsPaid(formData: FormData) {
     update: { paidAt: new Date() },
   })
 
-  revalidatePath("/billing")
+  invalidateBilling({ teacherId, studentId })
 }
 
 export async function markAsUnpaid(formData: FormData) {
@@ -73,7 +73,7 @@ export async function markAsUnpaid(formData: FormData) {
     })
   }
 
-  revalidatePath("/billing")
+  invalidateBilling({ teacherId, studentId })
 }
 
 export async function setPaymentDueDate(formData: FormData) {
@@ -113,5 +113,5 @@ export async function setPaymentDueDate(formData: FormData) {
     })
   }
 
-  revalidatePath("/billing")
+  invalidateBilling({ teacherId, studentId })
 }

@@ -2,8 +2,8 @@
 
 import { db } from "@/lib/db"
 import { requireTeacher } from "@/lib/action-guards"
+import { invalidateStudent, invalidateUser } from "@/lib/cache-invalidation"
 import { redirect } from "next/navigation"
-import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import bcrypt from "bcryptjs"
 import { deleteHomeworkPhoto } from "@/lib/supabase-storage"
@@ -37,7 +37,7 @@ export async function resetStudentPassword(
     data: { password: hashed },
   })
 
-  revalidatePath("/students")
+  invalidateUser(student.userId)
   return { error: "", success: true }
 }
 
@@ -84,8 +84,7 @@ export async function updateStudentRates(
     },
   })
 
-  revalidatePath("/students")
-  revalidatePath("/calendar")
+  invalidateStudent({ teacherId: teacher.teacherId, studentId })
   return { error: "", success: true }
 }
 
@@ -112,5 +111,9 @@ export async function deleteStudent(formData: FormData) {
   )
 
   await db.user.delete({ where: { id: student.userId } })
-  revalidatePath("/students")
+  invalidateStudent({
+    teacherId: teacher.teacherId,
+    studentId,
+    userId: student.userId,
+  })
 }

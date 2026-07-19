@@ -2,8 +2,8 @@
 
 import { db } from "@/lib/db"
 import { requireTeacher } from "@/lib/action-guards"
+import { invalidateStudent } from "@/lib/cache-invalidation"
 import { redirect } from "next/navigation"
-import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import { GRADE_OPTIONS } from "@/lib/grades"
 
@@ -29,5 +29,5 @@ export async function updateStudentGrade(formData: FormData) {
     data: { grade },
   })
 
-  revalidatePath("/students")
+  invalidateStudent({ teacherId: teacher.teacherId, studentId })
 }

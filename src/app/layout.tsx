@@ -1,5 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans, Geist_Mono } from "next/font/google";
+import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Suspense } from "react";
+import { NavigationProgress } from "@/components/layout/navigation-progress";
 import "./globals.css";
 
 const jakartaSans = Plus_Jakarta_Sans({
@@ -50,7 +53,13 @@ export default function RootLayout({
       lang="ja"
       className={`${jakartaSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {children}
+        <Suspense fallback={null}>
+          <NavigationProgress />
+        </Suspense>
+        <SpeedInsights />
+      </body>
     </html>
   );
 }

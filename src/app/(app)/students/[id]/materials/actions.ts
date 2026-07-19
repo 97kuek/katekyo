@@ -2,8 +2,8 @@
 
 import { db } from "@/lib/db"
 import { requireTeacher } from "@/lib/action-guards"
+import { invalidateMaterials } from "@/lib/cache-invalidation"
 import { z } from "zod"
-import { revalidatePath } from "next/cache"
 import { validateTeacherSubjectIds } from "@/lib/tenant-validation"
 
 const createSchema = z.object({
@@ -39,7 +39,7 @@ export async function createMaterial(
     data: { studentId, teacherId: teacher.teacherId, name, note: note ?? null, subjectIds },
   })
 
-  revalidatePath(`/students/${studentId}/materials`)
+  invalidateMaterials({ teacherId: teacher.teacherId, studentId })
   return { error: "" }
 }
 
@@ -51,7 +51,7 @@ export async function deleteMaterial(materialId: string, studentId: string): Pro
     where: { id: materialId, teacherId: teacher.teacherId },
   })
 
-  revalidatePath(`/students/${studentId}/materials`)
+  invalidateMaterials({ teacherId: teacher.teacherId, studentId })
   return { error: "" }
 }
 
@@ -76,6 +76,6 @@ export async function updateMaterialSubjects(
     data: { subjectIds: validSubjectIds },
   })
 
-  revalidatePath(`/students/${studentId}/materials`)
+  invalidateMaterials({ teacherId: teacher.teacherId, studentId })
   return { error: "" }
 }

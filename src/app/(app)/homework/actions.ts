@@ -2,9 +2,10 @@
 
 import { db } from "@/lib/db"
 import { requireTeacher } from "@/lib/action-guards"
-import { revalidatePath } from "next/cache"
+import { after } from "next/server"
 import { plantForHomeworkApproval } from "@/lib/garden/actions"
 import { sendLineMessage } from "@/lib/line"
+import { invalidateHomework } from "@/lib/cache-invalidation"
 
 export async function bulkApproveHomework(ids: string[]): Promise<{ error: string; approved: number }> {
   const teacher = await requireTeacher()
@@ -19,7 +20,7 @@ export async function bulkApproveHomework(ids: string[]): Promise<{ error: strin
       status: "submitted",
     },
     include: {
-      student: { include: { user: { select: { lineUserId: true } } } },
+      student: { include: { user: { select: { id: true, lineUserId: true } } } },
     },
   })
 
@@ -75,20 +76,35 @@ export async function bulkApproveHomework(ids: string[]): Promise<{ error: strin
     const nextApprovedCount = (approvedCountByStudent.get(homework.studentId) ?? 0) + 1
     approvedCountByStudent.set(homework.studentId, nextApprovedCount)
 
-    await Promise.all([
-      (async () => {
-        const lineUserId = homework.student.user.lineUserId
-        if (lineUserId) {
-          await sendLineMessage(
-            lineUserId,
-            `宿題が承認されました\n\n「${homework.title}」が承認されました。\n森に植物が1つ育ちました。\n${baseUrl}/homework/${homework.id}`
-          )
-        }
-      })(),
-      plantForHomeworkApproval(homework, rejectedHomeworkIds.has(homework.id), nextApprovedCount),
-    ])
+    await plantForHomeworkApproval(homework, rejectedHomeworkIds.has(homework.id), nextApprovedCount)
+
+    invalidateHomework({
+      teacherId: teacher.teacherId,
+      studentId: homework.studentId,
+      homeworkId: homework.id,
+      studentUserId: homework.student.user.id,
+    })
   }
 
-  revalidatePath("/homework")
+  const lineMessages = approvedHomeworks.flatMap((homework) => {
+    const lineUserId = homework.student.user.lineUserId
+    return lineUserId
+      ? [{
+          lineUserId,
+          message: `宿題が承認されました\n\n「${homework.title}」が承認されました。\n森に植物が1つ育ちました。\n${baseUrl}/homework/${homework.id}`,
+        }]
+      : []
+  })
+  if (lineMessages.length) {
+    after(async () => {
+      const results = await Promise.allSettled(
+        lineMessages.map(({ lineUserId, message }) => sendLineMessage(lineUserId, message))
+      )
+      if (results.some((result) => result.status === "rejected")) {
+        console.error("[bulkApproveHomework] Some LINE notifications failed")
+      }
+    })
+  }
+
   return { error: "", approved: approvedHomeworks.length }
 }

@@ -12,6 +12,10 @@ import Link from "next/link"
 import { ParentStudentSwitcher } from "@/components/parent-student-switcher"
 import { resolveParentStudentId } from "@/lib/parent-student-context"
 import { Input } from "@/components/ui/input"
+import { cacheLife, cacheTag } from "next/cache"
+import { cacheProfiles } from "@/lib/cache-policy"
+import { cacheTags } from "@/lib/cache-tags"
+import { PendingSubmitButton } from "@/components/ui/pending-submit-button"
 
 function dueDateLabel(dueDate: Date | null, isPaid: boolean): { text: string; className: string } | null {
   if (!dueDate) return null
@@ -43,21 +47,7 @@ export default async function BillingPage({
   const year = yearStr ? parseInt(yearStr) : now.getFullYear()
   const month = monthStr ? parseInt(monthStr) - 1 : now.getMonth()
 
-  const monthStart = new Date(year, month, 1)
-  const monthEnd = new Date(year, month + 1, 0, 23, 59, 59)
-
-  const [lessons, payments] = await Promise.all([db.lesson.findMany({
-    where: {
-      teacherId: session.user.id,
-      date: { gte: monthStart, lte: monthEnd },
-    },
-    include: { student: { include: { user: { select: { name: true } } } } },
-    orderBy: { date: "asc" },
-  }),
-  db.monthlyPayment.findMany({
-    where: { teacherId: session.user.id, year, month: month + 1 },
-  }),
-  ])
+  const { lessons, payments } = await getTeacherBillingData(session.user.id, year, month)
 
   const completedLessons = lessons.filter((l) => l.completedAt != null)
   const unconfirmedCount = lessons.filter((l) => l.completedAt == null && l.date < now).length
@@ -109,21 +99,23 @@ export default async function BillingPage({
       />
       {/* Month navigator */}
       <div className="flex items-center justify-center gap-2">
-          <a
+          <Link
             href={`/billing?year=${prevYear}&month=${prevMonth}`}
+            prefetch={true}
             aria-label="前の月"
             className={buttonVariants({ variant: "ghost", size: "icon-sm" })}
           >
             <ChevronLeft className="h-4 w-4" aria-hidden />
-          </a>
+          </Link>
           <span className="min-w-28 text-center font-semibold text-sm">{year}年 {month + 1}月</span>
-          <a
+          <Link
             href={`/billing?year=${nextYear}&month=${nextMonth}`}
+            prefetch={true}
             aria-label="次の月"
             className={buttonVariants({ variant: "ghost", size: "icon-sm" })}
           >
             <ChevronRight className="h-4 w-4" aria-hidden />
-          </a>
+          </Link>
       </div>
 
       {unconfirmedCount > 0 && (
@@ -131,7 +123,7 @@ export default async function BillingPage({
           <p className="text-sm text-warning-foreground">
             <span className="font-semibold">{unconfirmedCount}件</span>の授業が未完了です。予定から完了にすると請求へ反映されます。
           </p>
-          <a href="/calendar" className="text-xs text-warning underline hover:text-warning-foreground shrink-0">予定へ</a>
+          <Link href="/calendar" prefetch={true} className="text-xs text-warning underline hover:text-warning-foreground shrink-0">予定へ</Link>
         </div>
       )}
 
@@ -148,7 +140,7 @@ export default async function BillingPage({
 
           <nav aria-label="支払い状態" className="flex rounded-lg border bg-card p-1">
             {[{ value: "unpaid", label: "未入金", count: unpaidCount }, { value: "paid", label: "入金済み", count: paidCount }].map((item) => (
-              <Link key={item.value} href={`/billing?year=${year}&month=${month + 1}&status=${item.value}`} aria-current={currentStatus === item.value ? "page" : undefined} className={`flex min-h-10 flex-1 items-center justify-center rounded-md text-sm font-medium ${currentStatus === item.value ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}>{item.label} {item.count}</Link>
+              <Link key={item.value} href={`/billing?year=${year}&month=${month + 1}&status=${item.value}`} prefetch={true} aria-current={currentStatus === item.value ? "page" : undefined} className={`flex min-h-10 flex-1 items-center justify-center rounded-md text-sm font-medium ${currentStatus === item.value ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}>{item.label} {item.count}</Link>
             ))}
           </nav>
 
@@ -192,7 +184,7 @@ export default async function BillingPage({
                   {!isPaid && (
                     <form action={markAsPaid} className="flex justify-end">
                       <input type="hidden" name="studentId" value={sid} /><input type="hidden" name="year" value={year} /><input type="hidden" name="month" value={month + 1} />
-                      <button type="submit" className={buttonVariants({ size: "sm" })}>入金確認</button>
+                      <PendingSubmitButton pendingLabel="反映中" className={buttonVariants({ size: "sm" })}>入金確認</PendingSubmitButton>
                     </form>
                   )}
                 </div>
@@ -213,8 +205,8 @@ export default async function BillingPage({
                         defaultValue={currentDueDateValue}
                         className="min-w-0 flex-1 md:h-9 md:w-40 md:flex-none md:text-sm"
                       />
-                      <button
-                        type="submit"
+                      <PendingSubmitButton
+                        pendingLabel="設定中"
                         className={buttonVariants({
                           variant: "outline",
                           size: "xs",
@@ -222,14 +214,14 @@ export default async function BillingPage({
                         })}
                       >
                         設定
-                      </button>
+                      </PendingSubmitButton>
                     </form>
                     {isPaid && <form action={markAsUnpaid} className="w-full shrink-0 sm:ml-auto sm:w-auto">
                       <input type="hidden" name="studentId" value={sid} />
                       <input type="hidden" name="year" value={year} />
                       <input type="hidden" name="month" value={month + 1} />
-                      <button
-                        type="submit"
+                      <PendingSubmitButton
+                        pendingLabel="解除中"
                         className={
                           buttonVariants({
                             variant: "outline",
@@ -239,7 +231,7 @@ export default async function BillingPage({
                         }
                       >
                           <><Check className="h-3.5 w-3.5" aria-hidden />入金済みを解除</>
-                      </button>
+                      </PendingSubmitButton>
                     </form>}
                   </div>
                 <div className="divide-y rounded-lg border">
@@ -300,13 +292,7 @@ async function ParentBillingPage({
   const now = new Date()
   const year = yearStr ? parseInt(yearStr) : now.getFullYear()
   const month = monthStr ? parseInt(monthStr) - 1 : now.getMonth()
-  const monthStart = new Date(year, month, 1)
-  const monthEnd = new Date(year, month + 1, 0, 23, 59, 59)
-
-  const links = await db.parentStudent.findMany({
-    where: { parentId },
-    include: { student: { include: { user: { select: { name: true } } } } },
-  })
+  const links = await getBillingParentLinks(parentId)
   if (links.length === 0) {
     return (
       <div className="rounded-lg border bg-card p-12 text-center text-sm text-muted-foreground">
@@ -317,16 +303,7 @@ async function ParentBillingPage({
 
   const studentIds = links.map((l) => l.studentId)
   const effectiveStudentId = await resolveParentStudentId(studentIds, studentId)
-  const [lessons, payments] = await Promise.all([
-    db.lesson.findMany({
-      where: { studentId: effectiveStudentId, date: { gte: monthStart, lte: monthEnd }, completedAt: { not: null } },
-      include: { student: { include: { user: { select: { name: true } } } } },
-      orderBy: { date: "asc" },
-    }),
-    db.monthlyPayment.findMany({
-      where: { studentId: effectiveStudentId, year, month: month + 1 },
-    }),
-  ])
+  const { lessons, payments } = await getStudentBillingData(effectiveStudentId, year, month)
 
   const paidMap = new Map(payments.map((p) => [p.studentId, p]))
 
@@ -352,9 +329,9 @@ async function ParentBillingPage({
       <PageHeader title="請求" description="請求額・期限・入金状況を確認できます。" />
       <ParentStudentSwitcher students={links.map(({ student }) => ({ id: student.id, name: student.user.name }))} selectedStudentId={effectiveStudentId} />
       <div className="flex items-center justify-center gap-2">
-        <a aria-label="前の月" href={`/billing?year=${prevYear}&month=${prevMonth}&studentId=${effectiveStudentId}`} className={buttonVariants({ variant: "ghost", size: "icon-sm" })}><ChevronLeft className="h-4 w-4" aria-hidden /></a>
+        <Link aria-label="前の月" href={`/billing?year=${prevYear}&month=${prevMonth}&studentId=${effectiveStudentId}`} prefetch={true} className={buttonVariants({ variant: "ghost", size: "icon-sm" })}><ChevronLeft className="h-4 w-4" aria-hidden /></Link>
         <span className="min-w-28 text-center font-semibold text-sm">{year}年 {month + 1}月</span>
-        <a aria-label="次の月" href={`/billing?year=${nextYear}&month=${nextMonth}&studentId=${effectiveStudentId}`} className={buttonVariants({ variant: "ghost", size: "icon-sm" })}><ChevronRight className="h-4 w-4" aria-hidden /></a>
+        <Link aria-label="次の月" href={`/billing?year=${nextYear}&month=${nextMonth}&studentId=${effectiveStudentId}`} prefetch={true} className={buttonVariants({ variant: "ghost", size: "icon-sm" })}><ChevronRight className="h-4 w-4" aria-hidden /></Link>
       </div>
 
       <div className="space-y-4">
@@ -414,4 +391,53 @@ async function ParentBillingPage({
         </div>
     </div>
   )
+}
+
+function billingRange(year: number, month: number) {
+  return {
+    start: new Date(year, month, 1),
+    end: new Date(year, month + 1, 0, 23, 59, 59),
+  }
+}
+
+async function getTeacherBillingData(teacherId: string, year: number, month: number) {
+  "use cache"
+  cacheLife(cacheProfiles.active)
+  cacheTag(cacheTags.teacherBilling(teacherId), cacheTags.teacherCalendar(teacherId))
+  const { start, end } = billingRange(year, month)
+  const [lessons, payments] = await Promise.all([
+    db.lesson.findMany({
+      where: { teacherId, date: { gte: start, lte: end } },
+      include: { student: { include: { user: { select: { name: true } } } } },
+      orderBy: { date: "asc" },
+    }),
+    db.monthlyPayment.findMany({ where: { teacherId, year, month: month + 1 } }),
+  ])
+  return { lessons, payments }
+}
+
+async function getBillingParentLinks(parentId: string) {
+  "use cache"
+  cacheLife(cacheProfiles.reference)
+  cacheTag(cacheTags.parentStudents(parentId))
+  return db.parentStudent.findMany({
+    where: { parentId },
+    include: { student: { include: { user: { select: { name: true } } } } },
+  })
+}
+
+async function getStudentBillingData(studentId: string, year: number, month: number) {
+  "use cache"
+  cacheLife(cacheProfiles.active)
+  cacheTag(cacheTags.studentBilling(studentId), cacheTags.studentCalendar(studentId))
+  const { start, end } = billingRange(year, month)
+  const [lessons, payments] = await Promise.all([
+    db.lesson.findMany({
+      where: { studentId, date: { gte: start, lte: end }, completedAt: { not: null } },
+      include: { student: { include: { user: { select: { name: true } } } } },
+      orderBy: { date: "asc" },
+    }),
+    db.monthlyPayment.findMany({ where: { studentId, year, month: month + 1 } }),
+  ])
+  return { lessons, payments }
 }

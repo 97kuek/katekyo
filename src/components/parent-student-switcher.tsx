@@ -20,6 +20,7 @@ export function ParentStudentSwitcher({ students, selectedStudentId }: { student
           <Link
             key={student.id}
             href={`${pathname}?${params.toString()}`}
+            prefetch={true}
             onClick={() => { document.cookie = `${PARENT_STUDENT_COOKIE}=${encodeURIComponent(student.id)}; path=/; max-age=31536000; samesite=lax` }}
             aria-current={selected ? "page" : undefined}
             className={`flex min-h-10 items-center whitespace-nowrap rounded-full border px-4 text-sm font-medium ${selected ? "border-primary bg-primary text-primary-foreground" : "bg-card hover:bg-muted"}`}

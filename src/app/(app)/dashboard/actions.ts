@@ -2,6 +2,7 @@
 
 import { db } from "@/lib/db"
 import { requireStudent } from "@/lib/action-guards"
+import { invalidateCalendar } from "@/lib/cache-invalidation"
 
 export async function markLessonLogSeen(lessonId: string) {
   const guard = await requireStudent()
@@ -11,5 +12,9 @@ export async function markLessonLogSeen(lessonId: string) {
     where: { id: lessonId, studentId: guard.student.id, lessonLogSeenAt: null },
     data: { lessonLogSeenAt: new Date() },
   })
-  // ダッシュボード上で閲覧するため revalidate しない（ローカル state で既読表示を即時反映）
+  invalidateCalendar({
+    teacherId: guard.student.teacherId,
+    studentId: guard.student.id,
+    studentUserId: guard.session.user.id,
+  })
 }

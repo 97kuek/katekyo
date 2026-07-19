@@ -6,6 +6,7 @@ import { redirect } from "next/navigation"
 import { validateTeacherSubjectIds } from "@/lib/tenant-validation"
 import { evaluateGrade, gradeDateFromInput, gradeRecordInputFromFormData } from "@/lib/grade-record"
 import { syncGradeGardenItem } from "@/lib/garden/actions"
+import { invalidateGrades } from "@/lib/cache-invalidation"
 
 export async function updateGradeRecord(
   _prevState: { error: string },
@@ -49,6 +50,8 @@ export async function updateGradeRecord(
     await syncGradeGardenItem(id, existing.studentId, evaluation?.itemType ?? null)
   }
 
+  invalidateGrades({ teacherId: teacher.teacherId, studentId: existing.studentId })
+
   redirect("/grades?toast=saved")
 }
 
@@ -59,6 +62,13 @@ export async function deleteGradeRecord(formData: FormData) {
   const gradeId = formData.get("gradeId") as string
   if (!gradeId) return
 
+  const existing = await db.gradeRecord.findFirst({
+    where: { id: gradeId, teacherId: teacher.teacherId },
+    select: { studentId: true },
+  })
+  if (!existing) return
+
   await db.gradeRecord.deleteMany({ where: { id: gradeId, teacherId: teacher.teacherId } })
+  invalidateGrades({ teacherId: teacher.teacherId, studentId: existing.studentId })
   redirect("/grades?toast=deleted")
 }

@@ -4,6 +4,7 @@ import { db } from "@/lib/db"
 import bcrypt from "bcryptjs"
 import { redirect } from "next/navigation"
 import { z } from "zod"
+import { invalidateStudent } from "@/lib/cache-invalidation"
 
 const schema = z.object({
   token: z.string().min(1),
@@ -41,8 +42,9 @@ export async function acceptInvite(
 
   const hashed = await bcrypt.hash(password, 12)
 
+  let createdStudent: { id: string; userId: string } | null = null
   try {
-    await db.$transaction(async (tx) => {
+    createdStudent = await db.$transaction(async (tx) => {
       // usedAt が null の場合のみ使用済みにする（同時リクエストによる二重使用防止）
       const consumed = await tx.inviteToken.updateMany({
         where: { id: invite.id, usedAt: null, expiresAt: { gt: new Date() } },
@@ -54,13 +56,20 @@ export async function acceptInvite(
       const user = await tx.user.create({
         data: { email, name: invite.name, password: hashed, role: "student" },
       })
-      await tx.student.create({
+      return tx.student.create({
         data: { userId: user.id, teacherId: invite.teacherId, grade: invite.grade },
+        select: { id: true, userId: true },
       })
     })
   } catch {
     return { error: INVALID_INVITE_ERROR }
   }
+
+  invalidateStudent({
+    teacherId: invite.teacherId,
+    studentId: createdStudent.id,
+    userId: createdStudent.userId,
+  })
 
   redirect("/login?invited=1")
 }

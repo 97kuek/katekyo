@@ -13,6 +13,9 @@ import { UnreadBadge } from "@/components/ui/unread-badge"
 import { Skeleton as Sk } from "@/components/ui/skeleton"
 import { scorePercentage } from "@/lib/grade-record"
 import { PageHeader } from "@/components/ui/page-header"
+import { cacheLife, cacheTag } from "next/cache"
+import { cacheProfiles } from "@/lib/cache-policy"
+import { cacheTags } from "@/lib/cache-tags"
 
 export default async function DashboardPage() {
   const ctx = await getViewingContext()
@@ -88,6 +91,9 @@ function TeacherDashboard({ teacherId }: { teacherId: string }) {
 
 /** 承認待ち・完了確認・期限切れを1つに統合した「要対応」。何も無ければ表示しない */
 async function TeacherActionSection({ teacherId }: { teacherId: string }) {
+  "use cache"
+  cacheLife(cacheProfiles.active)
+  cacheTag(cacheTags.teacherHomework(teacherId), cacheTags.teacherCalendar(teacherId))
   const now = new Date()
   const [pendingCount, pending, uncompletedLessons, overdueCount] = await Promise.all([
     db.homework.count({ where: { teacherId, status: "submitted" } }),
@@ -148,6 +154,9 @@ async function TeacherActionSection({ teacherId }: { teacherId: string }) {
 
 /** 授業と宿題期限を1本の時系列にまとめた「今週」 */
 async function TeacherWeekSection({ teacherId }: { teacherId: string }) {
+  "use cache"
+  cacheLife(cacheProfiles.active)
+  cacheTag(cacheTags.teacherCalendar(teacherId), cacheTags.teacherHomework(teacherId))
   const now = new Date()
   const weekEnd = new Date(now)
   weekEnd.setDate(weekEnd.getDate() + 7)
@@ -216,6 +225,9 @@ async function TeacherWeekSection({ teacherId }: { teacherId: string }) {
 
 /** 宿題ステータス表と成績動向を、生徒別の1行に集約した「生徒」 */
 async function TeacherStudentsSection({ teacherId }: { teacherId: string }) {
+  "use cache"
+  cacheLife(cacheProfiles.active)
+  cacheTag(cacheTags.teacherStudents(teacherId), cacheTags.teacherHomework(teacherId), cacheTags.teacherGrades(teacherId))
   const [students, hwStats] = await Promise.all([
     db.student.findMany({
       where: { teacherId },
@@ -300,8 +312,12 @@ function StudentDashboard({ userId }: { userId: string }) {
 
 /** 未読フィードバックと提出すべき宿題を1つにまとめた「やること」 */
 async function StudentTodoSection({ userId }: { userId: string }) {
+  "use cache"
+  cacheLife(cacheProfiles.active)
+  cacheTag(cacheTags.user(userId))
   const student = await getStudentByUserId(userId)
   if (!student) return null
+  cacheTag(cacheTags.studentHomework(student.id))
 
   const [feedbacks, active, activeCount] = await Promise.all([
     db.homework.findMany({
@@ -361,8 +377,12 @@ async function StudentTodoSection({ userId }: { userId: string }) {
 
 /** 授業とテストを1本の時系列にまとめた「今週」 */
 async function StudentWeekSection({ userId }: { userId: string }) {
+  "use cache"
+  cacheLife(cacheProfiles.active)
+  cacheTag(cacheTags.user(userId))
   const student = await getStudentByUserId(userId)
   if (!student) return null
+  cacheTag(cacheTags.studentCalendar(student.id))
 
   const now = new Date()
   const weekEnd = new Date(now)
@@ -434,8 +454,12 @@ async function StudentWeekSection({ userId }: { userId: string }) {
 }
 
 async function StudentGardenPreview({ userId }: { userId: string }) {
+  "use cache"
+  cacheLife(cacheProfiles.active)
+  cacheTag(cacheTags.user(userId))
   const student = await getStudentByUserId(userId)
   if (!student) return null
+  cacheTag(cacheTags.garden(student.id))
 
   const count = await db.gardenItem.count({ where: { studentId: student.id } })
   const max = GARDEN_CAPACITY
@@ -480,8 +504,12 @@ async function StudentGardenPreview({ userId }: { userId: string }) {
 }
 
 async function StudentRecentLogs({ userId }: { userId: string }) {
+  "use cache"
+  cacheLife(cacheProfiles.active)
+  cacheTag(cacheTags.user(userId))
   const student = await getStudentByUserId(userId)
   if (!student) return null
+  cacheTag(cacheTags.studentCalendar(student.id), cacheTags.subjects(student.teacherId))
 
   const lessons = await db.lesson.findMany({
     where: {
@@ -540,6 +568,9 @@ function ParentDashboard({ parentId }: { parentId: string }) {
 }
 
 async function ParentStudentList({ parentId }: { parentId: string }) {
+  "use cache"
+  cacheLife(cacheProfiles.active)
+  cacheTag(cacheTags.parentStudents(parentId))
   const now = new Date()
   const links = await db.parentStudent.findMany({
     where: { parentId },
@@ -568,6 +599,15 @@ async function ParentStudentList({ parentId }: { parentId: string }) {
       },
     },
   })
+
+  for (const { student } of links) {
+    cacheTag(
+      cacheTags.studentHomework(student.id),
+      cacheTags.studentCalendar(student.id),
+      cacheTags.studentGrades(student.id),
+      cacheTags.studentBilling(student.id)
+    )
+  }
 
   if (links.length === 0) {
     return (

@@ -213,6 +213,12 @@
   to   { opacity: 1; }
 }
 
+@keyframes navigation-progress {
+  0% { transform: translateX(-110%); }
+  55% { transform: translateX(120%); }
+  100% { transform: translateX(260%); }
+}
+
 /* フォームエラー時のシェイク */
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
@@ -229,6 +235,9 @@
   .animate-shake {
     animation: shake 0.4s ease-in-out;
   }
+  .animate-navigation-progress {
+    animation: navigation-progress 1.1s ease-in-out infinite;
+  }
 }
 
 /* モーション削減設定：スライド/シェイクをフェードまたは無効に置き換える */
@@ -238,6 +247,9 @@
   }
   .animate-shake {
     animation: none;
+  }
+  .animate-navigation-progress {
+    animation-duration: 1.8s;
   }
 }
 

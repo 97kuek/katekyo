@@ -20,6 +20,12 @@ import { PageHeader } from "@/components/ui/page-header"
 import { Disclosure } from "@/components/ui/disclosure"
 import { ParentStudentSwitcher } from "@/components/parent-student-switcher"
 import { resolveParentStudentId } from "@/lib/parent-student-context"
+import { cacheLife, cacheTag } from "next/cache"
+import { cacheProfiles } from "@/lib/cache-policy"
+import { cacheTags } from "@/lib/cache-tags"
+import { PaginationNav } from "@/components/ui/pagination-nav"
+
+const GRADE_PAGE_SIZE = 50
 
 function DiffBadge({ diff }: { diff: number | null }) {
   if (diff == null || Math.abs(diff) < 0.5) return null
@@ -121,20 +127,21 @@ function GradeCard({ g, diff, subjectMap, studentName, comment }: {
 export default async function GradesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ type?: string; studentId?: string; subjectId?: string; mode?: string }>
+  searchParams: Promise<{ type?: string; studentId?: string; subjectId?: string; mode?: string; page?: string }>
 }) {
   const ctx = await getViewingContext()
   if (!ctx) redirect("/login")
 
-  const { type, studentId, subjectId, mode } = await searchParams
+  const { type, studentId, subjectId, mode, page: pageParam } = await searchParams
+  const page = Math.max(1, Number.parseInt(pageParam ?? "1", 10) || 1)
 
   if (ctx.effectiveRole === "teacher") {
-    return <TeacherGradesPage teacherId={ctx.effectiveUserId} typeFilter={type} studentIdFilter={studentId} subjectIdFilter={subjectId} mode={mode} />
+    return <TeacherGradesPage teacherId={ctx.effectiveUserId} typeFilter={type} studentIdFilter={studentId} subjectIdFilter={subjectId} mode={mode} page={page} />
   }
   if (ctx.effectiveRole === "parent") {
-    return <ParentGradesPage parentId={ctx.effectiveUserId} studentIdFilter={studentId} typeFilter={type} mode={mode} />
+    return <ParentGradesPage parentId={ctx.effectiveUserId} studentIdFilter={studentId} typeFilter={type} mode={mode} page={page} />
   }
-  return <StudentGradesPage userId={ctx.effectiveUserId} mode={mode} />
+  return <StudentGradesPage userId={ctx.effectiveUserId} mode={mode} page={page} />
 }
 
 async function TeacherGradesPage({
@@ -143,35 +150,24 @@ async function TeacherGradesPage({
   studentIdFilter,
   subjectIdFilter,
   mode,
+  page,
 }: {
   teacherId: string
   typeFilter?: string
   studentIdFilter?: string
   subjectIdFilter?: string
   mode?: string
+  page: number
 }) {
   const validTypes = ["mock", "exam", "quiz", "other"] as const
   type ValidType = (typeof validTypes)[number]
   const isValidType = (v: string | undefined): v is ValidType =>
     validTypes.includes(v as ValidType)
 
-  const [grades, subjects, students] = await Promise.all([
-    db.gradeRecord.findMany({
-      where: {
-        teacherId,
-        ...(isValidType(typeFilter) ? { testType: typeFilter } : {}),
-        ...(studentIdFilter ? { studentId: studentIdFilter } : {}),
-        ...(subjectIdFilter ? { subjectIds: { has: subjectIdFilter } } : {}),
-      },
-      include: { student: { include: { user: { select: { name: true } } } } },
-      orderBy: { date: "desc" },
-    }),
+  const [{ grades, total }, subjects, students] = await Promise.all([
+    getTeacherGrades(teacherId, isValidType(typeFilter) ? typeFilter : undefined, studentIdFilter, subjectIdFilter, currentModeForQuery(mode), page),
     getSubjectsByTeacherId(teacherId),
-    db.student.findMany({
-      where: { teacherId },
-      include: { user: { select: { name: true } } },
-      orderBy: { createdAt: "asc" },
-    }),
+    getTeacherGradeStudents(teacherId),
   ])
 
   const subjectMap = buildSubjectMap(subjects)
@@ -274,16 +270,26 @@ async function TeacherGradesPage({
           </div>
         </>
       ))}
+      {currentMode === "list" && (
+        <PaginationNav
+          pathname="/grades"
+          page={page}
+          total={total}
+          pageSize={GRADE_PAGE_SIZE}
+          params={{ type: typeFilter, studentId: studentIdFilter, subjectId: subjectIdFilter, mode: "list" }}
+        />
+      )}
     </div>
   )
 }
 
-async function StudentGradesPage({ userId, mode }: { userId: string; mode?: string }) {
+async function StudentGradesPage({ userId, mode, page }: { userId: string; mode?: string; page: number }) {
   const student = await getStudentByUserId(userId)
   if (!student) redirect("/dashboard")
 
-  const [grades, subjects] = await Promise.all([
-    db.gradeRecord.findMany({ where: { studentId: student.id }, orderBy: { date: "desc" } }),
+  const currentMode = mode === "history" ? "history" : "trend"
+  const [{ grades, total }, subjects] = await Promise.all([
+    getStudentGrades(student.id, undefined, currentMode, page),
     getSubjectsByTeacherId(student.teacherId),
   ])
 
@@ -302,7 +308,6 @@ async function StudentGradesPage({ userId, mode }: { userId: string; mode?: stri
   }))
 
   const prevDiff = previousDiffs(grades, (grade) => `${grade.testType}:${[...grade.subjectIds].sort().join(",")}`)
-  const currentMode = mode === "history" ? "history" : "trend"
   const latest = grades[0]
 
   return (
@@ -362,6 +367,9 @@ async function StudentGradesPage({ userId, mode }: { userId: string; mode?: stri
           </div>
         </>
       )}
+      {currentMode === "history" && (
+        <PaginationNav pathname="/grades" page={page} total={total} pageSize={GRADE_PAGE_SIZE} params={{ mode: "history" }} />
+      )}
     </div>
   )
 }
@@ -371,16 +379,15 @@ async function ParentGradesPage({
   studentIdFilter,
   typeFilter,
   mode,
+  page,
 }: {
   parentId: string
   studentIdFilter?: string
   typeFilter?: string
   mode?: string
+  page: number
 }) {
-  const links = await db.parentStudent.findMany({
-    where: { parentId },
-    include: { student: { include: { user: { select: { name: true } } } } },
-  })
+  const links = await getParentGradeLinks(parentId)
   if (links.length === 0) {
     return (
       <EmptyState title="お子様の情報が登録されていません" description="先生から保護者招待を受け取ってください。" />
@@ -394,13 +401,8 @@ async function ParentGradesPage({
   const isValidType = (v: string | undefined): v is (typeof validTypes)[number] =>
     validTypes.includes(v as (typeof validTypes)[number])
 
-  const grades = await db.gradeRecord.findMany({
-    where: {
-      studentId: effectiveStudentId,
-      ...(isValidType(typeFilter) ? { testType: typeFilter } : {}),
-    },
-    orderBy: { date: "desc" },
-  })
+  const currentMode = mode === "history" ? "history" : "trend"
+  const { grades, total } = await getStudentGrades(effectiveStudentId, isValidType(typeFilter) ? typeFilter : undefined, currentMode, page)
 
   const teacherId = links.find((l) => l.studentId === effectiveStudentId)?.teacherId
   const subjects = teacherId ? await getSubjectsByTeacherId(teacherId) : []
@@ -419,7 +421,6 @@ async function ParentGradesPage({
   }))
 
   const prevDiff = previousDiffs(grades, (grade) => `${grade.testType}:${[...grade.subjectIds].sort().join(",")}`)
-  const currentMode = mode === "history" ? "history" : "trend"
   const latest = grades[0]
 
   return (
@@ -478,8 +479,96 @@ async function ParentGradesPage({
           </div>
         </>
       )}
+      {currentMode === "history" && (
+        <PaginationNav
+          pathname="/grades"
+          page={page}
+          total={total}
+          pageSize={GRADE_PAGE_SIZE}
+          params={{ mode: "history", studentId: effectiveStudentId, type: typeFilter }}
+        />
+      )}
     </div>
   )
+}
+
+async function getTeacherGrades(
+  teacherId: string,
+  typeFilter?: "mock" | "exam" | "quiz" | "other",
+  studentIdFilter?: string,
+  subjectIdFilter?: string,
+  mode: "list" | "analysis" = "list",
+  page = 1
+) {
+  "use cache"
+  cacheLife(cacheProfiles.active)
+  cacheTag(cacheTags.teacherGrades(teacherId))
+  const where = {
+    teacherId,
+    ...(typeFilter ? { testType: typeFilter } : {}),
+    ...(studentIdFilter ? { studentId: studentIdFilter } : {}),
+    ...(subjectIdFilter ? { subjectIds: { has: subjectIdFilter } } : {}),
+  }
+  const take = mode === "analysis" ? 200 : GRADE_PAGE_SIZE
+  const [grades, total] = await Promise.all([
+    db.gradeRecord.findMany({
+      where,
+      include: { student: { include: { user: { select: { name: true } } } } },
+      orderBy: { date: "desc" },
+      take,
+      skip: mode === "list" ? (page - 1) * GRADE_PAGE_SIZE : 0,
+    }),
+    db.gradeRecord.count({ where }),
+  ])
+  return { grades, total }
+}
+
+async function getTeacherGradeStudents(teacherId: string) {
+  "use cache"
+  cacheLife(cacheProfiles.reference)
+  cacheTag(cacheTags.teacherStudents(teacherId))
+  return db.student.findMany({
+    where: { teacherId },
+    include: { user: { select: { name: true } } },
+    orderBy: { createdAt: "asc" },
+  })
+}
+
+async function getStudentGrades(
+  studentId: string,
+  typeFilter?: "mock" | "exam" | "quiz" | "other",
+  mode: "history" | "trend" = "trend",
+  page = 1
+) {
+  "use cache"
+  cacheLife(cacheProfiles.active)
+  cacheTag(cacheTags.studentGrades(studentId))
+  const where = { studentId, ...(typeFilter ? { testType: typeFilter } : {}) }
+  const take = mode === "trend" ? 200 : GRADE_PAGE_SIZE
+  const [grades, total] = await Promise.all([
+    db.gradeRecord.findMany({
+      where,
+      orderBy: { date: "desc" },
+      take,
+      skip: mode === "history" ? (page - 1) * GRADE_PAGE_SIZE : 0,
+    }),
+    db.gradeRecord.count({ where }),
+  ])
+  return { grades, total }
+}
+
+function currentModeForQuery(mode?: string): "list" | "analysis" {
+  return mode === "analysis" ? "analysis" : "list"
+}
+
+async function getParentGradeLinks(parentId: string) {
+  "use cache"
+  cacheLife(cacheProfiles.reference)
+  cacheTag(cacheTags.parentStudents(parentId))
+  return db.parentStudent.findMany({
+    where: { parentId },
+    include: { student: { include: { user: { select: { name: true } } } } },
+  })
 }
 
 function GradeModeTabs({ current, params }: { current: "list" | "analysis"; params: Record<string, string | undefined> }) {
@@ -489,7 +578,7 @@ function GradeModeTabs({ current, params }: { current: "list" | "analysis"; para
         const search = new URLSearchParams()
         Object.entries(params).forEach(([key, value]) => { if (value) search.set(key, value) })
         search.set("mode", item.value)
-        return <Link key={item.value} href={`/grades?${search.toString()}`} aria-current={current === item.value ? "page" : undefined} className={`flex min-h-10 flex-1 items-center justify-center rounded-md text-sm font-medium ${current === item.value ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}>{item.label}</Link>
+        return <Link key={item.value} href={`/grades?${search.toString()}`} prefetch={true} aria-current={current === item.value ? "page" : undefined} className={`flex min-h-10 flex-1 items-center justify-center rounded-md text-sm font-medium ${current === item.value ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}>{item.label}</Link>
       })}
     </nav>
   )
@@ -499,7 +588,7 @@ function LearningModeTabs({ current, studentId }: { current: "trend" | "history"
   return (
     <nav aria-label="成績の表示" className="flex rounded-lg border bg-card p-1">
       {[{ value: "trend", label: "推移" }, { value: "history", label: "履歴" }].map((item) => (
-        <Link key={item.value} href={`/grades?mode=${item.value}${studentId ? `&studentId=${studentId}` : ""}`} aria-current={current === item.value ? "page" : undefined} className={`flex min-h-10 flex-1 items-center justify-center rounded-md text-sm font-medium ${current === item.value ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}>{item.label}</Link>
+        <Link key={item.value} href={`/grades?mode=${item.value}${studentId ? `&studentId=${studentId}` : ""}`} prefetch={true} aria-current={current === item.value ? "page" : undefined} className={`flex min-h-10 flex-1 items-center justify-center rounded-md text-sm font-medium ${current === item.value ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}>{item.label}</Link>
       ))}
     </nav>
   )

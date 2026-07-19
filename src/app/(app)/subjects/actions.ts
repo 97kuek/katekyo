@@ -2,7 +2,7 @@
 
 import { db } from "@/lib/db"
 import { requireTeacher } from "@/lib/action-guards"
-import { revalidatePath } from "next/cache"
+import { invalidateSubjects } from "@/lib/cache-invalidation"
 import { z } from "zod"
 import { isValidSubjectColor } from "@/lib/subject-colors"
 
@@ -35,7 +35,7 @@ export async function createSubject(
   if (existing) return { error: "この科目名は既に存在します", success: false }
 
   await db.subject.create({ data: { name, color: color ?? null, teacherId: teacher.teacherId } })
-  revalidatePath("/settings")
+  invalidateSubjects(teacher.teacherId)
   return { error: "", success: true }
 }
 
@@ -61,7 +61,7 @@ export async function deleteSubject(formData: FormData) {
     db.$executeRaw`UPDATE "StudentMaterial" SET "subjectIds" = array_remove("subjectIds", ${id}) WHERE "teacherId" = ${teacherId} AND ${id} = ANY("subjectIds")`,
     db.$executeRaw`UPDATE "Student" SET "defaultSubjectIds" = array_remove("defaultSubjectIds", ${id}) WHERE "teacherId" = ${teacherId} AND ${id} = ANY("defaultSubjectIds")`,
   ])
-  revalidatePath("/settings")
+  invalidateSubjects(teacherId)
 }
 
 export async function updateSubjectColor(formData: FormData) {
@@ -77,6 +77,5 @@ export async function updateSubjectColor(formData: FormData) {
     where: { id, teacherId: teacher.teacherId },
     data: { color },
   })
-  revalidatePath("/settings")
-  revalidatePath("/grades")
+  invalidateSubjects(teacher.teacherId)
 }

@@ -29,7 +29,7 @@ export default function Sidebar({ role }: { role: string }) {
         {navItems.map(({ href, label, icon: Icon }) => {
           const active = pathname === href || pathname.startsWith(href + "/")
           return (
-            <Link key={href} href={href} title={label} aria-current={active ? "page" : undefined} className={navLinkClass(active)}>
+            <Link key={href} href={href} prefetch={true} title={label} aria-current={active ? "page" : undefined} className={navLinkClass(active)}>
               <Icon className="h-4 w-4 shrink-0" />
               <span className="hidden lg:block">{label}</span>
             </Link>
@@ -42,7 +42,7 @@ export default function Sidebar({ role }: { role: string }) {
           { href: "/settings", label: "設定", icon: Settings },
           { href: "/help", label: "使い方ガイド", icon: HelpCircle },
         ].map(({ href, label, icon: Icon }) => (
-          <Link key={href} href={href} title={label} aria-current={pathname === href ? "page" : undefined} className={navLinkClass(pathname === href)}>
+          <Link key={href} href={href} prefetch={true} title={label} aria-current={pathname === href ? "page" : undefined} className={navLinkClass(pathname === href)}>
             <Icon className="h-4 w-4 shrink-0" />
             <span className="hidden lg:block">{label}</span>
           </Link>

@@ -22,6 +22,7 @@ export function HomeworkViewTabs({
           <Link
             key={item.value}
             href={`/homework?${search.toString()}`}
+            prefetch={true}
             aria-current={active ? "page" : undefined}
             className={`flex min-h-10 flex-1 items-center justify-center whitespace-nowrap rounded-md px-3 text-sm font-medium transition-colors ${active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
           >

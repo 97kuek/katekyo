@@ -2,7 +2,7 @@
 
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
-import { revalidatePath } from "next/cache"
+import { invalidateUser } from "@/lib/cache-invalidation"
 import { z } from "zod"
 import bcrypt from "bcryptjs"
 
@@ -18,8 +18,7 @@ export async function updateName(
   if (name.length > 50) return { error: "名前は50文字以内で入力してください" }
 
   await db.user.update({ where: { id: session.user.id }, data: { name } })
-  revalidatePath("/settings")
-  revalidatePath("/profile")
+  invalidateUser(session.user.id)
   return { error: "", success: "名前を更新しました" }
 }
 

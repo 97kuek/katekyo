@@ -2,6 +2,7 @@ import { cookies } from "next/headers"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import type { Session } from "next-auth"
+import { cache } from "react"
 
 const COOKIE_NAME = "katekyo_view_as"
 
@@ -18,7 +19,7 @@ export type ViewingContext = {
   effectiveRole: string
 }
 
-export async function getViewingContext(): Promise<ViewingContext | null> {
+export const getViewingContext = cache(async (): Promise<ViewingContext | null> => {
   const session = await auth()
   if (!session) return null
 
@@ -65,4 +66,4 @@ export async function getViewingContext(): Promise<ViewingContext | null> {
     effectiveUserId: student.userId,
     effectiveRole: "student",
   }
-}
+})

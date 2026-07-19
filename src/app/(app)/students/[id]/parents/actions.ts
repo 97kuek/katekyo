@@ -2,7 +2,7 @@
 
 import { db } from "@/lib/db"
 import { requireTeacher } from "@/lib/action-guards"
-import { revalidatePath } from "next/cache"
+import { invalidateParentStudents, invalidateStudent } from "@/lib/cache-invalidation"
 import { z } from "zod"
 
 export async function unlinkParent(
@@ -31,6 +31,7 @@ export async function unlinkParent(
   if (!link) return { error: "対象が見つかりません" }
 
   await db.parentStudent.delete({ where: { id: link.id } })
-  revalidatePath(`/students/${studentId}/parents`)
+  invalidateParentStudents(parentId)
+  invalidateStudent({ teacherId: teacher.teacherId, studentId })
   return { error: "" }
 }

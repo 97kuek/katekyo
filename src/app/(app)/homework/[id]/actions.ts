@@ -4,7 +4,7 @@ import { db } from "@/lib/db"
 import { requireTeacher, requireStudent } from "@/lib/action-guards"
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
-import { revalidatePath } from "next/cache"
+import { after } from "next/server"
 import { z } from "zod"
 import { deleteHomeworkPhoto, uploadHomeworkPhoto } from "@/lib/supabase-storage"
 import { isPendingStatus } from "@/lib/homework-status"
@@ -12,6 +12,7 @@ import { plantForHomeworkApproval } from "@/lib/garden/actions"
 import { sendLineMessage } from "@/lib/line"
 import { submitHomeworkSchema } from "@/lib/validation"
 import { validateTeacherSubjectIds } from "@/lib/tenant-validation"
+import { invalidateHomework } from "@/lib/cache-invalidation"
 
 const MAX_PHOTO_BYTES = 5 * 1024 * 1024
 
@@ -91,11 +92,21 @@ export async function submitHomework(
   })
   if (teacher?.lineUserId) {
     const baseUrl = process.env.NEXTAUTH_URL ?? ""
-    await sendLineMessage(
-      teacher.lineUserId,
-      `宿題が提出されました\n\n${session.user.name}さんが「${homework.title}」を提出しました。\n${baseUrl}/homework/${id}`
-    )
+    const lineUserId = teacher.lineUserId
+    after(async () => {
+      await sendLineMessage(
+        lineUserId,
+        `宿題が提出されました\n\n${session.user.name}さんが「${homework.title}」を提出しました。\n${baseUrl}/homework/${id}`
+      ).catch((error) => console.error("[submitHomework] LINE notification failed:", error))
+    })
   }
+
+  invalidateHomework({
+    teacherId: homework.teacherId,
+    studentId: student.id,
+    homeworkId: id,
+    studentUserId: session.user.id,
+  })
 
   redirect("/homework?view=waiting&toast=submitted")
 }
@@ -158,7 +169,7 @@ export async function reviewHomework(
   {
     const studentUser = await db.student.findUnique({
       where: { id: homework.studentId },
-      include: { user: { select: { lineUserId: true } } },
+      include: { user: { select: { id: true, lineUserId: true } } },
     })
     if (studentUser?.user.lineUserId) {
       const baseUrl = process.env.NEXTAUTH_URL ?? ""
@@ -170,8 +181,20 @@ export async function reviewHomework(
         if (feedback) message += `\n\n先生からのコメント：\n${feedback}`
         message += `\n\n${baseUrl}/homework/${id}`
       }
-      await sendLineMessage(studentUser.user.lineUserId, message)
+      const lineUserId = studentUser.user.lineUserId
+      after(async () => {
+        await sendLineMessage(lineUserId, message).catch((error) =>
+          console.error("[reviewHomework] LINE notification failed:", error)
+        )
+      })
     }
+
+    invalidateHomework({
+      teacherId: teacher.teacherId,
+      studentId: homework.studentId,
+      homeworkId: id,
+      studentUserId: studentUser?.user.id,
+    })
   }
 
   if (action === "approved") {
@@ -194,7 +217,12 @@ export async function markFeedbackSeen(homeworkId: string) {
     data: { feedbackSeenAt: new Date() },
   })
 
-  revalidatePath("/dashboard")
+  invalidateHomework({
+    teacherId: guard.student.teacherId,
+    studentId: guard.student.id,
+    homeworkId,
+    studentUserId: guard.session.user.id,
+  })
 }
 
 export async function cancelSubmission(formData: FormData) {
@@ -226,8 +254,12 @@ export async function cancelSubmission(formData: FormData) {
     },
   })
 
-  revalidatePath("/homework")
-  revalidatePath(`/homework/${homeworkId}`)
+  invalidateHomework({
+    teacherId: homework.teacherId,
+    studentId: guard.student.id,
+    homeworkId,
+    studentUserId: guard.session.user.id,
+  })
 }
 
 const editSchema = z.object({
@@ -265,6 +297,12 @@ export async function updateHomework(
     data: { title, description: description ?? null, dueDate: new Date(dueDate), subjectIds },
   })
 
+  invalidateHomework({
+    teacherId: teacher.teacherId,
+    studentId: existing.studentId,
+    homeworkId: id,
+  })
+
   redirect(`/homework/${id}`)
 }
 
@@ -296,7 +334,11 @@ export async function extendDueDate(
     data: { dueDate: new Date(dueDate) },
   })
 
-  revalidatePath(`/homework/${id}`)
+  invalidateHomework({
+    teacherId: teacher.teacherId,
+    studentId: existing.studentId,
+    homeworkId: id,
+  })
   return { error: "", success: true }
 }
 
@@ -307,7 +349,17 @@ export async function deleteHomework(formData: FormData) {
   const homeworkId = formData.get("homeworkId") as string
   if (!homeworkId) return
 
+  const homework = await db.homework.findFirst({
+    where: { id: homeworkId, teacherId: teacher.teacherId },
+    select: { studentId: true },
+  })
+  if (!homework) return
+
   await db.homework.deleteMany({ where: { id: homeworkId, teacherId: teacher.teacherId } })
-  revalidatePath("/homework")
+  invalidateHomework({
+    teacherId: teacher.teacherId,
+    studentId: homework.studentId,
+    homeworkId,
+  })
   redirect("/homework")
 }
