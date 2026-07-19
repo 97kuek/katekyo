@@ -1,12 +1,15 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { useRef, useState, type ReactNode } from "react"
+import { useEffect, useRef, useState, useTransition, type ReactNode } from "react"
 import { RefreshCw } from "lucide-react"
 import { haptic } from "@/lib/haptic"
+import { rubberband } from "@/lib/spring"
 
 const THRESHOLD = 70
 const MAX = 110
+/* ラバーバンドの漸近上限。引くほど抵抗が増し、閾値到達には ~165px の実移動が要る */
+const RUBBERBAND_DIMENSION = 300
 
 /**
  * モバイルのプルダウン更新。`<main>`（スクロールコンテナ）の最上部から下に引くと
@@ -22,6 +25,17 @@ export function PullToRefresh({ children }: { children: ReactNode }) {
   const [refreshing, setRefreshing] = useState(false)
   // transition の切り替えはレンダーで参照するため ref ではなく state で持つ
   const [touching, setTouching] = useState(false)
+  const [isPending, startTransition] = useTransition()
+
+  // スピナーは固定タイマーではなく router.refresh() の実際の完了で閉じる
+  useEffect(() => {
+    if (!refreshing || isPending) return
+    const id = window.setTimeout(() => {
+      setRefreshing(false)
+      setPull(0)
+    }, 250)
+    return () => window.clearTimeout(id)
+  }, [refreshing, isPending])
 
   function onTouchStart(e: React.TouchEvent) {
     if (refreshing) return
@@ -44,7 +58,7 @@ export function PullToRefresh({ children }: { children: ReactNode }) {
       setPull(0)
       return
     }
-    const p = Math.min(MAX, dy * 0.5)
+    const p = Math.min(MAX, rubberband(dy, RUBBERBAND_DIMENSION))
     setPull(p)
     if (p >= THRESHOLD && !crossed.current) {
       crossed.current = true
@@ -61,11 +75,7 @@ export function PullToRefresh({ children }: { children: ReactNode }) {
     if (pull >= THRESHOLD && !refreshing) {
       setRefreshing(true)
       setPull(THRESHOLD)
-      router.refresh()
-      window.setTimeout(() => {
-        setRefreshing(false)
-        setPull(0)
-      }, 800)
+      startTransition(() => router.refresh())
     } else {
       setPull(0)
     }

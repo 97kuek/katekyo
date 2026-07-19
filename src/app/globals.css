@@ -193,11 +193,24 @@
   button, [role="button"] {
     min-height: 44px;
   }
+  /* 大きい見出しほどトラッキングを詰める（ユーティリティ指定があればそちらが優先） */
+  h1, h2 {
+    letter-spacing: -0.02em;
+  }
+  h3 {
+    letter-spacing: -0.01em;
+  }
 }
 
 @keyframes page-in {
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
+}
+
+/* reduced-motion 用：スライドを伴わないクロスフェード */
+@keyframes page-in-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 /* フォームエラー時のシェイク */
@@ -215,6 +228,24 @@
   }
   .animate-shake {
     animation: shake 0.4s ease-in-out;
+  }
+}
+
+/* モーション削減設定：スライド/シェイクをフェードまたは無効に置き換える */
+@media (prefers-reduced-motion: reduce) {
+  .animate-page-in {
+    animation-name: page-in-fade;
+  }
+  .animate-shake {
+    animation: none;
+  }
+}
+
+/* 透明度削減設定：半透明クローム（ナビ等）を不透明にフォールバック */
+@media (prefers-reduced-transparency: reduce) {
+  .translucent-chrome {
+    background-color: var(--background);
+    backdrop-filter: none;
   }
 }
 

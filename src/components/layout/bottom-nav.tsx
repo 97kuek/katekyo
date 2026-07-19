@@ -34,7 +34,7 @@ export default function BottomNav({ role }: { role: string }) {
   const navItems = role === "teacher" ? teacherNav : role === "parent" ? parentNav : studentNav
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 border-t border-border bg-background md:hidden z-50 pb-[env(safe-area-inset-bottom)]">
+    <nav className="translucent-chrome fixed bottom-0 left-0 right-0 border-t border-border bg-background/80 backdrop-blur-xl md:hidden z-50 pb-[env(safe-area-inset-bottom)]">
       <div className="flex px-3">
         {navItems.map(({ href, label, icon: Icon }) => {
           const active = pathname === href || pathname.startsWith(href + "/")

@@ -38,7 +38,7 @@ export function InlineConfirmAction({
   }
 
   return (
-    <div className={`flex flex-wrap items-center justify-end gap-2 rounded-lg border p-2 ${destructive ? "border-destructive/25 bg-destructive/10" : "border-border bg-muted"}`}>
+    <div className={`flex flex-wrap items-center justify-end gap-2 rounded-lg border p-2 origin-right animate-in fade-in-0 zoom-in-95 duration-150 motion-reduce:animate-none ${destructive ? "border-destructive/25 bg-destructive/10" : "border-border bg-muted"}`}>
       <span className="text-xs text-foreground">{message}</span>
       <Button type="button" variant="ghost" size="xs" disabled={isPending} onClick={() => setConfirming(false)}>
         戻る

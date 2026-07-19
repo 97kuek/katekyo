@@ -64,7 +64,12 @@
       "PowerShell(Get-ChildItem \"$pwd/src\" -Recurse -Directory | Where-Object { $_.FullName -notmatch 'node_modules|\\\\.next' } | Select-Object -ExpandProperty FullName | Sort-Object)",
       "PowerShell(New-Item -ItemType Directory -Force \"c:\\\\Users\\\\yamashita\\\\Documents\\\\katekyo\\\\docs\\\\archived\")",
       "PowerShell(Move-Item \"c:\\\\Users\\\\yamashita\\\\Documents\\\\katekyo\\\\docs\\\\garden-spec.md\" \"c:\\\\Users\\\\yamashita\\\\Documents\\\\katekyo\\\\docs\\\\archived\\\\garden-spec.md\")",
-      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\yamashita\\\\Documents\\\\katekyo\" -Force)"
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\yamashita\\\\Documents\\\\katekyo\" -Force)",
+      "Bash(xargs ls)",
+      "Bash(echo \"TSC_EXIT:$?\")",
+      "Bash(node scripts/check-ui-consistency.mjs)",
+      "Bash(npm test *)",
+      "Bash(node *)"
     ],
     "additionalDirectories": [
       "c:\\Users\\yamashita\\Documents\\katekyo\\.claude"
